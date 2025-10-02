@@ -1,0 +1,255 @@
+"use client"
+
+import { useState } from "react"
+import { MousePointerClickIcon, GlobeIcon, BarChartIcon, ShieldIcon, ArchiveIcon, SparklesIcon } from "./icons"
+
+export function Analytics() {
+  const [timeRange, setTimeRange] = useState<"7d" | "30d" | "90d" | "1y">("30d")
+
+  const stats = [
+    { label: "Total Links", value: "24", icon: BarChartIcon, change: "+3 this week", trend: "up" },
+    { label: "Total Clicks", value: "1,429", icon: MousePointerClickIcon, change: "+127 today", trend: "up" },
+    { label: "Auto-Healed", value: "8", icon: ShieldIcon, change: "3 active", trend: "neutral" },
+    { label: "Archived", value: "12", icon: ArchiveIcon, change: "via Wayback", trend: "neutral" },
+    { label: "AI Conversations", value: "45", icon: SparklesIcon, change: "18 this week", trend: "up" },
+    { label: "Countries", value: "12", icon: GlobeIcon, change: "5 new", trend: "up" },
+  ]
+
+  const clicksData = [
+    { day: "Mon", clicks: 145 },
+    { day: "Tue", clicks: 189 },
+    { day: "Wed", clicks: 234 },
+    { day: "Thu", clicks: 198 },
+    { day: "Fri", clicks: 267 },
+    { day: "Sat", clicks: 156 },
+    { day: "Sun", clicks: 240 },
+  ]
+
+  const topLinks = [
+    { url: "short.link/a8x9k2", clicks: 567, change: "+12%" },
+    { url: "short.link/k9n2w5", clicks: 342, change: "+8%" },
+    { url: "short.link/p4r8t3", clicks: 234, change: "+15%" },
+    { url: "short.link/m3p7q1", clicks: 189, change: "-3%" },
+    { url: "short.link/x7y2z9", clicks: 97, change: "+5%" },
+  ]
+
+  const topCountries = [
+    { country: "United States", clicks: 456, percentage: 32 },
+    { country: "United Kingdom", clicks: 289, percentage: 20 },
+    { country: "Germany", clicks: 214, percentage: 15 },
+    { country: "Canada", clicks: 186, percentage: 13 },
+    { country: "France", clicks: 142, percentage: 10 },
+  ]
+
+  const maxClicks = Math.max(...clicksData.map((d) => d.clicks))
+
+  return (
+    <div className="space-y-6">
+      {/* Stats Grid */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        {stats.map((stat) => (
+          <div
+            key={stat.label}
+            className="rounded-xl border border-border bg-card p-6 shadow-sm transition-all hover:shadow-md"
+          >
+            <div className="flex items-start justify-between">
+              <div className="flex-1">
+                <p className="font-mono text-xs text-muted-foreground">{stat.label}</p>
+                <p className="mt-2 font-mono text-2xl font-medium">{stat.value}</p>
+                <p className="mt-1 font-mono text-xs text-muted-foreground">{stat.change}</p>
+              </div>
+              <div className="rounded-lg bg-muted p-3">
+                <stat.icon className="h-5 w-5 text-muted-foreground" />
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Charts Section */}
+      <div className="grid gap-6 lg:grid-cols-2">
+        {/* Clicks Over Time */}
+        <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
+          <div className="mb-6 flex items-center justify-between">
+            <div>
+              <h3 className="font-mono text-base font-medium">Clicks Over Time</h3>
+              <p className="mt-1 font-mono text-xs text-muted-foreground">Daily click activity</p>
+            </div>
+            <select
+              value={timeRange}
+              onChange={(e) => setTimeRange(e.target.value as typeof timeRange)}
+              className="rounded-md border border-input bg-background px-3 py-1 font-mono text-xs focus:outline-none focus:ring-2 focus:ring-foreground/20"
+            >
+              <option value="7d">Last 7 days</option>
+              <option value="30d">Last 30 days</option>
+              <option value="90d">Last 90 days</option>
+              <option value="1y">Last year</option>
+            </select>
+          </div>
+
+          <div className="space-y-3">
+            {clicksData.map((data) => (
+              <div key={data.day} className="flex items-center gap-3">
+                <span className="w-8 font-mono text-xs text-muted-foreground">{data.day}</span>
+                <div className="flex-1">
+                  <div className="h-8 rounded-md bg-muted overflow-hidden">
+                    <div
+                      className="h-full bg-foreground transition-all duration-500"
+                      style={{ width: `${(data.clicks / maxClicks) * 100}%` }}
+                    />
+                  </div>
+                </div>
+                <span className="w-12 text-right font-mono text-xs font-medium">{data.clicks}</span>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-6 pt-4 border-t border-border">
+            <div className="flex items-center justify-between">
+              <span className="font-mono text-xs text-muted-foreground">Average per day</span>
+              <span className="font-mono text-sm font-medium">
+                {Math.round(clicksData.reduce((sum, d) => sum + d.clicks, 0) / clicksData.length)}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Top Countries */}
+        <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
+          <div className="mb-6">
+            <h3 className="font-mono text-base font-medium">Top Countries</h3>
+            <p className="mt-1 font-mono text-xs text-muted-foreground">Clicks by geographic location</p>
+          </div>
+
+          <div className="space-y-4">
+            {topCountries.map((country) => (
+              <div key={country.country}>
+                <div className="mb-2 flex items-center justify-between">
+                  <span className="font-mono text-sm">{country.country}</span>
+                  <span className="font-mono text-sm font-medium">{country.clicks}</span>
+                </div>
+                <div className="h-2 rounded-full bg-muted overflow-hidden">
+                  <div
+                    className="h-full bg-foreground transition-all duration-500"
+                    style={{ width: `${country.percentage}%` }}
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-6 pt-4 border-t border-border">
+            <div className="flex items-center justify-between">
+              <span className="font-mono text-xs text-muted-foreground">Total countries</span>
+              <span className="font-mono text-sm font-medium">12</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Top Performing Links */}
+      <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
+        <div className="mb-6">
+          <h3 className="font-mono text-base font-medium">Top Performing Links</h3>
+          <p className="mt-1 font-mono text-xs text-muted-foreground">Most clicked links in the selected period</p>
+        </div>
+
+        <div className="space-y-3">
+          {topLinks.map((link, index) => (
+            <div
+              key={link.url}
+              className="flex items-center justify-between rounded-lg border border-border bg-background p-4 transition-colors hover:bg-muted/30"
+            >
+              <div className="flex items-center gap-4">
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-muted font-mono text-sm font-medium">
+                  {index + 1}
+                </div>
+                <code className="font-mono text-sm font-medium">{link.url}</code>
+              </div>
+              <div className="flex items-center gap-6">
+                <div className="text-right">
+                  <p className="font-mono text-sm font-medium">{link.clicks}</p>
+                  <p className="font-mono text-xs text-muted-foreground">clicks</p>
+                </div>
+                <span
+                  className={`font-mono text-xs ${link.change.startsWith("+") ? "text-green-600" : "text-red-600"}`}
+                >
+                  {link.change}
+                </span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Healing Activity */}
+      <div className="grid gap-6 lg:grid-cols-2">
+        <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
+          <div className="mb-6">
+            <h3 className="font-mono text-base font-medium">Healing Activity</h3>
+            <p className="mt-1 font-mono text-xs text-muted-foreground">Self-healing link statistics</p>
+          </div>
+
+          <div className="space-y-4">
+            <div className="flex items-center justify-between rounded-lg bg-green-50 p-4 border border-green-200">
+              <div>
+                <p className="font-mono text-sm font-medium text-green-900">Successfully Healed</p>
+                <p className="mt-1 font-mono text-xs text-green-700">Links automatically fixed</p>
+              </div>
+              <p className="font-mono text-2xl font-medium text-green-900">8</p>
+            </div>
+
+            <div className="flex items-center justify-between rounded-lg bg-yellow-50 p-4 border border-yellow-200">
+              <div>
+                <p className="font-mono text-sm font-medium text-yellow-900">Currently Checking</p>
+                <p className="mt-1 font-mono text-xs text-yellow-700">Links being monitored</p>
+              </div>
+              <p className="font-mono text-2xl font-medium text-yellow-900">3</p>
+            </div>
+
+            <div className="flex items-center justify-between rounded-lg bg-blue-50 p-4 border border-blue-200">
+              <div>
+                <p className="font-mono text-sm font-medium text-blue-900">Archived Backups</p>
+                <p className="mt-1 font-mono text-xs text-blue-700">Wayback Machine saves</p>
+              </div>
+              <p className="font-mono text-2xl font-medium text-blue-900">12</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
+          <div className="mb-6">
+            <h3 className="font-mono text-base font-medium">AI Usage</h3>
+            <p className="mt-1 font-mono text-xs text-muted-foreground">AI-powered features activity</p>
+          </div>
+
+          <div className="space-y-4">
+            <div className="flex items-center justify-between rounded-lg bg-background p-4 border border-border">
+              <div>
+                <p className="font-mono text-sm font-medium">Summaries Generated</p>
+                <p className="mt-1 font-mono text-xs text-muted-foreground">AI content summaries</p>
+              </div>
+              <p className="font-mono text-2xl font-medium">24</p>
+            </div>
+
+            <div className="flex items-center justify-between rounded-lg bg-background p-4 border border-border">
+              <div>
+                <p className="font-mono text-sm font-medium">Chat Conversations</p>
+                <p className="mt-1 font-mono text-xs text-muted-foreground">AI chat interactions</p>
+              </div>
+              <p className="font-mono text-2xl font-medium">45</p>
+            </div>
+
+            <div className="flex items-center justify-between rounded-lg bg-background p-4 border border-border">
+              <div>
+                <p className="font-mono text-sm font-medium">Memory Entries</p>
+                <p className="mt-1 font-mono text-xs text-muted-foreground">Saved context & notes</p>
+              </div>
+              <p className="font-mono text-2xl font-medium">18</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
