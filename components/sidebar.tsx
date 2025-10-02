@@ -2,6 +2,7 @@
 
 import {
 	BarChartIcon,
+	FoldersPlus,
 	GridIcon,
 	HomeIcon,
 	HouseOutlineIcon,
@@ -76,7 +77,7 @@ export function Sidebar({ activeView, onViewChange }: SidebarProps) {
 					}`}
 					title="Collections"
 				>
-					<GridIcon className="h-5 w-5" />
+					<FoldersPlus className="size-5" strokeWidth={2} />
 				</button>
 				<button
 					type="button"
