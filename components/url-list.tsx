@@ -246,11 +246,10 @@ export function UrlList() {
 					<button
 						type="button"
 						onClick={() => setShowFilters(!showFilters)}
-						className={`flex items-center gap-2 rounded-md px-3 py-2 font-mono text-sm transition-colors ${
-							showFilters || statusFilter !== "all"
-								? "bg-foreground text-background"
-								: "border border-border hover:bg-accent"
-						}`}
+						className={`flex items-center gap-2 rounded-md px-3 py-2 font-mono text-sm transition-colors ${showFilters || statusFilter !== "all"
+							? "bg-foreground text-background"
+							: "border border-border hover:bg-accent"
+							}`}
 					>
 						<Filter className="h-4 w-4" />
 						Filters
@@ -290,11 +289,10 @@ export function UrlList() {
 											type="button"
 											key={status}
 											onClick={() => setStatusFilter(status)}
-											className={`rounded-md px-3 py-1 font-mono text-xs transition-colors ${
-												statusFilter === status
-													? "bg-foreground text-background"
-													: "bg-background border border-border hover:bg-accent"
-											}`}
+											className={`rounded-md px-3 py-1 font-mono text-xs transition-colors ${statusFilter === status
+												? "bg-foreground text-background"
+												: "bg-background border border-border hover:bg-accent"
+												}`}
 										>
 											{status === "all" ? "All" : getStatusText(status)}
 										</button>
@@ -464,11 +462,10 @@ export function UrlList() {
 										<button
 											type="button"
 											onClick={() => setActiveTab("memory")}
-											className={`flex items-center gap-2 border-b-2 px-4 py-2 font-mono text-sm transition-colors ${
-												activeTab === "memory"
-													? "border-foreground text-foreground"
-													: "border-transparent text-muted-foreground hover:text-foreground"
-											}`}
+											className={`flex items-center gap-2 border-b-2 px-4 py-2 font-mono text-sm transition-colors ${activeTab === "memory"
+												? "border-foreground text-foreground"
+												: "border-transparent text-muted-foreground hover:text-foreground"
+												}`}
 										>
 											<FileTextIcon className="h-4 w-4" />
 											Memory
@@ -476,11 +473,10 @@ export function UrlList() {
 										<button
 											type="button"
 											onClick={() => setActiveTab("chat")}
-											className={`flex items-center gap-2 border-b-2 px-4 py-2 font-mono text-sm transition-colors ${
-												activeTab === "chat"
-													? "border-foreground text-foreground"
-													: "border-transparent text-muted-foreground hover:text-foreground"
-											}`}
+											className={`flex items-center gap-2 border-b-2 px-4 py-2 font-mono text-sm transition-colors ${activeTab === "chat"
+												? "border-foreground text-foreground"
+												: "border-transparent text-muted-foreground hover:text-foreground"
+												}`}
 										>
 											<MessageSquareIcon className="h-4 w-4" />
 											Chat ({url.conversations?.length || 0})
@@ -488,11 +484,10 @@ export function UrlList() {
 										<button
 											type="button"
 											onClick={() => setActiveTab("healing")}
-											className={`flex items-center gap-2 border-b-2 px-4 py-2 font-mono text-sm transition-colors ${
-												activeTab === "healing"
-													? "border-foreground text-foreground"
-													: "border-transparent text-muted-foreground hover:text-foreground"
-											}`}
+											className={`flex items-center gap-2 border-b-2 px-4 py-2 font-mono text-sm transition-colors ${activeTab === "healing"
+												? "border-foreground text-foreground"
+												: "border-transparent text-muted-foreground hover:text-foreground"
+												}`}
 										>
 											<RefreshCwIcon className="h-4 w-4" />
 											Healing History
@@ -583,7 +578,7 @@ export function UrlList() {
 															No conversations yet
 														</p>
 														<p className="mt-1 font-mono text-xs text-muted-foreground">
-															Ask questions about this link's content
+															Ask questions about this link&apos;s content
 														</p>
 													</div>
 												)}
@@ -598,7 +593,7 @@ export function UrlList() {
 															<div className="flex flex-col items-center">
 																<div className="rounded-full bg-muted p-2">
 																	{event.action.includes("404") ||
-																	event.action.includes("Detected") ? (
+																		event.action.includes("Detected") ? (
 																		<AlertCircleIcon className="h-3.5 w-3.5 text-orange-600" />
 																	) : event.action.includes("Found") ||
 																		event.action.includes("semantic") ? (
