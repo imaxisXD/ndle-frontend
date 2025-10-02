@@ -244,6 +244,7 @@ export function UrlList() {
 						</p>
 					</div>
 					<button
+						type="button"
 						onClick={() => setShowFilters(!showFilters)}
 						className={`flex items-center gap-2 rounded-md px-3 py-2 font-mono text-sm transition-colors ${
 							showFilters || statusFilter !== "all"
@@ -267,6 +268,7 @@ export function UrlList() {
 					/>
 					{searchQuery && (
 						<button
+							type="button"
 							onClick={() => setSearchQuery("")}
 							className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
 						>
@@ -285,6 +287,7 @@ export function UrlList() {
 								{(["all", "healthy", "healed", "checking"] as const).map(
 									(status) => (
 										<button
+											type="button"
 											key={status}
 											onClick={() => setStatusFilter(status)}
 											className={`rounded-md px-3 py-1 font-mono text-xs transition-colors ${
@@ -327,6 +330,7 @@ export function UrlList() {
 							<span className="inline-flex items-center gap-1 rounded-full bg-accent px-2 py-1 font-mono text-xs">
 								Search: {searchQuery}
 								<button
+									type="button"
 									onClick={() => setSearchQuery("")}
 									className="hover:text-foreground"
 								>
@@ -338,6 +342,7 @@ export function UrlList() {
 							<span className="inline-flex items-center gap-1 rounded-full bg-accent px-2 py-1 font-mono text-xs">
 								Status: {getStatusText(statusFilter)}
 								<button
+									type="button"
 									onClick={() => setStatusFilter("all")}
 									className="hover:text-foreground"
 								>
@@ -346,6 +351,7 @@ export function UrlList() {
 							</span>
 						)}
 						<button
+							type="button"
 							onClick={() => {
 								setSearchQuery("");
 								setStatusFilter("all");
@@ -369,6 +375,7 @@ export function UrlList() {
 					</p>
 					{(searchQuery || statusFilter !== "all") && (
 						<button
+							type="button"
 							onClick={() => {
 								setSearchQuery("");
 								setStatusFilter("all");
@@ -384,7 +391,8 @@ export function UrlList() {
 					{filteredAndSortedUrls.map((url) => (
 						<div key={url.id} className="transition-colors hover:bg-muted/30">
 							{/* Main Link Row */}
-							<div
+							<button
+								type="button"
 								className="flex cursor-pointer items-center justify-between p-6"
 								onClick={() =>
 									setExpandedId(expandedId === url.id ? null : url.id)
@@ -397,6 +405,7 @@ export function UrlList() {
 											{url.shortUrl}
 										</code>
 										<button
+											type="button"
 											className="rounded-md p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
 											onClick={(e) => {
 												e.stopPropagation();
@@ -438,13 +447,14 @@ export function UrlList() {
 										</p>
 									</div>
 									<button
+										type="button"
 										className="rounded-md p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
 										onClick={(e) => e.stopPropagation()}
 									>
 										<MoreVerticalIcon className="h-4 w-4" />
 									</button>
 								</div>
-							</div>
+							</button>
 
 							{/* Expanded Details */}
 							{expandedId === url.id && (
@@ -452,6 +462,7 @@ export function UrlList() {
 									{/* Tabs */}
 									<div className="mb-4 flex gap-2 border-b border-border">
 										<button
+											type="button"
 											onClick={() => setActiveTab("memory")}
 											className={`flex items-center gap-2 border-b-2 px-4 py-2 font-mono text-sm transition-colors ${
 												activeTab === "memory"
@@ -463,6 +474,7 @@ export function UrlList() {
 											Memory
 										</button>
 										<button
+											type="button"
 											onClick={() => setActiveTab("chat")}
 											className={`flex items-center gap-2 border-b-2 px-4 py-2 font-mono text-sm transition-colors ${
 												activeTab === "chat"
@@ -474,6 +486,7 @@ export function UrlList() {
 											Chat ({url.conversations?.length || 0})
 										</button>
 										<button
+											type="button"
 											onClick={() => setActiveTab("healing")}
 											className={`flex items-center gap-2 border-b-2 px-4 py-2 font-mono text-sm transition-colors ${
 												activeTab === "healing"
@@ -581,7 +594,7 @@ export function UrlList() {
 											<div className="space-y-3">
 												{url.healingHistory && url.healingHistory.length > 0 ? (
 													url.healingHistory.map((event, idx) => (
-														<div key={idx} className="flex gap-4">
+														<div key={event.date} className="flex gap-4">
 															<div className="flex flex-col items-center">
 																<div className="rounded-full bg-muted p-2">
 																	{event.action.includes("404") ||

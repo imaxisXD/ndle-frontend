@@ -191,6 +191,7 @@ export function LinkMonitoring() {
 			<div className="flex gap-2">
 				{(["all", "healthy", "warning", "error"] as const).map((status) => (
 					<button
+						type="button"
 						key={status}
 						onClick={() => setFilter(status)}
 						className={`rounded-md px-4 py-2 font-mono text-sm transition-colors ${
@@ -226,7 +227,7 @@ export function LinkMonitoring() {
 									{link.ssl && (
 										<ShieldIcon
 											className="h-4 w-4 text-green-600"
-											title="SSL Enabled"
+											aria-label="SSL Enabled"
 										/>
 									)}
 								</div>
@@ -272,7 +273,10 @@ export function LinkMonitoring() {
 								</div>
 							</div>
 
-							<button className="rounded-md border border-border bg-background px-3 py-2 font-mono text-xs transition-colors hover:bg-accent">
+							<button
+								type="button"
+								className="rounded-md border border-border bg-background px-3 py-2 font-mono text-xs transition-colors hover:bg-accent"
+							>
 								Check Now
 							</button>
 						</div>

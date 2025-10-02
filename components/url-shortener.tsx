@@ -68,6 +68,7 @@ export function UrlShortener() {
 							</code>
 							<div className="flex gap-2">
 								<button
+									type="button"
 									onClick={handleCopy}
 									className="rounded-md p-2 text-muted-foreground transition-colors hover:bg-background hover:text-foreground"
 								>

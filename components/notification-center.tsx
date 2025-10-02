@@ -106,6 +106,7 @@ export function NotificationCenter() {
 	return (
 		<div className="relative">
 			<button
+				type="button"
 				onClick={() => setIsOpen(!isOpen)}
 				className="relative rounded-md p-2 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
 			>
@@ -142,6 +143,7 @@ export function NotificationCenter() {
 							<h3 className="font-mono text-sm font-medium">Notifications</h3>
 							{unreadCount > 0 && (
 								<button
+									type="button"
 									onClick={markAllAsRead}
 									className="font-mono text-xs text-muted-foreground hover:text-foreground"
 								>
@@ -174,7 +176,8 @@ export function NotificationCenter() {
 							) : (
 								<div className="divide-y divide-border">
 									{notifications.map((notification) => (
-										<div
+										<button
+											type="button"
 											key={notification.id}
 											className={`group relative p-4 transition-colors hover:bg-muted/30 ${
 												!notification.read ? "bg-blue-50/50" : ""
@@ -207,6 +210,7 @@ export function NotificationCenter() {
 													</p>
 												</div>
 												<button
+													type="button"
 													onClick={(e) => {
 														e.stopPropagation();
 														deleteNotification(notification.id);
@@ -216,7 +220,7 @@ export function NotificationCenter() {
 													<X className="h-4 w-4" />
 												</button>
 											</div>
-										</div>
+										</button>
 									))}
 								</div>
 							)}
@@ -224,7 +228,10 @@ export function NotificationCenter() {
 
 						{notifications.length > 0 && (
 							<div className="border-t border-border p-3 text-center">
-								<button className="font-mono text-xs text-muted-foreground hover:text-foreground">
+								<button
+									type="button"
+									className="font-mono text-xs text-muted-foreground hover:text-foreground"
+								>
 									View all notifications
 								</button>
 							</div>

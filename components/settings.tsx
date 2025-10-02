@@ -52,7 +52,10 @@ export function Settings() {
 
 				<div className="space-y-6">
 					<div>
-						<label className="font-mono text-sm font-medium">
+						<label
+							htmlFor="customDomain"
+							className="font-mono text-sm font-medium"
+						>
 							Custom Domain
 						</label>
 						<p className="mt-1 font-mono text-xs text-muted-foreground">
@@ -72,7 +75,10 @@ export function Settings() {
 					</div>
 
 					<div>
-						<label className="font-mono text-sm font-medium">
+						<label
+							htmlFor="defaultExpiration"
+							className="font-mono text-sm font-medium"
+						>
 							Default Link Expiration
 						</label>
 						<p className="mt-1 font-mono text-xs text-muted-foreground">
@@ -92,7 +98,9 @@ export function Settings() {
 					</div>
 
 					<div>
-						<label className="font-mono text-sm font-medium">Timezone</label>
+						<label htmlFor="timezone" className="font-mono text-sm font-medium">
+							Timezone
+						</label>
 						<p className="mt-1 font-mono text-xs text-muted-foreground">
 							Used for analytics and scheduling
 						</p>
@@ -126,7 +134,10 @@ export function Settings() {
 				<div className="space-y-6">
 					<div className="flex items-start justify-between">
 						<div className="flex-1">
-							<label className="font-mono text-sm font-medium">
+							<label
+								htmlFor="autoHealing"
+								className="font-mono text-sm font-medium"
+							>
 								Enable Auto-Healing
 							</label>
 							<p className="mt-1 font-mono text-xs text-muted-foreground">
@@ -135,6 +146,7 @@ export function Settings() {
 							</p>
 						</div>
 						<button
+							type="button"
 							onClick={() => setAutoHealing(!autoHealing)}
 							className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
 								autoHealing ? "bg-green-600" : "bg-gray-300"
@@ -150,7 +162,10 @@ export function Settings() {
 
 					<div className="flex items-start justify-between">
 						<div className="flex-1">
-							<label className="font-mono text-sm font-medium">
+							<label
+								htmlFor="healingNotifications"
+								className="font-mono text-sm font-medium"
+							>
 								Healing Notifications
 							</label>
 							<p className="mt-1 font-mono text-xs text-muted-foreground">
@@ -158,6 +173,7 @@ export function Settings() {
 							</p>
 						</div>
 						<button
+							type="button"
 							onClick={() => setHealingNotifications(!healingNotifications)}
 							className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
 								healingNotifications ? "bg-green-600" : "bg-gray-300"
@@ -172,7 +188,10 @@ export function Settings() {
 					</div>
 
 					<div>
-						<label className="font-mono text-sm font-medium">
+						<label
+							htmlFor="healingStrategy"
+							className="font-mono text-sm font-medium"
+						>
 							Healing Strategy
 						</label>
 						<p className="mt-1 font-mono text-xs text-muted-foreground">
@@ -187,7 +206,10 @@ export function Settings() {
 					</div>
 
 					<div>
-						<label className="font-mono text-sm font-medium">
+						<label
+							htmlFor="checkFrequency"
+							className="font-mono text-sm font-medium"
+						>
 							Check Frequency
 						</label>
 						<p className="mt-1 font-mono text-xs text-muted-foreground">
@@ -220,7 +242,10 @@ export function Settings() {
 				<div className="space-y-6">
 					<div className="flex items-start justify-between">
 						<div className="flex-1">
-							<label className="font-mono text-sm font-medium">
+							<label
+								htmlFor="aiSummaries"
+								className="font-mono text-sm font-medium"
+							>
 								Auto-Generate Summaries
 							</label>
 							<p className="mt-1 font-mono text-xs text-muted-foreground">
@@ -228,6 +253,7 @@ export function Settings() {
 							</p>
 						</div>
 						<button
+							type="button"
 							onClick={() => setAiSummaries(!aiSummaries)}
 							className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
 								aiSummaries ? "bg-yellow-600" : "bg-gray-300"
@@ -243,7 +269,7 @@ export function Settings() {
 
 					<div className="flex items-start justify-between">
 						<div className="flex-1">
-							<label className="font-mono text-sm font-medium">
+							<label htmlFor="aiChat" className="font-mono text-sm font-medium">
 								Enable AI Chat
 							</label>
 							<p className="mt-1 font-mono text-xs text-muted-foreground">
@@ -251,6 +277,7 @@ export function Settings() {
 							</p>
 						</div>
 						<button
+							type="button"
 							onClick={() => setAiChat(!aiChat)}
 							className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
 								aiChat ? "bg-yellow-600" : "bg-gray-300"
@@ -265,7 +292,10 @@ export function Settings() {
 					</div>
 
 					<div>
-						<label className="font-mono text-sm font-medium">
+						<label
+							htmlFor="memoryRetention"
+							className="font-mono text-sm font-medium"
+						>
 							Memory Retention
 						</label>
 						<p className="mt-1 font-mono text-xs text-muted-foreground">
@@ -281,7 +311,9 @@ export function Settings() {
 					</div>
 
 					<div>
-						<label className="font-mono text-sm font-medium">AI Model</label>
+						<label htmlFor="aiModel" className="font-mono text-sm font-medium">
+							AI Model
+						</label>
 						<p className="mt-1 font-mono text-xs text-muted-foreground">
 							Choose the AI model for summaries and chat
 						</p>
@@ -324,7 +356,9 @@ export function Settings() {
 
 				<div className="space-y-6">
 					<div>
-						<label className="font-mono text-sm font-medium">API Key</label>
+						<label htmlFor="apiKey" className="font-mono text-sm font-medium">
+							API Key
+						</label>
 						<p className="mt-1 font-mono text-xs text-muted-foreground">
 							Use this key to authenticate API requests
 						</p>
@@ -336,12 +370,14 @@ export function Settings() {
 								className="flex-1 rounded-md border border-input bg-muted px-3 py-2 font-mono text-sm"
 							/>
 							<button
+								type="button"
 								onClick={handleCopyApiKey}
 								className="rounded-md border border-border bg-background px-3 py-2 hover:bg-accent transition-colors"
 							>
 								<CopyIcon className="h-4 w-4" />
 							</button>
 							<button
+								type="button"
 								onClick={handleGenerateApiKey}
 								className="rounded-md border border-border bg-background px-3 py-2 hover:bg-accent transition-colors"
 							>
@@ -355,7 +391,12 @@ export function Settings() {
 					</div>
 
 					<div>
-						<label className="font-mono text-sm font-medium">Webhook URL</label>
+						<label
+							htmlFor="webhookUrl"
+							className="font-mono text-sm font-medium"
+						>
+							Webhook URL
+						</label>
 						<p className="mt-1 font-mono text-xs text-muted-foreground">
 							Receive notifications when links are created, clicked, or healed
 						</p>
@@ -369,7 +410,10 @@ export function Settings() {
 					</div>
 
 					<div>
-						<label className="font-mono text-sm font-medium">
+						<label
+							htmlFor="webhookEvents"
+							className="font-mono text-sm font-medium"
+						>
 							Webhook Events
 						</label>
 						<p className="mt-1 font-mono text-xs text-muted-foreground">
@@ -449,7 +493,10 @@ export function Settings() {
 								Permanently delete all shortened links and their data
 							</p>
 						</div>
-						<button className="rounded-md bg-red-600 px-4 py-2 font-mono text-sm text-white transition-colors hover:bg-red-700">
+						<button
+							type="button"
+							className="rounded-md bg-red-600 px-4 py-2 font-mono text-sm text-white transition-colors hover:bg-red-700"
+						>
 							Delete All
 						</button>
 					</div>
@@ -463,7 +510,10 @@ export function Settings() {
 								Permanently delete your account and all associated data
 							</p>
 						</div>
-						<button className="rounded-md bg-red-600 px-4 py-2 font-mono text-sm text-white transition-colors hover:bg-red-700">
+						<button
+							type="button"
+							className="rounded-md bg-red-600 px-4 py-2 font-mono text-sm text-white transition-colors hover:bg-red-700"
+						>
 							Delete Account
 						</button>
 					</div>
