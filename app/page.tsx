@@ -30,9 +30,7 @@ export default function DashboardPage() {
 						{activeView === "home" && (
 							<>
 								<div>
-									<h1 className="font-mono text-3xl font-medium tracking-tight">
-										URL Shortener
-									</h1>
+									<h1 className="font-doto text-4xl font-bold">ndle</h1>
 									<p className="mt-2 font-mono text-sm text-muted-foreground">
 										Create and manage your shortened links
 									</p>
@@ -79,7 +77,7 @@ export default function DashboardPage() {
 										Settings
 									</h1>
 									<p className="mt-2 font-mono text-sm text-muted-foreground">
-										Configure your URL shortener
+										Configure ndle
 									</p>
 								</div>
 								<Settings />
