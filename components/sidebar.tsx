@@ -1,5 +1,6 @@
 "use client";
 
+import { NavLink } from "react-router";
 import {
   BarChartIcon,
   FoldersPlus,
@@ -16,42 +17,22 @@ import {
   TooltipTrigger,
 } from "@/components/ui/base-tooltip";
 
-interface SidebarProps {
-  activeView:
-    | "home"
-    | "analytics"
-    | "settings"
-    | "create"
-    | "collections"
-    | "memory"
-    | "monitoring";
-  onViewChange: (
-    view:
-      | "home"
-      | "analytics"
-      | "settings"
-      | "create"
-      | "collections"
-      | "memory"
-      | "monitoring"
-  ) => void;
-}
-
-export function Sidebar({ activeView, onViewChange }: SidebarProps) {
+export function Sidebar() {
   return (
     <aside className="flex h-[98vh] my-auto rounded-xl ml-4 w-16 flex-shrink-0 flex-col items-center border border-border bg-white py-6 drop-shadow-sm">
       <nav className="flex flex-1 flex-col gap-4">
         <Tooltip>
           <TooltipTrigger
             render={
-              <button
-                type="button"
-                onClick={() => onViewChange("home")}
-                className={`flex h-10 w-10 items-center justify-center rounded-md transition-colors ${
-                  activeView === "home"
-                    ? "bg-accent text-accent-foreground"
-                    : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
-                }`}
+              <NavLink
+                to="/"
+                className={({ isActive }) =>
+                  `flex h-10 w-10 items-center justify-center rounded-md transition-colors ${
+                    isActive
+                      ? "bg-accent text-accent-foreground"
+                      : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                  }`
+                }
               />
             }
           >
@@ -62,14 +43,15 @@ export function Sidebar({ activeView, onViewChange }: SidebarProps) {
         <Tooltip>
           <TooltipTrigger
             render={
-              <button
-                type="button"
-                onClick={() => onViewChange("create")}
-                className={`flex h-10 w-10 items-center justify-center rounded-md transition-colors ${
-                  activeView === "create"
-                    ? "bg-accent text-accent-foreground"
-                    : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
-                }`}
+              <NavLink
+                to="/create"
+                className={({ isActive }) =>
+                  `flex h-10 w-10 items-center justify-center rounded-md transition-colors ${
+                    isActive
+                      ? "bg-accent text-accent-foreground"
+                      : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                  }`
+                }
               />
             }
           >
@@ -80,14 +62,15 @@ export function Sidebar({ activeView, onViewChange }: SidebarProps) {
         <Tooltip>
           <TooltipTrigger
             render={
-              <button
-                type="button"
-                onClick={() => onViewChange("collections")}
-                className={`flex h-10 w-10 items-center justify-center rounded-md transition-colors ${
-                  activeView === "collections"
-                    ? "bg-accent text-accent-foreground"
-                    : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
-                }`}
+              <NavLink
+                to="/collections"
+                className={({ isActive }) =>
+                  `flex h-10 w-10 items-center justify-center rounded-md transition-colors ${
+                    isActive
+                      ? "bg-accent text-accent-foreground"
+                      : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                  }`
+                }
               />
             }
           >
@@ -98,14 +81,15 @@ export function Sidebar({ activeView, onViewChange }: SidebarProps) {
         <Tooltip>
           <TooltipTrigger
             render={
-              <button
-                type="button"
-                onClick={() => onViewChange("memory")}
-                className={`flex h-10 w-10 items-center justify-center rounded-md transition-colors ${
-                  activeView === "memory"
-                    ? "bg-accent text-accent-foreground"
-                    : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
-                }`}
+              <NavLink
+                to="/memory"
+                className={({ isActive }) =>
+                  `flex h-10 w-10 items-center justify-center rounded-md transition-colors ${
+                    isActive
+                      ? "bg-accent text-accent-foreground"
+                      : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                  }`
+                }
               />
             }
           >
@@ -116,14 +100,15 @@ export function Sidebar({ activeView, onViewChange }: SidebarProps) {
         <Tooltip>
           <TooltipTrigger
             render={
-              <button
-                type="button"
-                onClick={() => onViewChange("monitoring")}
-                className={`flex h-10 w-10 items-center justify-center rounded-md transition-colors ${
-                  activeView === "monitoring"
-                    ? "bg-accent text-accent-foreground"
-                    : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
-                }`}
+              <NavLink
+                to="/monitoring"
+                className={({ isActive }) =>
+                  `flex h-10 w-10 items-center justify-center rounded-md transition-colors ${
+                    isActive
+                      ? "bg-accent text-accent-foreground"
+                      : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                  }`
+                }
               />
             }
           >
@@ -139,14 +124,15 @@ export function Sidebar({ activeView, onViewChange }: SidebarProps) {
         <Tooltip>
           <TooltipTrigger
             render={
-              <button
-                type="button"
-                onClick={() => onViewChange("analytics")}
-                className={`flex h-10 w-10 items-center justify-center rounded-md transition-colors ${
-                  activeView === "analytics"
-                    ? "bg-accent text-accent-foreground"
-                    : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
-                }`}
+              <NavLink
+                to="/analytics"
+                className={({ isActive }) =>
+                  `flex h-10 w-10 items-center justify-center rounded-md transition-colors ${
+                    isActive
+                      ? "bg-accent text-accent-foreground"
+                      : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                  }`
+                }
               />
             }
           >
@@ -157,14 +143,15 @@ export function Sidebar({ activeView, onViewChange }: SidebarProps) {
         <Tooltip>
           <TooltipTrigger
             render={
-              <button
-                type="button"
-                onClick={() => onViewChange("settings")}
-                className={`flex h-10 w-10 items-center justify-center rounded-md transition-colors ${
-                  activeView === "settings"
-                    ? "bg-accent text-accent-foreground"
-                    : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
-                }`}
+              <NavLink
+                to="/settings"
+                className={({ isActive }) =>
+                  `flex h-10 w-10 items-center justify-center rounded-md transition-colors ${
+                    isActive
+                      ? "bg-accent text-accent-foreground"
+                      : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                  }`
+                }
               />
             }
           >

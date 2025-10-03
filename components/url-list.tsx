@@ -16,9 +16,10 @@ import {
   MoreVerticalIcon,
   RefreshCwIcon,
   Search,
-  SparklesIcon,
   X,
 } from "./icons";
+import { AiSummaryGenerator } from "./ai-summary-generator";
+import { AiChat } from "./ai-chat";
 
 type LinkStatus = "healthy" | "healed" | "checking";
 type SortOption = "clicks" | "date" | "name";
@@ -509,17 +510,10 @@ export function UrlList() {
                   <div className="space-y-4">
                     {activeTab === "memory" && url.memory && (
                       <div className="space-y-4">
-                        <div className="rounded-lg border border-border bg-card p-4">
-                          <div className="mb-2 flex items-center gap-2">
-                            <SparklesIcon className="h-4 w-4 text-yellow-600" />
-                            <h4 className="font-mono text-sm font-medium">
-                              AI Summary
-                            </h4>
-                          </div>
-                          <p className="font-mono text-sm text-muted-foreground leading-relaxed">
-                            {url.memory.summary}
-                          </p>
-                        </div>
+                        <AiSummaryGenerator
+                          url={url.originalUrl}
+                          existingSummary={url.memory.summary}
+                        />
 
                         <div className="rounded-lg border border-border bg-card p-4">
                           <div className="mb-2 flex items-center gap-2">
@@ -549,50 +543,10 @@ export function UrlList() {
 
                     {activeTab === "chat" && (
                       <div className="space-y-4">
-                        {url.conversations && url.conversations.length > 0 ? (
-                          <>
-                            {url.conversations.map((conv) => (
-                              <div key={conv.id} className="space-y-3">
-                                <div className="rounded-lg bg-muted p-4">
-                                  <p className="font-mono text-sm text-foreground">
-                                    {conv.question}
-                                  </p>
-                                  <p className="mt-1 font-mono text-xs text-muted-foreground">
-                                    {conv.timestamp}
-                                  </p>
-                                </div>
-                                <div className="rounded-lg border border-border bg-card p-4">
-                                  <div className="mb-2 flex items-center gap-2">
-                                    <SparklesIcon className="h-3.5 w-3.5 text-yellow-600" />
-                                    <span className="font-mono text-xs font-medium text-muted-foreground">
-                                      AI Assistant
-                                    </span>
-                                  </div>
-                                  <p className="font-mono text-sm text-foreground leading-relaxed">
-                                    {conv.answer}
-                                  </p>
-                                </div>
-                              </div>
-                            ))}
-                            <div className="rounded-lg border border-border bg-card p-4">
-                              <input
-                                type="text"
-                                placeholder="Ask anything about this link..."
-                                className="w-full bg-transparent font-mono text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"
-                              />
-                            </div>
-                          </>
-                        ) : (
-                          <div className="rounded-lg border border-dashed border-border bg-muted/30 p-8 text-center">
-                            <MessageSquareIcon className="mx-auto h-8 w-8 text-muted-foreground" />
-                            <p className="mt-2 font-mono text-sm text-muted-foreground">
-                              No conversations yet
-                            </p>
-                            <p className="mt-1 font-mono text-xs text-muted-foreground">
-                              Ask questions about this link&apos;s content
-                            </p>
-                          </div>
-                        )}
+                        <AiChat
+                          linkUrl={url.originalUrl}
+                          existingConversations={url.conversations}
+                        />
                       </div>
                     )}
 
