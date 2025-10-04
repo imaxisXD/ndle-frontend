@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { useToast } from "@/lib/toast-context";
+
 import {
   AlertCircleIcon,
   ArrowUpDown,
@@ -21,6 +21,7 @@ import {
 import { AiSummaryGenerator } from "./ai-summary-generator";
 import { AiChat } from "./ai-chat";
 import { useNavigate } from "react-router";
+import { useToast } from "@/hooks/use-toast";
 
 type LinkStatus = "healthy" | "healed" | "checking";
 type SortOption = "clicks" | "date" | "name";
@@ -154,7 +155,7 @@ export function UrlList() {
   const [sortBy, setSortBy] = useState<SortOption>("date");
   const [showFilters, setShowFilters] = useState(false);
 
-  const { showToast } = useToast();
+  const { add } = useToast();
 
   const filteredAndSortedUrls = useMemo(() => {
     let filtered: Array<{
@@ -228,7 +229,11 @@ export function UrlList() {
 
   const handleCopy = (shortUrl: string) => {
     navigator.clipboard.writeText(`https://${shortUrl}`);
-    showToast("Link copied to clipboard!", "success");
+    add({
+      type: "success",
+      title: "Link copied to clipboard!",
+      description: `Link copied to clipboard ${shortUrl}`,
+    });
   };
 
   return (

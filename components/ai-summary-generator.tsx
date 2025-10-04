@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { useToast } from "@/lib/toast-context";
+
 import { RefreshIcon, SparklesIcon } from "./icons";
+import { useToast } from "@/hooks/use-toast";
 
 interface AiSummaryGeneratorProps {
   url: string;
@@ -17,7 +18,7 @@ export function AiSummaryGenerator({
 }: AiSummaryGeneratorProps) {
   const [summary, setSummary] = useState(existingSummary || "");
   const [isGenerating, setIsGenerating] = useState(false);
-  const { showToast } = useToast();
+  const { add } = useToast();
 
   const generateSummary = async () => {
     setIsGenerating(true);
@@ -30,7 +31,11 @@ export function AiSummaryGenerator({
       setSummary(mockSummary);
       onSummaryGenerated?.(mockSummary);
       setIsGenerating(false);
-      showToast("AI summary generated successfully", "success");
+      add({
+        type: "success",
+        title: "AI summary generated successfully",
+        description: `AI summary generated successfully ${mockSummary}`,
+      });
     }, 2000);
   };
 

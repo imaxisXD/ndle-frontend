@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { Doto, Geist_Mono } from "next/font/google";
 import type React from "react";
 import "./globals.css";
-import { ToastProvider } from "@/lib/toast-context";
 import ConvexClientProvider from "@/components/ConvexClientProvider";
 
 const geistMono = Geist_Mono({
@@ -33,9 +32,7 @@ export default function RootLayout({
       className={`${geistMono.variable} ${doto.variable} antialiased`}
     >
       <body>
-        <ConvexClientProvider>
-          <ToastProvider>{children}</ToastProvider>
-        </ConvexClientProvider>
+        <ConvexClientProvider>{children}</ConvexClientProvider>
       </body>
     </html>
   );

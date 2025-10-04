@@ -3,7 +3,7 @@
 import { useId, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useToast } from "@/lib/toast-context";
+
 import { CopyIcon, ExternalLinkIcon } from "./icons";
 import {
   Card,
@@ -16,6 +16,7 @@ import {
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useNavigate } from "react-router";
+import { useToast } from "@/hooks/use-toast";
 
 export function UrlShortener() {
   const [url, setUrl] = useState("");
@@ -25,7 +26,7 @@ export function UrlShortener() {
   const [expiresEnabled, setExpiresEnabled] = useState(false);
   const [expiresAt, setExpiresAt] = useState("");
   const [trackingEnabled, setTrackingEnabled] = useState(true);
-  const { showToast } = useToast();
+  const { add } = useToast();
   const navigate = useNavigate();
 
   const urlInputId = useId();
@@ -77,7 +78,11 @@ export function UrlShortener() {
 
   const handleShorten = () => {
     if (!url) {
-      showToast("Please enter a URL to shorten", "error");
+      add({
+        type: "info",
+        title: "Url missing",
+        description: "Please enter a URL to shorten",
+      });
       return;
     }
 
@@ -92,19 +97,44 @@ export function UrlShortener() {
 
     const finalShort = `${BASE_DOMAIN}/${slug}`;
     setShortUrl(finalShort);
-    showToast("Link created (demo)", "success");
+    add({
+      type: "success",
+      title: "Created (demo)",
+      description: `Link created ${finalShort}`,
+    });
     navigate(`/link/${slug}`);
   };
 
   const handleCopy = () => {
     navigator.clipboard.writeText(shortUrl);
-    showToast("Link copied to clipboard!", "success");
+    add({
+      type: "success",
+      title: "Link copied to clipboard!",
+      description: `Link copied to clipboard ${shortUrl}`,
+    });
   };
 
-  // const previewShortUrl =
-  //   slugMode === "human"
-  //     ? `${BASE_DOMAIN}/${humanSlug || "rare-geckos-jam"}`
-  //     : `${BASE_DOMAIN}/random`;
+  const showToast = () => {
+    add({
+      timeout: 1000000,
+      type: "success",
+      title: "Success",
+      description: `Link copied to clipboard ${shortUrl}`,
+    });
+    // add({
+    //   timeout: 1000000,
+    //   type: "info",
+    //   title: "Info",
+    //   description: `Link copied to clipboard ${shortUrl}`,
+    //   data: { close: true },
+    // });
+    // add({
+    //   type: "error",
+    //   title: "Error",
+    //   description: `Link copied to clipboard ${shortUrl}`,
+    //   data: { close: true },
+    // });
+  };
 
   return (
     <Card>
@@ -210,15 +240,16 @@ export function UrlShortener() {
           </div>
         </div>
       </CardContent>
-      <CardFooter className="justify-between gap-3 flex-wrap">
+      <CardFooter className="justify-between gap-3 flex-wrap py-5">
         <div className="flex items-center gap-2">
           <Button
             disabled={!url}
             onClick={handleShorten}
-            className="bg-accent text-black font-mono font-medium text-sm hover:bg-accent/90 disabled:opacity-50 disabled:cursor-not-allowed hover:drop-shadow-md ease-in-out drop-shadow-none transition-shadow duration-150"
+            className="bg-accent rounded-sm text-black font-mono font-medium text-sm hover:bg-accent/90 disabled:opacity-50 disabled:cursor-not-allowed hover:drop-shadow-md ease-in-out drop-shadow-none transition-shadow duration-150"
           >
             Shorten
           </Button>
+          <Button onClick={showToast}>Show Toast</Button>
         </div>
 
         {shortUrl && (
