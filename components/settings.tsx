@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { AccountCard } from "./account-card";
 import {
   AlertCircleIcon,
   CopyIcon,
@@ -34,6 +35,8 @@ export function Settings() {
 
   return (
     <div className="space-y-6">
+      <AccountCard />
+
       {/* General Settings */}
       <div className="rounded-lg border border-border bg-card p-6">
         <div className="mb-6 flex items-center gap-3">

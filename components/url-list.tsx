@@ -4,7 +4,6 @@ import { useMemo, useState } from "react";
 import { useToast } from "@/lib/toast-context";
 import {
   AlertCircleIcon,
-  ArchiveIcon,
   ArrowUpDown,
   CheckCircle2Icon,
   ClockIcon,
@@ -15,42 +14,28 @@ import {
   MessageSquareIcon,
   MoreVerticalIcon,
   RefreshCwIcon,
+  BarChartIcon,
   Search,
   X,
 } from "./icons";
 import { AiSummaryGenerator } from "./ai-summary-generator";
 import { AiChat } from "./ai-chat";
+import { useNavigate } from "react-router";
 
 type LinkStatus = "healthy" | "healed" | "checking";
 type SortOption = "clicks" | "date" | "name";
 
-interface Link {
-  id: string;
-  shortUrl: string;
-  originalUrl: string;
-  clicks: number;
-  created: string;
-  status: LinkStatus;
-  healingHistory?: {
-    date: string;
-    action: string;
-    from?: string;
-    to?: string;
-  }[];
-  memory?: {
-    summary: string;
-    notes: string;
-    savedReason: string;
-  };
-  conversations?: {
-    id: string;
-    question: string;
-    answer: string;
-    timestamp: string;
-  }[];
+function formatRelative(ts: number): string {
+  const diffMs = Date.now() - ts;
+  const minutes = Math.floor(diffMs / 60000);
+  if (minutes < 60) return `${minutes} min ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours} hour${hours === 1 ? "" : "s"} ago`;
+  const days = Math.floor(hours / 24);
+  return `${days} day${days === 1 ? "" : "s"} ago`;
 }
 
-const mockUrls: Link[] = [
+const mockUrls = [
   {
     id: "1",
     shortUrl: "short.link/a8x9k2",
@@ -158,10 +143,11 @@ const mockUrls: Link[] = [
 ];
 
 export function UrlList() {
+  const navigate = useNavigate();
   const [expandedId, setExpandedId] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<"memory" | "chat" | "healing">(
-    "memory"
-  );
+  const [activeTab, setActiveTab] = useState<
+    "memory" | "chat" | "healing" | "analytics"
+  >("memory");
 
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<LinkStatus | "all">("all");
@@ -171,7 +157,22 @@ export function UrlList() {
   const { showToast } = useToast();
 
   const filteredAndSortedUrls = useMemo(() => {
-    let filtered = mockUrls;
+    let filtered: Array<{
+      id: string;
+      shortUrl: string;
+      originalUrl: string;
+      clicks: number;
+      createdAt: number;
+      status: LinkStatus;
+      analytics?: {
+        dailyClicks: Array<{ day: string; clicks: number }>;
+        topCountries: Array<{
+          country: string;
+          clicks: number;
+          percentage: number;
+        }>;
+      };
+    }> = [];
 
     // Apply search filter
     if (searchQuery) {
@@ -180,15 +181,12 @@ export function UrlList() {
         (url) =>
           url.shortUrl.toLowerCase().includes(query) ||
           url.originalUrl.toLowerCase().includes(query) ||
-          url.memory?.summary.toLowerCase().includes(query) ||
-          url.memory?.notes.toLowerCase().includes(query)
+          false
       );
     }
 
     // Apply status filter
-    if (statusFilter !== "all") {
-      filtered = filtered.filter((url) => url.status === statusFilter);
-    }
+    // No-op: no data yet; keeping structure for future data wiring
 
     // Apply sorting
     const sorted = [...filtered].sort((a, b) => {
@@ -199,8 +197,7 @@ export function UrlList() {
           return a.shortUrl.localeCompare(b.shortUrl);
         case "date":
         default:
-          // For demo purposes, using clicks as proxy for date
-          return b.clicks - a.clicks;
+          return b.createdAt - a.createdAt;
       }
     });
 
@@ -450,13 +447,17 @@ export function UrlList() {
                   </div>
                   <div className="text-right">
                     <p className="font-mono text-xs text-muted-foreground">
-                      {url.created}
+                      {formatRelative(url.createdAt)}
                     </p>
                   </div>
                   <button
                     type="button"
                     className="rounded-md p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-                    onClick={(e) => e.stopPropagation()}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      const slug = url.shortUrl.split("/").pop() || "";
+                      navigate(`/link/${slug}`);
+                    }}
                   >
                     <MoreVerticalIcon className="h-4 w-4" />
                   </button>
@@ -490,7 +491,7 @@ export function UrlList() {
                       }`}
                     >
                       <MessageSquareIcon className="h-4 w-4" />
-                      Chat ({url.conversations?.length || 0})
+                      Chat
                     </button>
                     <button
                       type="button"
@@ -504,16 +505,25 @@ export function UrlList() {
                       <RefreshCwIcon className="h-4 w-4" />
                       Healing History
                     </button>
+                    <button
+                      type="button"
+                      onClick={() => setActiveTab("analytics")}
+                      className={`flex items-center gap-2 border-b-2 px-4 py-2 font-mono text-sm transition-colors ${
+                        activeTab === "analytics"
+                          ? "border-foreground text-foreground"
+                          : "border-transparent text-muted-foreground hover:text-foreground"
+                      }`}
+                    >
+                      <BarChartIcon className="h-4 w-4" />
+                      Analytics
+                    </button>
                   </div>
 
                   {/* Tab Content */}
                   <div className="space-y-4">
-                    {activeTab === "memory" && url.memory && (
+                    {activeTab === "memory" && (
                       <div className="space-y-4">
-                        <AiSummaryGenerator
-                          url={url.originalUrl}
-                          existingSummary={url.memory.summary}
-                        />
+                        <AiSummaryGenerator url={url.originalUrl} />
 
                         <div className="rounded-lg border border-border bg-card p-4">
                           <div className="mb-2 flex items-center gap-2">
@@ -523,7 +533,7 @@ export function UrlList() {
                             </h4>
                           </div>
                           <p className="font-mono text-sm text-muted-foreground">
-                            {url.memory.notes}
+                            Add your notes here.
                           </p>
                         </div>
 
@@ -535,7 +545,7 @@ export function UrlList() {
                             </h4>
                           </div>
                           <p className="font-mono text-sm text-yellow-700">
-                            {url.memory.savedReason}
+                            Keep a brief reason for future context.
                           </p>
                         </div>
                       </div>
@@ -543,67 +553,103 @@ export function UrlList() {
 
                     {activeTab === "chat" && (
                       <div className="space-y-4">
-                        <AiChat
-                          linkUrl={url.originalUrl}
-                          existingConversations={url.conversations}
-                        />
+                        <AiChat linkUrl={url.originalUrl} />
                       </div>
                     )}
 
                     {activeTab === "healing" && (
                       <div className="space-y-3">
-                        {url.healingHistory && url.healingHistory.length > 0 ? (
-                          url.healingHistory.map((event, idx) => (
-                            <div key={event.date} className="flex gap-4">
-                              <div className="flex flex-col items-center">
-                                <div className="rounded-full bg-muted p-2">
-                                  {event.action.includes("404") ||
-                                  event.action.includes("Detected") ? (
-                                    <AlertCircleIcon className="h-3.5 w-3.5 text-orange-600" />
-                                  ) : event.action.includes("Found") ||
-                                    event.action.includes("semantic") ? (
-                                    <RefreshCwIcon className="h-3.5 w-3.5 text-yellow-600" />
-                                  ) : (
-                                    <ArchiveIcon className="h-3.5 w-3.5 text-blue-600" />
-                                  )}
-                                </div>
-                                {idx < url.healingHistory!.length - 1 && (
-                                  <div className="h-full w-px bg-border" />
-                                )}
-                              </div>
-                              <div className="flex-1 pb-4">
-                                <p className="font-mono text-sm font-medium">
-                                  {event.action}
-                                </p>
-                                <p className="mt-1 font-mono text-xs text-muted-foreground">
-                                  {event.date}
-                                </p>
-                                {event.from && (
-                                  <p className="mt-2 font-mono text-xs text-muted-foreground">
-                                    From: {event.from}
-                                  </p>
-                                )}
-                                {event.to && (
-                                  <p className="mt-1 font-mono text-xs text-muted-foreground">
-                                    To: {event.to}
-                                  </p>
-                                )}
-                              </div>
-                            </div>
-                          ))
-                        ) : (
-                          <div className="rounded-lg border border-dashed border-border bg-muted/30 p-8 text-center">
-                            <CheckCircle2Icon className="mx-auto h-8 w-8 text-green-600" />
-                            <p className="mt-2 font-mono text-sm text-foreground">
-                              Link is healthy
-                            </p>
-                            <p className="mt-1 font-mono text-xs text-muted-foreground">
-                              No healing actions required
-                            </p>
-                          </div>
-                        )}
+                        <div className="rounded-lg border border-dashed border-border bg-muted/30 p-8 text-center">
+                          <CheckCircle2Icon className="mx-auto h-8 w-8 text-green-600" />
+                          <p className="mt-2 font-mono text-sm text-foreground">
+                            Link is healthy
+                          </p>
+                          <p className="mt-1 font-mono text-xs text-muted-foreground">
+                            No healing actions required
+                          </p>
+                        </div>
                       </div>
                     )}
+
+                    {activeTab === "analytics" &&
+                      (url.analytics ? (
+                        <div className="space-y-6">
+                          <div>
+                            <h4 className="font-mono text-sm font-medium">
+                              Clicks Over Time
+                            </h4>
+                            <div className="mt-3 space-y-2">
+                              {url.analytics.dailyClicks.map((d) => (
+                                <div
+                                  key={d.day}
+                                  className="flex items-center gap-3"
+                                >
+                                  <span className="w-8 font-mono text-xs">
+                                    {d.day}
+                                  </span>
+                                  <div className="flex-1">
+                                    <div className="h-2 rounded-md bg-muted overflow-hidden">
+                                      <div
+                                        className="h-full bg-foreground"
+                                        style={{
+                                          width: `${
+                                            (d.clicks /
+                                              Math.max(
+                                                ...url.analytics!.dailyClicks.map(
+                                                  (x) => x.clicks
+                                                )
+                                              )) *
+                                            100
+                                          }%`,
+                                        }}
+                                      />
+                                    </div>
+                                  </div>
+                                  <span className="w-10 text-right font-mono text-xs">
+                                    {d.clicks}
+                                  </span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+
+                          <div>
+                            <h4 className="font-mono text-sm font-medium">
+                              Top Countries
+                            </h4>
+                            <div className="mt-3 space-y-4">
+                              {url.analytics.topCountries.map((c) => (
+                                <div key={c.country}>
+                                  <div className="mb-1 flex items-center justify-between">
+                                    <span className="font-mono text-xs">
+                                      {c.country}
+                                    </span>
+                                    <span className="font-mono text-xs">
+                                      {c.clicks}
+                                    </span>
+                                  </div>
+                                  <div className="h-2 rounded-full bg-muted overflow-hidden">
+                                    <div
+                                      className="h-full bg-foreground"
+                                      style={{ width: `${c.percentage}%` }}
+                                    />
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="rounded-lg border border-dashed border-border bg-muted/30 p-8 text-center">
+                          <BarChartIcon className="mx-auto h-8 w-8 text-muted-foreground" />
+                          <p className="mt-2 font-mono text-sm text-foreground">
+                            No analytics yet
+                          </p>
+                          <p className="mt-1 font-mono text-xs text-muted-foreground">
+                            Clicks and geography will appear here
+                          </p>
+                        </div>
+                      ))}
                   </div>
                 </div>
               )}

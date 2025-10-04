@@ -7,6 +7,7 @@ import SettingsRoute from "@/components/routes/SettingsRoute";
 import CreateRoute from "@/components/routes/CreateRoute";
 import CollectionsRoute from "@/components/routes/CollectionsRoute";
 import MemoryRoute from "@/components/routes/MemoryRoute";
+import LinkDetailRoute from "@/components/routes/LinkDetailRoute";
 
 export default function App() {
   return (
@@ -24,6 +25,7 @@ export default function App() {
                 <Route path="/create" element={<CreateRoute />} />
                 <Route path="/collections" element={<CollectionsRoute />} />
                 <Route path="/memory" element={<MemoryRoute />} />
+                <Route path="/link/:slug" element={<LinkDetailRoute />} />
                 <Route
                   path="*"
                   element={
