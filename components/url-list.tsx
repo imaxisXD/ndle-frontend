@@ -22,9 +22,37 @@ import { AiSummaryGenerator } from "./ai-summary-generator";
 import { AiChat } from "./ai-chat";
 import { useNavigate } from "react-router";
 import { useToast } from "@/hooks/use-toast";
+import { useQuery } from "convex/react";
+import { api } from "@/convex/_generated/api";
 
 type LinkStatus = "healthy" | "healed" | "checking";
 type SortOption = "clicks" | "date" | "name";
+
+type DisplayUrl = {
+  id: string;
+  shortUrl: string;
+  originalUrl: string;
+  clicks: number;
+  createdAt: number;
+  status: LinkStatus;
+  healingHistory?: Array<{
+    date: string;
+    action: string;
+  }>;
+  memory?: {
+    summary: string;
+    notes: string;
+    savedReason: string;
+  };
+  analytics?: {
+    dailyClicks: Array<{ day: string; clicks: number }>;
+    topCountries: Array<{
+      country: string;
+      clicks: number;
+      percentage: number;
+    }>;
+  };
+};
 
 function formatRelative(ts: number): string {
   const diffMs = Date.now() - ts;
@@ -36,94 +64,14 @@ function formatRelative(ts: number): string {
   return `${days} day${days === 1 ? "" : "s"} ago`;
 }
 
-const mockUrls = [
+const mockUrls: Array<DisplayUrl> = [
   {
-    id: "1",
-    shortUrl: "short.link/a8x9k2",
+    id: "mock-1",
+    shortUrl: "ndle.im/a8x9k2",
     originalUrl: "https://example.com/blog/how-to-build-a-saas-product",
     clicks: 342,
-    created: "2 days ago",
-    status: "healthy",
-    memory: {
-      summary:
-        "Comprehensive guide on building SaaS products from scratch, covering MVP development, pricing strategies, and customer acquisition.",
-      notes:
-        "Great resource for the team meeting next week. Focus on the pricing section.",
-      savedReason: "Reference for product strategy discussion",
-    },
-    conversations: [
-      {
-        id: "c1",
-        question: "What pricing models are discussed?",
-        answer:
-          "The article covers three main pricing models: freemium, tiered pricing, and usage-based pricing. It recommends starting with tiered pricing for B2B SaaS.",
-        timestamp: "1 hour ago",
-      },
-    ],
-  },
-  {
-    id: "2",
-    shortUrl: "short.link/m3p7q1",
-    originalUrl: "https://example.com/documentation/getting-started",
-    clicks: 189,
-    created: "5 days ago",
-    status: "healed",
-    healingHistory: [
-      {
-        date: "3 days ago",
-        action: "Detected 404 error",
-        from: "https://example.com/documentation/getting-started",
-      },
-      {
-        date: "3 days ago",
-        action: "Found alternative via semantic search",
-        to: "https://example.com/docs/quickstart",
-      },
-    ],
-    memory: {
-      summary:
-        "Quick start guide for new developers. Covers installation, basic configuration, and first project setup.",
-      notes: "Send to new hires during onboarding",
-      savedReason: "Onboarding documentation",
-    },
-  },
-  {
-    id: "3",
-    shortUrl: "short.link/k9n2w5",
-    originalUrl: "https://example.com/pricing/enterprise-plan",
-    clicks: 567,
-    created: "1 week ago",
-    status: "checking",
-    memory: {
-      summary:
-        "Enterprise pricing details including custom features, dedicated support, and SLA guarantees.",
-      notes: "Compare with competitors before renewal",
-      savedReason: "Contract renewal research",
-    },
-    conversations: [
-      {
-        id: "c2",
-        question: "What's included in enterprise support?",
-        answer:
-          "Enterprise support includes 24/7 phone and email support, dedicated account manager, 99.99% uptime SLA, and priority feature requests.",
-        timestamp: "2 days ago",
-      },
-      {
-        id: "c3",
-        question: "How does this compare to the pro plan?",
-        answer:
-          "Enterprise adds dedicated support, custom integrations, advanced security features, and unlimited team members compared to Pro's 50 member limit.",
-        timestamp: "2 days ago",
-      },
-    ],
-  },
-  {
-    id: "4",
-    shortUrl: "short.link/p4r8t3",
-    originalUrl: "https://example.com/features/analytics-dashboard",
-    clicks: 234,
-    created: "2 weeks ago",
-    status: "healthy",
+    createdAt: Date.now() - 1000 * 60 * 60 * 24 * 2,
+    status: "healthy" as const,
     healingHistory: [
       {
         date: "1 week ago",
@@ -141,6 +89,35 @@ const mockUrls = [
       savedReason: "UI/UX research",
     },
   },
+  {
+    id: "mock-2",
+    shortUrl: "ndle.im/m3p7q1",
+    originalUrl: "https://example.com/documentation/getting-started",
+    clicks: 189,
+    createdAt: Date.now() - 1000 * 60 * 60 * 24 * 5,
+    status: "healed" as const,
+    memory: {
+      summary: "Quick start guide for new developers.",
+      notes: "Send to new hires during onboarding",
+      savedReason: "Onboarding documentation",
+    },
+  },
+  {
+    id: "mock-3",
+    shortUrl: "ndle.im/k9n2w5",
+    originalUrl: "https://example.com/pricing/enterprise-plan",
+    clicks: 567,
+    createdAt: Date.now() - 1000 * 60 * 60 * 24 * 7,
+    status: "checking" as const,
+  },
+  {
+    id: "mock-4",
+    shortUrl: "ndle.im/p4r8t3",
+    originalUrl: "https://example.com/features/analytics-dashboard",
+    clicks: 234,
+    createdAt: Date.now() - 1000 * 60 * 60 * 24 * 14,
+    status: "healthy" as const,
+  },
 ];
 
 export function UrlList() {
@@ -156,24 +133,49 @@ export function UrlList() {
   const [showFilters, setShowFilters] = useState(false);
 
   const { add } = useToast();
+  const urls = useQuery(api.urlShortner.getUserUrls);
+
+  const hydratedUrls = useMemo<Array<DisplayUrl>>(() => {
+    if (!urls || urls.length === 0) {
+      return mockUrls;
+    }
+
+    return urls.map((doc, index) => {
+      const fallback = mockUrls[index % mockUrls.length];
+      const fallbackSlug = fallback.shortUrl.split("/").pop() ?? "pending";
+      const slug = doc.slugAssigned ?? doc.shortUrl ?? fallbackSlug;
+      const formattedShortUrl = slug.startsWith("http")
+        ? slug
+        : `ndle.im/${slug.replace(/^\/+/, "")}`;
+
+      const message = (doc.urlStatusMessage ?? "").toLowerCase();
+      const status: LinkStatus = message.includes("success")
+        ? "healthy"
+        : message.includes("heal")
+        ? "healed"
+        : message.includes("error") || message.includes("fail")
+        ? "checking"
+        : fallback.status;
+
+      const clicks =
+        "clicks" in doc && typeof doc.clicks === "number"
+          ? doc.clicks
+          : fallback.clicks;
+
+      return {
+        id: doc._id,
+        shortUrl: formattedShortUrl,
+        originalUrl: doc.fullurl ?? fallback.originalUrl,
+        clicks,
+        createdAt: doc._creationTime ?? fallback.createdAt,
+        status,
+        analytics: fallback.analytics,
+      };
+    });
+  }, [urls]);
 
   const filteredAndSortedUrls = useMemo(() => {
-    let filtered: Array<{
-      id: string;
-      shortUrl: string;
-      originalUrl: string;
-      clicks: number;
-      createdAt: number;
-      status: LinkStatus;
-      analytics?: {
-        dailyClicks: Array<{ day: string; clicks: number }>;
-        topCountries: Array<{
-          country: string;
-          clicks: number;
-          percentage: number;
-        }>;
-      };
-    }> = [];
+    let filtered: Array<DisplayUrl> = [...hydratedUrls];
 
     // Apply search filter
     if (searchQuery) {
@@ -187,7 +189,9 @@ export function UrlList() {
     }
 
     // Apply status filter
-    // No-op: no data yet; keeping structure for future data wiring
+    if (statusFilter !== "all") {
+      filtered = filtered.filter((url) => url.status === statusFilter);
+    }
 
     // Apply sorting
     const sorted = [...filtered].sort((a, b) => {
@@ -203,7 +207,7 @@ export function UrlList() {
     });
 
     return sorted;
-  }, [searchQuery, statusFilter, sortBy]);
+  }, [hydratedUrls, searchQuery, statusFilter, sortBy]);
 
   const getStatusIcon = (status: LinkStatus) => {
     switch (status) {
@@ -228,11 +232,14 @@ export function UrlList() {
   };
 
   const handleCopy = (shortUrl: string) => {
-    navigator.clipboard.writeText(`https://${shortUrl}`);
+    const normalized = shortUrl.startsWith("http")
+      ? shortUrl
+      : `https://${shortUrl}`;
+    navigator.clipboard.writeText(normalized);
     add({
       type: "success",
       title: "Link copied to clipboard!",
-      description: `Link copied to clipboard ${shortUrl}`,
+      description: `Link copied to clipboard ${normalized}`,
     });
   };
 
@@ -424,7 +431,11 @@ export function UrlList() {
                       <CopyIcon className="h-3.5 w-3.5" />
                     </button>
                     <a
-                      href={`https://${url.shortUrl}`}
+                      href={
+                        url.shortUrl.startsWith("http")
+                          ? url.shortUrl
+                          : `https://${url.shortUrl}`
+                      }
                       target="_blank"
                       rel="noopener noreferrer"
                       className="rounded-md p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"

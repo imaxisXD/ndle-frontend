@@ -11,7 +11,7 @@ export default function LinkDetailRoute() {
   const params = useParams();
   const navigate = useNavigate();
   const slug = params[":slug"] || params.slug || "unknown";
-  const shortUrl = `short.link/${slug}`;
+  const shortUrl = `ndle.im/${slug}`;
 
   const clicksData = [
     { day: "Mon", clicks: 12 },

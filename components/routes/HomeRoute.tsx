@@ -21,7 +21,7 @@ export default function HomeRoute() {
     <>
       <header>
         <h1
-          className="font-doto text-4xl font-bold tracking-tight text-black"
+          className="font-doto text-5xl font-bold tracking-tight text-black roundness-100"
           id="home-heading"
         >
           ndle

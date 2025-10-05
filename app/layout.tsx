@@ -12,6 +12,7 @@ const geistMono = Geist_Mono({
 const doto = Doto({
   variable: "--font-doto",
   subsets: ["latin"],
+  axes: ["ROND"],
 });
 
 export const metadata: Metadata = {

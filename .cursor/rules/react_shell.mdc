@@ -1,0 +1,10 @@
+---
+globs: shell-route/**/*.tsx,components/sidebar.tsx,components/routes/**/*.tsx
+---
+
+# React Shell Guidelines
+
+- The shell uses React Router v7 inside the Next.js app shell. Always wrap shell UI in `<BrowserRouter>` and keep route declarations in [shell-route/app.tsx](mdc:shell-route/app.tsx); route components should remain colocation-friendly under [components/routes](mdc:components/routes).
+- Sidebar navigation is defined in [components/sidebar.tsx](mdc:components/sidebar.tsx). The CTA buttons there rely on `<NavLink>` for active styling—add new entries by extending the same tooltip + `NavLink` pattern so hover/active states stay consistent.
+- Shared layout chrome (sidebar, padding, toast provider) is centralized in [shell-route/app.tsx](mdc:shell-route/app.tsx). Avoid duplicating padding/spacing inside individual route components—compose within the provided `<div className="mx-auto max-w-7xl space-y-8">` container instead.
+- Use the global toast system by importing `useToast` from [hooks/use-toast.ts](mdc:hooks/use-toast.ts) when routes need user feedback; toasts are already wrapped by `<ToastProvider>` at the shell root.

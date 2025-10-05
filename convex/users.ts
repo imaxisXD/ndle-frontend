@@ -1,4 +1,5 @@
-import { mutation } from "./_generated/server";
+import { Doc } from "./_generated/dataModel";
+import { mutation, QueryCtx } from "./_generated/server";
 
 export const store = mutation({
   args: {},
@@ -30,3 +31,38 @@ export const store = mutation({
     });
   },
 });
+
+/**
+ * Queries a user by their token identifier.
+ * @param {QueryCtx} ctx - The query context.
+ * @param {string} clerkUserId - The user's token identifier.
+ * @returns {Promise<Doc<"users"> | null>} The user document or null if not found.
+ **/
+export async function userQuery(
+  ctx: QueryCtx,
+  clerkUserId: string,
+): Promise<Doc<'users'> | null> {
+  const user = await ctx.db
+    .query('users')
+    .withIndex('by_token', (q) => q.eq('tokenIdentifier', clerkUserId))
+    .unique();
+
+  return user;
+}
+
+/**
+ * Retrieves the current authenticated user's details.
+ * @param {QueryCtx} ctx - The query context.
+ * @returns {Promise<Doc<"users"> | null>} The current user's document or null if not authenticated.
+ */
+export async function getCurrentUser(
+  ctx: QueryCtx,
+): Promise<Doc<'users'> | null> {
+  const identity = await ctx.auth.getUserIdentity();
+  if (!identity) {
+    console.warn('No current user identity found');
+    return null;
+  }
+  return await userQuery(ctx, identity.tokenIdentifier);
+}
+

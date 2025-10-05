@@ -1,0 +1,11 @@
+---
+alwaysApply: true
+---
+
+# Project Overview
+
+- The app runs on Next.js App Router with Clerk auth and Convex. The global layout lives in [app/layout.tsx](mdc:app/layout.tsx) and wraps every page with [ConvexClientProvider](mdc:components/ConvexClientProvider.tsx) so `useMutation`/`useQuery` are always available after fonts and globals load.
+- `/static-app-shell` is the interactive entrypoint. [app/static-app-shell/page.tsx](mdc:app/static-app-shell/page.tsx) gates content behind `<Authenticated>` / `<Unauthenticated>` wrappers, stores the Clerk user through [api.users.store](mdc:convex/users.ts), and lazy-loads the React Router powered shell from [shell-route/app.tsx](mdc:shell-route/app.tsx).
+- The actual in-app navigation is rendered by React Router. New top-level screens must be registered in `Routes` inside [shell-route/app.tsx](mdc:shell-route/app.tsx) and should live under [components/routes](mdc:components/routes) to keep the shell tree consistent.
+- Global styling is Tailwind-based. Design tokens and font variables are defined once in [app/globals.css](mdc:app/globals.css); prefer using those CSS variables instead of hard-coded colors or fonts anywhere else in the app.
+- Environment requirements: the client expects `NEXT_PUBLIC_CONVEX_URL` to be defined (see [ConvexClientProvider](mdc:components/ConvexClientProvider.tsx)). Without it the app will throw on boot, so add new env usages carefully.

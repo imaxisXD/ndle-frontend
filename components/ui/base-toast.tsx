@@ -2,7 +2,6 @@
 
 import { toastManager, useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
-
 import { Toast } from "@base-ui-components/react/toast";
 import { cva } from "class-variance-authority";
 import { Info, Loader, AlertTriangle, X } from "lucide-react";
@@ -275,7 +274,7 @@ function ToastList({
                             )}
                             <div className="flex flex-col">
                               <Toast.Title
-                                className="text-sm tracking-tight font-black m-0 font-doto"
+                                className="tracking-tight font-black m-0 font-doto roundness-100"
                                 data-slot="toast-title"
                               />
                               <Toast.Description

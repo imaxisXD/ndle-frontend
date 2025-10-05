@@ -79,11 +79,11 @@ export function Analytics() {
   ];
 
   const topLinks = [
-    { url: "short.link/a8x9k2", clicks: 567, change: "+12%" },
-    { url: "short.link/k9n2w5", clicks: 342, change: "+8%" },
-    { url: "short.link/p4r8t3", clicks: 234, change: "+15%" },
-    { url: "short.link/m3p7q1", clicks: 189, change: "-3%" },
-    { url: "short.link/x7y2z9", clicks: 97, change: "+5%" },
+    { url: "ndle.im/a8x9k2", clicks: 567, change: "+12%" },
+    { url: "ndle.im/k9n2w5", clicks: 342, change: "+8%" },
+    { url: "ndle.im/p4r8t3", clicks: 234, change: "+15%" },
+    { url: "ndle.im/m3p7q1", clicks: 189, change: "-3%" },
+    { url: "ndle.im/x7y2z9", clicks: 97, change: "+5%" },
   ];
 
   const topCountries = [

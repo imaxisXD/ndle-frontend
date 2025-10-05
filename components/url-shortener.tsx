@@ -1,10 +1,9 @@
 "use client";
 
-import { useId, useState } from "react";
+import { useId, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-
-import { CopyIcon, ExternalLinkIcon } from "./icons";
+import { CircleGridLoaderIcon, CopyIcon, ExternalLinkIcon } from "./icons";
 import {
   Card,
   CardHeader,
@@ -17,123 +16,91 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useNavigate } from "react-router";
 import { useToast } from "@/hooks/use-toast";
+import { useMutation } from "convex/react";
+import { api } from "@/convex/_generated/api";
+import { ConvexError } from "convex/values";
 
 export function UrlShortener() {
   const [url, setUrl] = useState("");
   const [shortUrl, setShortUrl] = useState("");
   const [slugMode, setSlugMode] = useState<"random" | "human">("random");
-  const [humanSlug, setHumanSlug] = useState("");
   const [expiresEnabled, setExpiresEnabled] = useState(false);
   const [expiresAt, setExpiresAt] = useState("");
   const [trackingEnabled, setTrackingEnabled] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const { add } = useToast();
   const navigate = useNavigate();
+  const createUrl = useMutation(api.urlShortner.createUrl);
 
   const urlInputId = useId();
 
-  const BASE_DOMAIN = "https://short.link";
+  const BASE_DOMAIN = useMemo(() => {
+    if (typeof window === "undefined") {
+      return "https://ndle.im";
+    }
+    return window.location.origin;
+  }, []);
 
-  const generateRandomSlug = () => Math.random().toString(36).substring(2, 8);
-  const generateHumanSlug = () => {
-    const adjectives = [
-      "rare",
-      "calm",
-      "brisk",
-      "bright",
-      "swift",
-      "merry",
-      "quiet",
-      "clever",
-      "bold",
-      "lively",
-    ];
-    const animals = [
-      "geckos",
-      "otters",
-      "owls",
-      "pandas",
-      "tigers",
-      "rabbits",
-      "whales",
-      "wolves",
-      "eagles",
-      "foxes",
-    ];
-    const verbs = [
-      "jam",
-      "dance",
-      "hike",
-      "spin",
-      "glide",
-      "sing",
-      "dash",
-      "zoom",
-      "swim",
-      "soar",
-    ];
-    const pick = (arr: Array<string>) =>
-      arr[Math.floor(Math.random() * arr.length)];
-    return `${pick(adjectives)}-${pick(animals)}-${pick(verbs)}`;
-  };
-
-  const handleShorten = () => {
+  const handleShorten = async () => {
     if (!url) {
       add({
         type: "info",
-        title: "Url missing",
-        description: "Please enter a URL to shorten",
+        title: "Missing link",
+        description: "Add the URL you want to shorten before continuing.",
       });
       return;
     }
 
-    let slug = "";
-    if (slugMode === "human") {
-      const value = humanSlug || generateHumanSlug();
-      setHumanSlug(value);
-      slug = value;
-    } else {
-      slug = generateRandomSlug();
+    setIsSubmitting(true);
+    setShortUrl("");
+
+    try {
+      const expiresAtValue =
+        expiresEnabled && expiresAt ? new Date(expiresAt).getTime() : undefined;
+
+      if (expiresEnabled && expiresAt && Number.isNaN(expiresAtValue)) {
+        add({
+          type: "error",
+          title: "Invalid expiration",
+          description:
+            "Choose a valid future date and time for when the short link should stop working.",
+        });
+        setIsSubmitting(false);
+        return;
+      }
+
+      const result = await createUrl({
+        url,
+        slugType: slugMode,
+        trackingEnabled,
+        expiresAt: expiresAtValue,
+      });
+
+      const finalShort = `${BASE_DOMAIN}/${result.slug}`;
+      setShortUrl(finalShort);
+      add({
+        type: "success",
+        title: "Short link ready",
+        description: `Copy and share: ${finalShort}`,
+      });
+      // navigate(`/link/${result.slug}`);
+    } catch (error) {
+      const message =
+        error instanceof ConvexError
+          ? typeof error.data === "string"
+            ? error.data
+            : (error.data as { message: string }).message
+          : "An unexpected error occurred while creating the link";
+      console.log("error", error);
+      console.log("message", message);
+      add({
+        type: "error",
+        title: "We couldn’t shorten that",
+        description: message,
+      });
+    } finally {
+      setIsSubmitting(false);
     }
-
-    const finalShort = `${BASE_DOMAIN}/${slug}`;
-    setShortUrl(finalShort);
-    add({
-      type: "success",
-      title: "Created (demo)",
-      description: `Link created ${finalShort}`,
-    });
-    navigate(`/link/${slug}`);
-  };
-
-  const handleCopy = () => {
-    navigator.clipboard.writeText(shortUrl);
-    add({
-      type: "success",
-      title: "Link copied to clipboard!",
-      description: `Link copied to clipboard ${shortUrl}`,
-    });
-  };
-
-  const showToast = () => {
-    add({
-      timeout: 1000000,
-      type: "success",
-      title: "Success",
-      description: `Link copied to clipboard ${shortUrl}`,
-    });
-    // add({
-    //   timeout: 1000000,
-    //   type: "info",
-    //   title: "Info",
-    //   description: `Link copied to clipboard ${shortUrl}`,
-    //   data: { close: true },
-    // });
-    // add({
-    //   type: "error",
-    //   title: "Error",
-    //   description: `Link copied to clipboard ${shortUrl}`,
-    //   data: { close: true },
-    // });
   };
 
   return (
@@ -150,7 +117,6 @@ export function UrlShortener() {
         </div>
       </CardHeader>
       <CardContent className="space-y-6">
-        {/* Long URL */}
         <div>
           <label
             htmlFor={urlInputId}
@@ -169,7 +135,6 @@ export function UrlShortener() {
           </div>
         </div>
 
-        {/* Slug options */}
         <div className="rounded-lg border border-border p-4 bg-muted/20">
           <div className="mb-3 font-mono text-xs text-muted-foreground">
             Slug
@@ -181,9 +146,6 @@ export function UrlShortener() {
               onValueChange={(val) => {
                 const v = val as "random" | "human";
                 setSlugMode(v);
-                if (v === "human" && !humanSlug) {
-                  setHumanSlug(generateHumanSlug());
-                }
               }}
             >
               <div className="flex items-center gap-2">
@@ -208,7 +170,6 @@ export function UrlShortener() {
           </div>
         </div>
 
-        {/* Other options */}
         <div className="rounded-lg border border-border p-4 bg-muted/20 space-y-3">
           <div className="font-mono text-xs text-muted-foreground">Options</div>
           <div className="flex items-center gap-2 font-mono text-sm">
@@ -243,44 +204,20 @@ export function UrlShortener() {
       <CardFooter className="justify-between gap-3 flex-wrap py-5">
         <div className="flex items-center gap-2">
           <Button
-            disabled={!url}
+            disabled={!url || isSubmitting}
             onClick={handleShorten}
-            className="bg-accent rounded-sm text-black font-mono font-medium text-sm hover:bg-accent/90 disabled:opacity-50 disabled:cursor-not-allowed hover:drop-shadow-md ease-in-out drop-shadow-none transition-shadow duration-150"
+            className="bg-accent w-36 rounded-sm text-black font-mono font-medium text-sm hover:bg-accent/90 disabled:opacity-50 disabled:cursor-not-allowed hover:drop-shadow-sm ease-linear drop-shadow-none transition-shadow duration-75"
           >
-            Shorten
+            {isSubmitting ? (
+              <span className="flex items-center gap-2">
+                <CircleGridLoaderIcon className="size-3 " />
+                Shortening
+              </span>
+            ) : (
+              "Shorten"
+            )}
           </Button>
-          <Button onClick={showToast}>Show Toast</Button>
         </div>
-
-        {shortUrl && (
-          <div className="ml-auto rounded-xl border border-border bg-accent p-3">
-            <div className="mb-1 font-mono text-xs text-muted-foreground">
-              Your shortened URL
-            </div>
-            <div className="flex items-center justify-between gap-3">
-              <code className="font-mono text-sm font-medium text-foreground">
-                {shortUrl}
-              </code>
-              <div className="flex gap-2">
-                <button
-                  type="button"
-                  onClick={handleCopy}
-                  className="rounded-md p-2 text-muted-foreground transition-colors hover:bg-background hover:text-foreground"
-                >
-                  <CopyIcon className="h-4 w-4" />
-                </button>
-                <a
-                  href={shortUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="rounded-md p-2 text-muted-foreground transition-colors hover:bg-background hover:text-foreground"
-                >
-                  <ExternalLinkIcon className="h-4 w-4" />
-                </a>
-              </div>
-            </div>
-          </div>
-        )}
       </CardFooter>
     </Card>
   );

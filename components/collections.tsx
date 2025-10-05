@@ -104,7 +104,7 @@ export function Collections() {
     ? [
         {
           id: "1",
-          shortUrl: "short.link/a8x9k2",
+          shortUrl: "ndle.im/a8x9k2",
           destination: "https://example.com/blog/how-to-build-a-saas-product",
           title: "How to Build a SaaS Product",
           clicks: 342,
@@ -112,7 +112,7 @@ export function Collections() {
         },
         {
           id: "2",
-          shortUrl: "short.link/m3p7q1",
+          shortUrl: "ndle.im/m3p7q1",
           destination: "https://example.com/documentation/getting-started",
           title: "Getting Started Documentation",
           clicks: 189,
@@ -120,7 +120,7 @@ export function Collections() {
         },
         {
           id: "3",
-          shortUrl: "short.link/k9n2w5",
+          shortUrl: "ndle.im/k9n2w5",
           destination: "https://example.com/pricing/enterprise-plan",
           title: "Enterprise Pricing Plan",
           clicks: 567,

@@ -73,7 +73,7 @@ export function Settings() {
             />
             <p className="mt-2 font-mono text-xs text-muted-foreground">
               Add a CNAME record pointing to{" "}
-              <code className="rounded bg-muted px-1 py-0.5">short.link</code>
+              <code className="rounded bg-muted px-1 py-0.5">ndle.im</code>
             </p>
           </div>
 
@@ -461,7 +461,7 @@ export function Settings() {
                 <p className="mt-1 font-mono text-xs text-blue-700">
                   View the full API documentation at{" "}
                   <a href="#" className="underline">
-                    docs.short.link/api
+                    docs.ndle.im/api
                   </a>
                 </p>
               </div>

@@ -146,3 +146,7 @@
   background: var(--color-muted);
   border: 1px solid var(--color-border);
 }
+
+.roundness-100 {
+  font-variation-settings: "ROND" 100;
+}
