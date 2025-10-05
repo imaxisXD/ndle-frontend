@@ -102,7 +102,7 @@ export function UrlList() {
 
   const { add } = useToast();
 
-  const urls = useQuery(api.urlShortner.getUserUrls);
+  const urls = useQuery(api.urlMainFuction.getUserUrls);
   const isLoading = urls === undefined;
   const isEmpty = urls === null || (Array.isArray(urls) && urls.length === 0);
 

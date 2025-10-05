@@ -32,7 +32,7 @@ export function UrlShortener() {
   const { add } = useToast();
   const navigate = useNavigate();
 
-  const createUrl = useMutation(api.urlShortner.createUrl);
+  const createUrl = useMutation(api.urlMainFuction.createUrl);
 
   const handleShorten = async () => {
     if (!url) {
