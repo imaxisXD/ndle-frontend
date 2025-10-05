@@ -146,7 +146,7 @@ export function NotificationCenter() {
           className="left-76 bottom-3 z-[100] w-96 max-w-[calc(100vw-2rem)] rounded-lg border border-border bg-card shadow-xl p-0"
         >
           <DialogHeader className="gap-0 border-b border-border p-4 bg-black/90 rounded-t-lg flex flex-row items-center justify-between">
-            <DialogTitle className="font-doto tracking-tighter text-base font-bold text-white ">
+            <DialogTitle className="font-doto tracking-tighter text-base font-bold text-white roundness-100">
               Notifications
             </DialogTitle>
             {unreadCount > 0 && (

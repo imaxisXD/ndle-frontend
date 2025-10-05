@@ -30,7 +30,7 @@ export default function SignInComponent() {
       <div className="relative hidden min-h-full w-full max-w-[520px] flex-1 flex-col justify-between overflow-hidden px-10 py-14 text-white lg:flex">
         <div className="absolute inset-0 bg-gradient-to-br from-[#050505] via-[#101010] to-[#1d1d1d]" />
         <div className="relative flex items-center gap-3 text-sm uppercase tracking-[0.32em] text-white/70">
-          <span className="font-medium text-white font-doto text-4xl">
+          <span className="font-medium text-white font-doto text-4xl roundness-100">
             ndle
           </span>
           <span className="text-xs normal-case tracking-normal text-white/50">
