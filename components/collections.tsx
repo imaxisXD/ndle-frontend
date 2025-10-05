@@ -8,6 +8,7 @@ import {
   Plus,
   Trash2,
 } from "@/components/icons";
+import { Button } from "./ui/button";
 
 interface Collection {
   id: string;
@@ -149,12 +150,7 @@ export function Collections() {
     setShowCreateModal(false);
   };
 
-  const handleDeleteCollection = (id: string) => {
-    setCollections(collections.filter((c) => c.id !== id));
-    if (selectedCollection?.id === id) {
-      setSelectedCollection(null);
-    }
-  };
+  // (Removed unused delete handler)
 
   if (selectedCollection) {
     return (
@@ -216,7 +212,7 @@ export function Collections() {
             </h3>
             <button
               type="button"
-              className="flex items-center gap-2 rounded-md bg-foreground px-3 py-2 font-mono text-sm text-background transition-colors hover:bg-foreground/90"
+              className="flex items-center gap-2 rounded-md bg-accent px-3 py-2 font-mono text-sm text-accent-foreground transition-colors hover:bg-accent/90"
             >
               <Plus className="h-4 w-4" />
               Add Link
@@ -247,14 +243,17 @@ export function Collections() {
                           {link.shortUrl}
                         </span>
                         <span
-                          className={`rounded-full px-2 py-0.5 font-mono text-xs ${
+                          className={`inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 font-mono text-xs ${
                             link.status === "healthy"
                               ? "bg-green-100 text-green-700"
                               : link.status === "healed"
-                              ? "bg-[#fbbf24] text-foreground"
+                              ? "bg-success-container text-foreground border border-success/30"
                               : "bg-orange-100 text-orange-700"
                           }`}
                         >
+                          {link.status === "healed" && (
+                            <span className="w-1.5 h-1.5 rounded-full bg-success" />
+                          )}
                           {link.status === "healthy"
                             ? "Healthy"
                             : link.status === "healed"
@@ -278,7 +277,7 @@ export function Collections() {
                       </button>
                       <button
                         type="button"
-                        className="rounded-md p-2 hover:bg-accent transition-colors text-red-500"
+                        className="rounded-md p-2 transition-colors text-destructive hover:bg-destructive/10"
                       >
                         <Trash2 className="h-4 w-4" />
                       </button>
@@ -302,14 +301,10 @@ export function Collections() {
             Organize your links into collections for better management
           </p>
         </div>
-        <button
-          type="button"
-          onClick={() => setShowCreateModal(true)}
-          className="flex items-center gap-2 rounded-md bg-foreground px-4 py-2 font-mono text-sm text-background transition-colors hover:bg-foreground/90"
-        >
+        <Button type="button" onClick={() => setShowCreateModal(true)}>
           <Plus className="h-4 w-4" />
           New Collection
-        </button>
+        </Button>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -354,14 +349,15 @@ export function Collections() {
               {collection.description}
             </p>
             <div className="mt-4 flex flex-wrap gap-2">
-              <span className="rounded-full bg-accent px-2 py-1 font-mono text-xs">
+              <span className="rounded-full bg-secondary px-2 py-1 font-mono text-xs text-secondary-foreground">
                 {collection.linkCount} links
               </span>
-              <span className="rounded-full bg-accent px-2 py-1 font-mono text-xs">
+              <span className="rounded-full bg-secondary px-2 py-1 font-mono text-xs text-secondary-foreground">
                 {collection.totalClicks.toLocaleString()} clicks
               </span>
               {collection.healedCount > 0 && (
-                <span className="rounded-full bg-[#fbbf24] px-2 py-1 font-mono text-xs text-foreground">
+                <span className="inline-flex items-center gap-1.5 rounded-full px-2 py-1 font-mono text-xs bg-success-container text-foreground border border-success/30">
+                  <span className="w-1.5 h-1.5 rounded-full bg-success" />
                   {collection.healedCount} healed
                 </span>
               )}
@@ -418,7 +414,7 @@ export function Collections() {
                   setNewCollectionName("");
                   setNewCollectionDescription("");
                 }}
-                className="flex-1 rounded-md border border-border bg-background px-4 py-2 font-mono text-sm transition-colors hover:bg-accent"
+                className="flex-1 rounded-md border border-border bg-background px-4 py-2 font-mono text-sm transition-colors hover:bg-secondary"
               >
                 Cancel
               </button>
@@ -426,7 +422,7 @@ export function Collections() {
                 type="button"
                 onClick={handleCreateCollection}
                 disabled={!newCollectionName.trim()}
-                className="flex-1 rounded-md bg-foreground px-4 py-2 font-mono text-sm text-background transition-colors hover:bg-foreground/90 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 rounded-md bg-accent px-4 py-2 font-mono text-sm text-accent-foreground transition-colors hover:bg-accent/90 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Create
               </button>

@@ -28,18 +28,11 @@ export function UrlShortener() {
   const [expiresAt, setExpiresAt] = useState("");
   const [trackingEnabled, setTrackingEnabled] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
   const { add } = useToast();
   const navigate = useNavigate();
+
   const createUrl = useMutation(api.urlShortner.createUrl);
-
-  const urlInputId = useId();
-
-  const BASE_DOMAIN = useMemo(() => {
-    if (typeof window === "undefined") {
-      return "https://ndle.im";
-    }
-    return window.location.origin;
-  }, []);
 
   const handleShorten = async () => {
     if (!url) {
@@ -76,7 +69,7 @@ export function UrlShortener() {
         expiresAt: expiresAtValue,
       });
 
-      const finalShort = `${BASE_DOMAIN}/${result.slug}`;
+      const finalShort = `ndle.im/${result.slug}`;
       setShortUrl(finalShort);
       add({
         type: "success",
@@ -119,14 +112,14 @@ export function UrlShortener() {
       <CardContent className="space-y-6">
         <div>
           <label
-            htmlFor={urlInputId}
+            htmlFor="urlInput"
             className="mb-2 block font-mono text-sm text-foreground"
           >
             Enter your long URL
           </label>
           <div className="flex gap-2">
             <Input
-              id={urlInputId}
+              id="urlInput"
               type="url"
               placeholder="https://example.com/very/long/url/path"
               value={url}
@@ -153,7 +146,7 @@ export function UrlShortener() {
                 <label htmlFor="slug-random" className="text-sm ">
                   Random slug{" "}
                   <span className="text-muted-foreground text-xs">
-                    (e.g., {BASE_DOMAIN}/a1b2c3)
+                    (e.g., ndle.im/a1b2c3)
                   </span>
                 </label>
               </div>
@@ -162,7 +155,7 @@ export function UrlShortener() {
                 <label htmlFor="slug-human" className="text-sm">
                   Human-readable slug{" "}
                   <span className="text-muted-foreground text-xs">
-                    (e.g., {BASE_DOMAIN}/raregeckosjam)
+                    (e.g., ndle.im/raregeckosjam)
                   </span>
                 </label>
               </div>
@@ -206,7 +199,7 @@ export function UrlShortener() {
           <Button
             disabled={!url || isSubmitting}
             onClick={handleShorten}
-            className="bg-accent w-36 rounded-sm text-black font-mono font-medium text-sm hover:bg-accent/90 disabled:opacity-50 disabled:cursor-not-allowed hover:drop-shadow-sm ease-linear drop-shadow-none transition-shadow duration-75"
+            className="bg-accent w-36 rounded-sm text-black font-mono font-medium text-sm hover:bg-accent/90 disabled:opacity-50 disabled:cursor-not-allowed hover:drop-shadow-sm ease-out drop-shadow-none transition-shadow duration-75"
           >
             {isSubmitting ? (
               <span className="flex items-center gap-2">

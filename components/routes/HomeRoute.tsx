@@ -1,6 +1,6 @@
 import { NavLink } from "react-router";
 import { UrlShortener } from "@/components/url-shortener";
-import { UrlList } from "@/components/url-list";
+import { UrlList } from "@/components/recent-list";
 import {
   Card,
   CardContent,

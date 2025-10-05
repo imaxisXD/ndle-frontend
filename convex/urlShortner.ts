@@ -1,5 +1,6 @@
 import { ConvexError, v } from "convex/values";
 import { internalMutation, mutation, query } from "./_generated/server";
+import { paginationOptsValidator } from "convex/server";
 import { getCurrentUser } from "./users";
 import { VALIDATION_ERRORS, createSlug, isValidHttpUrl } from "./utils";
 import { Doc } from "./_generated/dataModel";

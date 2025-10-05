@@ -1,5 +1,5 @@
 import { Analytics } from "@/components/analytics";
-import { UrlList } from "@/components/url-list";
+import { UrlList } from "@/components/recent-list";
 
 export default function AnalyticsRoute() {
   return (

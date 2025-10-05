@@ -17,11 +17,15 @@
   --muted-foreground: oklch(0.5 0 0);
   --accent: oklch(0.86 0.17 88 / 1); /* Yellow/gold accent like reference */
   --accent-foreground: oklch(0.145 0 0);
-  --info: oklch(0.98 0.01 230);
-  --info-foreground: oklch(0.985 0 0);
-  --success: oklch(0.98 0.01 230);
-  --success-foreground: oklch(0.985 0 0);
-  --warning: oklch(0.98 0.01 230);
+  --info: oklch(0.96 0.07 230);
+  --info-foreground: oklch(0.145 0 0);
+  /* Success: bright green tuned to complement the yellow accent */
+  --success: oklch(0.86 0.15 145);
+  --success-foreground: oklch(0.145 0 0);
+  /* Soft container for badges on light card backgrounds */
+  --success-container: oklch(0.95 0.06 145);
+  --success-on-container: oklch(0.22 0.03 140);
+  --warning: oklch(0.93 0.12 75);
   --warning-foreground: oklch(0.985 0 0);
   --destructive: oklch(0.577 0.245 27.325);
   --destructive-foreground: oklch(0.985 0 0);
@@ -68,6 +72,10 @@
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
   --color-destructive-dark: var(--destructive-dark);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-success-container: var(--success-container);
+  --color-success-on-container: var(--success-on-container);
   --color-info: var(--info);
   --color-info-foreground: var(--info-foreground);
   --color-warning: var(--warning);
@@ -149,4 +157,43 @@
 
 .roundness-100 {
   font-variation-settings: "ROND" 100;
+}
+
+.dot {
+  position: absolute;
+  inset: 0;
+  height: 100%;
+  width: 100%;
+  background-image: radial-gradient(#e5e7eb 1px, transparent 1px);
+  background-size: 16px 16px;
+}
+
+.dot-mask {
+  position: absolute;
+  inset: 0;
+  height: 100%;
+  width: 100%;
+  background-image: radial-gradient(#e5e7eb 1px, transparent 1px);
+  background-size: 16px 16px;
+  -webkit-mask-image: radial-gradient(
+    ellipse 50% 50% at 50% 50%,
+    #000 60%,
+    transparent 100%
+  );
+  mask-image: radial-gradient(
+    ellipse 50% 50% at 50% 50%,
+    #000 60%,
+    transparent 100%
+  );
+}
+
+/* Simple collapsible max-height transition */
+.collapsible {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 100ms ease-out;
+}
+
+.collapsible.open {
+  max-height: 500px;
 }

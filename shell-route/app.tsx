@@ -14,7 +14,7 @@ export default function App() {
   return (
     <BrowserRouter>
       <ToastProvider showCloseButton={true} limit={3}>
-        <div className="fixed inset-0 flex bg-home text-foreground overflow-hidden">
+        <div className="fixed inset-0 flex bg-home text-foreground overflow-hidden dot">
           <Sidebar />
           <main className="flex-1 overflow-y-auto min-h-0">
             <div className="p-8 lg:p-12">

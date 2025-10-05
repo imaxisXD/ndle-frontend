@@ -1,0 +1,45 @@
+import { CopyIcon, ExternalLinkIcon } from "../icons";
+import type { DisplayUrl } from "./types";
+
+export function ShortUrlCell({
+  url,
+  onCopy,
+}: {
+  url: DisplayUrl;
+  onCopy: (shortUrl: string) => void;
+}) {
+  const normalizedHref = url.shortUrl.startsWith("http")
+    ? url.shortUrl
+    : `https://${url.shortUrl}`;
+  return (
+    <div className="space-y-1">
+      <div className="flex items-center gap-2">
+        <code className="font-mono text-sm font-medium text-foreground">
+          {url.shortUrl}
+        </code>
+        <button
+          type="button"
+          className="rounded-md p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+          onClick={(e) => {
+            e.stopPropagation();
+            onCopy(url.shortUrl);
+          }}
+        >
+          <CopyIcon className="h-3.5 w-3.5" />
+        </button>
+        <a
+          href={normalizedHref}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="rounded-md p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <ExternalLinkIcon className="h-3.5 w-3.5" />
+        </a>
+      </div>
+      <p className="font-mono text-xs text-muted-foreground max-w-[520px] truncate">
+        {url.originalUrl}
+      </p>
+    </div>
+  );
+}
