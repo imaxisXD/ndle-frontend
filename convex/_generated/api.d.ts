@@ -14,7 +14,7 @@ import type {
   FunctionReference,
 } from "convex/server";
 import type * as redisAction from "../redisAction.js";
-import type * as urlShortner from "../urlShortner.js";
+import type * as urlMainFuction from "../urlMainFuction.js";
 import type * as users from "../users.js";
 import type * as utils from "../utils.js";
 
@@ -28,7 +28,7 @@ import type * as utils from "../utils.js";
  */
 declare const fullApi: ApiFromModules<{
   redisAction: typeof redisAction;
-  urlShortner: typeof urlShortner;
+  urlMainFuction: typeof urlMainFuction;
   users: typeof users;
   utils: typeof utils;
 }>;
