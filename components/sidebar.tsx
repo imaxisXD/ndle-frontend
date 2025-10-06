@@ -19,7 +19,7 @@ import {
 
 export function Sidebar() {
   return (
-    <aside className="flex h-[98vh] my-auto rounded-xl ml-4 w-16 flex-shrink-0 flex-col items-center border border-border bg-white py-6 drop-shadow-sm">
+    <aside className="border-border my-auto ml-4 flex h-[98vh] w-16 flex-shrink-0 flex-col items-center rounded-xl border bg-white py-6 drop-shadow-sm">
       <nav className="flex flex-1 flex-col gap-4">
         <Tooltip>
           <TooltipTrigger

@@ -21,12 +21,12 @@ export default function HomeRoute() {
     <>
       <header>
         <h1
-          className="font-doto text-5xl font-bold tracking-tight text-black roundness-100"
+          className="font-doto roundness-100 text-5xl font-bold tracking-tight text-black"
           id="home-heading"
         >
           ndle
         </h1>
-        <p className="mt-2 font-mono text-sm text-muted-foreground">
+        <p className="text-muted-foreground mt-2 text-sm">
           Short. Sharp. Smarter.
         </p>
       </header>
@@ -44,8 +44,8 @@ export default function HomeRoute() {
         </h2>
         <Card>
           <CardHeader className="flex flex-col items-start">
-            <CardTitle className="font-mono">Quick Actions</CardTitle>
-            <CardDescription className="font-mono">
+            <CardTitle className="text-sm">Quick Actions</CardTitle>
+            <CardDescription className="text-sm">
               Jump into common workflows
             </CardDescription>
           </CardHeader>
@@ -86,21 +86,19 @@ export default function HomeRoute() {
                 <NavLink
                   key={action.to}
                   to={action.to}
-                  className="group block rounded-lg border border-border bg-background p-4 transition-colors hover:bg-muted/50"
+                  className="group border-border bg-background hover:bg-muted/50 block rounded-lg border p-4 transition-colors"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="rounded-md bg-muted p-2">
-                      <action.Icon className="h-5 w-5 text-muted-foreground" />
+                    <div className="bg-muted rounded-md p-2">
+                      <action.Icon className="text-muted-foreground h-5 w-5" />
                     </div>
                     <div className="flex-1">
-                      <p className="font-mono text-sm font-medium">
-                        {action.title}
-                      </p>
-                      <p className="mt-0.5 font-mono text-xs text-muted-foreground">
+                      <p className="text-sm font-medium">{action.title}</p>
+                      <p className="text-muted-foreground mt-0.5 text-xs">
                         {action.description}
                       </p>
                     </div>
-                    <span className="font-mono text-xs text-muted-foreground group-hover:text-foreground">
+                    <span className="text-muted-foreground group-hover:text-foreground text-xs">
                       Open →
                     </span>
                   </div>

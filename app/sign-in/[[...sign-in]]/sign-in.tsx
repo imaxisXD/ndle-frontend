@@ -26,14 +26,14 @@ const highlights = [
 
 export default function SignInComponent() {
   return (
-    <div className="relative flex min-h-[100svh] flex-col bg-[var(--home)] text-foreground lg:flex-row">
+    <div className="text-foreground relative flex min-h-[100svh] flex-col bg-[var(--home)] lg:flex-row">
       <div className="relative hidden min-h-full w-full max-w-[520px] flex-1 flex-col justify-between overflow-hidden px-10 py-14 text-white lg:flex">
         <div className="absolute inset-0 bg-gradient-to-br from-[#050505] via-[#101010] to-[#1d1d1d]" />
-        <div className="relative flex items-center gap-3 text-sm uppercase tracking-[0.32em] text-white/70">
-          <span className="font-medium text-white font-doto text-4xl roundness-100">
+        <div className="relative flex items-center gap-3 text-sm tracking-[0.32em] text-white/70 uppercase">
+          <span className="font-doto roundness-100 text-4xl font-medium text-white">
             ndle
           </span>
-          <span className="text-xs normal-case tracking-normal text-white/50">
+          <span className="text-xs tracking-normal text-white/50 normal-case">
             short. sharp. smarter.
           </span>
         </div>
@@ -66,25 +66,25 @@ export default function SignInComponent() {
         </div>
       </div>
 
-      <div className="relative flex min-h-full w-full flex-1 justify-center bg-background px-6 py-12 lg:px-16 lg:py-14">
+      <div className="bg-background relative flex min-h-full w-full flex-1 justify-center px-6 py-12 lg:px-16 lg:py-14">
         <div className="relative z-10 flex w-full max-w-md flex-col justify-center gap-10">
           <Link
             href="/"
-            className="flex w-fit items-center gap-1 text-sm text-muted-foreground transition hover:text-foreground"
+            className="text-muted-foreground hover:text-foreground flex w-fit items-center gap-1 text-sm transition"
           >
             <ArrowLeftIcon className="h-4 w-4" /> Back to home
           </Link>
 
           <div className="space-y-3">
-            <h2 className="text-3xl font-semibold tracking-tight text-foreground">
+            <h2 className="text-foreground text-3xl font-semibold tracking-tight">
               Log in to ndle
             </h2>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-muted-foreground text-sm">
               Continue with your team account to access the adaptive dashboard.
             </p>
           </div>
 
-          <div className="rounded-2xl border border-border bg-card/70 p-6 shadow-[0_14px_40px_-24px_rgba(15,23,42,0.4)] backdrop-blur">
+          <div className="border-border bg-card/70 rounded-2xl border p-6 shadow-[0_14px_40px_-24px_rgba(15,23,42,0.4)] backdrop-blur">
             <SignIn
               redirectUrl="/static-app-shell"
               afterSignInUrl="/static-app-shell"

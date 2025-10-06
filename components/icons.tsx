@@ -484,6 +484,57 @@ export function RefreshIcon({ className }: { className?: string }) {
   );
 }
 
+export function DoubleRefreshIcon({
+  title,
+  strokeColor = "currentColor",
+  fillColor = "none",
+  width,
+  height,
+  strokeWidth,
+  stroke,
+  fill,
+  ...rest
+}: SvgIconProps) {
+  const resolvedStroke = stroke ?? strokeColor;
+  const resolvedFill = fill ?? fillColor;
+
+  return (
+    <svg
+      width={width ?? "25px"}
+      height={height ?? "25px"}
+      viewBox="0 0 24 24"
+      fill={resolvedFill}
+      xmlns="http://www.w3.org/2000/svg"
+      stroke={resolvedStroke}
+      strokeWidth={strokeWidth ?? 1.3}
+      color={resolvedStroke}
+      {...rest}
+    >
+      {title ? <title>{title}</title> : null}
+      <path
+        d="M21.1679 8C19.6247 4.46819 16.1006 2 11.9999 2C6.81459 2 2.55104 5.94668 2.04932 11"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M17 8H21.4C21.7314 8 22 7.73137 22 7.4V3"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M2.88146 16C4.42458 19.5318 7.94874 22 12.0494 22C17.2347 22 21.4983 18.0533 22 13"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M7.04932 16H2.64932C2.31795 16 2.04932 16.2686 2.04932 16.6V21"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
 export function AlertCircleIcon({ className }: { className?: string }) {
   return (
     <svg
@@ -574,6 +625,222 @@ export function ShieldIcon({ className }: { className?: string }) {
         strokeLinejoin="round"
         strokeWidth={2}
         d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
+      />
+    </svg>
+  );
+}
+
+export function ShieldWarningIcon({
+  title,
+  strokeColor = "currentColor",
+  fillColor = "none",
+  width,
+  height,
+  strokeWidth,
+  stroke,
+  fill,
+  ...rest
+}: SvgIconProps) {
+  const resolvedStroke = stroke ?? strokeColor;
+  const resolvedFill = fill ?? fillColor;
+
+  return (
+    <svg
+      width={width ?? "24px"}
+      height={height ?? "24px"}
+      viewBox="0 0 24 24"
+      fill={resolvedFill}
+      xmlns="http://www.w3.org/2000/svg"
+      stroke={resolvedStroke}
+      strokeWidth={strokeWidth ?? 1.4}
+      color={resolvedStroke}
+      {...rest}
+    >
+      {title ? <title>{title}</title> : null}
+      <path d="M12 7L12 12" strokeLinecap="round" strokeLinejoin="round" />
+      <path
+        d="M12 16.01L12.01 15.9989"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M5 18L3.13036 4.91253C3.05646 4.39524 3.39389 3.91247 3.90398 3.79912L11.5661 2.09641C11.8519 2.03291 12.1481 2.03291 12.4339 2.09641L20.096 3.79912C20.6061 3.91247 20.9435 4.39524 20.8696 4.91252L19 18C18.9293 18.495 18.5 21.5 12 21.5C5.5 21.5 5.07071 18.495 5 18Z"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+export function ShieldErrorIcon({
+  title,
+  strokeColor = "currentColor",
+  fillColor = "none",
+  width,
+  height,
+  strokeWidth,
+  stroke,
+  fill,
+  ...rest
+}: SvgIconProps) {
+  const resolvedStroke = stroke ?? strokeColor;
+  const resolvedFill = fill ?? fillColor;
+
+  return (
+    <svg
+      width={width ?? "24px"}
+      height={height ?? "24px"}
+      viewBox="0 0 24 24"
+      fill={resolvedFill}
+      xmlns="http://www.w3.org/2000/svg"
+      stroke={resolvedStroke}
+      strokeWidth={strokeWidth ?? 1.4}
+      color={resolvedStroke}
+      {...rest}
+    >
+      {title ? <title>{title}</title> : null}
+      <path
+        d="M9.87132 14.1213L11.9926 12M14.114 9.87868L11.9926 12M11.9926 12L9.87132 9.87868M11.9926 12L14.114 14.1213"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M5 18L3.13036 4.91253C3.05646 4.39524 3.39389 3.91247 3.90398 3.79912L11.5661 2.09641C11.8519 2.03291 12.1481 2.03291 12.4339 2.09641L20.096 3.79912C20.6061 3.91247 20.9435 4.39524 20.8696 4.91252L19 18C18.9293 18.495 18.5 21.5 12 21.5C5.5 21.5 5.07071 18.495 5 18Z"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+export function ShieldLoadingIcon({
+  title,
+  strokeColor = "currentColor",
+  fillColor = "none",
+  width,
+  height,
+  strokeWidth,
+  stroke,
+  fill,
+  ...rest
+}: SvgIconProps) {
+  const resolvedStroke = stroke ?? strokeColor;
+  const resolvedFill = fill ?? fillColor;
+
+  return (
+    <svg
+      width={width ?? "25px"}
+      height={height ?? "25px"}
+      viewBox="0 0 24 24"
+      fill={resolvedFill}
+      xmlns="http://www.w3.org/2000/svg"
+      stroke={resolvedStroke}
+      strokeWidth={strokeWidth ?? 1.3}
+      color={resolvedStroke}
+      {...rest}
+    >
+      {title ? <title>{title}</title> : null}
+      <path
+        d="M8 10.01L8.01 9.99889"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M12 10.01L12.01 9.99889"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M16 10.01L16.01 9.99889"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M5 18L3.13036 4.91253C3.05646 4.39524 3.39389 3.91247 3.90398 3.79912L11.5661 2.09641C11.8519 2.03291 12.1481 2.03291 12.4339 2.09641L20.096 3.79912C20.6061 3.91247 20.9435 4.39524 20.8696 4.91252L19 18C18.9293 18.495 18.5 21.5 12 21.5C5.5 21.5 5.07071 18.495 5 18Z"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+export function ShieldCheckIcon({
+  title,
+  strokeColor = "currentColor",
+  fillColor = "none",
+  width,
+  height,
+  strokeWidth,
+  stroke,
+  fill,
+  ...rest
+}: SvgIconProps) {
+  const resolvedStroke = stroke ?? strokeColor;
+  const resolvedFill = fill ?? fillColor;
+
+  return (
+    <svg
+      width={width ?? "25px"}
+      height={height ?? "25px"}
+      viewBox="0 0 24 24"
+      fill={resolvedFill}
+      xmlns="http://www.w3.org/2000/svg"
+      stroke={resolvedStroke}
+      strokeWidth={strokeWidth ?? 1.3}
+      color={resolvedStroke}
+      {...rest}
+    >
+      {title ? <title>{title}</title> : null}
+      <path
+        d="M8.5 11.5L11.5 14.5L16.5 9.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M5 18L3.13036 4.91253C3.05646 4.39524 3.39389 3.91247 3.90398 3.79912L11.5661 2.09641C11.8519 2.03291 12.1481 2.03291 12.4339 2.09641L20.096 3.79912C20.6061 3.91247 20.9435 4.39524 20.8696 4.91252L19 18C18.9293 18.495 18.5 21.5 12 21.5C5.5 21.5 5.07071 18.495 5 18Z"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+export function ShieldHealthIcon({
+  title,
+  strokeColor = "currentColor",
+  fillColor = "none",
+  width,
+  height,
+  strokeWidth,
+  stroke,
+  fill,
+  ...rest
+}: SvgIconProps) {
+  const resolvedStroke = stroke ?? strokeColor;
+  const resolvedFill = fill ?? fillColor;
+
+  return (
+    <svg
+      width={width ?? "25px"}
+      height={height ?? "25px"}
+      viewBox="0 0 24 24"
+      fill={resolvedFill}
+      xmlns="http://www.w3.org/2000/svg"
+      stroke={resolvedStroke}
+      strokeWidth={strokeWidth ?? 1.3}
+      color={resolvedStroke}
+      {...rest}
+    >
+      {title ? <title>{title}</title> : null}
+      <path
+        d="M13.6667 16H10.3333V13.6667H8V10.3333H10.3333V8H13.6667V10.3333H16V13.6667H13.6667V16Z"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M5 18L3.13036 4.91253C3.05646 4.39524 3.39389 3.91247 3.90398 3.79912L11.5661 2.09641C11.8519 2.03291 12.1481 2.03291 12.4339 2.09641L20.096 3.79912C20.6061 3.91247 20.9435 4.39524 20.8696 4.91252L19 18C18.9293 18.495 18.5 21.5 12 21.5C5.5 21.5 5.07071 18.495 5 18Z"
+        strokeLinecap="round"
+        strokeLinejoin="round"
       />
     </svg>
   );

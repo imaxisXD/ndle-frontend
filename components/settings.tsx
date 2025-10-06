@@ -38,16 +38,14 @@ export function Settings() {
       <AccountCard />
 
       {/* General Settings */}
-      <div className="rounded-lg border border-border bg-card p-6">
+      <div className="border-border bg-card rounded-lg border p-6">
         <div className="mb-6 flex items-center gap-3">
           <div className="rounded-lg bg-blue-100 p-2">
             <GlobeIcon className="h-5 w-5 text-blue-600" />
           </div>
           <div>
-            <h3 className="font-mono text-base font-medium">
-              General Settings
-            </h3>
-            <p className="font-mono text-xs text-muted-foreground">
+            <h3 className="text-base font-medium">General Settings</h3>
+            <p className="text-muted-foreground text-xs">
               Configure ndle preferences
             </p>
           </div>
@@ -55,13 +53,10 @@ export function Settings() {
 
         <div className="space-y-6">
           <div>
-            <label
-              htmlFor="customDomain"
-              className="font-mono text-sm font-medium"
-            >
+            <label htmlFor="customDomain" className="text-sm font-medium">
               Custom Domain
             </label>
-            <p className="mt-1 font-mono text-xs text-muted-foreground">
+            <p className="text-muted-foreground mt-1 text-xs">
               Use your own domain for shortened links
             </p>
             <input
@@ -69,28 +64,25 @@ export function Settings() {
               value={customDomain}
               onChange={(e) => setCustomDomain(e.target.value)}
               placeholder="short.yourdomain.com"
-              className="mt-3 w-full rounded-md border border-input bg-background px-3 py-2 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-foreground/20"
+              className="border-input bg-background focus:ring-foreground/20 mt-3 w-full rounded-md border px-3 py-2 text-sm focus:ring-2 focus:outline-none"
             />
-            <p className="mt-2 font-mono text-xs text-muted-foreground">
+            <p className="text-muted-foreground mt-2 text-xs">
               Add a CNAME record pointing to{" "}
-              <code className="rounded bg-muted px-1 py-0.5">ndle.im</code>
+              <code className="bg-muted rounded px-1 py-0.5">ndle.im</code>
             </p>
           </div>
 
           <div>
-            <label
-              htmlFor="defaultExpiration"
-              className="font-mono text-sm font-medium"
-            >
+            <label htmlFor="defaultExpiration" className="text-sm font-medium">
               Default Link Expiration
             </label>
-            <p className="mt-1 font-mono text-xs text-muted-foreground">
+            <p className="text-muted-foreground mt-1 text-xs">
               Set default expiration time for new links
             </p>
             <select
               value={defaultExpiration}
               onChange={(e) => setDefaultExpiration(e.target.value)}
-              className="mt-3 w-full rounded-md border border-input bg-background px-3 py-2 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-foreground/20"
+              className="border-input bg-background focus:ring-foreground/20 mt-3 w-full rounded-md border px-3 py-2 text-sm focus:ring-2 focus:outline-none"
             >
               <option value="never">Never expire</option>
               <option value="7">7 days</option>
@@ -101,13 +93,13 @@ export function Settings() {
           </div>
 
           <div>
-            <label htmlFor="timezone" className="font-mono text-sm font-medium">
+            <label htmlFor="timezone" className="text-sm font-medium">
               Timezone
             </label>
-            <p className="mt-1 font-mono text-xs text-muted-foreground">
+            <p className="text-muted-foreground mt-1 text-xs">
               Used for analytics and scheduling
             </p>
-            <select className="mt-3 w-full rounded-md border border-input bg-background px-3 py-2 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-foreground/20">
+            <select className="border-input bg-background focus:ring-foreground/20 mt-3 w-full rounded-md border px-3 py-2 text-sm focus:ring-2 focus:outline-none">
               <option>UTC (Coordinated Universal Time)</option>
               <option>America/New_York (EST/EDT)</option>
               <option>America/Los_Angeles (PST/PDT)</option>
@@ -119,16 +111,14 @@ export function Settings() {
       </div>
 
       {/* Self-Healing Settings */}
-      <div className="rounded-lg border border-border bg-card p-6">
+      <div className="border-border bg-card rounded-lg border p-6">
         <div className="mb-6 flex items-center gap-3">
           <div className="rounded-lg bg-green-100 p-2">
             <ShieldIcon className="h-5 w-5 text-green-600" />
           </div>
           <div>
-            <h3 className="font-mono text-base font-medium">
-              Self-Healing Settings
-            </h3>
-            <p className="font-mono text-xs text-muted-foreground">
+            <h3 className="text-base font-medium">Self-Healing Settings</h3>
+            <p className="text-muted-foreground text-xs">
               Configure automatic link healing behavior
             </p>
           </div>
@@ -137,13 +127,10 @@ export function Settings() {
         <div className="space-y-6">
           <div className="flex items-start justify-between">
             <div className="flex-1">
-              <label
-                htmlFor="autoHealing"
-                className="font-mono text-sm font-medium"
-              >
+              <label htmlFor="autoHealing" className="text-sm font-medium">
                 Enable Auto-Healing
               </label>
-              <p className="mt-1 font-mono text-xs text-muted-foreground">
+              <p className="text-muted-foreground mt-1 text-xs">
                 Automatically fix broken links using semantic search and Wayback
                 Machine
               </p>
@@ -167,11 +154,11 @@ export function Settings() {
             <div className="flex-1">
               <label
                 htmlFor="healingNotifications"
-                className="font-mono text-sm font-medium"
+                className="text-sm font-medium"
               >
                 Healing Notifications
               </label>
-              <p className="mt-1 font-mono text-xs text-muted-foreground">
+              <p className="text-muted-foreground mt-1 text-xs">
                 Get notified when links are automatically healed
               </p>
             </div>
@@ -191,16 +178,13 @@ export function Settings() {
           </div>
 
           <div>
-            <label
-              htmlFor="healingStrategy"
-              className="font-mono text-sm font-medium"
-            >
+            <label htmlFor="healingStrategy" className="text-sm font-medium">
               Healing Strategy
             </label>
-            <p className="mt-1 font-mono text-xs text-muted-foreground">
+            <p className="text-muted-foreground mt-1 text-xs">
               Choose how to handle broken links
             </p>
-            <select className="mt-3 w-full rounded-md border border-input bg-background px-3 py-2 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-foreground/20">
+            <select className="border-input bg-background focus:ring-foreground/20 mt-3 w-full rounded-md border px-3 py-2 text-sm focus:ring-2 focus:outline-none">
               <option>Semantic search first, then Wayback Machine</option>
               <option>Wayback Machine only</option>
               <option>Semantic search only</option>
@@ -209,16 +193,13 @@ export function Settings() {
           </div>
 
           <div>
-            <label
-              htmlFor="checkFrequency"
-              className="font-mono text-sm font-medium"
-            >
+            <label htmlFor="checkFrequency" className="text-sm font-medium">
               Check Frequency
             </label>
-            <p className="mt-1 font-mono text-xs text-muted-foreground">
+            <p className="text-muted-foreground mt-1 text-xs">
               How often to check link health
             </p>
-            <select className="mt-3 w-full rounded-md border border-input bg-background px-3 py-2 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-foreground/20">
+            <select className="border-input bg-background focus:ring-foreground/20 mt-3 w-full rounded-md border px-3 py-2 text-sm focus:ring-2 focus:outline-none">
               <option>Every hour</option>
               <option>Every 6 hours</option>
               <option>Daily</option>
@@ -229,14 +210,14 @@ export function Settings() {
       </div>
 
       {/* AI Settings */}
-      <div className="rounded-lg border border-border bg-card p-6">
+      <div className="border-border bg-card rounded-lg border p-6">
         <div className="mb-6 flex items-center gap-3">
           <div className="rounded-lg bg-yellow-100 p-2">
             <SparklesIcon className="h-5 w-5 text-yellow-600" />
           </div>
           <div>
-            <h3 className="font-mono text-base font-medium">AI Features</h3>
-            <p className="font-mono text-xs text-muted-foreground">
+            <h3 className="text-base font-medium">AI Features</h3>
+            <p className="text-muted-foreground text-xs">
               Configure AI-powered features
             </p>
           </div>
@@ -245,13 +226,10 @@ export function Settings() {
         <div className="space-y-6">
           <div className="flex items-start justify-between">
             <div className="flex-1">
-              <label
-                htmlFor="aiSummaries"
-                className="font-mono text-sm font-medium"
-              >
+              <label htmlFor="aiSummaries" className="text-sm font-medium">
                 Auto-Generate Summaries
               </label>
-              <p className="mt-1 font-mono text-xs text-muted-foreground">
+              <p className="text-muted-foreground mt-1 text-xs">
                 Automatically create AI summaries for new links
               </p>
             </div>
@@ -272,10 +250,10 @@ export function Settings() {
 
           <div className="flex items-start justify-between">
             <div className="flex-1">
-              <label htmlFor="aiChat" className="font-mono text-sm font-medium">
+              <label htmlFor="aiChat" className="text-sm font-medium">
                 Enable AI Chat
               </label>
-              <p className="mt-1 font-mono text-xs text-muted-foreground">
+              <p className="text-muted-foreground mt-1 text-xs">
                 Ask questions about your links using AI
               </p>
             </div>
@@ -295,16 +273,13 @@ export function Settings() {
           </div>
 
           <div>
-            <label
-              htmlFor="memoryRetention"
-              className="font-mono text-sm font-medium"
-            >
+            <label htmlFor="memoryRetention" className="text-sm font-medium">
               Memory Retention
             </label>
-            <p className="mt-1 font-mono text-xs text-muted-foreground">
+            <p className="text-muted-foreground mt-1 text-xs">
               How long to keep AI conversation history
             </p>
-            <select className="mt-3 w-full rounded-md border border-input bg-background px-3 py-2 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-foreground/20">
+            <select className="border-input bg-background focus:ring-foreground/20 mt-3 w-full rounded-md border px-3 py-2 text-sm focus:ring-2 focus:outline-none">
               <option>Forever</option>
               <option>1 year</option>
               <option>6 months</option>
@@ -314,13 +289,13 @@ export function Settings() {
           </div>
 
           <div>
-            <label htmlFor="aiModel" className="font-mono text-sm font-medium">
+            <label htmlFor="aiModel" className="text-sm font-medium">
               AI Model
             </label>
-            <p className="mt-1 font-mono text-xs text-muted-foreground">
+            <p className="text-muted-foreground mt-1 text-xs">
               Choose the AI model for summaries and chat
             </p>
-            <select className="mt-3 w-full rounded-md border border-input bg-background px-3 py-2 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-foreground/20">
+            <select className="border-input bg-background focus:ring-foreground/20 mt-3 w-full rounded-md border px-3 py-2 text-sm focus:ring-2 focus:outline-none">
               <option>GPT-4 (Most capable)</option>
               <option>GPT-3.5 Turbo (Faster, cheaper)</option>
               <option>Claude 3 Opus (Alternative)</option>
@@ -331,7 +306,7 @@ export function Settings() {
       </div>
 
       {/* API Settings */}
-      <div className="rounded-lg border border-border bg-card p-6">
+      <div className="border-border bg-card rounded-lg border p-6">
         <div className="mb-6 flex items-center gap-3">
           <div className="rounded-lg bg-purple-100 p-2">
             <svg
@@ -350,8 +325,8 @@ export function Settings() {
             </svg>
           </div>
           <div>
-            <h3 className="font-mono text-base font-medium">API Settings</h3>
-            <p className="font-mono text-xs text-muted-foreground">
+            <h3 className="text-base font-medium">API Settings</h3>
+            <p className="text-muted-foreground text-xs">
               Manage API access and webhooks
             </p>
           </div>
@@ -359,10 +334,10 @@ export function Settings() {
 
         <div className="space-y-6">
           <div>
-            <label htmlFor="apiKey" className="font-mono text-sm font-medium">
+            <label htmlFor="apiKey" className="text-sm font-medium">
               API Key
             </label>
-            <p className="mt-1 font-mono text-xs text-muted-foreground">
+            <p className="text-muted-foreground mt-1 text-xs">
               Use this key to authenticate API requests
             </p>
             <div className="mt-3 flex gap-2">
@@ -370,37 +345,34 @@ export function Settings() {
                 type="text"
                 value={apiKey}
                 readOnly
-                className="flex-1 rounded-md border border-input bg-muted px-3 py-2 font-mono text-sm"
+                className="border-input bg-muted flex-1 rounded-md border px-3 py-2 text-sm"
               />
               <button
                 type="button"
                 onClick={handleCopyApiKey}
-                className="rounded-md border border-border bg-background px-3 py-2 hover:bg-accent transition-colors"
+                className="border-border bg-background hover:bg-accent rounded-md border px-3 py-2 transition-colors"
               >
                 <CopyIcon className="h-4 w-4" />
               </button>
               <button
                 type="button"
                 onClick={handleGenerateApiKey}
-                className="rounded-md border border-border bg-background px-3 py-2 hover:bg-accent transition-colors"
+                className="border-border bg-background hover:bg-accent rounded-md border px-3 py-2 transition-colors"
               >
                 <RefreshIcon className="h-4 w-4" />
               </button>
             </div>
-            <p className="mt-2 font-mono text-xs text-muted-foreground">
+            <p className="text-muted-foreground mt-2 text-xs">
               Keep your API key secret. Regenerating will invalidate the old
               key.
             </p>
           </div>
 
           <div>
-            <label
-              htmlFor="webhookUrl"
-              className="font-mono text-sm font-medium"
-            >
+            <label htmlFor="webhookUrl" className="text-sm font-medium">
               Webhook URL
             </label>
-            <p className="mt-1 font-mono text-xs text-muted-foreground">
+            <p className="text-muted-foreground mt-1 text-xs">
               Receive notifications when links are created, clicked, or healed
             </p>
             <input
@@ -408,18 +380,15 @@ export function Settings() {
               value={webhookUrl}
               onChange={(e) => setWebhookUrl(e.target.value)}
               placeholder="https://your-app.com/webhooks/shortener"
-              className="mt-3 w-full rounded-md border border-input bg-background px-3 py-2 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-foreground/20"
+              className="border-input bg-background focus:ring-foreground/20 mt-3 w-full rounded-md border px-3 py-2 text-sm focus:ring-2 focus:outline-none"
             />
           </div>
 
           <div>
-            <label
-              htmlFor="webhookEvents"
-              className="font-mono text-sm font-medium"
-            >
+            <label htmlFor="webhookEvents" className="text-sm font-medium">
               Webhook Events
             </label>
-            <p className="mt-1 font-mono text-xs text-muted-foreground">
+            <p className="text-muted-foreground mt-1 text-xs">
               Choose which events trigger webhooks
             </p>
             <div className="mt-3 space-y-2">
@@ -432,7 +401,7 @@ export function Settings() {
               ].map((event) => (
                 <label key={event} className="flex items-center gap-2">
                   <input type="checkbox" defaultChecked className="rounded" />
-                  <span className="font-mono text-sm">{event}</span>
+                  <span className="text-sm">{event}</span>
                 </label>
               ))}
             </div>
@@ -441,7 +410,7 @@ export function Settings() {
           <div className="rounded-lg border border-blue-200 bg-blue-50 p-4">
             <div className="flex gap-3">
               <svg
-                className="h-5 w-5 text-blue-600 flex-shrink-0"
+                className="h-5 w-5 flex-shrink-0 text-blue-600"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -455,10 +424,10 @@ export function Settings() {
                 />
               </svg>
               <div>
-                <h4 className="font-mono text-sm font-medium text-blue-900">
+                <h4 className="text-sm font-medium text-blue-900">
                   API Documentation
                 </h4>
-                <p className="mt-1 font-mono text-xs text-blue-700">
+                <p className="mt-1 text-xs text-blue-700">
                   View the full API documentation at{" "}
                   <a href="#" className="underline">
                     docs.ndle.im/api
@@ -477,10 +446,8 @@ export function Settings() {
             <AlertCircleIcon className="h-5 w-5 text-red-600" />
           </div>
           <div>
-            <h3 className="font-mono text-base font-medium text-red-900">
-              Danger Zone
-            </h3>
-            <p className="font-mono text-xs text-red-700">
+            <h3 className="text-base font-medium text-red-900">Danger Zone</h3>
+            <p className="text-xs text-red-700">
               Irreversible and destructive actions
             </p>
           </div>
@@ -489,16 +456,16 @@ export function Settings() {
         <div className="space-y-4">
           <div className="flex items-center justify-between rounded-lg border border-red-200 bg-white p-4">
             <div>
-              <h4 className="font-mono text-sm font-medium text-red-900">
+              <h4 className="text-sm font-medium text-red-900">
                 Delete All Links
               </h4>
-              <p className="mt-1 font-mono text-xs text-red-700">
+              <p className="mt-1 text-xs text-red-700">
                 Permanently delete all shortened links and their data
               </p>
             </div>
             <button
               type="button"
-              className="rounded-md bg-red-600 px-4 py-2 font-mono text-sm text-white transition-colors hover:bg-red-700"
+              className="rounded-md bg-red-600 px-4 py-2 text-sm text-white transition-colors hover:bg-red-700"
             >
               Delete All
             </button>
@@ -506,16 +473,16 @@ export function Settings() {
 
           <div className="flex items-center justify-between rounded-lg border border-red-200 bg-white p-4">
             <div>
-              <h4 className="font-mono text-sm font-medium text-red-900">
+              <h4 className="text-sm font-medium text-red-900">
                 Delete Account
               </h4>
-              <p className="mt-1 font-mono text-xs text-red-700">
+              <p className="mt-1 text-xs text-red-700">
                 Permanently delete your account and all associated data
               </p>
             </div>
             <button
               type="button"
-              className="rounded-md bg-red-600 px-4 py-2 font-mono text-sm text-white transition-colors hover:bg-red-700"
+              className="rounded-md bg-red-600 px-4 py-2 text-sm text-white transition-colors hover:bg-red-700"
             >
               Delete Account
             </button>

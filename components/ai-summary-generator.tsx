@@ -40,17 +40,17 @@ export function AiSummaryGenerator({
   };
 
   return (
-    <div className="rounded-lg border border-border bg-card p-4">
+    <div className="border-border bg-card rounded-lg border p-4">
       <div className="mb-3 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <SparklesIcon className="h-4 w-4 text-yellow-600" />
-          <h4 className="font-mono text-sm font-medium">AI Summary</h4>
+          <h4 className="text-sm font-medium">AI Summary</h4>
         </div>
         <button
           type="button"
           onClick={generateSummary}
           disabled={isGenerating}
-          className="flex items-center gap-2 rounded-md border border-border bg-background px-3 py-1 font-mono text-xs transition-colors hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed"
+          className="border-border bg-background hover:bg-accent flex items-center gap-2 rounded-md border px-3 py-1 text-xs transition-colors disabled:cursor-not-allowed disabled:opacity-50"
         >
           <RefreshIcon
             className={`h-3.5 w-3.5 ${isGenerating ? "animate-spin" : ""}`}
@@ -60,24 +60,22 @@ export function AiSummaryGenerator({
       </div>
 
       {summary ? (
-        <p className="font-mono text-sm text-muted-foreground leading-relaxed">
+        <p className="text-muted-foreground text-sm leading-relaxed">
           {summary}
         </p>
       ) : (
-        <div className="rounded-lg border border-dashed border-border bg-muted/30 p-6 text-center">
-          <SparklesIcon className="mx-auto h-6 w-6 text-muted-foreground" />
-          <p className="mt-2 font-mono text-xs text-muted-foreground">
-            No summary yet
-          </p>
-          <p className="mt-1 font-mono text-xs text-muted-foreground">
+        <div className="border-border bg-muted/30 rounded-lg border border-dashed p-6 text-center">
+          <SparklesIcon className="text-muted-foreground mx-auto h-6 w-6" />
+          <p className="text-muted-foreground mt-2 text-xs">No summary yet</p>
+          <p className="text-muted-foreground mt-1 text-xs">
             Click generate to create an AI summary
           </p>
         </div>
       )}
 
       {summary && (
-        <div className="mt-3 pt-3 border-t border-border">
-          <p className="font-mono text-xs text-muted-foreground">
+        <div className="border-border mt-3 border-t pt-3">
+          <p className="text-muted-foreground text-xs">
             Generated using AI • <span className="text-foreground">GPT-4</span>
           </p>
         </div>

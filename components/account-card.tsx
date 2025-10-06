@@ -23,9 +23,9 @@ export function AccountCard() {
   const isPro = "pro";
 
   return (
-    <Card variant={"accent"} className="border border-border">
+    <Card variant={"accent"} className="border-border border">
       <CardHeader>
-        <CardTitle className="flex items-center gap-3 font-mono text-base font-medium">
+        <CardTitle className="flex items-center gap-3 text-base font-medium">
           <div className="rounded-lg bg-purple-200 p-2">
             <svg
               className="h-5 w-5 text-purple-600"
@@ -70,11 +70,11 @@ export function AccountCard() {
             alt={user.firstName ?? "Profile"}
             width={48}
             height={48}
-            className="h-12 w-12 rounded-full object-cover border border-border"
+            className="border-border h-12 w-12 rounded-full border object-cover"
           />
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2">
-              <h4 className="max-w-[200px] truncate font-mono text-sm font-medium sm:max-w-[260px]">
+              <h4 className="max-w-[200px] truncate text-sm font-medium sm:max-w-[260px]">
                 {user.firstName} {user.lastName}
               </h4>
               <span className={isPro ? "badge-pro" : "badge-basic"}>

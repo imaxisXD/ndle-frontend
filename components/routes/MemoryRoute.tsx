@@ -33,10 +33,10 @@ export default function MemoryRoute() {
   return (
     <>
       <header>
-        <h1 className="font-mono text-3xl font-medium tracking-tight">
+        <h1 className="text-3xl font-medium tracking-tight">
           Memory & Conversations
         </h1>
-        <p className="mt-2 font-mono text-sm text-muted-foreground">
+        <p className="text-muted-foreground mt-2 text-sm">
           AI-powered summaries, notes, and conversations about your links
         </p>
       </header>
@@ -48,25 +48,21 @@ export default function MemoryRoute() {
           {items.map((item) => (
             <article
               key={item.link}
-              className="rounded-lg border border-border bg-card p-6"
+              className="border-border bg-card rounded-lg border p-6"
             >
               <div className="flex items-start justify-between">
                 <div className="flex-1">
                   <div className="flex items-center gap-2">
-                    <span className="font-mono text-sm font-medium">
-                      {item.link}
-                    </span>
-                    <span className="rounded-full bg-[#fbbf24] px-2 py-0.5 font-mono text-xs text-foreground">
+                    <span className="text-sm font-medium">{item.link}</span>
+                    <span className="text-foreground rounded-full bg-[#fbbf24] px-2 py-0.5 text-xs">
                       Memory
                     </span>
                   </div>
-                  <h3 className="mt-2 font-mono text-base font-medium">
-                    {item.title}
-                  </h3>
-                  <p className="mt-2 font-mono text-sm text-muted-foreground">
+                  <h3 className="mt-2 text-base font-medium">{item.title}</h3>
+                  <p className="text-muted-foreground mt-2 text-sm">
                     {item.memory}
                   </p>
-                  <div className="mt-4 flex gap-4 font-mono text-xs text-muted-foreground">
+                  <div className="text-muted-foreground mt-4 flex gap-4 text-xs">
                     <span>{item.conversations} conversations</span>
                     <span>Last updated 2 days ago</span>
                   </div>

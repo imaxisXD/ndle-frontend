@@ -26,14 +26,14 @@ export function ExpandedRowContent({
     <TableRow>
       <TableCell colSpan={columnsCount} className="bg-muted/20 p-0">
         <div className="p-6">
-          <div className="mb-4 flex gap-2 border-b border-border">
+          <div className="border-border mb-4 flex gap-2 border-b">
             <button
               type="button"
               onClick={() => setActiveTab("memory")}
-              className={`flex items-center gap-2 border-b-2 px-4 py-2 font-mono text-sm transition-colors ${
+              className={`flex items-center gap-2 border-b-2 px-4 py-2 text-sm transition-colors ${
                 activeTab === "memory"
                   ? "border-foreground text-foreground"
-                  : "border-transparent text-muted-foreground hover:text-foreground"
+                  : "text-muted-foreground hover:text-foreground border-transparent"
               }`}
             >
               <FileTextIcon className="h-4 w-4" />
@@ -42,10 +42,10 @@ export function ExpandedRowContent({
             <button
               type="button"
               onClick={() => setActiveTab("chat")}
-              className={`flex items-center gap-2 border-b-2 px-4 py-2 font-mono text-sm transition-colors ${
+              className={`flex items-center gap-2 border-b-2 px-4 py-2 text-sm transition-colors ${
                 activeTab === "chat"
                   ? "border-foreground text-foreground"
-                  : "border-transparent text-muted-foreground hover:text-foreground"
+                  : "text-muted-foreground hover:text-foreground border-transparent"
               }`}
             >
               <MessageSquareIcon className="h-4 w-4" />
@@ -54,10 +54,10 @@ export function ExpandedRowContent({
             <button
               type="button"
               onClick={() => setActiveTab("healing")}
-              className={`flex items-center gap-2 border-b-2 px-4 py-2 font-mono text-sm transition-colors ${
+              className={`flex items-center gap-2 border-b-2 px-4 py-2 text-sm transition-colors ${
                 activeTab === "healing"
                   ? "border-foreground text-foreground"
-                  : "border-transparent text-muted-foreground hover:text-foreground"
+                  : "text-muted-foreground hover:text-foreground border-transparent"
               }`}
             >
               <RefreshCwIcon className="h-4 w-4" />
@@ -66,10 +66,10 @@ export function ExpandedRowContent({
             <button
               type="button"
               onClick={() => setActiveTab("analytics")}
-              className={`flex items-center gap-2 border-b-2 px-4 py-2 font-mono text-sm transition-colors ${
+              className={`flex items-center gap-2 border-b-2 px-4 py-2 text-sm transition-colors ${
                 activeTab === "analytics"
                   ? "border-foreground text-foreground"
-                  : "border-transparent text-muted-foreground hover:text-foreground"
+                  : "text-muted-foreground hover:text-foreground border-transparent"
               }`}
             >
               <BarChartIcon className="h-4 w-4" />
@@ -82,14 +82,12 @@ export function ExpandedRowContent({
               <div className="space-y-4">
                 <AiSummaryGenerator url={url.originalUrl} />
 
-                <div className="rounded-lg border border-border bg-card p-4">
+                <div className="border-border bg-card rounded-lg border p-4">
                   <div className="mb-2 flex items-center gap-2">
-                    <FileTextIcon className="h-4 w-4 text-muted-foreground" />
-                    <h4 className="font-mono text-sm font-medium">
-                      Your Notes
-                    </h4>
+                    <FileTextIcon className="text-muted-foreground h-4 w-4" />
+                    <h4 className="text-sm font-medium">Your Notes</h4>
                   </div>
-                  <p className="font-mono text-sm text-muted-foreground">
+                  <p className="text-muted-foreground text-sm">
                     Add your notes here.
                   </p>
                 </div>
@@ -97,11 +95,11 @@ export function ExpandedRowContent({
                 <div className="rounded-lg border border-yellow-200 bg-yellow-50 p-4">
                   <div className="mb-2 flex items-center gap-2">
                     <ClockIcon className="h-4 w-4 text-yellow-700" />
-                    <h4 className="font-mono text-sm font-medium text-yellow-900">
+                    <h4 className="text-sm font-medium text-yellow-900">
                       Why You Saved This
                     </h4>
                   </div>
-                  <p className="font-mono text-sm text-yellow-700">
+                  <p className="text-sm text-yellow-700">
                     Keep a brief reason for future context.
                   </p>
                 </div>
@@ -116,12 +114,12 @@ export function ExpandedRowContent({
 
             {activeTab === "healing" && (
               <div className="space-y-3">
-                <div className="rounded-lg border border-dashed border-border bg-muted/30 p-8 text-center">
+                <div className="border-border bg-muted/30 rounded-lg border border-dashed p-8 text-center">
                   <CheckCircle2Icon className="mx-auto h-8 w-8 text-green-600" />
-                  <p className="mt-2 font-mono text-sm text-foreground">
+                  <p className="text-foreground mt-2 text-sm">
                     Link is healthy
                   </p>
-                  <p className="mt-1 font-mono text-xs text-muted-foreground">
+                  <p className="text-muted-foreground mt-1 text-xs">
                     No healing actions required
                   </p>
                 </div>
@@ -132,24 +130,22 @@ export function ExpandedRowContent({
               (url.analytics ? (
                 <div className="space-y-6">
                   <div>
-                    <h4 className="font-mono text-sm font-medium">
-                      Clicks Over Time
-                    </h4>
+                    <h4 className="text-sm font-medium">Clicks Over Time</h4>
                     <div className="mt-3 space-y-2">
                       {url.analytics.dailyClicks.map((d) => (
                         <div key={d.day} className="flex items-center gap-3">
-                          <span className="w-8 font-mono text-xs">{d.day}</span>
+                          <span className="w-8 text-xs">{d.day}</span>
                           <div className="flex-1">
-                            <div className="h-2 rounded-md bg-muted overflow-hidden">
+                            <div className="bg-muted h-2 overflow-hidden rounded-md">
                               <div
-                                className="h-full bg-foreground"
+                                className="bg-foreground h-full"
                                 style={{
                                   width: `${
                                     (d.clicks /
                                       Math.max(
                                         ...url.analytics!.dailyClicks.map(
-                                          (x) => x.clicks
-                                        )
+                                          (x) => x.clicks,
+                                        ),
                                       )) *
                                     100
                                   }%`,
@@ -157,7 +153,7 @@ export function ExpandedRowContent({
                               />
                             </div>
                           </div>
-                          <span className="w-10 text-right font-mono text-xs">
+                          <span className="w-10 text-right text-xs">
                             {d.clicks}
                           </span>
                         </div>
@@ -166,23 +162,17 @@ export function ExpandedRowContent({
                   </div>
 
                   <div>
-                    <h4 className="font-mono text-sm font-medium">
-                      Top Countries
-                    </h4>
+                    <h4 className="text-sm font-medium">Top Countries</h4>
                     <div className="mt-3 space-y-4">
                       {url.analytics.topCountries.map((c) => (
                         <div key={c.country}>
                           <div className="mb-1 flex items-center justify-between">
-                            <span className="font-mono text-xs">
-                              {c.country}
-                            </span>
-                            <span className="font-mono text-xs">
-                              {c.clicks}
-                            </span>
+                            <span className="text-xs">{c.country}</span>
+                            <span className="text-xs">{c.clicks}</span>
                           </div>
-                          <div className="h-2 rounded-full bg-muted overflow-hidden">
+                          <div className="bg-muted h-2 overflow-hidden rounded-full">
                             <div
-                              className="h-full bg-foreground"
+                              className="bg-foreground h-full"
                               style={{ width: `${c.percentage}%` }}
                             />
                           </div>
@@ -192,12 +182,12 @@ export function ExpandedRowContent({
                   </div>
                 </div>
               ) : (
-                <div className="rounded-lg border border-dashed border-border bg-muted/30 p-8 text-center">
-                  <BarChartIcon className="mx-auto h-8 w-8 text-muted-foreground" />
-                  <p className="mt-2 font-mono text-sm text-foreground">
+                <div className="border-border bg-muted/30 rounded-lg border border-dashed p-8 text-center">
+                  <BarChartIcon className="text-muted-foreground mx-auto h-8 w-8" />
+                  <p className="text-foreground mt-2 text-sm">
                     No analytics yet
                   </p>
-                  <p className="mt-1 font-mono text-xs text-muted-foreground">
+                  <p className="text-muted-foreground mt-1 text-xs">
                     Clicks and geography will appear here
                   </p>
                 </div>

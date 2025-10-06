@@ -9,6 +9,7 @@ import {
   Trash2,
 } from "@/components/icons";
 import { Button } from "./ui/button";
+import { Badge } from "@ui/badge";
 
 interface Collection {
   id: string;
@@ -160,14 +161,14 @@ export function Collections() {
             <button
               type="button"
               onClick={() => setSelectedCollection(null)}
-              className="flex items-center gap-2 font-mono text-sm text-muted-foreground hover:text-foreground transition-colors"
+              className="text-muted-foreground hover:text-foreground flex items-center gap-2 text-sm transition-colors"
             >
               ← Back to Collections
             </button>
           </div>
         </div>
 
-        <div className="rounded-lg border border-border bg-card p-6">
+        <div className="border-border bg-card rounded-lg border p-6">
           <div className="flex items-start justify-between">
             <div className="flex items-start gap-4">
               <div
@@ -180,13 +181,13 @@ export function Collections() {
                 />
               </div>
               <div>
-                <h2 className="font-mono text-2xl font-medium">
+                <h2 className="text-2xl font-medium">
                   {selectedCollection.name}
                 </h2>
-                <p className="mt-1 font-mono text-sm text-muted-foreground">
+                <p className="text-muted-foreground mt-1 text-sm">
                   {selectedCollection.description}
                 </p>
-                <div className="mt-4 flex gap-4 font-mono text-xs text-muted-foreground">
+                <div className="text-muted-foreground mt-4 flex gap-4 text-xs">
                   <span>{selectedCollection.linkCount} links</span>
                   <span>
                     {selectedCollection.totalClicks.toLocaleString()} total
@@ -198,7 +199,7 @@ export function Collections() {
             </div>
             <button
               type="button"
-              className="rounded-md p-2 hover:bg-accent transition-colors"
+              className="hover:bg-accent rounded-md p-2 transition-colors"
             >
               <MoreVertical className="h-4 w-4" />
             </button>
@@ -207,12 +208,10 @@ export function Collections() {
 
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <h3 className="font-mono text-lg font-medium">
-              Links in this collection
-            </h3>
+            <h3 className="text-lg font-medium">Links in this collection</h3>
             <button
               type="button"
-              className="flex items-center gap-2 rounded-md bg-accent px-3 py-2 font-mono text-sm text-accent-foreground transition-colors hover:bg-accent/90"
+              className="bg-accent text-accent-foreground hover:bg-accent/90 flex items-center gap-2 rounded-md px-3 py-2 text-sm transition-colors"
             >
               <Plus className="h-4 w-4" />
               Add Link
@@ -220,12 +219,10 @@ export function Collections() {
           </div>
 
           {collectionLinks.length === 0 ? (
-            <div className="rounded-lg border border-dashed border-border bg-card p-12 text-center">
-              <Folder className="mx-auto h-12 w-12 text-muted-foreground" />
-              <h3 className="mt-4 font-mono text-sm font-medium">
-                No links yet
-              </h3>
-              <p className="mt-2 font-mono text-xs text-muted-foreground">
+            <div className="border-border bg-card rounded-lg border border-dashed p-12 text-center">
+              <Folder className="text-muted-foreground mx-auto h-12 w-12" />
+              <h3 className="mt-4 text-sm font-medium">No links yet</h3>
+              <p className="text-muted-foreground mt-2 text-xs">
                 Add links to this collection to get started
               </p>
             </div>
@@ -234,50 +231,51 @@ export function Collections() {
               {collectionLinks.map((link) => (
                 <div
                   key={link.id}
-                  className="rounded-lg border border-border bg-card p-4"
+                  className="border-border bg-card rounded-lg border p-4"
                 >
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <div className="flex items-center gap-2">
-                        <span className="font-mono text-sm font-medium">
+                        <span className="text-sm font-medium">
                           {link.shortUrl}
                         </span>
-                        <span
-                          className={`inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 font-mono text-xs ${
-                            link.status === "healthy"
-                              ? "bg-green-100 text-green-700"
-                              : link.status === "healed"
-                              ? "bg-success-container text-foreground border border-success/30"
-                              : "bg-orange-100 text-orange-700"
-                          }`}
-                        >
-                          {link.status === "healed" && (
-                            <span className="w-1.5 h-1.5 rounded-full bg-success" />
-                          )}
-                          {link.status === "healthy"
-                            ? "Healthy"
-                            : link.status === "healed"
-                            ? "Auto-healed"
-                            : "Checking"}
-                        </span>
+                        {link.status === "healed" ? (
+                          <Badge
+                            className="inline-flex items-center gap-1.5"
+                            variant="green"
+                          >
+                            <span className="bg-success h-1.5 w-1.5 rounded-full" />
+                            Auto-healed
+                          </Badge>
+                        ) : (
+                          <span
+                            className={`inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-xs ${
+                              link.status === "healthy"
+                                ? "bg-green-100 text-green-700"
+                                : "bg-orange-100 text-orange-700"
+                            }`}
+                          >
+                            {link.status === "healthy" ? "Healthy" : "Checking"}
+                          </span>
+                        )}
                       </div>
-                      <p className="mt-1 font-mono text-xs text-muted-foreground">
+                      <p className="text-muted-foreground mt-1 text-xs">
                         {link.destination}
                       </p>
-                      <div className="mt-2 flex gap-4 font-mono text-xs text-muted-foreground">
+                      <div className="text-muted-foreground mt-2 flex gap-4 text-xs">
                         <span>{link.clicks} clicks</span>
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
                       <button
                         type="button"
-                        className="rounded-md p-2 hover:bg-accent transition-colors"
+                        className="hover:bg-accent rounded-md p-2 transition-colors"
                       >
                         <ExternalLink className="h-4 w-4" />
                       </button>
                       <button
                         type="button"
-                        className="rounded-md p-2 transition-colors text-destructive hover:bg-destructive/10"
+                        className="text-destructive hover:bg-destructive/10 rounded-md p-2 transition-colors"
                       >
                         <Trash2 className="h-4 w-4" />
                       </button>
@@ -296,8 +294,8 @@ export function Collections() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="font-mono text-lg font-medium">All Collections</h2>
-          <p className="mt-1 font-mono text-xs text-muted-foreground">
+          <h2 className="text-lg font-medium">All Collections</h2>
+          <p className="text-muted-foreground mt-1 text-xs">
             Organize your links into collections for better management
           </p>
         </div>
@@ -320,7 +318,7 @@ export function Collections() {
                 setSelectedCollection(collection);
               }
             }}
-            className="group rounded-lg border border-border bg-card p-6 hover:border-foreground/20 transition-all cursor-pointer"
+            className="group border-border bg-card hover:border-foreground/20 cursor-pointer rounded-lg border p-6 transition-all"
           >
             <div className="flex items-start justify-between">
               <div
@@ -337,29 +335,28 @@ export function Collections() {
                 onClick={(e) => {
                   e.stopPropagation();
                 }}
-                className="opacity-0 group-hover:opacity-100 rounded-md p-1 hover:bg-accent transition-all"
+                className="hover:bg-accent rounded-md p-1 opacity-0 transition-all group-hover:opacity-100"
               >
                 <MoreVertical className="h-4 w-4" />
               </button>
             </div>
-            <h3 className="mt-4 font-mono text-base font-medium">
-              {collection.name}
-            </h3>
-            <p className="mt-1 font-mono text-xs text-muted-foreground line-clamp-2">
+            <h3 className="mt-4 text-base font-medium">{collection.name}</h3>
+            <p className="text-muted-foreground mt-1 line-clamp-2 text-xs">
               {collection.description}
             </p>
             <div className="mt-4 flex flex-wrap gap-2">
-              <span className="rounded-full bg-secondary px-2 py-1 font-mono text-xs text-secondary-foreground">
-                {collection.linkCount} links
-              </span>
-              <span className="rounded-full bg-secondary px-2 py-1 font-mono text-xs text-secondary-foreground">
+              <Badge variant="default">{collection.linkCount} links</Badge>
+              <Badge variant="default">
                 {collection.totalClicks.toLocaleString()} clicks
-              </span>
+              </Badge>
               {collection.healedCount > 0 && (
-                <span className="inline-flex items-center gap-1.5 rounded-full px-2 py-1 font-mono text-xs bg-success-container text-foreground border border-success/30">
-                  <span className="w-1.5 h-1.5 rounded-full bg-success" />
+                <Badge
+                  className="inline-flex items-center gap-1.5"
+                  variant="green"
+                >
+                  <span className="bg-success h-1.5 w-1.5 rounded-full" />
                   {collection.healedCount} healed
-                </span>
+                </Badge>
               )}
             </div>
           </div>
@@ -368,18 +365,16 @@ export function Collections() {
 
       {showCreateModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="w-full max-w-md rounded-lg border border-border bg-card p-6">
-            <h3 className="font-mono text-lg font-medium">
-              Create New Collection
-            </h3>
-            <p className="mt-1 font-mono text-xs text-muted-foreground">
+          <div className="border-border bg-card w-full max-w-md rounded-lg border p-6">
+            <h3 className="text-lg font-medium">Create New Collection</h3>
+            <p className="text-muted-foreground mt-1 text-xs">
               Organize your links into a new collection
             </p>
             <div className="mt-6 space-y-4">
               <div>
                 <label
                   htmlFor="newCollectionName"
-                  className="font-mono text-sm font-medium"
+                  className="text-sm font-medium"
                 >
                   Collection Name
                 </label>
@@ -388,13 +383,13 @@ export function Collections() {
                   value={newCollectionName}
                   onChange={(e) => setNewCollectionName(e.target.value)}
                   placeholder="e.g., Product Documentation"
-                  className="mt-2 w-full rounded-md border border-input bg-background px-3 py-2 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-foreground/20"
+                  className="border-input bg-background focus:ring-foreground/20 mt-2 w-full rounded-md border px-3 py-2 text-sm focus:ring-2 focus:outline-none"
                 />
               </div>
               <div>
                 <label
                   htmlFor="newCollectionDescription"
-                  className="font-mono text-sm font-medium"
+                  className="text-sm font-medium"
                 >
                   Description (optional)
                 </label>
@@ -402,7 +397,7 @@ export function Collections() {
                   value={newCollectionDescription}
                   onChange={(e) => setNewCollectionDescription(e.target.value)}
                   placeholder="Brief description of this collection"
-                  className="mt-2 w-full rounded-md border border-input bg-background px-3 py-2 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-foreground/20 h-20 resize-none"
+                  className="border-input bg-background focus:ring-foreground/20 mt-2 h-20 w-full resize-none rounded-md border px-3 py-2 text-sm focus:ring-2 focus:outline-none"
                 />
               </div>
             </div>
@@ -414,7 +409,7 @@ export function Collections() {
                   setNewCollectionName("");
                   setNewCollectionDescription("");
                 }}
-                className="flex-1 rounded-md border border-border bg-background px-4 py-2 font-mono text-sm transition-colors hover:bg-secondary"
+                className="border-border bg-background hover:bg-secondary flex-1 rounded-md border px-4 py-2 text-sm transition-colors"
               >
                 Cancel
               </button>
@@ -422,7 +417,7 @@ export function Collections() {
                 type="button"
                 onClick={handleCreateCollection}
                 disabled={!newCollectionName.trim()}
-                className="flex-1 rounded-md bg-accent px-4 py-2 font-mono text-sm text-accent-foreground transition-colors hover:bg-accent/90 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="bg-accent text-accent-foreground hover:bg-accent/90 flex-1 rounded-md px-4 py-2 text-sm transition-colors disabled:cursor-not-allowed disabled:opacity-50"
               >
                 Create
               </button>

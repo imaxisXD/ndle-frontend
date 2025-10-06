@@ -99,10 +99,10 @@ export function UrlShortener() {
   return (
     <Card>
       <CardHeader>
-        <div className="flex items-center justify-between w-full">
+        <div className="flex w-full items-center justify-between">
           <div>
-            <CardTitle className="font-mono">Shorten a URL</CardTitle>
-            <CardDescription className="font-mono">
+            <CardTitle>Shorten a URL</CardTitle>
+            <CardDescription>
               Create a short link with a human-readable slug, expiration, and
               more.
             </CardDescription>
@@ -113,7 +113,7 @@ export function UrlShortener() {
         <div>
           <label
             htmlFor="urlInput"
-            className="mb-2 block font-mono text-sm text-foreground"
+            className="text-foreground mb-2 block text-sm"
           >
             Enter your long URL
           </label>
@@ -128,10 +128,8 @@ export function UrlShortener() {
           </div>
         </div>
 
-        <div className="rounded-lg border border-border p-4 bg-muted/20">
-          <div className="mb-3 font-mono text-xs text-muted-foreground">
-            Slug
-          </div>
+        <div className="border-border bg-muted/20 rounded-lg border p-4">
+          <div className="text-muted-foreground mb-3 text-xs">Slug</div>
           <div className="flex flex-col gap-3">
             <RadioGroup
               className="grid gap-3"
@@ -143,14 +141,14 @@ export function UrlShortener() {
             >
               <div className="flex items-center gap-2">
                 <RadioGroupItem id="slug-random" value="random" size="sm" />
-                <label htmlFor="slug-random" className="text-sm ">
+                <label htmlFor="slug-random" className="text-sm">
                   Random slug{" "}
                   <span className="text-muted-foreground text-xs">
                     (e.g., ndle.im/a1b2c3)
                   </span>
                 </label>
               </div>
-              <div className="flex items-center gap-2 flex-wrap">
+              <div className="flex flex-wrap items-center gap-2">
                 <RadioGroupItem id="slug-human" value="human" size="sm" />
                 <label htmlFor="slug-human" className="text-sm">
                   Human-readable slug{" "}
@@ -163,9 +161,9 @@ export function UrlShortener() {
           </div>
         </div>
 
-        <div className="rounded-lg border border-border p-4 bg-muted/20 space-y-3">
-          <div className="font-mono text-xs text-muted-foreground">Options</div>
-          <div className="flex items-center gap-2 font-mono text-sm">
+        <div className="border-border bg-muted/20 space-y-3 rounded-lg border p-4">
+          <div className="text-muted-foreground text-xs">Options</div>
+          <div className="flex items-center gap-2 text-sm">
             <Checkbox
               checked={expiresEnabled}
               onCheckedChange={(v) => setExpiresEnabled(Boolean(v))}
@@ -179,11 +177,11 @@ export function UrlShortener() {
               value={expiresAt}
               onChange={(e) => setExpiresAt(e.target.value)}
               disabled={!expiresEnabled}
-              className="font-mono text-sm max-w-xs"
+              className="max-w-xs text-sm"
             />
           </div>
 
-          <div className="flex items-center gap-2 font-mono text-sm">
+          <div className="flex items-center gap-2 text-sm">
             <Checkbox
               size="sm"
               checked={trackingEnabled}
@@ -194,16 +192,16 @@ export function UrlShortener() {
           </div>
         </div>
       </CardContent>
-      <CardFooter className="justify-between gap-3 flex-wrap py-5">
+      <CardFooter className="flex-wrap justify-between gap-3 py-5">
         <div className="flex items-center gap-2">
           <Button
             disabled={!url || isSubmitting}
             onClick={handleShorten}
-            className="bg-accent w-36 rounded-sm text-black font-mono font-medium text-sm hover:bg-accent/90 disabled:opacity-50 disabled:cursor-not-allowed hover:drop-shadow-sm ease-out drop-shadow-none transition-shadow duration-75"
+            className="bg-accent hover:bg-accent/90 w-36 rounded-sm text-sm font-medium text-black drop-shadow-none transition-shadow duration-75 ease-out hover:drop-shadow-sm disabled:cursor-not-allowed disabled:opacity-50"
           >
             {isSubmitting ? (
               <span className="flex items-center gap-2">
-                <CircleGridLoaderIcon className="size-3 " />
+                <CircleGridLoaderIcon className="size-3" />
                 Shortening
               </span>
             ) : (

@@ -35,7 +35,7 @@ const cardVariants = cva(
     defaultVariants: {
       variant: "default",
     },
-  }
+  },
 );
 
 const cardHeaderVariants = cva(
@@ -50,7 +50,7 @@ const cardHeaderVariants = cva(
     defaultVariants: {
       variant: "default",
     },
-  }
+  },
 );
 
 const cardContentVariants = cva("grow p-5", {
@@ -201,8 +201,8 @@ function CardTitle({
     <h3
       data-slot="card-title"
       className={cn(
-        "text-base font-semibold leading-none tracking-tight",
-        className
+        "text-base leading-none font-semibold tracking-tight",
+        className,
       )}
       {...props}
     />
@@ -216,7 +216,7 @@ function CardDescription({
   return (
     <div
       data-slot="card-description"
-      className={cn("text-sm text-muted-foreground", className)}
+      className={cn("text-muted-foreground text-sm", className)}
       {...props}
     />
   );

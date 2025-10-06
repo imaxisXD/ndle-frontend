@@ -37,7 +37,7 @@ export function AiChat({ linkUrl, existingConversations = [] }: AiChatProps) {
         content: conv.answer,
         timestamp: conv.timestamp,
       },
-    ])
+    ]),
   );
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -63,7 +63,7 @@ export function AiChat({ linkUrl, existingConversations = [] }: AiChatProps) {
         id: Math.random().toString(36).substring(7),
         role: "assistant",
         content: `Based on the content at ${linkUrl}, here's what I found: ${getMockResponse(
-          input
+          input,
         )}`,
         timestamp: "Just now",
       };
@@ -91,44 +91,40 @@ export function AiChat({ linkUrl, existingConversations = [] }: AiChatProps) {
   return (
     <div className="space-y-4">
       {messages.length === 0 ? (
-        <div className="rounded-lg border border-dashed border-border bg-muted/30 p-8 text-center">
+        <div className="border-border bg-muted/30 rounded-lg border border-dashed p-8 text-center">
           <SparklesIcon className="mx-auto h-8 w-8 text-yellow-600" />
-          <p className="mt-2 font-mono text-sm text-foreground">
-            Ask AI about this link
-          </p>
-          <p className="mt-1 font-mono text-xs text-muted-foreground">
+          <p className="text-foreground mt-2 text-sm">Ask AI about this link</p>
+          <p className="text-muted-foreground mt-1 text-xs">
             Get instant answers about the content, key points, or specific
             details
           </p>
         </div>
       ) : (
-        <div className="space-y-3 max-h-96 overflow-y-auto">
+        <div className="max-h-96 space-y-3 overflow-y-auto">
           {messages.map((message) => (
             <div
               key={message.id}
               className={message.role === "user" ? "flex justify-end" : ""}
             >
               {message.role === "assistant" ? (
-                <div className="rounded-lg border border-border bg-card p-4">
+                <div className="border-border bg-card rounded-lg border p-4">
                   <div className="mb-2 flex items-center gap-2">
                     <SparklesIcon className="h-3.5 w-3.5 text-yellow-600" />
-                    <span className="font-mono text-xs font-medium text-muted-foreground">
+                    <span className="text-muted-foreground text-xs font-medium">
                       AI Assistant
                     </span>
                   </div>
-                  <p className="font-mono text-sm text-foreground leading-relaxed">
+                  <p className="text-foreground text-sm leading-relaxed">
                     {message.content}
                   </p>
-                  <p className="mt-2 font-mono text-xs text-muted-foreground">
+                  <p className="text-muted-foreground mt-2 text-xs">
                     {message.timestamp}
                   </p>
                 </div>
               ) : (
-                <div className="rounded-lg bg-muted p-4 max-w-[80%]">
-                  <p className="font-mono text-sm text-foreground">
-                    {message.content}
-                  </p>
-                  <p className="mt-1 font-mono text-xs text-muted-foreground">
+                <div className="bg-muted max-w-[80%] rounded-lg p-4">
+                  <p className="text-foreground text-sm">{message.content}</p>
+                  <p className="text-muted-foreground mt-1 text-xs">
                     {message.timestamp}
                   </p>
                 </div>
@@ -136,24 +132,24 @@ export function AiChat({ linkUrl, existingConversations = [] }: AiChatProps) {
             </div>
           ))}
           {isLoading && (
-            <div className="rounded-lg border border-border bg-card p-4">
+            <div className="border-border bg-card rounded-lg border p-4">
               <div className="mb-2 flex items-center gap-2">
-                <SparklesIcon className="h-3.5 w-3.5 text-yellow-600 animate-pulse" />
-                <span className="font-mono text-xs font-medium text-muted-foreground">
+                <SparklesIcon className="h-3.5 w-3.5 animate-pulse text-yellow-600" />
+                <span className="text-muted-foreground text-xs font-medium">
                   AI is thinking...
                 </span>
               </div>
               <div className="flex gap-1">
-                <div className="h-2 w-2 rounded-full bg-muted-foreground animate-bounce" />
-                <div className="h-2 w-2 rounded-full bg-muted-foreground animate-bounce [animation-delay:0.2s]" />
-                <div className="h-2 w-2 rounded-full bg-muted-foreground animate-bounce [animation-delay:0.4s]" />
+                <div className="bg-muted-foreground h-2 w-2 animate-bounce rounded-full" />
+                <div className="bg-muted-foreground h-2 w-2 animate-bounce rounded-full [animation-delay:0.2s]" />
+                <div className="bg-muted-foreground h-2 w-2 animate-bounce rounded-full [animation-delay:0.4s]" />
               </div>
             </div>
           )}
         </div>
       )}
 
-      <div className="rounded-lg border border-border bg-card p-4">
+      <div className="border-border bg-card rounded-lg border p-4">
         <div className="flex gap-2">
           <input
             type="text"
@@ -162,13 +158,13 @@ export function AiChat({ linkUrl, existingConversations = [] }: AiChatProps) {
             onKeyDown={(e) => e.key === "Enter" && handleSend()}
             placeholder="Ask anything about this link..."
             disabled={isLoading}
-            className="flex-1 bg-transparent font-mono text-sm text-foreground placeholder:text-muted-foreground focus:outline-none disabled:opacity-50"
+            className="text-foreground placeholder:text-muted-foreground flex-1 bg-transparent text-sm focus:outline-none disabled:opacity-50"
           />
           <button
             type="button"
             onClick={handleSend}
             disabled={!input.trim() || isLoading}
-            className="rounded-md bg-foreground p-2 text-background transition-colors hover:bg-foreground/90 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="bg-foreground text-background hover:bg-foreground/90 rounded-md p-2 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
           >
             <SendIcon className="h-4 w-4" />
           </button>
@@ -177,21 +173,21 @@ export function AiChat({ linkUrl, existingConversations = [] }: AiChatProps) {
           <button
             type="button"
             onClick={() => setInput("What is this page about?")}
-            className="rounded-full border border-border bg-background px-3 py-1 font-mono text-xs text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+            className="border-border bg-background text-muted-foreground hover:bg-accent hover:text-foreground rounded-full border px-3 py-1 text-xs transition-colors"
           >
             What is this about?
           </button>
           <button
             type="button"
             onClick={() => setInput("Summarize the key points")}
-            className="rounded-full border border-border bg-background px-3 py-1 font-mono text-xs text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+            className="border-border bg-background text-muted-foreground hover:bg-accent hover:text-foreground rounded-full border px-3 py-1 text-xs transition-colors"
           >
             Key points
           </button>
           <button
             type="button"
             onClick={() => setInput("How can I use this information?")}
-            className="rounded-full border border-border bg-background px-3 py-1 font-mono text-xs text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+            className="border-border bg-background text-muted-foreground hover:bg-accent hover:text-foreground rounded-full border px-3 py-1 text-xs transition-colors"
           >
             How to use
           </button>

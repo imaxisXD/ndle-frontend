@@ -33,10 +33,8 @@ export default function LinkDetailRoute() {
   return (
     <>
       <header>
-        <h1 className="font-mono text-3xl font-medium tracking-tight">
-          {shortUrl}
-        </h1>
-        <p className="mt-2 font-mono text-sm text-muted-foreground">
+        <h1 className="text-3xl font-medium tracking-tight">{shortUrl}</h1>
+        <p className="text-muted-foreground mt-2 text-sm">
           Link analytics and settings
         </p>
       </header>
@@ -46,28 +44,26 @@ export default function LinkDetailRoute() {
           <CardContent className="p-6">
             <div className="mb-6 flex items-center justify-between">
               <div>
-                <h3 className="font-mono text-base font-medium">
-                  Clicks Over Time
-                </h3>
-                <p className="mt-1 font-mono text-xs text-muted-foreground">
+                <h3 className="text-base font-medium">Clicks Over Time</h3>
+                <p className="text-muted-foreground mt-1 text-xs">
                   Daily click activity
                 </p>
               </div>
-              <BarChartIcon className="h-5 w-5 text-muted-foreground" />
+              <BarChartIcon className="text-muted-foreground h-5 w-5" />
             </div>
             <div className="space-y-3">
               {clicksData.map((d) => (
                 <div key={d.day} className="flex items-center gap-3">
-                  <span className="w-8 font-mono text-sm">{d.day}</span>
+                  <span className="w-8 text-sm">{d.day}</span>
                   <div className="flex-1">
-                    <div className="h-2 rounded-md bg-muted overflow-hidden">
+                    <div className="bg-muted h-2 overflow-hidden rounded-md">
                       <div
-                        className="h-full bg-foreground"
+                        className="bg-foreground h-full"
                         style={{ width: `${(d.clicks / maxClicks) * 100}%` }}
                       />
                     </div>
                   </div>
-                  <span className="w-12 text-right font-mono text-xs font-medium">
+                  <span className="w-12 text-right text-xs font-medium">
                     {d.clicks}
                   </span>
                 </div>
@@ -79,8 +75,8 @@ export default function LinkDetailRoute() {
         <Card>
           <CardContent className="p-6">
             <div className="mb-6">
-              <h3 className="font-mono text-base font-medium">Top Countries</h3>
-              <p className="mt-1 font-mono text-xs text-muted-foreground">
+              <h3 className="text-base font-medium">Top Countries</h3>
+              <p className="text-muted-foreground mt-1 text-xs">
                 Clicks by geography
               </p>
             </div>
@@ -88,14 +84,12 @@ export default function LinkDetailRoute() {
               {topCountries.map((c) => (
                 <div key={c.country}>
                   <div className="mb-1 flex items-center justify-between">
-                    <span className="font-mono text-sm">{c.country}</span>
-                    <span className="font-mono text-sm font-medium">
-                      {c.clicks}
-                    </span>
+                    <span className="text-sm">{c.country}</span>
+                    <span className="text-sm font-medium">{c.clicks}</span>
                   </div>
-                  <div className="h-2 rounded-full bg-muted overflow-hidden">
+                  <div className="bg-muted h-2 overflow-hidden rounded-full">
                     <div
-                      className="h-full bg-foreground"
+                      className="bg-foreground h-full"
                       style={{ width: `${c.percentage}%` }}
                     />
                   </div>
@@ -109,8 +103,8 @@ export default function LinkDetailRoute() {
       <section className="mt-6 grid gap-6 lg:grid-cols-2">
         <Card>
           <CardContent className="p-6">
-            <h3 className="font-mono text-base font-medium">Metadata</h3>
-            <div className="mt-4 space-y-2 font-mono text-sm text-muted-foreground">
+            <h3 className="text-base font-medium">Metadata</h3>
+            <div className="text-muted-foreground mt-4 space-y-2 text-sm">
               <div className="flex items-center gap-2">
                 <ExternalLinkIcon className="h-4 w-4" /> Short URL:{" "}
                 <code className="text-foreground">https://{shortUrl}</code>
@@ -125,16 +119,14 @@ export default function LinkDetailRoute() {
 
         <Card>
           <CardContent className="p-6">
-            <h3 className="font-mono text-base font-medium text-red-600">
-              Danger Zone
-            </h3>
-            <p className="mt-1 font-mono text-xs text-muted-foreground">
+            <h3 className="text-base font-medium text-red-600">Danger Zone</h3>
+            <p className="text-muted-foreground mt-1 text-xs">
               This action cannot be undone.
             </p>
             <button
               type="button"
               onClick={() => navigate("/")}
-              className="mt-4 inline-flex items-center gap-2 rounded-md border border-red-200 bg-red-50 px-4 py-2 font-mono text-sm text-red-700 transition-colors hover:bg-red-100"
+              className="mt-4 inline-flex items-center gap-2 rounded-md border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-700 transition-colors hover:bg-red-100"
             >
               <Trash2 className="h-4 w-4" /> Delete Link
             </button>

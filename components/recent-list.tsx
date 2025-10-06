@@ -36,7 +36,7 @@ import {
   SelectValue,
 } from "@/components/ui/base-select";
 
-import { StatusBadge } from "./recent-list/StatusBadge";
+import { Badge } from "@ui/badge";
 import { ShortUrlCell } from "./recent-list/ShortUrlCell";
 import { SortableHeader } from "./recent-list/SortableHeader";
 import { ExpandedRowContent } from "./recent-list/ExpandedRowContent";
@@ -123,10 +123,10 @@ export function UrlList() {
       const status: LinkStatus = message.includes("success")
         ? "healthy"
         : message.includes("heal")
-        ? "healed"
-        : message.includes("error") || message.includes("fail")
-        ? "checking"
-        : fallback.status;
+          ? "healed"
+          : message.includes("error") || message.includes("fail")
+            ? "checking"
+            : fallback.status;
 
       const clicks = fallback.clicks;
 
@@ -151,7 +151,7 @@ export function UrlList() {
         (url) =>
           url.shortUrl.toLowerCase().includes(query) ||
           url.originalUrl.toLowerCase().includes(query) ||
-          false
+          false,
       );
     }
 
@@ -176,27 +176,39 @@ export function UrlList() {
         description: `Link copied to clipboard ${normalized}`,
       });
     },
-    [add]
+    [add],
   );
 
   const columns = useMemo<ColumnDef<DisplayUrl>[]>(
     () => [
       {
         accessorKey: "status",
-        header: () => (
-          <span className="font-mono text-sm font-medium">Status</span>
-        ),
+        header: () => <span className="text-sm font-medium">Status</span>,
         cell: ({ row }) => {
           const status = row.original.status;
-          return <StatusBadge status={status} />;
+          const variant: "green" | "yellow" =
+            status === "checking" ? "yellow" : "green";
+          return (
+            <Badge
+              variant={variant}
+              className={
+                status === "healed"
+                  ? "inline-flex items-center gap-1.5"
+                  : undefined
+              }
+            >
+              {status === "healed" && (
+                <span className="bg-success h-1.5 w-1.5 rounded-full" />
+              )}
+              {STATUS_LABELS[status]}
+            </Badge>
+          );
         },
         enableSorting: false,
       },
       {
         accessorKey: "shortUrl",
-        header: () => (
-          <span className="font-mono text-sm font-medium">Short URL</span>
-        ),
+        header: () => <span className="text-sm font-medium">Short URL</span>,
         cell: ({ row }) => {
           const url = row.original;
           return <ShortUrlCell url={url} onCopy={handleCopy} />;
@@ -219,10 +231,8 @@ export function UrlList() {
         cell: ({ row }) => {
           return (
             <div className="text-left">
-              <p className="font-mono text-sm font-medium">
-                {row.original.clicks}
-              </p>
-              <p className="font-mono text-xs text-muted-foreground">clicks</p>
+              <p className="text-sm font-medium">{row.original.clicks}</p>
+              <p className="text-muted-foreground text-xs">clicks</p>
             </div>
           );
         },
@@ -242,7 +252,7 @@ export function UrlList() {
         },
         cell: ({ row }) => {
           return (
-            <p className="font-mono text-xs text-muted-foreground">
+            <p className="text-muted-foreground text-xs">
               {formatRelative(row.original.createdAt)}
             </p>
           );
@@ -255,7 +265,7 @@ export function UrlList() {
           return (
             <button
               type="button"
-              className="rounded-md p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+              className="text-muted-foreground hover:bg-muted hover:text-foreground rounded-md p-2 transition-colors"
               onClick={(e) => {
                 e.stopPropagation();
                 const slug = url.shortUrl.split("/").pop() || "";
@@ -268,7 +278,7 @@ export function UrlList() {
         },
       },
     ],
-    [navigate, handleCopy]
+    [navigate, handleCopy],
   );
 
   const table = useReactTable({
@@ -297,22 +307,22 @@ export function UrlList() {
   const pageSize = table.getState().pagination.pageSize;
 
   return (
-    <div className="rounded-xl border border-border bg-card">
-      <div className="border-b border-border p-6">
-        <div className="flex items-center justify-between mb-4">
+    <div className="border-border bg-card rounded-xl border">
+      <div className="border-border border-b p-6">
+        <div className="mb-4 flex items-center justify-between">
           <div>
-            <h2 className="font-mono text-lg font-medium">Recent Links</h2>
-            <p className="mt-1 font-mono text-sm text-muted-foreground">
+            <h2 className="text-lg font-medium">Recent Links</h2>
+            <p className="text-muted-foreground mt-1 text-sm">
               Self-healing links with AI memory and conversations
             </p>
           </div>
           <button
             type="button"
             onClick={() => setShowFilters(!showFilters)}
-            className={`flex items-center gap-2 rounded-md px-3 py-2 font-mono text-sm transition-colors ${
+            className={`flex items-center gap-2 rounded-md px-3 py-2 text-sm transition-colors ${
               showFilters || statusFilter !== "all"
                 ? "bg-foreground text-background"
-                : "border border-border hover:bg-accent"
+                : "border-border hover:bg-accent border"
             }`}
           >
             <Filter className="h-4 w-4" />
@@ -321,19 +331,19 @@ export function UrlList() {
         </div>
 
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search links by URL, content, or notes..."
-            className="w-full rounded-md border border-input bg-background pl-10 pr-10 py-2.5 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-foreground/20"
+            className="border-input bg-background focus:ring-foreground/20 w-full rounded-md border py-2.5 pr-10 pl-10 text-sm focus:ring-2 focus:outline-none"
           />
           {searchQuery && (
             <button
               type="button"
               onClick={() => setSearchQuery("")}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+              className="text-muted-foreground hover:text-foreground absolute top-1/2 right-3 -translate-y-1/2"
             >
               <X className="h-4 w-4" />
             </button>
@@ -346,9 +356,9 @@ export function UrlList() {
           }`}
           aria-hidden={!showFilters}
         >
-          <div className="mt-4 flex flex-wrap gap-3 p-4 rounded-lg bg-muted/30 border border-border">
+          <div className="bg-muted/30 border-border mt-4 flex flex-wrap gap-3 rounded-lg border p-4">
             <div className="flex items-center gap-2">
-              <span className="font-mono text-xs font-medium text-muted-foreground">
+              <span className="text-muted-foreground text-xs font-medium">
                 Status:
               </span>
               <div className="flex gap-2">
@@ -359,10 +369,10 @@ export function UrlList() {
                     onClick={() =>
                       setStatusFilter(status as LinkStatus | "all")
                     }
-                    className={`rounded-md px-3 py-1 font-mono text-xs transition-colors ${
+                    className={`rounded-md px-3 py-1 text-xs transition-colors ${
                       statusFilter === status
                         ? "bg-foreground text-background"
-                        : "bg-background border border-border hover:bg-accent"
+                        : "bg-background border-border hover:bg-accent border"
                     }`}
                   >
                     {status === "all"
@@ -376,13 +386,13 @@ export function UrlList() {
         </div>
 
         {(searchQuery || statusFilter !== "all") && (
-          <div className="mt-3 flex items-center gap-2 flex-wrap">
-            <span className="font-mono text-xs text-muted-foreground">
+          <div className="mt-3 flex flex-wrap items-center gap-2">
+            <span className="text-muted-foreground text-xs">
               Active filters:
             </span>
             {searchQuery && (
-              <span className="inline-flex items-center gap-1 rounded-full bg-accent px-2 py-1 font-mono text-xs">
-                Search: {searchQuery}
+              <div className="inline-flex items-center gap-1">
+                <Badge variant="default">Search: {searchQuery}</Badge>
                 <button
                   type="button"
                   onClick={() => setSearchQuery("")}
@@ -390,11 +400,13 @@ export function UrlList() {
                 >
                   <X className="h-3 w-3" />
                 </button>
-              </span>
+              </div>
             )}
             {statusFilter !== "all" && (
-              <span className="inline-flex items-center gap-1 rounded-full bg-accent px-2 py-1 font-mono text-xs">
-                Status: {statusLabel(statusFilter as LinkStatus)}
+              <div className="inline-flex items-center gap-1">
+                <Badge variant="default">
+                  Status: {statusLabel(statusFilter as LinkStatus)}
+                </Badge>
                 <button
                   type="button"
                   onClick={() => setStatusFilter("all")}
@@ -402,7 +414,7 @@ export function UrlList() {
                 >
                   <X className="h-3 w-3" />
                 </button>
-              </span>
+              </div>
             )}
             <button
               type="button"
@@ -410,7 +422,7 @@ export function UrlList() {
                 setSearchQuery("");
                 setStatusFilter("all");
               }}
-              className="font-mono text-xs text-muted-foreground hover:text-foreground underline"
+              className="text-muted-foreground hover:text-foreground text-xs underline"
             >
               Clear all
             </button>
@@ -418,10 +430,10 @@ export function UrlList() {
         )}
       </div>
 
-      <div className="border-b border-border">
+      <div className="border-border border-b">
         {isLoading ? (
           <Table>
-            <TableHeader className="sticky top-0 bg-card">
+            <TableHeader className="bg-card sticky top-0">
               {table.getHeaderGroups().map((headerGroup) => (
                 <TableRow key={headerGroup.id} className="hover:bg-transparent">
                   {headerGroup.headers.map((header) => (
@@ -430,7 +442,7 @@ export function UrlList() {
                         ? null
                         : flexRender(
                             header.column.columnDef.header,
-                            header.getContext()
+                            header.getContext(),
                           )}
                     </TableHead>
                   ))}
@@ -442,7 +454,7 @@ export function UrlList() {
                 <TableRow key={`skeleton-${i}`} className="h-14">
                   {Array.from({ length: columns.length }).map((__, j) => (
                     <TableCell key={`sk-${i}-${j}`} className="px-4 py-3">
-                      <div className="h-4 w-2/3 bg-muted rounded animate-pulse" />
+                      <div className="bg-muted h-4 w-2/3 animate-pulse rounded" />
                     </TableCell>
                   ))}
                 </TableRow>
@@ -451,7 +463,7 @@ export function UrlList() {
           </Table>
         ) : isEmpty || filteredUrls.length === 0 ? (
           <Table>
-            <TableHeader className="sticky top-0 bg-card">
+            <TableHeader className="bg-card sticky top-0">
               {table.getHeaderGroups().map((headerGroup) => (
                 <TableRow key={headerGroup.id} className="hover:bg-transparent">
                   {headerGroup.headers.map((header) => (
@@ -460,7 +472,7 @@ export function UrlList() {
                         ? null
                         : flexRender(
                             header.column.columnDef.header,
-                            header.getContext()
+                            header.getContext(),
                           )}
                     </TableHead>
                   ))}
@@ -471,11 +483,9 @@ export function UrlList() {
               <TableRow className="h-14">
                 <TableCell colSpan={columns.length}>
                   <div className="p-12 text-center">
-                    <Search className="mx-auto h-12 w-12 text-muted-foreground" />
-                    <h3 className="mt-4 font-mono text-sm font-medium">
-                      No links found
-                    </h3>
-                    <p className="mt-2 font-mono text-xs text-muted-foreground">
+                    <Search className="text-muted-foreground mx-auto h-12 w-12" />
+                    <h3 className="mt-4 text-sm font-medium">No links found</h3>
+                    <p className="text-muted-foreground mt-2 text-xs">
                       {searchQuery || statusFilter !== "all"
                         ? "Try adjusting your search or filters"
                         : "Create your first shortened link to get started"}
@@ -487,7 +497,7 @@ export function UrlList() {
                           setSearchQuery("");
                           setStatusFilter("all");
                         }}
-                        className="mt-4 rounded-md bg-foreground px-4 py-2 font-mono text-sm text-background transition-colors hover:bg-foreground/90"
+                        className="bg-foreground text-background hover:bg-foreground/90 mt-4 rounded-md px-4 py-2 text-sm transition-colors"
                       >
                         Clear filters
                       </button>
@@ -511,7 +521,7 @@ export function UrlList() {
           </Table>
         ) : (
           <Table>
-            <TableHeader className="sticky top-0 bg-card">
+            <TableHeader className="bg-card sticky top-0">
               {table.getHeaderGroups().map((headerGroup) => (
                 <TableRow key={headerGroup.id} className="hover:bg-transparent">
                   {headerGroup.headers.map((header) => {
@@ -521,7 +531,7 @@ export function UrlList() {
                           ? null
                           : flexRender(
                               header.column.columnDef.header,
-                              header.getContext()
+                              header.getContext(),
                             )}
                       </TableHead>
                     );
@@ -541,13 +551,13 @@ export function UrlList() {
                       onClick={() =>
                         setExpandedId(isExpandedRow ? null : url.id)
                       }
-                      className="cursor-pointer h-14 odd:bg-background even:bg-muted/30"
+                      className="odd:bg-background even:bg-muted/30 h-14 cursor-pointer"
                     >
                       {row.getVisibleCells().map((cell) => (
                         <TableCell key={cell.id} className="px-4 py-3">
                           {flexRender(
                             cell.column.columnDef.cell,
-                            cell.getContext()
+                            cell.getContext(),
                           )}
                         </TableCell>
                       ))}
@@ -587,7 +597,7 @@ export function UrlList() {
         {!isLoading && !isEmpty && filteredUrls.length > 0 ? (
           <div className="flex items-center justify-end gap-6">
             <div className="flex items-center gap-2">
-              <p className="font-mono text-sm">Links per page</p>
+              <p className="text-sm">Links per page</p>
               <Select
                 value={String(table.getState().pagination.pageSize)}
                 onValueChange={(value) => table.setPageSize(Number(value))}
@@ -606,7 +616,7 @@ export function UrlList() {
             </div>
 
             <div className="flex items-center gap-2">
-              <span className="font-mono text-sm">
+              <span className="text-sm">
                 Page {table.getState().pagination.pageIndex + 1} of{" "}
                 {table.getPageCount()}
               </span>
@@ -623,7 +633,7 @@ export function UrlList() {
                       <SelectItem key={idx} value={String(idx + 1)}>
                         {idx + 1}
                       </SelectItem>
-                    )
+                    ),
                   )}
                 </SelectContent>
               </Select>
@@ -634,7 +644,7 @@ export function UrlList() {
                 type="button"
                 onClick={() => table.previousPage()}
                 disabled={!table.getCanPreviousPage()}
-                className="rounded-md border border-border px-3 py-1.5 font-mono text-sm transition-colors hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed"
+                className="border-border hover:bg-accent rounded-md border px-3 py-1.5 text-sm transition-colors disabled:cursor-not-allowed disabled:opacity-50"
               >
                 ← Prev
               </button>
@@ -642,7 +652,7 @@ export function UrlList() {
                 type="button"
                 onClick={() => table.nextPage()}
                 disabled={!table.getCanNextPage()}
-                className="rounded-md border border-border px-3 py-1.5 font-mono text-sm transition-colors hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed"
+                className="border-border hover:bg-accent rounded-md border px-3 py-1.5 text-sm transition-colors disabled:cursor-not-allowed disabled:opacity-50"
               >
                 Next →
               </button>

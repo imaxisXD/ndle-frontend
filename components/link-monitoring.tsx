@@ -4,9 +4,16 @@ import { useState } from "react";
 import {
   AlertCircleIcon,
   CheckCircle2Icon,
-  RefreshCwIcon,
-  ShieldIcon,
+  DoubleRefreshIcon,
+  ShieldCheckIcon,
+  ShieldErrorIcon,
+  ShieldHealthIcon,
+  ShieldWarningIcon,
 } from "./icons";
+import { Badge } from "@ui/badge";
+import { Card, CardContent, CardHeader } from "@ui/card";
+import { RecentIncidents, type Incident } from "./recent-incidents";
+import { Button } from "./ui/button";
 
 interface MonitoredLink {
   id: string;
@@ -80,7 +87,7 @@ const mockLinks: MonitoredLink[] = [
 
 export function LinkMonitoring() {
   const [filter, setFilter] = useState<"all" | "healthy" | "warning" | "error">(
-    "all"
+    "all",
   );
 
   const filteredLinks = mockLinks.filter((link) => {
@@ -91,26 +98,30 @@ export function LinkMonitoring() {
   const getStatusIcon = (status: MonitoredLink["status"]) => {
     switch (status) {
       case "healthy":
-        return <CheckCircle2Icon className="h-5 w-5 text-green-600" />;
+        return <ShieldCheckIcon className="h-5 w-5 text-green-600" />;
       case "warning":
-        return <AlertCircleIcon className="h-5 w-5 text-yellow-600" />;
+        return <ShieldWarningIcon className="h-5 w-5 text-yellow-600" />;
       case "error":
-        return <AlertCircleIcon className="h-5 w-5 text-red-600" />;
+        return <ShieldErrorIcon className="h-5 w-5 text-red-600" />;
       case "checking":
-        return <RefreshCwIcon className="h-5 w-5 text-blue-600 animate-spin" />;
+        return (
+          <DoubleRefreshIcon className="size-4 animate-spin text-blue-600" />
+        );
     }
   };
 
-  const getStatusBadge = (status: MonitoredLink["status"]) => {
+  const getStatusVariant = (
+    status: MonitoredLink["status"],
+  ): "green" | "yellow" | "red" | "blue" => {
     switch (status) {
       case "healthy":
-        return "bg-green-100 text-green-700 border-green-200";
+        return "green";
       case "warning":
-        return "bg-yellow-100 text-yellow-700 border-yellow-200";
+        return "yellow";
       case "error":
-        return "bg-red-100 text-red-700 border-red-200";
+        return "red";
       case "checking":
-        return "bg-blue-100 text-blue-700 border-blue-200";
+        return "blue";
     }
   };
 
@@ -128,63 +139,79 @@ export function LinkMonitoring() {
     mockLinks.reduce((sum, l) => sum + l.uptime, 0) / mockLinks.length
   ).toFixed(1);
 
+  const incidents: Array<Incident> = [
+    {
+      id: "1",
+      link: "ndle.im/x7y2z9",
+      type: "error",
+      message: "404 Not Found - Page does not exist",
+      time: "10 minutes ago",
+    },
+    {
+      id: "2",
+      link: "ndle.im/m3p7q1",
+      type: "warning",
+      message: "Slow response time detected (1250ms)",
+      time: "25 minutes ago",
+    },
+    {
+      id: "3",
+      link: "ndle.im/p4r8t3",
+      type: "resolved",
+      message: "Connection timeout resolved",
+      time: "2 hours ago",
+    },
+  ];
+
   return (
     <div className="space-y-6">
       {/* Overview Stats */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <div className="rounded-xl border border-border bg-card p-6">
+        <Card className="p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="font-mono text-xs text-muted-foreground">
-                Healthy Links
-              </p>
-              <p className="mt-2 font-mono text-2xl font-medium text-green-600">
+              <p className="text-muted-foreground text-xs">Healthy Links</p>
+              <p className="mt-2 text-2xl font-medium text-green-600">
                 {healthyCount}
               </p>
             </div>
             <CheckCircle2Icon className="h-8 w-8 text-green-600" />
           </div>
-        </div>
+        </Card>
 
-        <div className="rounded-xl border border-border bg-card p-6">
+        <Card className="p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="font-mono text-xs text-muted-foreground">
-                Warnings
-              </p>
-              <p className="mt-2 font-mono text-2xl font-medium text-yellow-600">
+              <p className="text-muted-foreground text-xs">Warnings</p>
+              <p className="mt-2 text-2xl font-medium text-yellow-600">
                 {warningCount}
               </p>
             </div>
             <AlertCircleIcon className="h-8 w-8 text-yellow-600" />
           </div>
-        </div>
+        </Card>
 
-        <div className="rounded-xl border border-border bg-card p-6">
+        <Card className="p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="font-mono text-xs text-muted-foreground">Errors</p>
-              <p className="mt-2 font-mono text-2xl font-medium text-red-600">
+              <p className="text-muted-foreground text-xs">Errors</p>
+              <p className="mt-2 text-2xl font-medium text-red-600">
                 {errorCount}
               </p>
             </div>
             <AlertCircleIcon className="h-8 w-8 text-red-600" />
           </div>
-        </div>
+        </Card>
 
-        <div className="rounded-xl border border-border bg-card p-6">
+        <Card className="p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="font-mono text-xs text-muted-foreground">
-                Avg Uptime
-              </p>
-              <p className="mt-2 font-mono text-2xl font-medium">
-                {avgUptime}%
-              </p>
+              <p className="text-muted-foreground text-xs">Avg Uptime</p>
+              <p className="mt-2 text-2xl font-medium">{avgUptime}%</p>
             </div>
-            <ShieldIcon className="h-8 w-8 text-muted-foreground" />
+            <ShieldHealthIcon className="h-8 w-8 text-emerald-500" />
           </div>
-        </div>
+        </Card>
       </div>
 
       {/* Filters */}
@@ -194,10 +221,10 @@ export function LinkMonitoring() {
             type="button"
             key={status}
             onClick={() => setFilter(status)}
-            className={`rounded-md px-4 py-2 font-mono text-sm transition-colors ${
+            className={`rounded-md px-4 py-2 text-sm transition-colors ${
               filter === status
                 ? "bg-foreground text-background"
-                : "border border-border bg-background hover:bg-accent"
+                : "border-border bg-background hover:bg-accent border"
             }`}
           >
             {status.charAt(0).toUpperCase() + status.slice(1)}
@@ -208,163 +235,63 @@ export function LinkMonitoring() {
       {/* Monitored Links */}
       <div className="space-y-3">
         {filteredLinks.map((link) => (
-          <div
-            key={link.id}
-            className="rounded-xl border border-border bg-card p-6"
-          >
-            <div className="flex items-start justify-between">
-              <div className="flex-1">
+          <Card key={link.id}>
+            <CardHeader className="items-start gap-4">
+              <div className="flex flex-col gap-2">
                 <div className="flex items-center gap-3">
                   {getStatusIcon(link.status)}
-                  <code className="font-mono text-sm font-medium">
-                    {link.shortUrl}
-                  </code>
-                  <span
-                    className={`rounded-full border px-2 py-0.5 font-mono text-xs ${getStatusBadge(
-                      link.status
-                    )}`}
-                  >
-                    {link.status.charAt(0).toUpperCase() + link.status.slice(1)}
-                  </span>
-                  {link.ssl && (
-                    <ShieldIcon
-                      className="h-4 w-4 text-green-600"
-                      aria-label="SSL Enabled"
-                    />
-                  )}
+                  <code className="text-sm font-medium">{link.shortUrl}</code>
+                  <Badge
+                    variant={getStatusVariant(link.status)}
+                    label={
+                      link.status.charAt(0).toUpperCase() + link.status.slice(1)
+                    }
+                  />
                 </div>
-                <p className="mt-2 font-mono text-xs text-muted-foreground">
+                <p className="text-muted-foreground text-xs">
                   {link.originalUrl}
                 </p>
-
-                <div className="mt-4 grid gap-4 md:grid-cols-4">
-                  <div>
-                    <p className="font-mono text-xs text-muted-foreground">
-                      Uptime
-                    </p>
-                    <p className="mt-1 font-mono text-sm font-medium">
-                      {link.uptime}%
-                    </p>
-                  </div>
-                  <div>
-                    <p className="font-mono text-xs text-muted-foreground">
-                      Response Time
-                    </p>
-                    <p
-                      className={`mt-1 font-mono text-sm font-medium ${getResponseTimeColor(
-                        link.responseTime
-                      )}`}
-                    >
-                      {link.responseTime > 0 ? `${link.responseTime}ms` : "N/A"}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="font-mono text-xs text-muted-foreground">
-                      Incidents
-                    </p>
-                    <p className="mt-1 font-mono text-sm font-medium">
-                      {link.incidents}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="font-mono text-xs text-muted-foreground">
-                      Last Checked
-                    </p>
-                    <p className="mt-1 font-mono text-sm font-medium">
-                      {link.lastChecked}
-                    </p>
-                  </div>
-                </div>
               </div>
-
-              <button
+              <Button
                 type="button"
-                className="rounded-md border border-border bg-background px-3 py-2 font-mono text-xs transition-colors hover:bg-accent"
+                variant="secondary"
+                size="sm"
+                className="border text-xs"
               >
                 Check Now
-              </button>
-            </div>
-          </div>
+              </Button>
+            </CardHeader>
+            <CardContent>
+              <div className="grid gap-4 md:grid-cols-4">
+                <div>
+                  <p className="text-muted-foreground text-xs">Uptime</p>
+                  <p className="mt-1 text-sm font-medium">{link.uptime}%</p>
+                </div>
+                <div>
+                  <p className="text-muted-foreground text-xs">Response Time</p>
+                  <p
+                    className={`mt-1 text-sm font-medium ${getResponseTimeColor(
+                      link.responseTime,
+                    )}`}
+                  >
+                    {link.responseTime > 0 ? `${link.responseTime}ms` : "N/A"}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-muted-foreground text-xs">Incidents</p>
+                  <p className="mt-1 text-sm font-medium">{link.incidents}</p>
+                </div>
+                <div>
+                  <p className="text-muted-foreground text-xs">Last Checked</p>
+                  <p className="mt-1 text-sm font-medium">{link.lastChecked}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         ))}
       </div>
 
-      {/* Recent Incidents */}
-      <div className="rounded-xl border border-border bg-card p-6">
-        <div className="mb-6">
-          <h3 className="font-mono text-base font-medium">Recent Incidents</h3>
-          <p className="mt-1 font-mono text-xs text-muted-foreground">
-            Latest monitoring alerts and issues
-          </p>
-        </div>
-
-        <div className="space-y-3">
-          {[
-            {
-              id: "1",
-              link: "ndle.im/x7y2z9",
-              type: "error",
-              message: "404 Not Found - Page does not exist",
-              time: "10 minutes ago",
-            },
-            {
-              id: "2",
-              link: "ndle.im/m3p7q1",
-              type: "warning",
-              message: "Slow response time detected (1250ms)",
-              time: "25 minutes ago",
-            },
-            {
-              id: "3",
-              link: "ndle.im/p4r8t3",
-              type: "resolved",
-              message: "Connection timeout resolved",
-              time: "2 hours ago",
-            },
-          ].map((incident) => (
-            <div
-              key={incident.id}
-              className="flex items-start gap-4 rounded-lg border border-border bg-background p-4"
-            >
-              <div className="flex-shrink-0 mt-0.5">
-                {incident.type === "error" && (
-                  <AlertCircleIcon className="h-5 w-5 text-red-600" />
-                )}
-                {incident.type === "warning" && (
-                  <AlertCircleIcon className="h-5 w-5 text-yellow-600" />
-                )}
-                {incident.type === "resolved" && (
-                  <CheckCircle2Icon className="h-5 w-5 text-green-600" />
-                )}
-              </div>
-              <div className="flex-1">
-                <div className="flex items-center gap-2">
-                  <code className="font-mono text-sm font-medium">
-                    {incident.link}
-                  </code>
-                  <span
-                    className={`rounded-full px-2 py-0.5 font-mono text-xs ${
-                      incident.type === "error"
-                        ? "bg-red-100 text-red-700"
-                        : incident.type === "warning"
-                        ? "bg-yellow-100 text-yellow-700"
-                        : "bg-green-100 text-green-700"
-                    }`}
-                  >
-                    {incident.type.charAt(0).toUpperCase() +
-                      incident.type.slice(1)}
-                  </span>
-                </div>
-                <p className="mt-1 font-mono text-sm text-muted-foreground">
-                  {incident.message}
-                </p>
-                <p className="mt-2 font-mono text-xs text-muted-foreground">
-                  {incident.time}
-                </p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
+      <RecentIncidents incidents={incidents} />
     </div>
   );
 }

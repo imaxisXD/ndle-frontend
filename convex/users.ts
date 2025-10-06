@@ -12,7 +12,7 @@ export const store = mutation({
     const user = await ctx.db
       .query("users")
       .withIndex("by_token", (q) =>
-        q.eq("tokenIdentifier", identity.tokenIdentifier)
+        q.eq("tokenIdentifier", identity.tokenIdentifier),
       )
       .unique();
     if (user !== null) {
@@ -40,7 +40,7 @@ export const store = mutation({
  **/
 export async function userQuery(
   ctx: QueryCtx,
-  clerkUserId: string
+  clerkUserId: string,
 ): Promise<Doc<"users"> | null> {
   const user = await ctx.db
     .query("users")
@@ -56,7 +56,7 @@ export async function userQuery(
  * @returns {Promise<Doc<"users"> | null>} The current user's document or null if not authenticated.
  */
 export async function getCurrentUser(
-  ctx: QueryCtx
+  ctx: QueryCtx,
 ): Promise<Doc<"users"> | null> {
   const identity = await ctx.auth.getUserIdentity();
   if (!identity) {

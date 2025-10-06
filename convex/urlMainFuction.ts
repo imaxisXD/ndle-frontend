@@ -60,13 +60,13 @@ export const createUrl = mutation({
     const existingUrl = await ctx.db
       .query("urls")
       .withIndex("by_user_url", (q) =>
-        q.eq("userTableId", user._id).eq("fullurl", args.url)
+        q.eq("userTableId", user._id).eq("fullurl", args.url),
       )
       .collect();
     console.log("existingUrl", existingUrl.length > 0);
     if (existingUrl.length > 0) {
       throw new ConvexError(
-        "You already have a short link for this destination. Copy it from your links list instead."
+        "You already have a short link for this destination. Copy it from your links list instead.",
       );
     }
 

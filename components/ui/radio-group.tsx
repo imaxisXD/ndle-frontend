@@ -74,7 +74,7 @@ const radioItemVariants = cva(
     defaultVariants: {
       size: "md",
     },
-  }
+  },
 );
 
 function RadioGroupItem({

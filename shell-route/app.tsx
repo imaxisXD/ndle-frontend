@@ -14,9 +14,9 @@ export default function App() {
   return (
     <BrowserRouter>
       <ToastProvider showCloseButton={true} limit={3}>
-        <div className="fixed inset-0 flex bg-home text-foreground overflow-hidden dot">
+        <div className="bg-home text-foreground dot fixed inset-0 flex overflow-hidden">
           <Sidebar />
-          <main className="flex-1 overflow-y-auto min-h-0">
+          <main className="min-h-0 flex-1 overflow-y-auto">
             <div className="p-8 lg:p-12">
               <div className="mx-auto max-w-7xl space-y-8">
                 <Routes>
@@ -32,10 +32,10 @@ export default function App() {
                     path="*"
                     element={
                       <>
-                        <h1 className="font-mono text-3xl font-medium tracking-tight">
+                        <h1 className="text-3xl font-medium tracking-tight">
                           Not Found
                         </h1>
-                        <p className="mt-2 font-mono text-sm text-muted-foreground">
+                        <p className="text-muted-foreground mt-2 text-sm">
                           The page you&apos;re looking for doesn&apos;t exist.
                         </p>
                       </>

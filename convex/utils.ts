@@ -109,7 +109,7 @@ function isBlacklistedDomain(hostname: string) {
   return CONFIG.blacklistedDomains.some(
     (domain) =>
       lowerHostname === domain.toLowerCase() ||
-      lowerHostname.endsWith("." + domain.toLowerCase())
+      lowerHostname.endsWith("." + domain.toLowerCase()),
   );
 }
 
@@ -122,7 +122,7 @@ function isBlacklistedDomain(hostname: string) {
  */
 export function isValidHttpUrl(
   urlString: string,
-  options = {} as typeof CONFIG
+  options = {} as typeof CONFIG,
 ) {
   const config = { ...CONFIG, ...options } as typeof CONFIG;
 

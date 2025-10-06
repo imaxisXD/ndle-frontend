@@ -4,10 +4,8 @@ export default function CollectionsRoute() {
   return (
     <>
       <header>
-        <h1 className="font-mono text-3xl font-medium tracking-tight">
-          Collections
-        </h1>
-        <p className="mt-2 font-mono text-sm text-muted-foreground">
+        <h1 className="text-3xl font-medium tracking-tight">Collections</h1>
+        <p className="text-muted-foreground mt-2 text-sm">
           Organize your links into collections
         </p>
       </header>

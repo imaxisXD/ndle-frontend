@@ -4,10 +4,8 @@ export default function MonitoringRoute() {
   return (
     <>
       <header>
-        <h1 className="font-mono text-3xl font-medium tracking-tight">
-          Link Monitoring
-        </h1>
-        <p className="mt-2 font-mono text-sm text-muted-foreground">
+        <h1 className="text-3xl font-medium tracking-tight">Link Monitoring</h1>
+        <p className="text-muted-foreground mt-2 text-sm">
           Real-time health monitoring and uptime tracking
         </p>
       </header>

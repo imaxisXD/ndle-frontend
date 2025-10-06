@@ -68,7 +68,7 @@ const toastVariants = cva(
     defaultVariants: {
       position: "bottom-right",
     },
-  }
+  },
 );
 
 const toastTypeVariants = cva("rounded-sm outline outline-1 backdrop-blur-sm", {
@@ -158,13 +158,13 @@ interface CustomToastData {
 }
 
 function isCustomToast(
-  toast: Toast.Root.ToastObject
+  toast: Toast.Root.ToastObject,
 ): toast is Toast.Root.ToastObject<CustomToastData> {
   return toast.data?.content !== undefined;
 }
 
 function getDefaultSwipeDirection(
-  position: ToastPosition
+  position: ToastPosition,
 ): ToastSwipeDirection[] {
   switch (position) {
     case "top-center":
@@ -197,14 +197,17 @@ function ToastList({
   const { toasts } = useToast();
 
   // Group toasts by position (individual or default)
-  const toastsByPosition = toasts.reduce((groups, toast) => {
-    const toastPosition = (toast.data?.position || position) as ToastPosition;
-    if (!groups[toastPosition]) {
-      groups[toastPosition] = [];
-    }
-    groups[toastPosition].push(toast);
-    return groups;
-  }, {} as Record<ToastPosition, typeof toasts>);
+  const toastsByPosition = toasts.reduce(
+    (groups, toast) => {
+      const toastPosition = (toast.data?.position || position) as ToastPosition;
+      if (!groups[toastPosition]) {
+        groups[toastPosition] = [];
+      }
+      groups[toastPosition].push(toast);
+      return groups;
+    },
+    {} as Record<ToastPosition, typeof toasts>,
+  );
 
   return (
     <>
@@ -220,7 +223,7 @@ function ToastList({
                 className={cn(
                   toastContainerVariants({
                     position: toastPosition as ToastPosition,
-                  })
+                  }),
                 )}
                 data-slot="toast-viewport"
                 data-position={toastPosition}
@@ -239,13 +242,13 @@ function ToastList({
                       className={cn(
                         toastVariants({
                           position: toastPosition as ToastPosition,
-                        })
+                        }),
                       )}
                       style={{
                         ["--gap" as string]: "0.8rem",
                         ["--toast-index" as string]: index.toString(),
                         ["--offset-y" as string]: toastPosition.startsWith(
-                          "top"
+                          "top",
                         )
                           ? "calc(var(--toast-offset-y) + (var(--toast-index) * var(--gap)) + var(--toast-swipe-movement-y))"
                           : "calc(var(--toast-offset-y) * -1 + (var(--toast-index) * var(--gap) * -1) + var(--toast-swipe-movement-y))",
@@ -258,8 +261,8 @@ function ToastList({
                       ) : (
                         <div
                           className={cn(
-                            "flex items-center justify-between gap-2 p-4 w-full",
-                            toastTypeVariants({ type: type as ToastType })
+                            "flex w-full items-center justify-between gap-2 p-4",
+                            toastTypeVariants({ type: type as ToastType }),
                           )}
                           data-slot="toast-wrapper"
                         >
@@ -274,11 +277,11 @@ function ToastList({
                             )}
                             <div className="flex flex-col">
                               <Toast.Title
-                                className="tracking-tight font-black m-0 font-doto roundness-100"
+                                className="font-doto roundness-100 m-0 font-black tracking-tight"
                                 data-slot="toast-title"
                               />
                               <Toast.Description
-                                className="text-xs font-normal text-muted-foreground"
+                                className="text-muted-foreground text-xs font-normal"
                                 data-slot="toast-description"
                               />
                             </div>
@@ -287,7 +290,7 @@ function ToastList({
                           {(toast.data?.close || showCloseButton) && (
                             <Toast.Close
                               className={cn(
-                                "absolute -top-1 -end-2 [&_svg]:size-3 [&_svg]:opacity-70 hover:[&_svg]:opacity-100 cursor-pointer bg-gradient-to-t from-black to-black/60 rounded-full p-1 text-white"
+                                "absolute -end-2 -top-1 cursor-pointer rounded-full bg-gradient-to-t from-black to-black/60 p-1 text-white [&_svg]:size-3 [&_svg]:opacity-70 hover:[&_svg]:opacity-100",
                               )}
                               data-slot="toast-action"
                               aria-label="Close"
@@ -303,7 +306,7 @@ function ToastList({
               </Toast.Viewport>
             </Toast.Portal>
           );
-        }
+        },
       )}
     </>
   );

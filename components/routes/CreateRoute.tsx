@@ -2,29 +2,24 @@ export default function CreateRoute() {
   return (
     <>
       <header>
-        <h1 className="font-mono text-3xl font-medium tracking-tight">
-          Quick Create
-        </h1>
-        <p className="mt-2 font-mono text-sm text-muted-foreground">
+        <h1 className="text-3xl font-medium tracking-tight">Quick Create</h1>
+        <p className="text-muted-foreground mt-2 text-sm">
           Bulk import and create multiple links
         </p>
       </header>
       <section
         aria-labelledby="bulk-import-heading"
-        className="rounded-lg border border-border bg-card p-8"
+        className="border-border bg-card rounded-lg border p-8"
       >
         <h2 className="sr-only" id="bulk-import-heading">
           Bulk Import
         </h2>
         <div className="space-y-4">
           <div>
-            <label
-              htmlFor="bulk-import-urls"
-              className="font-mono text-sm font-medium"
-            >
+            <label htmlFor="bulk-import-urls" className="text-sm font-medium">
               Bulk Import URLs
             </label>
-            <p className="mt-1 font-mono text-xs text-muted-foreground">
+            <p className="text-muted-foreground mt-1 text-xs">
               Paste multiple URLs (one per line) to create shortened links
             </p>
             <textarea
@@ -32,12 +27,12 @@ export default function CreateRoute() {
               placeholder={
                 "https://example.com/page1\nhttps://example.com/page2\nhttps://example.com/page3"
               }
-              className="mt-3 w-full rounded-md border border-input bg-background px-3 py-2 font-mono text-sm h-48 focus:outline-none focus:ring-2 focus:ring-foreground/20"
+              className="border-input bg-background focus:ring-foreground/20 mt-3 h-48 w-full rounded-md border px-3 py-2 text-sm focus:ring-2 focus:outline-none"
             />
           </div>
           <button
             type="button"
-            className="rounded-md bg-foreground px-4 py-2 font-mono text-sm text-background transition-colors hover:bg-foreground/90"
+            className="bg-foreground text-background hover:bg-foreground/90 rounded-md px-4 py-2 text-sm transition-colors"
           >
             Create All Links
           </button>

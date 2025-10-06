@@ -89,7 +89,7 @@ export function NotificationCenter() {
 
   const markAsRead = (id: string) => {
     setNotifications(
-      notifications.map((n) => (n.id === id ? { ...n, read: true } : n))
+      notifications.map((n) => (n.id === id ? { ...n, read: true } : n)),
     );
   };
 
@@ -123,7 +123,7 @@ export function NotificationCenter() {
           render={
             <button
               type="button"
-              className="group relative rounded-md p-2 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+              className="group text-muted-foreground hover:bg-accent hover:text-foreground relative rounded-md p-2 transition-colors"
               aria-label="Open notifications"
             >
               {unreadCount > 0 ? (
@@ -131,11 +131,6 @@ export function NotificationCenter() {
               ) : (
                 <Bell className="h-5 w-5 transition-colors" strokeWidth={1.5} />
               )}
-              {/* {unreadCount > 0 && (
-                <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-600 font-mono text-xs text-white">
-                  {unreadCount}
-                </span>
-              )} */}
             </button>
           }
         />
@@ -143,10 +138,10 @@ export function NotificationCenter() {
         <DialogContent
           showBackdrop={true}
           showDismissButton={false}
-          className="left-76 bottom-3 z-[100] w-96 max-w-[calc(100vw-2rem)] rounded-lg border border-border bg-card shadow-xl p-0"
+          className="border-border bg-card bottom-3 left-76 z-[100] w-96 max-w-[calc(100vw-2rem)] rounded-lg border p-0 shadow-xl"
         >
-          <DialogHeader className="gap-0 border-b border-border p-4 bg-black/90 rounded-t-lg flex flex-row items-center justify-between">
-            <DialogTitle className="font-doto tracking-tighter text-base font-bold text-white roundness-100">
+          <DialogHeader className="border-border flex flex-row items-center justify-between gap-0 rounded-t-lg border-b bg-black/90 p-4">
+            <DialogTitle className="font-doto roundness-100 text-base font-bold tracking-tighter text-white">
               Notifications
             </DialogTitle>
             {unreadCount > 0 && (
@@ -154,7 +149,7 @@ export function NotificationCenter() {
                 <button
                   type="button"
                   onClick={markAllAsRead}
-                  className="text-xs text-accent/90 hover:text-accent"
+                  className="text-accent/90 hover:text-accent text-xs"
                 >
                   Mark all as read
                 </button>
@@ -162,11 +157,11 @@ export function NotificationCenter() {
             )}
           </DialogHeader>
 
-          <ScrollArea className="h-96 ">
+          <ScrollArea className="h-96">
             {notifications.length === 0 ? (
               <div className="p-8 text-center">
                 <svg
-                  className="mx-auto h-12 w-12 text-muted-foreground"
+                  className="text-muted-foreground mx-auto h-12 w-12"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -179,12 +174,12 @@ export function NotificationCenter() {
                     d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
                   />
                 </svg>
-                <p className="mt-2 font-mono text-sm text-muted-foreground">
+                <p className="text-muted-foreground mt-2 text-sm">
                   No notifications
                 </p>
               </div>
             ) : (
-              <div className="divide-y divide-border">
+              <div className="divide-border divide-y">
                 {notifications.map((notification) => (
                   <div
                     role="button"
@@ -202,27 +197,27 @@ export function NotificationCenter() {
                     }}
                   >
                     <div className="flex gap-3">
-                      <div className="flex-shrink-0 mt-0.5">
+                      <div className="mt-0.5 flex-shrink-0">
                         {getIcon(notification.type)}
                       </div>
-                      <div className="flex-1 min-w-0">
+                      <div className="min-w-0 flex-1">
                         <div className="flex items-start justify-between gap-2">
-                          <h4 className="font-mono text-sm font-medium">
+                          <h4 className="text-sm font-medium">
                             {notification.title}
                           </h4>
                           {!notification.read && (
                             <span className="h-2 w-2 flex-shrink-0 rounded-full bg-blue-600" />
                           )}
                         </div>
-                        <p className="mt-1 font-mono text-xs text-muted-foreground">
+                        <p className="text-muted-foreground mt-1 text-xs">
                           {notification.message}
                         </p>
                         {notification.link && (
-                          <code className="mt-2 inline-block font-mono text-xs text-blue-600">
+                          <code className="mt-2 inline-block text-xs text-blue-600">
                             {notification.link}
                           </code>
                         )}
-                        <p className="mt-2 font-mono text-xs text-muted-foreground">
+                        <p className="text-muted-foreground mt-2 text-xs">
                           {notification.timestamp}
                         </p>
                       </div>
@@ -232,7 +227,7 @@ export function NotificationCenter() {
                           e.stopPropagation();
                           deleteNotification(notification.id);
                         }}
-                        className="opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-foreground"
+                        className="text-muted-foreground hover:text-foreground opacity-0 transition-opacity group-hover:opacity-100"
                       >
                         <X className="h-4 w-4" />
                       </button>

@@ -11,7 +11,7 @@ function Dialog({
 }
 
 function DialogTrigger(
-  props: React.ComponentProps<typeof DialogPrimitive.Trigger>
+  props: React.ComponentProps<typeof DialogPrimitive.Trigger>,
 ) {
   return <DialogPrimitive.Trigger data-slot="dialog-trigger" {...props} />;
 }
@@ -44,7 +44,7 @@ function DialogClose({
       data-slot="dialog-close"
       className={cn(
         !props.render && buttonVariants({ variant: "outline" }),
-        className
+        className,
       )}
       {...props}
     />
@@ -61,7 +61,7 @@ function DialogBackdrop({
       data-slot="dialog-backdrop"
       className={cn(
         "fixed inset-0 z-50 bg-black/30 [backdrop-filter:blur(4px)] transition-all duration-150 data-[ending-style]:opacity-0 data-[starting-style]:opacity-0",
-        className
+        className,
       )}
       {...props}
     />
@@ -79,18 +79,11 @@ function DialogPopup({
     <DialogPrimitive.Popup
       data-slot="dialog-popup"
       className={cn(
-        `
-          fixed z-50 grid
-          gap-0 border bg-background p-6 shadow-lg shadow-black/5 
-          transition-all duration-150 
-          data-[ending-style]:scale-90 data-[ending-style]:opacity-0 
-          data-[starting-style]:scale-90 data-[starting-style]:opacity-0 
-          sm:rounded-lg
-        `,
+        `bg-background fixed z-50 grid gap-0 border p-6 shadow-lg shadow-black/5 transition-all duration-150 data-[ending-style]:scale-90 data-[ending-style]:opacity-0 data-[starting-style]:scale-90 data-[starting-style]:opacity-0 sm:rounded-lg`,
         fullscreen
           ? "inset-5"
-          : "left-[50%] top-[50%] w-full max-w-[calc(100%-2rem)] sm:max-w-lg translate-x-[-50%] translate-y-[-50%]",
-        className
+          : "top-[50%] left-[50%] w-full max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] sm:max-w-lg",
+        className,
       )}
       {...props}
     />
@@ -124,8 +117,8 @@ function DialogContent({
             data-slot="alert-dialog-dismiss"
             className={cn(
               buttonVariants({ variant: "dim", size: "sm" }),
-              "absolute top-2.5 end-2.5",
-              className
+              "absolute end-2.5 top-2.5",
+              className,
             )}
           >
             <X />
@@ -142,8 +135,8 @@ function DialogHeader({ className, ...props }: React.ComponentProps<"div">) {
     <div
       data-slot="dialog-header"
       className={cn(
-        "flex flex-col gap-1 text-center sm:text-left bg-amber-300",
-        className
+        "flex flex-col gap-1 bg-amber-300 text-center sm:text-left",
+        className,
       )}
       {...props}
     />
@@ -166,7 +159,7 @@ function DialogFooter({ className, ...props }: React.ComponentProps<"div">) {
       data-slot="dialog-footer"
       className={cn(
         "flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2.5",
-        className
+        className,
       )}
       {...props}
     />

@@ -25,8 +25,8 @@ export function SortableHeader({
     isSorted === "desc"
       ? descTooltip
       : isSorted === "asc"
-      ? ascTooltip
-      : defaultTooltip;
+        ? ascTooltip
+        : defaultTooltip;
   return (
     <Tooltip>
       <TooltipTrigger
@@ -34,7 +34,7 @@ export function SortableHeader({
           <button
             type="button"
             onClick={() => column.toggleSorting(isSorted === "asc")}
-            className="flex items-center gap-2 font-mono text-sm font-medium hover:text-foreground"
+            className="hover:text-foreground flex items-center gap-2 text-sm font-medium"
           />
         }
       >

@@ -5,10 +5,8 @@ export default function AnalyticsRoute() {
   return (
     <>
       <header>
-        <h1 className="font-mono text-3xl font-medium tracking-tight">
-          Analytics
-        </h1>
-        <p className="mt-2 font-mono text-sm text-muted-foreground">
+        <h1 className="text-3xl font-medium tracking-tight">Analytics</h1>
+        <p className="text-muted-foreground mt-2 text-sm">
           Detailed insights and statistics
         </p>
       </header>

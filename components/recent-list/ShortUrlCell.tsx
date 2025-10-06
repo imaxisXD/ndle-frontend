@@ -14,12 +14,12 @@ export function ShortUrlCell({
   return (
     <div className="space-y-1">
       <div className="flex items-center gap-2">
-        <code className="font-mono text-sm font-medium text-foreground">
+        <code className="text-foreground text-sm font-medium">
           {url.shortUrl}
         </code>
         <button
           type="button"
-          className="rounded-md p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+          className="text-muted-foreground hover:bg-muted hover:text-foreground rounded-md p-1 transition-colors"
           onClick={(e) => {
             e.stopPropagation();
             onCopy(url.shortUrl);
@@ -31,13 +31,13 @@ export function ShortUrlCell({
           href={normalizedHref}
           target="_blank"
           rel="noopener noreferrer"
-          className="rounded-md p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+          className="text-muted-foreground hover:bg-muted hover:text-foreground rounded-md p-1 transition-colors"
           onClick={(e) => e.stopPropagation()}
         >
           <ExternalLinkIcon className="h-3.5 w-3.5" />
         </a>
       </div>
-      <p className="font-mono text-xs text-muted-foreground max-w-[520px] truncate">
+      <p className="text-muted-foreground max-w-[520px] truncate text-xs">
         {url.originalUrl}
       </p>
     </div>
