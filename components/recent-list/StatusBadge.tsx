@@ -1,14 +1,14 @@
-import { CheckCircle2Icon, AlertCircleIcon } from "../icons";
+import { ShieldAlert, ShieldPlusIn } from "iconoir-react";
 import { STATUS_LABELS, type LinkStatus } from "./types";
 
 export function StatusBadge({ status }: { status: LinkStatus }) {
   const icon =
     status === "healthy" ? (
-      <CheckCircle2Icon className="text-success h-4 w-4" />
+      <ShieldPlusIn className="text-success h-4 w-4" />
     ) : status === "healed" ? (
       <span className="bg-success h-1.5 w-1.5 rounded-full" />
     ) : (
-      <AlertCircleIcon className="text-warning h-4 w-4" />
+      <ShieldAlert className="text-warning h-4 w-4" />
     );
   return (
     <div className="flex items-center gap-2">
