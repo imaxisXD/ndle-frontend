@@ -1,9 +1,9 @@
 "use client";
 
-import { useId, useMemo, useState } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { CircleGridLoaderIcon, CopyIcon, ExternalLinkIcon } from "./icons";
+import { CircleGridLoaderIcon } from "./icons";
 import {
   Card,
   CardHeader,
@@ -98,16 +98,11 @@ export function UrlShortener() {
 
   return (
     <Card>
-      <CardHeader>
-        <div className="flex w-full items-center justify-between">
-          <div>
-            <CardTitle>Shorten a URL</CardTitle>
-            <CardDescription>
-              Create a short link with a human-readable slug, expiration, and
-              more.
-            </CardDescription>
-          </div>
-        </div>
+      <CardHeader className="flex w-full flex-col items-start justify-between gap-1">
+        <CardTitle className="text-lg font-medium">Shorten a URL</CardTitle>
+        <CardDescription>
+          Create a short link with a human-readable slug, expiration, and more.
+        </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
         <div>

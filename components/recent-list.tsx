@@ -44,7 +44,7 @@ import {
   type LinkStatus,
   type DisplayUrl,
 } from "./recent-list/types";
-import { Filter, Search, X } from "iconoir-react";
+import { FilterAlt, MoreVertCircle, Search, X } from "iconoir-react";
 
 function formatRelative(ts: number): string {
   const diffMs = Date.now() - ts;
@@ -260,6 +260,7 @@ export function UrlList() {
       },
       {
         id: "actions",
+        header: () => <span className="text-sm font-medium">Options</span>,
         cell: ({ row }) => {
           const url = row.original;
           return (
@@ -272,7 +273,7 @@ export function UrlList() {
                 navigate(`/link/${slug}`);
               }}
             >
-              {/* <MoreVerticalIcon className="h-4 w-4" /> */}
+              <MoreVertCircle className="size-4.5" />
             </button>
           );
         },
@@ -325,7 +326,7 @@ export function UrlList() {
                 : "border-border hover:bg-accent border"
             }`}
           >
-            <Filter className="size-4" />
+            <FilterAlt className="size-4.5" />
             Filters
           </button>
         </div>

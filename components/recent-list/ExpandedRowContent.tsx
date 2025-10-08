@@ -2,6 +2,15 @@ import { AiSummaryGenerator } from "../ai-summary-generator";
 import { AiChat } from "../ai-chat";
 import { TableRow, TableCell } from "@/components/ui/table";
 import type { DisplayUrl } from "./types";
+import {
+  Brain,
+  Clock,
+  MessageText,
+  PageEdit,
+  Reports,
+  ReportsSolid,
+  ShieldPlusIn,
+} from "iconoir-react";
 
 export function ExpandedRowContent({
   columnsCount,
@@ -28,7 +37,7 @@ export function ExpandedRowContent({
                   : "text-muted-foreground hover:text-foreground border-transparent"
               }`}
             >
-              <FileTextIcon className="h-4 w-4" />
+              <Brain className="h-4 w-4" />
               Memory
             </button>
             <button
@@ -40,7 +49,7 @@ export function ExpandedRowContent({
                   : "text-muted-foreground hover:text-foreground border-transparent"
               }`}
             >
-              <MessageSquareIcon className="h-4 w-4" />
+              <MessageText className="h-4 w-4" />
               Chat
             </button>
             <button
@@ -52,7 +61,7 @@ export function ExpandedRowContent({
                   : "text-muted-foreground hover:text-foreground border-transparent"
               }`}
             >
-              <RefreshCwIcon className="h-4 w-4" />
+              <ShieldPlusIn className="h-4 w-4" />
               Healing History
             </button>
             <button
@@ -64,7 +73,7 @@ export function ExpandedRowContent({
                   : "text-muted-foreground hover:text-foreground border-transparent"
               }`}
             >
-              <BarChartIcon className="h-4 w-4" />
+              <Reports className="h-4 w-4" />
               Analytics
             </button>
           </div>
@@ -76,7 +85,7 @@ export function ExpandedRowContent({
 
                 <div className="border-border bg-card rounded-lg border p-4">
                   <div className="mb-2 flex items-center gap-2">
-                    <FileTextIcon className="text-muted-foreground h-4 w-4" />
+                    <PageEdit className="text-muted-foreground h-4 w-4" />
                     <h4 className="text-sm font-medium">Your Notes</h4>
                   </div>
                   <p className="text-muted-foreground text-sm">
@@ -86,7 +95,7 @@ export function ExpandedRowContent({
 
                 <div className="rounded-lg border border-yellow-200 bg-yellow-50 p-4">
                   <div className="mb-2 flex items-center gap-2">
-                    <ClockIcon className="h-4 w-4 text-yellow-700" />
+                    <Clock className="h-4 w-4 text-yellow-700" />
                     <h4 className="text-sm font-medium text-yellow-900">
                       Why You Saved This
                     </h4>
@@ -107,7 +116,7 @@ export function ExpandedRowContent({
             {activeTab === "healing" && (
               <div className="space-y-3">
                 <div className="border-border bg-muted/30 rounded-lg border border-dashed p-8 text-center">
-                  <CheckCircle2Icon className="mx-auto h-8 w-8 text-green-600" />
+                  <ShieldPlusIn className="mx-auto h-8 w-8 text-green-600" />
                   <p className="text-foreground mt-2 text-sm">
                     Link is healthy
                   </p>
@@ -175,7 +184,7 @@ export function ExpandedRowContent({
                 </div>
               ) : (
                 <div className="border-border bg-muted/30 rounded-lg border border-dashed p-8 text-center">
-                  <BarChartIcon className="text-muted-foreground mx-auto h-8 w-8" />
+                  <ReportsSolid className="text-muted-foreground mx-auto h-8 w-8" />
                   <p className="text-foreground mt-2 text-sm">
                     No analytics yet
                   </p>

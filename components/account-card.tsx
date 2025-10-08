@@ -78,7 +78,9 @@ export function AccountCard() {
                 {user.firstName} {user.lastName}
               </h4>
               <span className={isPro ? "badge-pro" : "badge-basic"}>
-                {isPro ? <FireFlame className="h-3.5 w-3.5" /> : null}
+                {isPro ? (
+                  <FireFlame className="size-5 text-orange-500" />
+                ) : null}
                 {isPro ? "PRO" : "BASIC"}
               </span>
             </div>

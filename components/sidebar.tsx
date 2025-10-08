@@ -3,13 +3,13 @@
 import { NavLink } from "react-router";
 
 import {
+  Brain,
   FolderPlus,
-  Home,
-  HomeShield,
+  HomeAlt,
   Plus,
+  Presentation,
   Reports,
   Settings,
-  Square,
 } from "iconoir-react";
 
 import { NotificationCenter } from "./notification-center";
@@ -38,7 +38,7 @@ export function Sidebar() {
               />
             }
           >
-            <Home className="size-5" strokeWidth={1.5} />
+            <HomeAlt className="size-5" />
           </TooltipTrigger>
           <TooltipContent side="right">Home</TooltipContent>
         </Tooltip>
@@ -95,7 +95,7 @@ export function Sidebar() {
               />
             }
           >
-            <Square className="size-5" />
+            <Brain className="size-5" />
           </TooltipTrigger>
           <TooltipContent side="right">Memory</TooltipContent>
         </Tooltip>
@@ -114,7 +114,7 @@ export function Sidebar() {
               />
             }
           >
-            <HomeShield className="size-6" />
+            <Presentation className="size-5" />
           </TooltipTrigger>
           <TooltipContent side="right">Monitoring</TooltipContent>
         </Tooltip>
@@ -157,7 +157,7 @@ export function Sidebar() {
               />
             }
           >
-            <Settings className="h-5 w-5" />
+            <Settings className="size-5" />
           </TooltipTrigger>
           <TooltipContent side="right">Settings</TooltipContent>
         </Tooltip>

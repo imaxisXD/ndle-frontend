@@ -1,6 +1,7 @@
 import { Copy, OpenNewWindow } from "iconoir-react";
 
 import type { DisplayUrl } from "./types";
+import { Button } from "../ui/button";
 
 export function ShortUrlCell({
   url,
@@ -15,28 +16,32 @@ export function ShortUrlCell({
   return (
     <div className="space-y-1">
       <div className="flex items-center gap-2">
-        <code className="text-foreground text-sm font-medium">
-          {url.shortUrl}
-        </code>
-        <button
+        <a
+          href={normalizedHref}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="group text-muted-foreground hover:bg-muted hover:text-foreground flex items-center gap-2 rounded-md pr-1 transition-colors"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <code className="text-foreground text-sm font-medium group-hover:underline group-hover:decoration-blue-500 group-hover:decoration-dashed group-hover:underline-offset-2">
+            {url.shortUrl}
+          </code>
+          <OpenNewWindow
+            className="size-3 group-hover:text-blue-600"
+            strokeWidth={2.4}
+          />
+        </a>
+        <Button
+          variant="link"
           type="button"
-          className="text-muted-foreground hover:bg-muted hover:text-foreground rounded-md p-1 transition-colors"
+          className="text-muted-foreground hover:bg-muted flex items-center justify-center rounded-md p-1 transition-colors hover:text-blue-600"
           onClick={(e) => {
             e.stopPropagation();
             onCopy(url.shortUrl);
           }}
         >
-          <Copy className="h-3.5 w-3.5" />
-        </button>
-        <a
-          href={normalizedHref}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-muted-foreground hover:bg-muted hover:text-foreground rounded-md p-1 transition-colors"
-          onClick={(e) => e.stopPropagation()}
-        >
-          <OpenNewWindow className="size-3.5" />
-        </a>
+          <Copy className="size-3.5" />
+        </Button>
       </div>
       <p className="text-muted-foreground max-w-[520px] truncate text-xs">
         {url.originalUrl}
