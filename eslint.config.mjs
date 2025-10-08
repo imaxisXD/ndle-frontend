@@ -20,7 +20,6 @@ const eslintConfig = [
       "next-env.d.ts",
     ],
   },
-  ...tailwind.configs["flat/recommended"],
   ...compat.extends("next/core-web-vitals", "next/typescript"),
 ];
 

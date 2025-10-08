@@ -9,9 +9,9 @@ import {
   CardDescription,
   CardToolbar,
 } from "./ui/card";
-import { SparklesIcon } from "./icons";
 import { Button } from "./ui/button";
 import { SignOutButton, useUser } from "@clerk/nextjs";
+import { FireFlame } from "iconoir-react";
 
 export function AccountCard() {
   const { user, isSignedIn } = useUser();
@@ -78,7 +78,7 @@ export function AccountCard() {
                 {user.firstName} {user.lastName}
               </h4>
               <span className={isPro ? "badge-pro" : "badge-basic"}>
-                {isPro ? <SparklesIcon className="h-3.5 w-3.5" /> : null}
+                {isPro ? <FireFlame className="h-3.5 w-3.5" /> : null}
                 {isPro ? "PRO" : "BASIC"}
               </span>
             </div>

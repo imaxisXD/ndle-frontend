@@ -1,7 +1,7 @@
 "use client";
 
-import { AlertCircleIcon, CheckCircle2Icon } from "./icons";
 import { Badge } from "@ui/badge";
+import { CheckCircle, WarningCircle, XmarkCircle } from "iconoir-react";
 
 export type Incident = {
   id: string;
@@ -29,13 +29,13 @@ export function RecentIncidents({ incidents }: { incidents: Array<Incident> }) {
           >
             <div className="mt-0.5 flex-shrink-0">
               {incident.type === "error" && (
-                <AlertCircleIcon className="h-5 w-5 text-red-600" />
+                <XmarkCircle className="h-5 w-5 text-red-600" />
               )}
               {incident.type === "warning" && (
-                <AlertCircleIcon className="h-5 w-5 text-yellow-600" />
+                <WarningCircle className="h-5 w-5 text-yellow-600" />
               )}
               {incident.type === "resolved" && (
-                <CheckCircle2Icon className="h-5 w-5 text-green-600" />
+                <CheckCircle className="h-5 w-5 text-green-600" />
               )}
             </div>
             <div className="flex-1">

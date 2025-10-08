@@ -2,8 +2,9 @@ import * as React from "react";
 import { isValidElement, ReactNode } from "react";
 import { Select as SelectPrimitive } from "@base-ui-components/react/select";
 import { cva, VariantProps } from "class-variance-authority";
-import { CheckIcon, ChevronDownIcon, ChevronUpIcon, X } from "lucide-react";
+
 import { cn } from "@/lib/utils";
+import { Check, NavArrowDown, NavArrowUp, X } from "iconoir-react";
 
 // Create a Context for `indicatorPosition` and `indicator` control
 const SelectContext = React.createContext<{
@@ -178,7 +179,7 @@ function SelectTrigger({
         {icon && isValidElement(icon) ? (
           icon
         ) : (
-          <ChevronDownIcon
+          <NavArrowDown
             data-slot="select-icon"
             className="opacity-60 transition-transform duration-200"
           />
@@ -261,7 +262,7 @@ function SelectItem({
             )}
           >
             <SelectPrimitive.ItemIndicator data-slot="select-item-indicator">
-              <CheckIcon className="text-primary h-4 w-4" />
+              <Check className="text-primary h-4 w-4" />
             </SelectPrimitive.ItemIndicator>
           </span>
         ))}
@@ -339,7 +340,7 @@ function SelectScrollUpButton({
       )}
       {...props}
     >
-      <ChevronUpIcon className="size-4" />
+      <NavArrowUp className="size-4" />
     </SelectPrimitive.ScrollUpArrow>
   );
 }
@@ -357,7 +358,7 @@ function SelectScrollDownButton({
       )}
       {...props}
     >
-      <ChevronDownIcon className="size-4" />
+      <NavArrowDown className="size-4" />
     </SelectPrimitive.ScrollDownArrow>
   );
 }

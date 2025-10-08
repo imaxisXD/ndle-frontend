@@ -1,0 +1,27 @@
+DESCRIPTION >
+    UTM and referrer traffic analysis
+
+NODE traffic_analysis
+SQL >
+    %
+    SELECT 
+        ifNull(utm_source, 'direct') as source,
+        ifNull(utm_medium, 'none') as medium,
+        ifNull(utm_campaign, 'none') as campaign,
+        ifNull(referer, 'direct') as referer_domain,
+        count(*) as clicks,
+        uniq(session_id) as unique_sessions,
+        countIf(first_click_of_session = 1) as new_sessions,
+        avg(latency_ms_worker) as avg_latency
+    FROM link_clicks
+    WHERE 
+        occurred_at >= {{DateTime(start_date, '2024-01-01 00:00:00')}}
+        AND occurred_at <= {{DateTime(end_date, '2024-12-31 23:59:59')}}
+        {% if defined(link_slug) %}
+        AND link_slug = {{String(link_slug)}}
+        {% end %}
+    GROUP BY source, medium, campaign, referer_domain
+    ORDER BY clicks DESC
+    LIMIT {{Int32(limit, 100)}}
+
+TYPE endpoint

@@ -4,7 +4,7 @@ import * as React from "react";
 import { cn } from "@/lib/utils";
 import { Combobox as ComboboxPrimitive } from "@base-ui-components/react/combobox";
 import { cva, type VariantProps } from "class-variance-authority";
-import { Check, ChevronDown, X } from "lucide-react";
+import { Check, NavArrowDown, X } from "iconoir-react";
 
 // Define input size variants (without file: part)
 const inputVariants = cva(
@@ -352,7 +352,7 @@ function ComboboxIcon({
       )}
       {...props}
     >
-      {children ? children : <ChevronDown className="size-3.5 opacity-100" />}
+      {children ? children : <NavArrowDown className="size-3.5 opacity-100" />}
     </ComboboxPrimitive.Icon>
   );
 }

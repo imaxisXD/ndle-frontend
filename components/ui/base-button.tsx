@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils";
 import { mergeProps } from "@base-ui-components/react/merge-props";
 import { useRender } from "@base-ui-components/react/use-render";
 import { cva, type VariantProps } from "class-variance-authority";
-import { ChevronDown, LucideIcon } from "lucide-react";
+import { NavArrowDown } from "iconoir-react";
 
 const buttonVariants = cva(
   "cursor-pointer group whitespace-nowrap focus-visible:outline-hidden inline-flex items-center justify-center has-data-[arrow=true]:justify-between whitespace-nowrap text-sm font-medium ring-offset-background transition-[transform,color,box-shadow] duration-150 ease-out active:scale-[0.98] disabled:pointer-events-none disabled:opacity-60 [&_svg]:shrink-0",
@@ -437,22 +437,4 @@ function Button({
   return element;
 }
 
-interface ButtonArrowProps extends React.SVGProps<SVGSVGElement> {
-  icon?: LucideIcon;
-}
-
-function ButtonArrow({
-  icon: Icon = ChevronDown,
-  className,
-  ...props
-}: ButtonArrowProps) {
-  return (
-    <Icon
-      data-slot="button-arrow"
-      className={cn("ms-auto -me-1", className)}
-      {...props}
-    />
-  );
-}
-
-export { Button, ButtonArrow, buttonVariants };
+export { Button, buttonVariants };

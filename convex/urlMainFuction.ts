@@ -1,6 +1,5 @@
 import { ConvexError, v } from "convex/values";
 import { internalMutation, mutation, query } from "./_generated/server";
-import { paginationOptsValidator } from "convex/server";
 import { getCurrentUser } from "./users";
 import { VALIDATION_ERRORS, createSlug, isValidHttpUrl } from "./utils";
 import { Doc } from "./_generated/dataModel";
@@ -56,6 +55,7 @@ export const createUrl = mutation({
 
       throw new ConvexError(errorCopy[isValidUrl.errorCode!]);
     }
+
     //checking if the url is already shortened by the user
     const existingUrl = await ctx.db
       .query("urls")
@@ -63,7 +63,7 @@ export const createUrl = mutation({
         q.eq("userTableId", user._id).eq("fullurl", args.url),
       )
       .collect();
-    console.log("existingUrl", existingUrl.length > 0);
+
     if (existingUrl.length > 0) {
       throw new ConvexError(
         "You already have a short link for this destination. Copy it from your links list instead.",
@@ -91,6 +91,7 @@ export const createUrl = mutation({
     });
 
     ctx.scheduler.runAfter(0, internal.redisAction.insertIntoRedis, {
+      user_id: user._id,
       fullUrl: args.url,
       slugAssigned: slug,
       docId: docId,

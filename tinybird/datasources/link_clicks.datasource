@@ -1,0 +1,39 @@
+DESCRIPTION >
+    Landing datasource for link click events with comprehensive tracking and analytics data
+
+SCHEMA >
+    `idempotency_key` String `json:$.idempotency_key`,
+    `occurred_at` DateTime `json:$.occurred_at`,
+    `link_slug` String `json:$.link_slug`,
+    `short_url` String `json:$.short_url`,
+    `link_id` Nullable(String) `json:$.link_id`,
+    `user_id` Nullable(String) `json:$.user_id`,
+    `destination_url` String `json:$.destination_url`,
+    `redirect_status` Int32 `json:$.redirect_status`,
+    `tracking_enabled` Bool `json:$.tracking_enabled`,
+    `latency_ms_worker` Int32 `json:$.latency_ms_worker`,
+    `session_id` Nullable(String) `json:$.session_id`,
+    `first_click_of_session` Bool `json:$.first_click_of_session`,
+    `request_id` String `json:$.request_id`,
+    `worker_datacenter` String `json:$.worker_datacenter`,
+    `worker_version` String `json:$.worker_version`,
+    `user_agent` String `json:$.user_agent`,
+    `device_type` Nullable(String) `json:$.device_type`,
+    `browser` Nullable(String) `json:$.browser`,
+    `os` Nullable(String) `json:$.os`,
+    `ip_hash` String `json:$.ip_hash`,
+    `country` String `json:$.country`,
+    `region` Nullable(String) `json:$.region`,
+    `city` Nullable(String) `json:$.city`,
+    `referer` Nullable(String) `json:$.referer`,
+    `utm_source` Nullable(String) `json:$.utm_source`,
+    `utm_medium` Nullable(String) `json:$.utm_medium`,
+    `utm_campaign` Nullable(String) `json:$.utm_campaign`,
+    `utm_term` Nullable(String) `json:$.utm_term`,
+    `utm_content` Nullable(String) `json:$.utm_content`,
+    `is_bot` Bool `json:$.is_bot`,
+    `language` Nullable(String) `json:$.language`,
+    `timezone` Nullable(String) `json:$.timezone`
+
+ENGINE "MergeTree"
+ENGINE_SORTING_KEY "occurred_at, link_slug"

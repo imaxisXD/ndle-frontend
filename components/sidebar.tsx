@@ -1,15 +1,17 @@
 "use client";
 
 import { NavLink } from "react-router";
+
 import {
-  BarChartIcon,
-  FoldersPlus,
-  HouseOutlineIcon,
-  PlusIcon,
-  SettingsIcon,
-  ShieldIcon,
-  SquareIcon,
-} from "./icons";
+  FolderPlus,
+  Home,
+  HomeShield,
+  Plus,
+  Reports,
+  Settings,
+  Square,
+} from "iconoir-react";
+
 import { NotificationCenter } from "./notification-center";
 import {
   Tooltip,
@@ -36,7 +38,7 @@ export function Sidebar() {
               />
             }
           >
-            <HouseOutlineIcon className="size-5" strokeWidth={1.5} />
+            <Home className="size-5" strokeWidth={1.5} />
           </TooltipTrigger>
           <TooltipContent side="right">Home</TooltipContent>
         </Tooltip>
@@ -55,7 +57,7 @@ export function Sidebar() {
               />
             }
           >
-            <PlusIcon className="h-5 w-5" />
+            <Plus className="h-5 w-5" />
           </TooltipTrigger>
           <TooltipContent side="right">Create</TooltipContent>
         </Tooltip>
@@ -74,7 +76,7 @@ export function Sidebar() {
               />
             }
           >
-            <FoldersPlus className="size-5" strokeWidth={2} />
+            <FolderPlus className="size-5" />
           </TooltipTrigger>
           <TooltipContent side="right">Collections</TooltipContent>
         </Tooltip>
@@ -93,7 +95,7 @@ export function Sidebar() {
               />
             }
           >
-            <SquareIcon className="h-5 w-5" />
+            <Square className="size-5" />
           </TooltipTrigger>
           <TooltipContent side="right">Memory</TooltipContent>
         </Tooltip>
@@ -112,7 +114,7 @@ export function Sidebar() {
               />
             }
           >
-            <ShieldIcon className="h-5 w-5" />
+            <HomeShield className="size-6" />
           </TooltipTrigger>
           <TooltipContent side="right">Monitoring</TooltipContent>
         </Tooltip>
@@ -136,7 +138,7 @@ export function Sidebar() {
               />
             }
           >
-            <BarChartIcon className="h-5 w-5" />
+            <Reports className="size-5" />
           </TooltipTrigger>
           <TooltipContent side="right">Analytics</TooltipContent>
         </Tooltip>
@@ -155,7 +157,7 @@ export function Sidebar() {
               />
             }
           >
-            <SettingsIcon className="h-5 w-5" />
+            <Settings className="h-5 w-5" />
           </TooltipTrigger>
           <TooltipContent side="right">Settings</TooltipContent>
         </Tooltip>

@@ -1,14 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import {
-  ArchiveIcon,
-  BarChartIcon,
-  GlobeIcon,
-  MousePointerClickIcon,
-  ShieldIcon,
-  SparklesIcon,
-} from "./icons";
 import { Card, CardContent } from "@/components/ui/card";
 import {
   Select,
@@ -17,6 +9,14 @@ import {
   SelectContent,
   SelectItem,
 } from "@/components/ui/base-select";
+import {
+  Archive,
+  CursorPointer,
+  Globe,
+  MagicWand,
+  ShieldCheck,
+  StatsDownSquare,
+} from "iconoir-react";
 
 export function Analytics() {
   const [timeRange, setTimeRange] = useState<"7d" | "30d" | "90d" | "1y">(
@@ -27,42 +27,42 @@ export function Analytics() {
     {
       label: "Total Links",
       value: "24",
-      icon: BarChartIcon,
+      icon: StatsDownSquare,
       change: "[+3] this week",
       trend: "up",
     },
     {
       label: "Total Clicks",
       value: "1,429",
-      icon: MousePointerClickIcon,
+      icon: CursorPointer,
       change: "[+127] today",
       trend: "up",
     },
     {
       label: "Auto-Healed",
       value: "8",
-      icon: ShieldIcon,
+      icon: ShieldCheck,
       change: "[3] active",
       trend: "neutral",
     },
     {
       label: "Archived",
       value: "12",
-      icon: ArchiveIcon,
+      icon: Archive,
       change: "via Wayback",
       trend: "neutral",
     },
     {
       label: "AI Conversations",
       value: "45",
-      icon: SparklesIcon,
+      icon: MagicWand,
       change: "[18] this week",
       trend: "up",
     },
     {
       label: "Countries",
       value: "12",
-      icon: GlobeIcon,
+      icon: Globe,
       change: "[5] new",
       trend: "up",
     },

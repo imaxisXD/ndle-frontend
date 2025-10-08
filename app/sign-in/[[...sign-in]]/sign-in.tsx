@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowLeftIcon } from "lucide-react";
+
 import { SignIn } from "@clerk/nextjs";
 import {
   Card,
@@ -7,6 +7,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { ArrowLeft } from "iconoir-react";
 
 const highlights = [
   {
@@ -72,7 +73,7 @@ export default function SignInComponent() {
             href="/"
             className="text-muted-foreground hover:text-foreground flex w-fit items-center gap-1 text-sm transition"
           >
-            <ArrowLeftIcon className="h-4 w-4" /> Back to home
+            <ArrowLeft className="h-4 w-4" /> Back to home
           </Link>
 
           <div className="space-y-3">

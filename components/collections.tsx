@@ -1,15 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import {
-  ExternalLink,
-  Folder,
-  MoreVertical,
-  Plus,
-  Trash2,
-} from "@/components/icons";
 import { Button } from "./ui/button";
 import { Badge } from "@ui/badge";
+import {
+  BinMinusIn,
+  Folder,
+  MoreVertCircle,
+  OpenInBrowser,
+  Plus,
+} from "iconoir-react";
 
 interface Collection {
   id: string;
@@ -201,7 +201,7 @@ export function Collections() {
               type="button"
               className="hover:bg-accent rounded-md p-2 transition-colors"
             >
-              <MoreVertical className="h-4 w-4" />
+              <MoreVertCircle className="h-4 w-4" />
             </button>
           </div>
         </div>
@@ -271,13 +271,13 @@ export function Collections() {
                         type="button"
                         className="hover:bg-accent rounded-md p-2 transition-colors"
                       >
-                        <ExternalLink className="h-4 w-4" />
+                        <OpenInBrowser className="h-4 w-4" />
                       </button>
                       <button
                         type="button"
                         className="text-destructive hover:bg-destructive/10 rounded-md p-2 transition-colors"
                       >
-                        <Trash2 className="h-4 w-4" />
+                        <BinMinusIn className="h-4 w-4" />
                       </button>
                     </div>
                   </div>
@@ -337,7 +337,7 @@ export function Collections() {
                 }}
                 className="hover:bg-accent rounded-md p-1 opacity-0 transition-all group-hover:opacity-100"
               >
-                <MoreVertical className="h-4 w-4" />
+                <MoreVertCircle className="h-4 w-4" />
               </button>
             </div>
             <h3 className="mt-4 text-base font-medium">{collection.name}</h3>

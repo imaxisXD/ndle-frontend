@@ -1,19 +1,20 @@
 "use client";
 
 import { useState } from "react";
-import {
-  AlertCircleIcon,
-  CheckCircle2Icon,
-  DoubleRefreshIcon,
-  ShieldCheckIcon,
-  ShieldErrorIcon,
-  ShieldHealthIcon,
-  ShieldWarningIcon,
-} from "./icons";
 import { Badge } from "@ui/badge";
 import { Card, CardContent, CardHeader } from "@ui/card";
 import { RecentIncidents, type Incident } from "./recent-incidents";
 import { Button } from "./ui/button";
+import {
+  CheckCircle,
+  RefreshDouble,
+  ShieldAlert,
+  ShieldCheck,
+  ShieldSearch,
+  ShieldXmark,
+  WarningCircle,
+  XmarkCircle,
+} from "iconoir-react";
 
 interface MonitoredLink {
   id: string;
@@ -98,15 +99,13 @@ export function LinkMonitoring() {
   const getStatusIcon = (status: MonitoredLink["status"]) => {
     switch (status) {
       case "healthy":
-        return <ShieldCheckIcon className="h-5 w-5 text-green-600" />;
+        return <ShieldCheck className="h-5 w-5 text-green-600" />;
       case "warning":
-        return <ShieldWarningIcon className="h-5 w-5 text-yellow-600" />;
+        return <ShieldAlert className="h-5 w-5 text-yellow-600" />;
       case "error":
-        return <ShieldErrorIcon className="h-5 w-5 text-red-600" />;
+        return <ShieldXmark className="h-5 w-5 text-red-600" />;
       case "checking":
-        return (
-          <DoubleRefreshIcon className="size-4 animate-spin text-blue-600" />
-        );
+        return <RefreshDouble className="size-4 animate-spin text-blue-600" />;
     }
   };
 
@@ -175,7 +174,7 @@ export function LinkMonitoring() {
                 {healthyCount}
               </p>
             </div>
-            <CheckCircle2Icon className="h-8 w-8 text-green-600" />
+            <CheckCircle className="h-8 w-8 text-green-600" />
           </div>
         </Card>
 
@@ -187,7 +186,7 @@ export function LinkMonitoring() {
                 {warningCount}
               </p>
             </div>
-            <AlertCircleIcon className="h-8 w-8 text-yellow-600" />
+            <WarningCircle className="h-8 w-8 text-yellow-600" />
           </div>
         </Card>
 
@@ -199,7 +198,7 @@ export function LinkMonitoring() {
                 {errorCount}
               </p>
             </div>
-            <AlertCircleIcon className="h-8 w-8 text-red-600" />
+            <XmarkCircle className="h-8 w-8 text-red-600" />
           </div>
         </Card>
 
@@ -209,7 +208,7 @@ export function LinkMonitoring() {
               <p className="text-muted-foreground text-xs">Avg Uptime</p>
               <p className="mt-2 text-2xl font-medium">{avgUptime}%</p>
             </div>
-            <ShieldHealthIcon className="h-8 w-8 text-emerald-500" />
+            <ShieldCheck className="h-8 w-8 text-emerald-500" />
           </div>
         </Card>
       </div>

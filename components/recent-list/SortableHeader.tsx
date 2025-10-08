@@ -1,4 +1,3 @@
-import { ArrowUpDown } from "../icons";
 import {
   Tooltip,
   TooltipTrigger,
@@ -6,6 +5,7 @@ import {
 } from "@/components/ui/base-tooltip";
 import { type Column } from "@tanstack/react-table";
 import type { DisplayUrl } from "./types";
+import { ArrowsUpFromLine } from "iconoir-react";
 
 export function SortableHeader({
   column,
@@ -53,7 +53,7 @@ export function SortableHeader({
               ↓
             </span>
           ) : (
-            <ArrowUpDown className="h-4 w-4" />
+            <ArrowsUpFromLine className="size-4" />
           )}
         </span>
       </TooltipTrigger>

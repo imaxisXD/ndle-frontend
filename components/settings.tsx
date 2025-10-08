@@ -3,13 +3,14 @@
 import { useState } from "react";
 import { AccountCard } from "./account-card";
 import {
-  AlertCircleIcon,
-  CopyIcon,
-  GlobeIcon,
-  RefreshIcon,
-  ShieldIcon,
-  SparklesIcon,
-} from "./icons";
+  BinMinusIn,
+  Copy,
+  Globe,
+  MagicWand,
+  RefreshDouble,
+  ShieldCheck,
+  Spark,
+} from "iconoir-react";
 
 export function Settings() {
   const [customDomain, setCustomDomain] = useState("short.yourdomain.com");
@@ -41,7 +42,7 @@ export function Settings() {
       <div className="border-border bg-card rounded-lg border p-6">
         <div className="mb-6 flex items-center gap-3">
           <div className="rounded-lg bg-blue-100 p-2">
-            <GlobeIcon className="h-5 w-5 text-blue-600" />
+            <Globe className="h-5 w-5 text-blue-600" />
           </div>
           <div>
             <h3 className="text-base font-medium">General Settings</h3>
@@ -114,7 +115,7 @@ export function Settings() {
       <div className="border-border bg-card rounded-lg border p-6">
         <div className="mb-6 flex items-center gap-3">
           <div className="rounded-lg bg-green-100 p-2">
-            <ShieldIcon className="h-5 w-5 text-green-600" />
+            <ShieldCheck className="h-5 w-5 text-green-600" />
           </div>
           <div>
             <h3 className="text-base font-medium">Self-Healing Settings</h3>
@@ -213,7 +214,7 @@ export function Settings() {
       <div className="border-border bg-card rounded-lg border p-6">
         <div className="mb-6 flex items-center gap-3">
           <div className="rounded-lg bg-yellow-100 p-2">
-            <SparklesIcon className="h-5 w-5 text-yellow-600" />
+            <MagicWand className="h-5 w-5 text-yellow-600" />
           </div>
           <div>
             <h3 className="text-base font-medium">AI Features</h3>
@@ -352,14 +353,14 @@ export function Settings() {
                 onClick={handleCopyApiKey}
                 className="border-border bg-background hover:bg-accent rounded-md border px-3 py-2 transition-colors"
               >
-                <CopyIcon className="h-4 w-4" />
+                <Copy className="h-4 w-4" />
               </button>
               <button
                 type="button"
                 onClick={handleGenerateApiKey}
                 className="border-border bg-background hover:bg-accent rounded-md border px-3 py-2 transition-colors"
               >
-                <RefreshIcon className="h-4 w-4" />
+                <RefreshDouble className="h-4 w-4" />
               </button>
             </div>
             <p className="text-muted-foreground mt-2 text-xs">
@@ -443,7 +444,7 @@ export function Settings() {
       <div className="rounded-lg border border-red-200 bg-red-50 p-6">
         <div className="mb-6 flex items-center gap-3">
           <div className="rounded-lg bg-red-100 p-2">
-            <AlertCircleIcon className="h-5 w-5 text-red-600" />
+            <BinMinusIn className="h-5 w-5 text-red-600" />
           </div>
           <div>
             <h3 className="text-base font-medium text-red-900">Danger Zone</h3>

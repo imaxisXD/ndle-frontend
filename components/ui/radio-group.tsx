@@ -3,8 +3,8 @@
 import * as React from "react";
 import { cn } from "@/lib/utils";
 import { cva, VariantProps } from "class-variance-authority";
-import { Circle } from "lucide-react";
 import { RadioGroup as RadioGroupPrimitive } from "radix-ui";
+import { Circle } from "iconoir-react";
 
 type RadioVariant = "primary" | "mono";
 type RadioSize = "sm" | "md" | "lg";
@@ -61,12 +61,12 @@ const radioItemVariants = cva(
     focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50
     aria-invalid:border-destructive/60 aria-invalid:ring-destructive/10 aria-invalid:border-destructive aria-invalid:ring-destructive/20
     [[data-invalid=true]_&]:border-destructive/60 [[data-invalid=true]_&]:ring-destructive/10 [[data-invalid=true]_&]:border-destructive [[data-invalid=true]_&]:ring-destructive/20
-    border-checkbox-border text-primary data-[state=checked]:bg-white data-[state=checked]:border-primary data-[state=checked]:text-black  
+    border-checkbox-border text-primary data-[state=checked]:bg-accent/80 data-[state=checked]:border-primary/60 data-[state=checked]:text-primary/80  
   `,
   {
     variants: {
       size: {
-        sm: "size-3.5 [&_svg]:size-2",
+        sm: "size-3.5 [&_svg]:size-1.75",
         md: "size-5 [&_svg]:size-2.5",
         lg: "size-5.5 [&_svg]:size-3",
       },

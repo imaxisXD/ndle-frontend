@@ -1,11 +1,14 @@
 import { useParams, useNavigate } from "react-router";
-import { Card, CardContent } from "@/components/ui/card";
 import {
-  BarChartIcon,
-  ClockIcon,
-  ExternalLinkIcon,
-  Trash2,
-} from "@/components/icons";
+  Card,
+  CardContent,
+  CardHeader,
+  CardDescription,
+  CardTitle,
+  CardToolbar,
+} from "@/components/ui/card";
+import { Button } from "../ui/button";
+import { BinMinusIn, Clock, OpenInBrowser, ReportColumns } from "iconoir-react";
 
 export default function LinkDetailRoute() {
   const params = useParams();
@@ -49,7 +52,7 @@ export default function LinkDetailRoute() {
                   Daily click activity
                 </p>
               </div>
-              <BarChartIcon className="text-muted-foreground h-5 w-5" />
+              <ReportColumns className="text-muted-foreground h-5 w-5" />
             </div>
             <div className="space-y-3">
               {clicksData.map((d) => (
@@ -106,11 +109,11 @@ export default function LinkDetailRoute() {
             <h3 className="text-base font-medium">Metadata</h3>
             <div className="text-muted-foreground mt-4 space-y-2 text-sm">
               <div className="flex items-center gap-2">
-                <ExternalLinkIcon className="h-4 w-4" /> Short URL:{" "}
+                <OpenInBrowser className="h-4 w-4" /> Short URL:{" "}
                 <code className="text-foreground">https://{shortUrl}</code>
               </div>
               <div className="flex items-center gap-2">
-                <ClockIcon className="h-4 w-4" /> Created: 2 days ago
+                <Clock className="h-4 w-4" /> Created: 2 days ago
               </div>
               <div>Tracking: Enabled</div>
             </div>
@@ -118,18 +121,26 @@ export default function LinkDetailRoute() {
         </Card>
 
         <Card>
-          <CardContent className="p-6">
-            <h3 className="text-base font-medium text-red-600">Danger Zone</h3>
+          <CardHeader>
+            <CardTitle className="text-red-600">Delete Link</CardTitle>
+            <CardToolbar>
+              <Button
+                variant="destructive"
+                type="button"
+                onClick={() => navigate("/")}
+              >
+                <BinMinusIn className="h-4 w-4" /> Delete Link
+              </Button>
+            </CardToolbar>
+          </CardHeader>
+          <CardContent className="flex flex-col items-start justify-between gap-2">
+            <CardDescription className="">
+              Delete this shortened link permanently.
+            </CardDescription>
             <p className="text-muted-foreground mt-1 text-xs">
-              This action cannot be undone.
+              This will remove all the data associated with this link, including
+              clicks and metadata.
             </p>
-            <button
-              type="button"
-              onClick={() => navigate("/")}
-              className="mt-4 inline-flex items-center gap-2 rounded-md border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-700 transition-colors hover:bg-red-100"
-            >
-              <Trash2 className="h-4 w-4" /> Delete Link
-            </button>
           </CardContent>
         </Card>
       </section>

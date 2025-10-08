@@ -3,8 +3,8 @@
 import * as React from "react";
 import { cn } from "@/lib/utils";
 import { cva, VariantProps } from "class-variance-authority";
-import { Check, Minus } from "lucide-react";
 import { Checkbox as CheckboxPrimitive } from "radix-ui";
+import { Check, Minus } from "iconoir-react";
 
 // Define the variants for the Checkbox using cva.
 const checkboxVariants = cva(
@@ -13,12 +13,12 @@ const checkboxVariants = cva(
     focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 
     aria-invalid:border-destructive/60 aria-invalid:ring-destructive/10 aria-invalid:border-destructive aria-invalid:ring-destructive/20
     [[data-invalid=true]_&]:border-destructive/60 [[data-invalid=true]_&]:ring-destructive/10 [[data-invalid=true]_&]:border-destructive [[data-invalid=true]_&]:ring-destructive/20,
-    data-[state=checked]:bg-primary data-[state=checked]:border-primary data-[state=checked]:text-primary-foreground data-[state=indeterminate]:bg-primary data-[state=indeterminate]:border-primary data-[state=indeterminate]:text-primary-foreground
+    data-[state=checked]:bg-accent/80 data-[state=checked]:border-primary data-[state=checked]:text-primary data-[state=indeterminate]:bg-primary data-[state=indeterminate]:border-primary data-[state=indeterminate]:text-primary-foreground
     `,
   {
     variants: {
       size: {
-        sm: "size-4 [&_svg]:size-3",
+        sm: "size-3.5 [&_svg]:size-2.5",
         md: "size-5 [&_svg]:size-3.5",
         lg: "size-5.5 [&_svg]:size-4",
       },
@@ -44,7 +44,10 @@ function Checkbox({
       <CheckboxPrimitive.Indicator
         className={cn("flex items-center justify-center text-current")}
       >
-        <Check className="group-data-[state=indeterminate]:hidden" />
+        <Check
+          className="group-data-[state=indeterminate]:hidden"
+          strokeWidth={2.2}
+        />
         <Minus className="hidden group-data-[state=indeterminate]:block" />
       </CheckboxPrimitive.Indicator>
     </CheckboxPrimitive.Root>

@@ -36,6 +36,44 @@ const CONFIG = {
   ],
 };
 
+export interface RedisValueObject {
+  // Essential (always needed)
+  destination: string;
+  tenant_id: string;
+  user_id: string;
+  redirect_type: 301 | 302 | 307 | 308;
+  // Tracking
+  created_at: number;
+  updated_at: number;
+  link_id: string;
+  // State management
+  is_active: boolean;
+  expires_at: number | null;
+  max_clicks: number | null;
+  // Analytics tags (keep arrays small)
+  tags?: Array<string>;
+  utm_params?: {
+    // Pre-parsed UTM for analytics
+    source?: string;
+    medium?: string;
+    campaign?: string;
+  };
+  // Smart routing (only if needed)
+  rules?: {
+    geo?: Record<string, string>; // {"US": "url1", "GB": "url2"}
+    device?: Record<string, string>; // {"mobile": "url1", "desktop": "url2"}
+  };
+  // Feature flags
+  features: {
+    track_clicks: boolean;
+    track_conversions: boolean;
+    enable_preview?: boolean;
+    password_protected?: boolean;
+  };
+  custom_metadata: Record<string, string>;
+  version: number;
+}
+
 /**
  * Check if the hostname is localhost
  */

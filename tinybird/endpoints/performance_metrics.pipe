@@ -1,0 +1,28 @@
+DESCRIPTION >
+    Link performance and redirect analytics
+
+NODE performance_data
+SQL >
+    %
+    SELECT 
+        link_slug,
+        toDate(occurred_at) as date,
+        count(*) as total_clicks,
+        avg(latency_ms_worker) as avg_latency_ms,
+        quantile(0.95)(latency_ms_worker) as p95_latency_ms,
+        countIf(redirect_status >= 200 AND redirect_status < 300) as successful_redirects,
+        countIf(redirect_status >= 300 AND redirect_status < 400) as redirect_responses,
+        countIf(redirect_status >= 400) as error_responses,
+        countIf(tracking_enabled = 1) as tracked_clicks,
+        uniq(worker_datacenter) as datacenter_count
+    FROM link_clicks
+    WHERE 
+        occurred_at >= {{DateTime(start_date, '2024-01-01 00:00:00')}}
+        AND occurred_at <= {{DateTime(end_date, '2024-12-31 23:59:59')}}
+        {% if defined(link_slug) %}
+        AND link_slug = {{String(link_slug)}}
+        {% end %}
+    GROUP BY link_slug, date
+    ORDER BY date DESC, total_clicks DESC
+
+TYPE endpoint

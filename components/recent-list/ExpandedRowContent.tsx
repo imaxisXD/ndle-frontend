@@ -1,11 +1,3 @@
-import {
-  FileTextIcon,
-  MessageSquareIcon,
-  RefreshCwIcon,
-  BarChartIcon,
-  CheckCircle2Icon,
-  ClockIcon,
-} from "../icons";
 import { AiSummaryGenerator } from "../ai-summary-generator";
 import { AiChat } from "../ai-chat";
 import { TableRow, TableCell } from "@/components/ui/table";

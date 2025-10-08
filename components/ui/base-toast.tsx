@@ -4,8 +4,14 @@ import { toastManager, useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { Toast } from "@base-ui-components/react/toast";
 import { cva } from "class-variance-authority";
-import { Info, Loader, AlertTriangle, X } from "lucide-react";
-import { CircleCheckIcon, CircleXIcon } from "../icons";
+import { CircleGridLoaderIcon } from "../icons";
+import {
+  CheckCircle,
+  InfoCircle,
+  WarningTriangle,
+  X,
+  XmarkCircle,
+} from "iconoir-react";
 
 export type ToastType =
   | "default"
@@ -109,11 +115,11 @@ const toastContainerVariants = cva(["fixed flex flex-col gap-2 z-50"], {
 const TOAST_ICONS: {
   [key: string]: React.ReactNode;
 } = {
-  loading: <Loader className="animate-spin" />,
-  success: <CircleCheckIcon title="Success" />,
-  error: <CircleXIcon title="Error" />,
-  info: <Info />,
-  warning: <AlertTriangle />,
+  loading: <CircleGridLoaderIcon className="animate-spin" />,
+  success: <CheckCircle />,
+  error: <XmarkCircle />,
+  info: <InfoCircle />,
+  warning: <WarningTriangle />,
 };
 
 interface ToastProviderProps

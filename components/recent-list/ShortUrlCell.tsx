@@ -1,4 +1,5 @@
-import { CopyIcon, ExternalLinkIcon } from "../icons";
+import { Copy, OpenNewWindow } from "iconoir-react";
+
 import type { DisplayUrl } from "./types";
 
 export function ShortUrlCell({
@@ -25,7 +26,7 @@ export function ShortUrlCell({
             onCopy(url.shortUrl);
           }}
         >
-          <CopyIcon className="h-3.5 w-3.5" />
+          <Copy className="h-3.5 w-3.5" />
         </button>
         <a
           href={normalizedHref}
@@ -34,7 +35,7 @@ export function ShortUrlCell({
           className="text-muted-foreground hover:bg-muted hover:text-foreground rounded-md p-1 transition-colors"
           onClick={(e) => e.stopPropagation()}
         >
-          <ExternalLinkIcon className="h-3.5 w-3.5" />
+          <OpenNewWindow className="size-3.5" />
         </a>
       </div>
       <p className="text-muted-foreground max-w-[520px] truncate text-xs">

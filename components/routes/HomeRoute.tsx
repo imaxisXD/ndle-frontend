@@ -9,12 +9,12 @@ import {
   CardDescription,
 } from "@/components/ui/card";
 import {
-  PlusIcon,
-  FoldersPlus,
-  BarChartIcon,
-  ShieldIcon,
-  SquareIcon,
-} from "@/components/icons";
+  Brain,
+  FolderPlus,
+  HomeShield,
+  Plus,
+  ReportColumns,
+} from "iconoir-react";
 
 export default function HomeRoute() {
   return (
@@ -56,31 +56,31 @@ export default function HomeRoute() {
                   to: "/create",
                   title: "Create Link",
                   description: "Shorten a new URL",
-                  Icon: PlusIcon,
+                  Icon: Plus,
                 },
                 {
                   to: "/collections",
                   title: "Collections",
                   description: "Organize links by topic",
-                  Icon: FoldersPlus,
+                  Icon: FolderPlus,
                 },
                 {
                   to: "/analytics",
                   title: "Analytics",
                   description: "View insights & stats",
-                  Icon: BarChartIcon,
+                  Icon: ReportColumns,
                 },
                 {
                   to: "/monitoring",
                   title: "Monitoring",
                   description: "Check link health",
-                  Icon: ShieldIcon,
+                  Icon: HomeShield,
                 },
                 {
                   to: "/memory",
                   title: "Memory",
                   description: "Summaries & notes",
-                  Icon: SquareIcon,
+                  Icon: Brain,
                 },
               ].map((action) => (
                 <NavLink

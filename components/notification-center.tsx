@@ -2,17 +2,6 @@
 
 import { useRef, useState } from "react";
 import {
-  AlertCircleIcon,
-  Bell,
-  BellAlert,
-  BellAlertFilled,
-  CheckCircle2Icon,
-  MousePointerClickIcon,
-  RefreshCwIcon,
-  SparklesIcon,
-  X,
-} from "./icons";
-import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -21,6 +10,16 @@ import {
   DialogTrigger,
 } from "./ui/base-dialog";
 import { ScrollArea } from "./ui/scroll-area";
+import {
+  Bell,
+  BellNotificationSolid,
+  CheckCircle,
+  MagicWand,
+  MouseButtonLeft,
+  RefreshDouble,
+  X,
+  XmarkCircle,
+} from "iconoir-react";
 
 interface Notification {
   id: string;
@@ -104,15 +103,15 @@ export function NotificationCenter() {
   const getIcon = (type: Notification["type"]) => {
     switch (type) {
       case "healing":
-        return <RefreshCwIcon className="h-4 w-4 text-yellow-600" />;
+        return <RefreshDouble className="h-4 w-4 text-yellow-600" />;
       case "click":
-        return <MousePointerClickIcon className="h-4 w-4 text-blue-600" />;
+        return <MouseButtonLeft className="h-4 w-4 text-blue-600" />;
       case "created":
-        return <CheckCircle2Icon className="h-4 w-4 text-green-600" />;
+        return <CheckCircle className="h-4 w-4 text-green-600" />;
       case "ai":
-        return <SparklesIcon className="h-4 w-4 text-yellow-600" />;
+        return <MagicWand className="h-4 w-4 text-yellow-600" />;
       case "error":
-        return <AlertCircleIcon className="h-4 w-4 text-red-600" />;
+        return <XmarkCircle className="h-4 w-4 text-red-600" />;
     }
   };
 
@@ -127,7 +126,7 @@ export function NotificationCenter() {
               aria-label="Open notifications"
             >
               {unreadCount > 0 ? (
-                <BellAlertFilled className="h-5 w-5 text-red-500 transition-colors group-hover:text-black" />
+                <BellNotificationSolid className="h-5 w-5 text-red-500 transition-colors group-hover:text-black" />
               ) : (
                 <Bell className="h-5 w-5 transition-colors" strokeWidth={1.5} />
               )}

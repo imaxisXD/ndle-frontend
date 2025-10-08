@@ -14,7 +14,6 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 
-import { Filter, MoreVerticalIcon, Search, X } from "./icons";
 import { useNavigate } from "react-router";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery } from "convex/react";
@@ -45,6 +44,7 @@ import {
   type LinkStatus,
   type DisplayUrl,
 } from "./recent-list/types";
+import { Filter, Search, X } from "iconoir-react";
 
 function formatRelative(ts: number): string {
   const diffMs = Date.now() - ts;
@@ -272,7 +272,7 @@ export function UrlList() {
                 navigate(`/link/${slug}`);
               }}
             >
-              <MoreVerticalIcon className="h-4 w-4" />
+              {/* <MoreVerticalIcon className="h-4 w-4" /> */}
             </button>
           );
         },
@@ -325,7 +325,7 @@ export function UrlList() {
                 : "border-border hover:bg-accent border"
             }`}
           >
-            <Filter className="h-4 w-4" />
+            <Filter className="size-4" />
             Filters
           </button>
         </div>
