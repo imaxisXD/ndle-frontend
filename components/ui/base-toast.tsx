@@ -9,7 +9,6 @@ import {
   CheckCircle,
   InfoCircle,
   WarningTriangle,
-  X,
   XmarkCircle,
 } from "iconoir-react";
 
@@ -301,7 +300,7 @@ function ToastList({
                               data-slot="toast-action"
                               aria-label="Close"
                             >
-                              <X />
+                              <XmarkCircle />
                             </Toast.Close>
                           )}
                         </div>

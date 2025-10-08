@@ -13,6 +13,7 @@ const badgeVariants = cva(
         yellow: "bg-yellow-100 text-yellow-700 border-yellow-500/70",
         red: "bg-red-100 text-red-700 border-red-500/70",
         blue: "bg-blue-100 text-blue-600 border-blue-500/70",
+        primary: "bg-accent text-primary border-accent font-medium",
       },
     },
     defaultVariants: {

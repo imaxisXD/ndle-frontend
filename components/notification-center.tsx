@@ -17,7 +17,6 @@ import {
   MagicWand,
   MouseButtonLeft,
   RefreshDouble,
-  X,
   XmarkCircle,
 } from "iconoir-react";
 
@@ -228,7 +227,7 @@ export function NotificationCenter() {
                         }}
                         className="text-muted-foreground hover:text-foreground opacity-0 transition-opacity group-hover:opacity-100"
                       >
-                        <X className="h-4 w-4" />
+                        <XmarkCircle className="size-4" />
                       </button>
                     </div>
                   </div>

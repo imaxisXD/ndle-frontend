@@ -2,7 +2,7 @@ import * as React from "react";
 import { cn } from "@/lib/utils";
 import { buttonVariants } from "@/components/ui/base-button";
 import { Dialog as DialogPrimitive } from "@base-ui-components/react/dialog";
-import { X } from "iconoir-react";
+import { XmarkCircle } from "iconoir-react";
 
 function Dialog({
   ...props
@@ -121,7 +121,7 @@ function DialogContent({
               className,
             )}
           >
-            <X />
+            <XmarkCircle />
             <span className="sr-only">Close</span>
           </DialogPrimitive.Close>
         )}

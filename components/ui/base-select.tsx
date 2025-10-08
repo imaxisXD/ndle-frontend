@@ -2,9 +2,8 @@ import * as React from "react";
 import { isValidElement, ReactNode } from "react";
 import { Select as SelectPrimitive } from "@base-ui-components/react/select";
 import { cva, VariantProps } from "class-variance-authority";
-
 import { cn } from "@/lib/utils";
-import { Check, NavArrowDown, NavArrowUp, X } from "iconoir-react";
+import { Check, NavArrowDown, NavArrowUp, XmarkCircle } from "iconoir-react";
 
 // Create a Context for `indicatorPosition` and `indicator` control
 const SelectContext = React.createContext<{
@@ -114,7 +113,7 @@ function SelectClear({
       onClick={handleClick}
       {...props}
     >
-      {children ? children : <X />}
+      {children ? children : <XmarkCircle />}
     </button>
   );
 }

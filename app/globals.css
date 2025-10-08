@@ -110,6 +110,17 @@
   body {
     @apply bg-background text-foreground font-mono;
   }
+
+  /* Custom text selection highlight color */
+  ::selection {
+    background-color: var(--color-slate-600);
+    color: var(--color-accent);
+  }
+
+  ::-moz-selection {
+    background-color: var(--color-slate-600);
+    color: var(--color-accent);
+  }
 }
 
 /* Pro/Basic badge styles */

@@ -44,8 +44,9 @@ import {
   type LinkStatus,
   type DisplayUrl,
 } from "./recent-list/types";
-import { FilterAlt, MoreVertCircle, Search, X } from "iconoir-react";
+import { FilterAlt, MoreVertCircle, Search, XmarkCircle } from "iconoir-react";
 import { FunctionReturnType } from "convex/server";
+import { Button } from "./ui/button";
 
 function formatRelative(ts: number): string {
   const diffMs = Date.now() - ts;
@@ -103,11 +104,11 @@ export function UrlList() {
 
   const { add } = useToast();
 
-  let urls = useQuery(api.urlMainFuction.getUserUrlsWithAnalytics);
+  const urls = useQuery(api.urlMainFuction.getUserUrlsWithAnalytics);
   type UserUrlsResponse = NonNullable<
     FunctionReturnType<typeof api.urlMainFuction.getUserUrlsWithAnalytics>
   >;
-  urls = [];
+
   const isLoading = urls === undefined;
   const isEmpty = urls === null || (Array.isArray(urls) && urls.length === 0);
 
@@ -345,7 +346,7 @@ export function UrlList() {
               onClick={() => setSearchQuery("")}
               className="text-muted-foreground hover:text-foreground absolute top-1/2 right-3 -translate-y-1/2"
             >
-              <X className="h-4 w-4" />
+              <XmarkCircle className="size-4" />
             </button>
           )}
         </div>
@@ -391,29 +392,33 @@ export function UrlList() {
               Active filters:
             </span>
             {searchQuery && (
-              <div className="inline-flex items-center gap-1">
-                <Badge variant="default">Search: {searchQuery}</Badge>
-                <button
+              <div className="inline-flex items-center">
+                <Badge variant="primary">Search: {searchQuery}</Badge>
+                <Button
+                  size="icon"
+                  variant="link"
                   type="button"
                   onClick={() => setSearchQuery("")}
-                  className="hover:text-foreground"
+                  className="p-1 hover:text-red-500"
                 >
-                  <X className="h-3 w-3" />
-                </button>
+                  <XmarkCircle className="size-4" />
+                </Button>
               </div>
             )}
             {statusFilter !== "all" && (
-              <div className="inline-flex items-center gap-1">
-                <Badge variant="default">
+              <div className="inline-flex items-center">
+                <Badge variant="primary">
                   Status: {statusLabel(statusFilter as LinkStatus)}
                 </Badge>
-                <button
+                <Button
+                  variant="link"
                   type="button"
+                  size="icon"
                   onClick={() => setStatusFilter("all")}
-                  className="hover:text-foreground"
+                  className="p-1 hover:text-red-500"
                 >
-                  <X className="h-3 w-3" />
-                </button>
+                  <XmarkCircle className="size-4" />
+                </Button>
               </div>
             )}
             <button
@@ -480,12 +485,12 @@ export function UrlList() {
               ))}
             </TableHeader>
             <TableBody>
-              <TableRow className="h-14">
-                <TableCell colSpan={columns.length}>
-                  <div className="p-12 text-center">
-                    <Search className="text-muted-foreground mx-auto h-12 w-12" />
+              <TableRow>
+                <TableCell colSpan={columns.length} className="my-auto">
+                  <div className="my-auto p-12 text-center">
+                    <Search className="text-muted-foreground mx-auto h-34 w-12" />
                     <h3 className="mt-4 text-sm font-medium">No links found</h3>
-                    <p className="text-muted-foreground mt-2 text-xs">
+                    <p className="text-muted-foreground mt-2 h-64 text-xs">
                       {searchQuery || statusFilter !== "all"
                         ? "Try adjusting your search or filters"
                         : "Create your first shortened link to get started"}
@@ -505,18 +510,6 @@ export function UrlList() {
                   </div>
                 </TableCell>
               </TableRow>
-              {Array.from({ length: Math.max(0, pageSize - 1) }).map((_, i) => (
-                <TableRow key={`pad-empty-${i}`} className="h-14">
-                  {Array.from({ length: columns.length }).map((__, j) => (
-                    <TableCell
-                      key={`pad-e-${i}-${j}`}
-                      className="px-4 py-3 opacity-0"
-                    >
-                      &nbsp;
-                    </TableCell>
-                  ))}
-                </TableRow>
-              ))}
             </TableBody>
           </Table>
         ) : (

@@ -4,7 +4,7 @@ import * as React from "react";
 import { cn } from "@/lib/utils";
 import { Combobox as ComboboxPrimitive } from "@base-ui-components/react/combobox";
 import { cva, type VariantProps } from "class-variance-authority";
-import { Check, NavArrowDown, X } from "iconoir-react";
+import { Check, NavArrowDown, XmarkCircle } from "iconoir-react";
 
 // Define input size variants (without file: part)
 const inputVariants = cva(
@@ -330,7 +330,7 @@ function ComboboxClear({
       )}
       {...props}
     >
-      {children ? children : <X className="size-3.5 opacity-100" />}
+      {children ? children : <XmarkCircle className="size-3.5 opacity-100" />}
     </ComboboxPrimitive.Clear>
   );
 }
@@ -437,7 +437,7 @@ function ComboboxChipRemove({
       )}
       {...props}
     >
-      {children ? children : <X className="size-3.5" />}
+      {children ? children : <XmarkCircle className="size-3.5" />}
     </ComboboxPrimitive.ChipRemove>
   );
 }
