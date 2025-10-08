@@ -46,7 +46,7 @@ function Checkbox({
       >
         <Check
           className="group-data-[state=indeterminate]:hidden"
-          strokeWidth={2.2}
+          strokeWidth={3.5}
         />
         <Minus className="hidden group-data-[state=indeterminate]:block" />
       </CheckboxPrimitive.Indicator>

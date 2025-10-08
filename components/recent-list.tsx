@@ -18,7 +18,7 @@ import { useNavigate } from "react-router";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
-import type { Doc } from "@/convex/_generated/dataModel";
+
 import {
   Table,
   TableBody,
@@ -45,6 +45,7 @@ import {
   type DisplayUrl,
 } from "./recent-list/types";
 import { FilterAlt, MoreVertCircle, Search, X } from "iconoir-react";
+import { FunctionReturnType } from "convex/server";
 
 function formatRelative(ts: number): string {
   const diffMs = Date.now() - ts;
@@ -56,32 +57,32 @@ function formatRelative(ts: number): string {
   return `${days} day${days === 1 ? "" : "s"} ago`;
 }
 
-const mockUrls: Array<DisplayUrl> = [
-  {
-    id: "mock-1",
-    shortUrl: "ndle.im/a8x9k2",
-    originalUrl: "https://example.com/blog/how-to-build-a-saas-product",
-    clicks: 342,
-    createdAt: Date.now() - 1000 * 60 * 60 * 24 * 2,
-    status: "healthy" as const,
-    healingHistory: [
-      {
-        date: "1 week ago",
-        action: "Detected slow response time",
-      },
-      {
-        date: "1 week ago",
-        action: "Cached via Wayback Machine as backup",
-      },
-    ],
-    memory: {
-      summary:
-        "Analytics dashboard features including real-time metrics, custom reports, and data export capabilities.",
-      notes: "Inspiration for our own dashboard redesign",
-      savedReason: "UI/UX research",
-    },
-  },
-];
+// const mockUrls: Array<DisplayUrl> = [
+//   {
+//     id: "mock-1",
+//     shortUrl: "ndle.im/a8x9k2",
+//     originalUrl: "https://example.com/blog/how-to-build-a-saas-product",
+//     clicks: 342,
+//     createdAt: Date.now() - 1000 * 60 * 60 * 24 * 2,
+//     status: "healthy" as const,
+//     healingHistory: [
+//       {
+//         date: "1 week ago",
+//         action: "Detected slow response time",
+//       },
+//       {
+//         date: "1 week ago",
+//         action: "Cached via Wayback Machine as backup",
+//       },
+//     ],
+//     memory: {
+//       summary:
+//         "Analytics dashboard features including real-time metrics, custom reports, and data export capabilities.",
+//       notes: "Inspiration for our own dashboard redesign",
+//       savedReason: "UI/UX research",
+//     },
+//   },
+// ];
 
 export function UrlList() {
   const navigate = useNavigate();
@@ -102,48 +103,46 @@ export function UrlList() {
 
   const { add } = useToast();
 
-  const urls = useQuery(api.urlMainFuction.getUserUrls);
+  let urls = useQuery(api.urlMainFuction.getUserUrlsWithAnalytics);
+  type UserUrlsResponse = NonNullable<
+    FunctionReturnType<typeof api.urlMainFuction.getUserUrlsWithAnalytics>
+  >;
+  urls = [];
   const isLoading = urls === undefined;
   const isEmpty = urls === null || (Array.isArray(urls) && urls.length === 0);
 
-  const hydratedUrls = useMemo<Array<DisplayUrl>>(() => {
+  const filteredUrls = useMemo(() => {
     if (!Array.isArray(urls) || urls.length === 0) {
-      return [];
+      return [] as Array<DisplayUrl>;
     }
 
-    return urls.map((doc: Doc<"urls">, index: number) => {
-      const fallback = mockUrls[index % mockUrls.length];
-      const fallbackSlug = fallback.shortUrl.split("/").pop() ?? "pending";
-      const slug = doc.slugAssigned ?? doc.shortUrl ?? fallbackSlug;
-      const formattedShortUrl = slug.startsWith("http")
-        ? slug
-        : `ndle.im/${slug.replace(/^\/+/, "")}`;
+    const typedUrls = urls as UserUrlsResponse;
+    const displayUrls = typedUrls.map((doc) => {
+      const slugSource = doc.slugAssigned ?? doc.shortUrl;
+      const formattedShortUrl = slugSource
+        ? slugSource.startsWith("http")
+          ? slugSource
+          : `ndle.im/${slugSource.replace(/^\/+/, "")}`
+        : "";
 
       const message = (doc.urlStatusMessage ?? "").toLowerCase();
       const status: LinkStatus = message.includes("success")
         ? "healthy"
         : message.includes("heal")
           ? "healed"
-          : message.includes("error") || message.includes("fail")
-            ? "checking"
-            : fallback.status;
-
-      const clicks = fallback.clicks;
+          : "checking";
 
       return {
         id: doc._id,
-        shortUrl: formattedShortUrl,
-        originalUrl: doc.fullurl ?? fallback.originalUrl,
-        clicks,
-        createdAt: doc._creationTime ?? fallback.createdAt,
+        shortUrl: formattedShortUrl || doc.shortUrl,
+        originalUrl: doc.fullurl,
+        clicks: doc.analytics?.totalClickCounts ?? 0,
+        createdAt: doc._creationTime,
         status,
-        analytics: fallback?.analytics,
-      };
+      } satisfies DisplayUrl;
     });
-  }, [urls]);
 
-  const filteredUrls = useMemo(() => {
-    let filtered: Array<DisplayUrl> = [...hydratedUrls];
+    let filtered: Array<DisplayUrl> = displayUrls;
 
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
@@ -160,7 +159,7 @@ export function UrlList() {
     }
 
     return filtered;
-  }, [hydratedUrls, searchQuery, statusFilter]);
+  }, [urls, searchQuery, statusFilter]);
 
   const statusLabel = (status: LinkStatus) => STATUS_LABELS[status];
 

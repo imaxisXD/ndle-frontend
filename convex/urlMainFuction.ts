@@ -130,3 +130,29 @@ export const getUserUrls = query({
       .collect();
   },
 });
+
+export const getUserUrlsWithAnalytics = query({
+  args: {},
+  handler: async (ctx) => {
+    const user = await getCurrentUser(ctx);
+    if (!user) {
+      return null;
+    }
+    const urls = await ctx.db
+      .query("urls")
+      .withIndex("by_user", (q) => q.eq("userTableId", user._id))
+      .order("desc")
+      .collect();
+    const urlsWithAnalytics = await Promise.all(
+      urls.map(async (url) => {
+        const analytics = await ctx.db
+          .query("urlAnalytics")
+          .withIndex("by_url", (q) => q.eq("urlId", url._id))
+          .unique();
+        return { ...url, analytics };
+      }),
+    );
+
+    return urlsWithAnalytics;
+  },
+});

@@ -23,4 +23,9 @@ export default defineSchema({
     .index("by_user", ["userTableId"])
     .index("by_fullurl", ["fullurl"])
     .index("by_user_url", ["userTableId", "fullurl"]),
+  urlAnalytics: defineTable({
+    urlId: v.id("urls"),
+    totalClickCounts: v.number(),
+    updatedAt: v.number(),
+  }).index("by_url", ["urlId"]),
 });
