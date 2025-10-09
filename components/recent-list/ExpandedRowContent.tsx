@@ -184,8 +184,8 @@ export function ExpandedRowContent({
                 </div>
               ) : (
                 <div className="border-border bg-muted/30 rounded-lg border border-dashed p-8 text-center">
-                  <ReportsSolid className="text-muted-foreground mx-auto h-8 w-8" />
-                  <p className="text-foreground mt-2 text-sm">
+                  <ReportsSolid className="text-muted-foreground/60 mx-auto h-8 w-8" />
+                  <p className="text-foreground mt-2 text-sm font-medium">
                     No analytics yet
                   </p>
                   <p className="text-muted-foreground mt-1 text-xs">

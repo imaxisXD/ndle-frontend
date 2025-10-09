@@ -172,8 +172,8 @@ export function UrlList() {
       navigator.clipboard.writeText(normalized);
       add({
         type: "success",
-        title: "Link copied to clipboard!",
-        description: `Link copied to clipboard ${normalized}`,
+        title: "Success",
+        description: `Link copied: ${normalized}`,
       });
     },
     [add],
@@ -317,10 +317,11 @@ export function UrlList() {
               Self-healing links with AI memory and conversations
             </p>
           </div>
-          <button
+          <Button
+            variant="secondary"
             type="button"
             onClick={() => setShowFilters(!showFilters)}
-            className={`flex items-center gap-2 rounded-md px-3 py-2 text-sm transition-colors ${
+            className={`hover:bg-accent hover:text-foreground flex items-center gap-2 rounded-md px-3 py-2 text-sm transition-colors ${
               showFilters || statusFilter !== "all"
                 ? "bg-foreground text-background"
                 : "border-border hover:bg-accent border"
@@ -328,7 +329,7 @@ export function UrlList() {
           >
             <FilterAlt className="size-4.5" />
             Filters
-          </button>
+          </Button>
         </div>
 
         <div className="relative">

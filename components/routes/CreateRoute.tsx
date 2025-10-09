@@ -1,3 +1,5 @@
+import { Button } from "../ui/button";
+
 export default function CreateRoute() {
   return (
     <>
@@ -30,12 +32,7 @@ export default function CreateRoute() {
               className="border-input bg-background focus:ring-foreground/20 mt-3 h-48 w-full rounded-md border px-3 py-2 text-sm focus:ring-2 focus:outline-none"
             />
           </div>
-          <button
-            type="button"
-            className="bg-foreground text-background hover:bg-foreground/90 rounded-md px-4 py-2 text-sm transition-colors"
-          >
-            Create All Links
-          </button>
+          <Button type="button">Create All Links</Button>
         </div>
       </section>
     </>

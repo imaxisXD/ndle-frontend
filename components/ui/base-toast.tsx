@@ -5,12 +5,7 @@ import { cn } from "@/lib/utils";
 import { Toast } from "@base-ui-components/react/toast";
 import { cva } from "class-variance-authority";
 import { CircleGridLoaderIcon } from "../icons";
-import {
-  CheckCircle,
-  InfoCircle,
-  WarningTriangle,
-  XmarkCircle,
-} from "iconoir-react";
+import { Xmark } from "iconoir-react";
 
 export type ToastType =
   | "default"
@@ -34,7 +29,7 @@ export type ToastSwipeDirection = "up" | "down" | "left" | "right";
 
 const toastVariants = cva(
   [
-    "absolute z-[calc(1000-var(--toast-index))] m-0 w-[calc(100%_-_2rem)] sm:w-sm",
+    "absolute z-[calc(1000-var(--toast-index))] m-0 w-[calc(100%_-_2rem)] sm:w-96",
     "bg-clip-padding transition-all [transition-property:opacity,transform] duration-200 ease-out select-none",
     'after:absolute after:start-0 after:h-[calc(var(--gap)+1px)] after:w-full after:content-[""]',
     "[transform:translateX(var(--toast-swipe-movement-x))_translateY(calc(var(--toast-swipe-movement-y)+calc(min(var(--toast-index),10)*-1*var(--gap))))_scale(calc(max(0,1-(var(--toast-index)*0.1))))]",
@@ -76,24 +71,24 @@ const toastVariants = cva(
   },
 );
 
-const toastTypeVariants = cva("rounded-sm outline outline-1 backdrop-blur-sm", {
-  variants: {
-    type: {
-      loading:
-        "bg-popover text-popover-foreground border border-border shadow-lg",
-      default:
-        "bg-popover text-popover-foreground border border-border shadow-lg",
-      error:
-        "bg-destructive-dark/80 outline-destructive text-destructive shadow-lg",
-      success: "bg-green-50/90 outline-green-500 text-green-600 shadow-lg",
-      info: "bg-info/80 outline-blue-500 text-blue-500 shadow-lg",
-      warning: "bg-yellow-50/80 outline-yellow-500 text-yellow-500 shadow-lg",
+const toastTypeVariants = cva(
+  "rounded-md bg-gradient-to-t from-background to-popover outline outline-1 outline-border shadow-lg text-popover-foreground",
+  {
+    variants: {
+      type: {
+        default: "",
+        loading: "",
+        error: "outline-destructive",
+        success: "outline-green-600",
+        info: "outline-blue-500",
+        warning: "outline-yellow-500",
+      },
+    },
+    defaultVariants: {
+      type: "default",
     },
   },
-  defaultVariants: {
-    type: "default",
-  },
-});
+);
 
 const toastContainerVariants = cva(["fixed flex flex-col gap-2 z-50"], {
   variants: {
@@ -114,11 +109,11 @@ const toastContainerVariants = cva(["fixed flex flex-col gap-2 z-50"], {
 const TOAST_ICONS: {
   [key: string]: React.ReactNode;
 } = {
-  loading: <CircleGridLoaderIcon className="animate-spin" />,
-  success: <CheckCircle />,
-  error: <XmarkCircle />,
-  info: <InfoCircle />,
-  warning: <WarningTriangle />,
+  loading: <CircleGridLoaderIcon className="mr-2 size-3" />,
+  success: <div className="h-4 w-1.5 rounded-full bg-green-600" />,
+  error: <div className="h-4 w-1.5 rounded-full bg-red-500" />,
+  info: <div className="h-4 w-1.5 rounded-full bg-blue-500" />,
+  warning: <div className="h-4 w-1.5 rounded-full bg-amber-400" />,
 };
 
 interface ToastProviderProps
@@ -266,29 +261,24 @@ function ToastList({
                       ) : (
                         <div
                           className={cn(
-                            "flex w-full items-center justify-between gap-2 p-4",
+                            "flex w-full items-center justify-between gap-2 p-2.5",
                             toastTypeVariants({ type: type as ToastType }),
                           )}
                           data-slot="toast-wrapper"
                         >
                           <div className="flex items-center gap-2.5">
-                            {type && TOAST_ICONS[type] && (
-                              <div
-                                className="shrink-0 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4"
-                                data-slot="toast-icon"
-                              >
-                                {TOAST_ICONS[type]}
-                              </div>
-                            )}
-                            <div className="flex flex-col">
+                            <div className="flex flex-col gap-2">
                               <Toast.Title
-                                className="font-doto roundness-100 m-0 font-black tracking-tight"
+                                className="text-sm tracking-tight"
                                 data-slot="toast-title"
                               />
-                              <Toast.Description
-                                className="text-muted-foreground text-xs font-normal"
-                                data-slot="toast-description"
-                              />
+                              <div className="flex items-center gap-1">
+                                {type && TOAST_ICONS[type] && TOAST_ICONS[type]}
+                                <Toast.Description
+                                  className="text-muted-foreground flex items-center justify-center text-xs tracking-tight"
+                                  data-slot="toast-description"
+                                />
+                              </div>
                             </div>
                           </div>
 
@@ -300,7 +290,7 @@ function ToastList({
                               data-slot="toast-action"
                               aria-label="Close"
                             >
-                              <XmarkCircle />
+                              <Xmark />
                             </Toast.Close>
                           )}
                         </div>
