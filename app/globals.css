@@ -209,3 +209,17 @@
 .collapsible.open {
   max-height: 500px;
 }
+
+.diagonal-dash {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  background-image: repeating-linear-gradient(
+    45deg,
+    /* angle */ #e5e7eb 0px,
+    /* dash start */ oklch(0.86 0.17 88 / 0.1) 1px,
+    /* dash thickness (2px line) */ transparent 2px,
+    /* start gap */ transparent 10px /* gap width */
+  );
+}

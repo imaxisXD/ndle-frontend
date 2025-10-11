@@ -5,7 +5,7 @@ import {
 } from "@/components/ui/base-tooltip";
 import { type Column } from "@tanstack/react-table";
 import type { DisplayUrl } from "./types";
-import { ArrowsUpFromLine, DataTransferDown } from "iconoir-react";
+import { DataTransferDown } from "iconoir-react";
 
 export function SortableHeader({
   column,

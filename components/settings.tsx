@@ -9,7 +9,6 @@ import {
   MagicWand,
   RefreshDouble,
   ShieldCheck,
-  Spark,
 } from "iconoir-react";
 
 export function Settings() {

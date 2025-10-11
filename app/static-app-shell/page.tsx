@@ -12,7 +12,7 @@ import { useEffect } from "react";
 import { api } from "@/convex/_generated/api";
 import { useUser } from "@clerk/nextjs";
 
-const App = dynamic(() => import("@/shell-route/app"), { ssr: false });
+const App = dynamic(() => import("@/app/static-app-shell/app"), { ssr: false });
 
 export default function StaticAppShell() {
   return (

@@ -7,8 +7,9 @@ import {
   CardTitle,
   CardToolbar,
 } from "@/components/ui/card";
-import { Button } from "../ui/button";
+import { Button } from "@/components/ui/button";
 import { BinMinusIn, Clock, OpenInBrowser, ReportColumns } from "iconoir-react";
+import { ChartBarLabelCustom } from "@/components/random-chart";
 
 export default function LinkDetailRoute() {
   const params = useParams();
@@ -74,7 +75,7 @@ export default function LinkDetailRoute() {
             </div>
           </CardContent>
         </Card>
-
+        <ChartBarLabelCustom />
         <Card>
           <CardContent className="p-6">
             <div className="mb-6">

@@ -10,7 +10,6 @@ import {
   RefreshDouble,
   ShieldAlert,
   ShieldCheck,
-  ShieldSearch,
   ShieldXmark,
   WarningCircle,
   XmarkCircle,
