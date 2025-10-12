@@ -48,7 +48,7 @@ export default function LinkDetailRoute() {
 
   const { analytics: analyticsData, url, isError, message } = queryResult;
 
-  if (isError) {
+  if (isError && message !== "") {
     add({
       type: "error",
       title: "Error",
@@ -97,12 +97,12 @@ export default function LinkDetailRoute() {
                 type="button"
                 onClick={async () => {
                   await deleteUrl({ urlSlug: slug });
+                  navigate("/");
                   add({
                     type: "success",
                     title: "Link deleted",
                     description: `The link has been deleted successfully`,
                   });
-                  navigate("/");
                 }}
               >
                 <BinMinusIn className="h-4 w-4" /> Delete Link

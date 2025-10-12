@@ -71,11 +71,12 @@ export const getUrlAnalytics = query({
       .unique();
 
     if (!url) {
+      //This can also happen when user deletes the url
       return {
         analytics: null,
         url: null,
         isError: true,
-        message: "URL not found",
+        message: "",
       };
     }
 
