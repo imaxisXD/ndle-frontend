@@ -22,43 +22,50 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
-import { Internet } from "iconoir-react";
+import { Globe } from "iconoir-react";
 
-export const description = "A bar chart with a custom label";
+export const description =
+  "A bar chart showing country-wise click distribution";
 
 const chartData = [
-  { month: "Chrome", clicks: 186 },
-  { month: "Firefox", clicks: 305 },
-  { month: "Safari", clicks: 237 },
-  { month: "Brave", clicks: 73 },
-  { month: "Edge", clicks: 209 },
-  { month: "Opera", clicks: 214 },
+  { country: "United States", clicks: 1247 },
+  { country: "United Kingdom", clicks: 892 },
+  { country: "Canada", clicks: 634 },
+  { country: "Germany", clicks: 521 },
+  { country: "France", clicks: 456 },
+  { country: "Australia", clicks: 389 },
+  { country: "Japan", clicks: 312 },
+  { country: "India", clicks: 298 },
+  { country: "Brazil", clicks: 267 },
+  { country: "Netherlands", clicks: 234 },
 ];
 
 const chartConfig = {
   clicks: {
     label: "Clicks",
-    color: "var(--chart-2)",
+    color: "var(--chart-3)",
   },
   label: {
     color: "var(--primary)",
   },
 } satisfies ChartConfig;
 
-export function ChartBarLabelCustom() {
+export function CountryChart() {
   return (
     <Card>
-      <CardHeader className="flex flex-col items-start justify-between gap-1">
+      <CardHeader className="flex flex-col items-start justify-between gap-1.5">
         <CardTitle className="flex items-center gap-2 font-medium">
-          <Internet className="size-5" />
-          Browser Usage
+          <Globe className="size-5" />
+          Geographic Distribution
         </CardTitle>
-        <CardDescription>Browser usage by month</CardDescription>
+        <CardDescription className="text-xs">
+          Click distribution by country
+        </CardDescription>
       </CardHeader>
       <CardContent>
         <ChartContainer
           config={chartConfig}
-          className="aspect-auto h-[200px] w-full"
+          className="aspect-auto h-[300px] w-full"
         >
           <BarChart
             accessibilityLayer
@@ -68,14 +75,26 @@ export function ChartBarLabelCustom() {
               right: 16,
             }}
           >
+            <defs>
+              <linearGradient
+                id="barGradientHorizontalCountry"
+                x1="0"
+                y1="0"
+                x2="1"
+                y2="0"
+              >
+                <stop offset="0%" stopColor="var(--color-emerald-300)" />
+                <stop offset="100%" stopColor="var(--color-emerald-500)" />
+              </linearGradient>
+            </defs>
             <CartesianGrid horizontal={false} />
             <YAxis
-              dataKey="month"
+              dataKey="country"
               type="category"
               tickLine={false}
               tickMargin={10}
               axisLine={false}
-              tickFormatter={(value) => value.slice(0, 3)}
+              tickFormatter={(value) => value.slice(0, 8)}
               hide
             />
             <XAxis dataKey="clicks" type="number" hide />
@@ -83,7 +102,9 @@ export function ChartBarLabelCustom() {
               cursor={false}
               content={
                 <ChartTooltipContent
-                  indicator="line"
+                  className="bg-white/90 backdrop-blur-lg"
+                  indicator="dashed"
+                  color="var(--color-emerald-600)"
                   labelFormatter={(label, payload) => {
                     const data = payload[0]?.payload;
                     const totalClicks = chartData.reduce(
@@ -95,7 +116,7 @@ export function ChartBarLabelCustom() {
                       100
                     ).toFixed(1);
 
-                    return `${label} [${percentage} %]`;
+                    return `${label} [${percentage}%]`;
                   }}
                 />
               }
@@ -103,13 +124,12 @@ export function ChartBarLabelCustom() {
             <Bar
               dataKey="clicks"
               layout="vertical"
-              fill="var(--color-sky-500)"
-              style={{ opacity: 0.5 }}
+              fill="url(#barGradientHorizontalCountry)"
               radius={4}
               maxBarSize={20}
             >
               <LabelList
-                dataKey="month"
+                dataKey="country"
                 position="insideLeft"
                 offset={8}
                 className="fill-(--color-label)"

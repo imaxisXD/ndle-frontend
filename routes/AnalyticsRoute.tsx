@@ -1,5 +1,4 @@
 import { Analytics } from "@/components/analytics";
-import { UrlList } from "@/components/url-table";
 
 export default function AnalyticsRoute() {
   return (
@@ -20,13 +19,13 @@ export default function AnalyticsRoute() {
         <h2 className="sr-only" id="links-list-heading">
           Links List
         </h2>
-        <UrlList>
+        {/* <UrlList>
           <UrlList.Header
             title="Recent Links"
             description="Your latest shortened links"
           />
           <UrlList.Table />
-        </UrlList>
+        </UrlList> */}
       </section>
     </>
   );

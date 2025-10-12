@@ -1,5 +1,6 @@
 import { ConvexError, v } from "convex/values";
-import { mutation } from "./_generated/server";
+import { mutation, query } from "./_generated/server";
+import { getCurrentUser } from "./users";
 
 export const mutateClickCount = mutation({
   args: {
@@ -44,5 +45,42 @@ export const mutateClickCount = mutation({
         updatedAt: Date.now(),
       });
     }
+  },
+});
+
+export const getUrlAnalytics = query({
+  args: {
+    urlSlug: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const getUser = await getCurrentUser(ctx);
+    if (!getUser) {
+      return null;
+    }
+
+    const url = await ctx.db
+      .query("urls")
+      .withIndex("by_user_slug", (q) =>
+        q.eq("userTableId", getUser._id).eq("slugAssigned", args.urlSlug),
+      )
+      .unique();
+
+    if (!url) {
+      return null;
+    }
+
+    if (url.userTableId !== getUser._id) {
+      console.error(
+        getUser._id,
+        url.userTableId,
+        "Error: Trying to access someone else's analytics",
+      );
+      throw new ConvexError("Nice Try Nerd!");
+    }
+
+    return await ctx.db
+      .query("urlAnalytics")
+      .withIndex("by_url", (q) => q.eq("urlId", url._id))
+      .unique();
   },
 });

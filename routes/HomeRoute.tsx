@@ -1,5 +1,5 @@
 import { UrlShortener } from "@/components/url-shortener";
-import { UrlList } from "@/components/url-table";
+import { UrlTable } from "@/components/UrlTable";
 
 export default function HomeRoute() {
   return (
@@ -27,14 +27,14 @@ export default function HomeRoute() {
         <h2 className="sr-only" id="recent-links-heading">
           Recent Links
         </h2>
-        <UrlList defaultPageSize={5}>
-          <UrlList.Header
-            title="Recent Links"
-            description="Your latest shortened links"
-          />
-          <UrlList.Table />
-          <UrlList.Footer content="View All Urls" />
-        </UrlList>
+        <UrlTable
+          showHeader
+          showFooter
+          defaultPageSize={5}
+          headerTitle="Recent Links"
+          headerDescription="Your latest shortened links"
+          footerContent="View All Urls"
+        />
       </section>
     </>
   );

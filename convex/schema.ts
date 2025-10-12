@@ -22,7 +22,8 @@ export default defineSchema({
     .index("by_slug", ["slugAssigned"])
     .index("by_user", ["userTableId"])
     .index("by_fullurl", ["fullurl"])
-    .index("by_user_url", ["userTableId", "fullurl"]),
+    .index("by_user_url", ["userTableId", "fullurl"])
+    .index("by_user_slug", ["userTableId", "slugAssigned"]),
   urlAnalytics: defineTable({
     urlId: v.id("urls"),
     totalClickCounts: v.number(),

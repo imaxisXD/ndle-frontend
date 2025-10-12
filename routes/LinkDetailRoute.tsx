@@ -8,8 +8,20 @@ import {
   CardToolbar,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { BinMinusIn, Clock, OpenInBrowser, ReportColumns } from "iconoir-react";
-import { ChartBarLabelCustom } from "@/components/random-chart";
+import { BinMinusIn, Clock, OpenInBrowser, OpenNewWindow } from "iconoir-react";
+import { BrowserChart } from "@/components/charts/browser-chart";
+import { CountryChart } from "@/components/charts/country-chart";
+import { DeviceOSChart } from "@/components/charts/device-os-chart";
+import { ClicksTimelineChart } from "@/components/charts/clicks-timeline-chart";
+import { LinkPerformanceChart } from "@/components/charts/link-performance-chart";
+import { BotTrafficChart } from "@/components/charts/bot-traffic-chart";
+import { LatencyChart } from "@/components/charts/latency-chart";
+import { HourlyActivityChart } from "@/components/charts/hourly-activity-chart";
+import { DatacenterChart } from "@/components/charts/datacenter-chart";
+import { LiveClickHero } from "@/components/charts/live-click-hero";
+
+import { useQuery } from "convex/react";
+import { api } from "@/convex/_generated/api";
 
 export default function LinkDetailRoute() {
   const params = useParams();
@@ -17,91 +29,44 @@ export default function LinkDetailRoute() {
   const slug = params[":slug"] || params.slug || "unknown";
   const shortUrl = `ndle.im/${slug}`;
 
-  const clicksData = [
-    { day: "Mon", clicks: 12 },
-    { day: "Tue", clicks: 18 },
-    { day: "Wed", clicks: 24 },
-    { day: "Thu", clicks: 19 },
-    { day: "Fri", clicks: 32 },
-    { day: "Sat", clicks: 15 },
-    { day: "Sun", clicks: 21 },
-  ];
-  const maxClicks = Math.max(...clicksData.map((d) => d.clicks));
-
-  const topCountries = [
-    { country: "United States", clicks: 45, percentage: 38 },
-    { country: "Germany", clicks: 22, percentage: 19 },
-    { country: "India", clicks: 19, percentage: 16 },
-  ];
+  const analyticsData = useQuery(api.urlAnalytics.getUrlAnalytics, {
+    urlSlug: slug,
+  });
 
   return (
     <>
-      <header>
-        <h1 className="text-3xl font-medium tracking-tight">{shortUrl}</h1>
-        <p className="text-muted-foreground mt-2 text-sm">
-          Link analytics and settings
-        </p>
+      <header className="space-y-4">
+        <div className="text-primary mb-14 flex flex-col items-start gap-3">
+          <a
+            href={`https://${shortUrl}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="group pointer-events-auto flex items-center justify-center gap-1.5 text-3xl font-medium tracking-tight transition-all duration-150 ease-linear hover:text-blue-600 hover:underline hover:decoration-blue-600 hover:decoration-dashed hover:underline-offset-4"
+          >
+            {shortUrl}
+
+            <OpenNewWindow
+              className="text-muted-foreground size-4 group-hover:text-blue-600"
+              strokeWidth={2}
+            />
+          </a>
+          <p className="text-muted-foreground text-sm">
+            Link analytics and settings
+          </p>
+        </div>
+        <LiveClickHero counterValue={analyticsData?.totalClickCounts || 0} />
       </header>
 
       <section className="grid gap-6 lg:grid-cols-2">
-        <Card>
-          <CardContent className="p-6">
-            <div className="mb-6 flex items-center justify-between">
-              <div>
-                <h3 className="text-base font-medium">Clicks Over Time</h3>
-                <p className="text-muted-foreground mt-1 text-xs">
-                  Daily click activity
-                </p>
-              </div>
-              <ReportColumns className="text-muted-foreground h-5 w-5" />
-            </div>
-            <div className="space-y-3">
-              {clicksData.map((d) => (
-                <div key={d.day} className="flex items-center gap-3">
-                  <span className="w-8 text-sm">{d.day}</span>
-                  <div className="flex-1">
-                    <div className="bg-muted h-2 overflow-hidden rounded-md">
-                      <div
-                        className="bg-foreground h-full"
-                        style={{ width: `${(d.clicks / maxClicks) * 100}%` }}
-                      />
-                    </div>
-                  </div>
-                  <span className="w-12 text-right text-xs font-medium">
-                    {d.clicks}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-        <ChartBarLabelCustom />
-        <Card>
-          <CardContent className="p-6">
-            <div className="mb-6">
-              <h3 className="text-base font-medium">Top Countries</h3>
-              <p className="text-muted-foreground mt-1 text-xs">
-                Clicks by geography
-              </p>
-            </div>
-            <div className="space-y-5">
-              {topCountries.map((c) => (
-                <div key={c.country}>
-                  <div className="mb-1 flex items-center justify-between">
-                    <span className="text-sm">{c.country}</span>
-                    <span className="text-sm font-medium">{c.clicks}</span>
-                  </div>
-                  <div className="bg-muted h-2 overflow-hidden rounded-full">
-                    <div
-                      className="bg-foreground h-full"
-                      style={{ width: `${c.percentage}%` }}
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+        <ClicksTimelineChart />
+        <BrowserChart />
+        <CountryChart />
+        <DeviceOSChart />
+        <LinkPerformanceChart />
+        <BotTrafficChart />
+        <LatencyChart />
+        <HourlyActivityChart />
+        <DatacenterChart />
       </section>
 
       <section className="mt-6 grid gap-6 lg:grid-cols-2">

@@ -176,7 +176,7 @@
   inset: 0;
   height: 100%;
   width: 100%;
-  background-image: radial-gradient(#e5e7eb 1px, transparent 1px);
+  background-image: radial-gradient(#e2e2e2 1px, transparent 1px);
   background-size: 16px 16px;
 }
 
@@ -218,7 +218,7 @@
   background-image: repeating-linear-gradient(
     45deg,
     /* angle */ #e5e7eb 0px,
-    /* dash start */ oklch(0.86 0.17 88 / 0.1) 1px,
+    /* dash start */ #ffc92100 1px,
     /* dash thickness (2px line) */ transparent 2px,
     /* start gap */ transparent 10px /* gap width */
   );
