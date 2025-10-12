@@ -8,48 +8,59 @@ import {
   CardToolbar,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { BinMinusIn, Clock, OpenInBrowser, OpenNewWindow } from "iconoir-react";
+import {
+  BinMinusIn,
+  Clock,
+  Link,
+  OpenInBrowser,
+  OpenNewWindow,
+} from "iconoir-react";
 import { BrowserChart } from "@/components/charts/browser-chart";
 import { CountryChart } from "@/components/charts/country-chart";
 import { DeviceOSChart } from "@/components/charts/device-os-chart";
 import { ClicksTimelineChart } from "@/components/charts/clicks-timeline-chart";
-import { LinkPerformanceChart } from "@/components/charts/link-performance-chart";
 import { BotTrafficChart } from "@/components/charts/bot-traffic-chart";
 import { LatencyChart } from "@/components/charts/latency-chart";
 import { HourlyActivityChart } from "@/components/charts/hourly-activity-chart";
-import { DatacenterChart } from "@/components/charts/datacenter-chart";
 import { LiveClickHero } from "@/components/charts/live-click-hero";
-
-import { useQuery } from "convex/react";
+import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
+import { useToast } from "@/hooks/use-toast";
+import { formatRelative } from "@/lib/utils";
+import LinkDetailSkeleton from "@/components/skeleton-routes/link-detail-skeleton";
+import MetadataCard from "@/components/metadata-card";
+import LinkWithIcon from "@/components/ui/link-with-icon";
 
 export default function LinkDetailRoute() {
   const params = useParams();
   const navigate = useNavigate();
+  const { add } = useToast();
   const slug = params[":slug"] || params.slug || "unknown";
   const shortUrl = `ndle.im/${slug}`;
-
-  const analyticsData = useQuery(api.urlAnalytics.getUrlAnalytics, {
+  const deleteUrl = useMutation(api.urlMainFuction.deleteUrl);
+  const queryResult = useQuery(api.urlAnalytics.getUrlAnalytics, {
     urlSlug: slug,
   });
+
+  if (!queryResult) {
+    return <LinkDetailSkeleton shortUrl={shortUrl} />;
+  }
+
+  const { analytics: analyticsData, url, isError, message } = queryResult;
+
+  if (isError) {
+    add({
+      type: "error",
+      title: "Error",
+      description: message,
+    });
+  }
 
   return (
     <>
       <header className="space-y-4">
         <div className="text-primary mb-14 flex flex-col items-start gap-3">
-          <a
-            href={`https://${shortUrl}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="group pointer-events-auto flex items-center justify-center gap-1.5 text-3xl font-medium tracking-tight transition-all duration-150 ease-linear hover:text-blue-600 hover:underline hover:decoration-blue-600 hover:decoration-dashed hover:underline-offset-4"
-          >
-            {shortUrl}
-
-            <OpenNewWindow
-              className="text-muted-foreground size-4 group-hover:text-blue-600"
-              strokeWidth={2}
-            />
-          </a>
+          <LinkWithIcon link={shortUrl} href={`https://${shortUrl}`} />
           <p className="text-muted-foreground text-sm">
             Link analytics and settings
           </p>
@@ -62,38 +73,37 @@ export default function LinkDetailRoute() {
         <BrowserChart />
         <CountryChart />
         <DeviceOSChart />
-        <LinkPerformanceChart />
+        {/* <LinkPerformanceChart /> */}
         <BotTrafficChart />
         <LatencyChart />
         <HourlyActivityChart />
-        <DatacenterChart />
+        {/* <DatacenterChart /> */}
       </section>
 
       <section className="mt-6 grid gap-6 lg:grid-cols-2">
-        <Card>
-          <CardContent className="p-6">
-            <h3 className="text-base font-medium">Metadata</h3>
-            <div className="text-muted-foreground mt-4 space-y-2 text-sm">
-              <div className="flex items-center gap-2">
-                <OpenInBrowser className="h-4 w-4" /> Short URL:{" "}
-                <code className="text-foreground">https://{shortUrl}</code>
-              </div>
-              <div className="flex items-center gap-2">
-                <Clock className="h-4 w-4" /> Created: 2 days ago
-              </div>
-              <div>Tracking: Enabled</div>
-            </div>
-          </CardContent>
-        </Card>
+        <MetadataCard
+          shortslug={url?.slugAssigned}
+          fullurl={url?.fullurl}
+          trackingEnabled={url?.trackingEnabled}
+          creationTime={url?._creationTime}
+        />
 
-        <Card>
-          <CardHeader>
+        <Card className="border-red-500">
+          <CardHeader className="rounded-t-xl border-red-500 bg-red-50">
             <CardTitle className="text-red-600">Delete Link</CardTitle>
             <CardToolbar>
               <Button
                 variant="destructive"
                 type="button"
-                onClick={() => navigate("/")}
+                onClick={async () => {
+                  await deleteUrl({ urlSlug: slug });
+                  add({
+                    type: "success",
+                    title: "Link deleted",
+                    description: `The link has been deleted successfully`,
+                  });
+                  navigate("/");
+                }}
               >
                 <BinMinusIn className="h-4 w-4" /> Delete Link
               </Button>
@@ -105,7 +115,7 @@ export default function LinkDetailRoute() {
             </CardDescription>
             <p className="text-muted-foreground mt-1 text-xs">
               This will remove all the data associated with this link, including
-              clicks and metadata.
+              clicks, analytics and metadata.
             </p>
           </CardContent>
         </Card>

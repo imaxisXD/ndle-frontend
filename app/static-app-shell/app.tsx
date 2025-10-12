@@ -10,6 +10,7 @@ import MemoryRoute from "@/routes/MemoryRoute";
 import LinkDetailRoute from "@/routes/LinkDetailRoute";
 import { ToastProvider } from "@/components/ui/base-toast";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import ScrollToTop from "@/components/scroll-to-top";
 
 export default function App() {
   const queryClient = new QueryClient();
@@ -23,6 +24,7 @@ export default function App() {
             <main className="min-h-0 flex-1 overflow-y-auto">
               <div className="p-8 lg:p-12">
                 <div className="mx-auto max-w-7xl space-y-8">
+                  <ScrollToTop />
                   <Routes>
                     <Route path="/" element={<HomeRoute />} />
                     <Route path="/analytics" element={<AnalyticsRoute />} />

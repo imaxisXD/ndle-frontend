@@ -2,7 +2,6 @@ import React, { useCallback, useMemo, useState, Fragment } from "react";
 import {
   ColumnDef,
   ColumnFiltersState,
-  SortingState,
   VisibilityState,
   getCoreRowModel,
   getFilteredRowModel,
@@ -10,6 +9,7 @@ import {
   useReactTable,
   flexRender,
 } from "@tanstack/react-table";
+import { useTableSortingURL } from "../../hooks/use-table-sorting-url";
 import { useNavigate } from "react-router";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery } from "convex/react";
@@ -30,17 +30,19 @@ import {
   Reports,
   ReportsSolid,
   ShieldPlusIn,
+  ArrowUp,
+  ArrowDown,
 } from "iconoir-react";
-import { Badge } from "./ui/badge";
-import { Button } from "./ui/button";
+import { Badge } from "../ui/badge";
+import { Button } from "../ui/button";
 import {
   Select,
   SelectTrigger,
   SelectContent,
   SelectItem,
   SelectValue,
-} from "./ui/base-select";
-import { Tooltip, TooltipTrigger, TooltipContent } from "./ui/base-tooltip";
+} from "../ui/base-select";
+import { Tooltip, TooltipTrigger, TooltipContent } from "../ui/base-tooltip";
 import {
   Table,
   TableBody,
@@ -48,14 +50,11 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "./ui/table";
-import { AiSummaryGenerator } from "./ai-summary-generator";
-import { AiChat } from "./ai-chat";
-import {
-  type DisplayUrl,
-  type LinkStatus,
-  STATUS_LABELS,
-} from "./url-table/types";
+} from "../ui/table";
+import { AiSummaryGenerator } from "../ai-summary-generator";
+import { AiChat } from "../ai-chat";
+import { type DisplayUrl, type LinkStatus, STATUS_LABELS } from "./types";
+import { formatRelative } from "@/lib/utils";
 
 interface UrlTableProps {
   showSearch?: boolean;
@@ -69,16 +68,6 @@ interface UrlTableProps {
   footerContent?: string;
   searchPlaceholder?: string;
   queryArgs?: Record<string, unknown>;
-}
-
-function formatRelative(ts: number): string {
-  const diffMs = Date.now() - ts;
-  const minutes = Math.floor(diffMs / 60000);
-  if (minutes < 60) return `${minutes} min ago`;
-  const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `${hours} hour${hours === 1 ? "" : "s"} ago`;
-  const days = Math.floor(hours / 24);
-  return `${days} day${days === 1 ? "" : "s"} ago`;
 }
 
 function SortableHeader({
@@ -112,11 +101,7 @@ function SortableHeader({
           <button
             type="button"
             onClick={(e) => {
-              const before = column.getIsSorted();
-              console.log("[UrlTable] SortableHeader click", {
-                columnId: column.id,
-                before,
-              });
+              column.getIsSorted();
               const handler = column.getToggleSortingHandler();
               if (handler) handler(e as unknown);
             }}
@@ -132,14 +117,14 @@ function SortableHeader({
             >
               {column.getIsSorted() === "asc" ? (
                 <span aria-hidden className="leading-none">
-                  ↑
+                  <ArrowUp className="size-3" strokeWidth={2.5} />
                 </span>
               ) : column.getIsSorted() === "desc" ? (
                 <span aria-hidden className="leading-none">
-                  ↓
+                  <ArrowDown className="size-3" strokeWidth={2.5} />
                 </span>
               ) : (
-                <DataTransferDown className="size-4" />
+                <DataTransferDown className="size-4" strokeWidth={2} />
               )}
             </span>
           </button>
@@ -167,7 +152,7 @@ function ShortUrlCell({
           href={normalizedHref}
           target="_blank"
           rel="noopener noreferrer"
-          className="group text-muted-foreground hover:bg-muted hover:text-foreground flex min-w-0 flex-1 items-center gap-1 rounded-md pr-1 transition-colors"
+          className="group text-muted-foreground hover:bg-muted hover:text-foreground flex min-w-0 items-center gap-1 rounded-md py-2 pr-3 pl-1 transition-colors"
           onClick={(e) => e.stopPropagation()}
         >
           <code className="text-foreground truncate text-sm font-medium group-hover:underline group-hover:decoration-blue-500 group-hover:decoration-dashed group-hover:underline-offset-2">
@@ -192,7 +177,7 @@ function ShortUrlCell({
         </Button>
       </div>
       <p
-        className="text-muted-foreground truncate text-xs"
+        className="text-muted-foreground truncate pl-1 text-xs"
         title={url.originalUrl}
       >
         {url.originalUrl}
@@ -411,9 +396,12 @@ export function UrlTable({
   const [statusFilter, setStatusFilter] = useState<LinkStatus | "all">("all");
   const [showFiltersPanel, setShowFiltersPanel] = useState(false);
 
-  const [sorting, setSorting] = useState<SortingState>([
-    { id: "createdAt", desc: true },
-  ]);
+  // Use URL-based sorting persistence
+  const {
+    sorting,
+    isLoaded: sortingLoaded,
+    updateSorting,
+  } = useTableSortingURL();
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
 
@@ -477,11 +465,6 @@ export function UrlTable({
       filtered = filtered.filter((url) => url.status === statusFilter);
     }
 
-    console.log("[UrlTable] filtered", {
-      urlsCount: typedUrls.length,
-      afterSearch: searchQuery ? filtered.length : undefined,
-      afterStatus: statusFilter !== "all" ? filtered.length : undefined,
-    });
     return filtered;
   }, [urls, searchQuery, statusFilter]);
 
@@ -498,16 +481,6 @@ export function UrlTable({
     const sorted = [...filteredUrls];
 
     if (id === "clicks" || id === "createdAt") {
-      console.log("[UrlTable] sorting", {
-        id,
-        desc,
-        count: sorted.length,
-        first5: sorted.slice(0, 5).map((item) => ({
-          createdAt: item.createdAt,
-          clicks: item.clicks,
-          id: item.id,
-        })),
-      });
       sorted.sort((a, b) => {
         const av = id === "clicks" ? a.clicks : a.createdAt;
         const bv = id === "clicks" ? b.clicks : b.createdAt;
@@ -565,9 +538,9 @@ export function UrlTable({
           );
         },
         enableSorting: false,
-        size: 100,
-        maxSize: 100,
-        minSize: 100,
+        size: 60,
+        maxSize: 60,
+        minSize: 60,
       },
       {
         accessorKey: "shortUrl",
@@ -577,9 +550,17 @@ export function UrlTable({
           return <ShortUrlCell url={url} onCopy={handleCopy} />;
         },
         enableSorting: false,
-        size: 200,
-        maxSize: 200,
-        minSize: 200,
+        size: 180,
+      },
+      // Visual separator column
+      {
+        id: "separator",
+        header: () => null,
+        cell: () => null,
+        enableSorting: false,
+        size: 60,
+        maxSize: 60,
+        minSize: 60,
       },
       {
         accessorKey: "clicks",
@@ -605,9 +586,9 @@ export function UrlTable({
             </div>
           );
         },
-        size: 80,
-        maxSize: 80,
-        minSize: 80,
+        size: 60,
+        maxSize: 60,
+        minSize: 60,
       },
       {
         accessorKey: "createdAt",
@@ -633,9 +614,9 @@ export function UrlTable({
             </p>
           );
         },
-        size: 100,
-        maxSize: 100,
-        minSize: 100,
+        size: 60,
+        maxSize: 60,
+        minSize: 60,
       },
       {
         id: "actions",
@@ -656,9 +637,7 @@ export function UrlTable({
             </button>
           );
         },
-        size: 80,
-        maxSize: 80,
-        minSize: 80,
+        size: 40,
       },
     ],
     [handleCopy, navigate],
@@ -667,7 +646,7 @@ export function UrlTable({
   const table = useReactTable({
     data: sortedUrls,
     columns,
-    onSortingChange: setSorting,
+    onSortingChange: updateSorting,
     onColumnFiltersChange: setColumnFilters,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
@@ -692,27 +671,18 @@ export function UrlTable({
 
   const pageSize = table.getState().pagination.pageSize;
   const columns_count = table.getAllColumns().length;
-  const currentRows = table.getRowModel().rows;
 
-  try {
-    // Debug current visible order
-    console.log("[UrlTable] rows render", {
-      pageIndex: table.getState().pagination.pageIndex,
-      count: currentRows.length,
-      first5CreatedAt: currentRows.slice(0, 5).map((r) => r.original.createdAt),
-      sorting,
-      sortedPreview: sortedUrls
-        .slice(0, 5)
-        .map((r) => ({ id: r.id, clicks: r.clicks, createdAt: r.createdAt })),
-    });
-  } catch {}
+  // Don't render until sorting state is loaded
+  if (!sortingLoaded) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <div className="border-border bg-card rounded-xl border">
       {/* Header Section */}
       {showHeader && (
         <div className="border-border border-b p-6">
-          <div className="mb-4 flex items-center justify-between">
+          <div className="flex items-center justify-between">
             <div>
               <h2 className="text-lg font-medium">{headerTitle}</h2>
               <p className="text-muted-foreground mt-1 text-sm">
@@ -954,11 +924,7 @@ export function UrlTable({
                             className="flex items-center justify-start gap-2"
                             onClick={() => {
                               if (header.column.getCanSort()) {
-                                const before = header.column.getIsSorted();
-                                console.log("[UrlTable] header click", {
-                                  columnId: header.column.id,
-                                  before,
-                                });
+                                header.column.getIsSorted();
                               }
                             }}
                           >

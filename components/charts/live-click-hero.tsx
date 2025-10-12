@@ -43,7 +43,9 @@ export function LiveClickHero({ counterValue }: { counterValue: number }) {
               margin: "0 auto",
             }}
           />
-          <span className="text-accent text-xs">[total clicks]</span>
+          <span className="text-accent font-mono text-xs font-normal">
+            [total clicks]
+          </span>
         </div>
       </div>
     </section>

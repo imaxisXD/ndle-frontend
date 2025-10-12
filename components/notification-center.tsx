@@ -136,7 +136,7 @@ export function NotificationCenter() {
         <DialogContent
           showBackdrop={true}
           showDismissButton={false}
-          className="border-border bg-card bottom-3 left-76 z-[100] w-96 max-w-[calc(100vw-2rem)] rounded-lg border p-0 shadow-xl"
+          className="bg-card bottom-3 left-76 z-[100] w-96 max-w-[calc(100vw-2rem)] rounded-lg p-0 shadow-xl"
         >
           <DialogHeader className="border-border flex flex-row items-center justify-between gap-0 rounded-t-lg border-b bg-black/90 p-4">
             <DialogTitle className="font-doto roundness-100 text-base font-bold tracking-tighter text-white">

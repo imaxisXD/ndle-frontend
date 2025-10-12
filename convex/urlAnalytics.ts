@@ -55,7 +55,12 @@ export const getUrlAnalytics = query({
   handler: async (ctx, args) => {
     const getUser = await getCurrentUser(ctx);
     if (!getUser) {
-      return null;
+      return {
+        analytics: null,
+        url: null,
+        isError: true,
+        message: "User not found",
+      };
     }
 
     const url = await ctx.db
@@ -66,7 +71,12 @@ export const getUrlAnalytics = query({
       .unique();
 
     if (!url) {
-      return null;
+      return {
+        analytics: null,
+        url: null,
+        isError: true,
+        message: "URL not found",
+      };
     }
 
     if (url.userTableId !== getUser._id) {
@@ -75,12 +85,24 @@ export const getUrlAnalytics = query({
         url.userTableId,
         "Error: Trying to access someone else's analytics",
       );
-      throw new ConvexError("Nice Try Nerd!");
+      return {
+        analytics: null,
+        url: null,
+        isError: true,
+        message: "Nice Try Nerd!",
+      };
     }
 
-    return await ctx.db
+    const analytics = await ctx.db
       .query("urlAnalytics")
       .withIndex("by_url", (q) => q.eq("urlId", url._id))
       .unique();
+
+    return {
+      analytics,
+      url,
+      isError: false,
+      message: "success",
+    };
   },
 });

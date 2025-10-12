@@ -122,7 +122,6 @@ export function Sidebar() {
 
       <div className="flex flex-col gap-4">
         <NotificationCenter />
-
         <Tooltip>
           <TooltipTrigger
             render={

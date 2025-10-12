@@ -1,9 +1,16 @@
 import { ConvexError, v } from "convex/values";
-import { internalMutation, mutation, query } from "./_generated/server";
+import {
+  internalMutation,
+  mutation,
+  MutationCtx,
+  query,
+  QueryCtx,
+} from "./_generated/server";
 import { getCurrentUser } from "./users";
 import { VALIDATION_ERRORS, createSlug, isValidHttpUrl } from "./utils";
 import { Doc } from "./_generated/dataModel";
 import { internal } from "./_generated/api";
+import { CustomCtx } from "convex-helpers/server/customFunctions";
 
 export const createUrl = mutation({
   args: {
@@ -156,3 +163,65 @@ export const getUserUrlsWithAnalytics = query({
     return urlsWithAnalytics;
   },
 });
+
+export const deleteUrl = mutation({
+  args: {
+    urlSlug: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const user = await getCurrentUser(ctx);
+    if (!user) {
+      throw new ConvexError("User not found");
+    }
+    const { url, isOwner } = await isUrlOwner(ctx, user, args.urlSlug);
+    if (!isOwner || !url) {
+      throw new ConvexError("You are not the owner of this url");
+    }
+
+    await ctx.scheduler.runAfter(0, internal.redisAction.deleteFromRedis, {
+      slugAssigned: args.urlSlug,
+    });
+
+    //delete the analytics
+    const analytics = await ctx.db
+      .query("urlAnalytics")
+      .withIndex("by_url", (q) => q.eq("urlId", url._id))
+      .unique();
+
+    if (analytics) {
+      await ctx.db.delete(analytics._id);
+    }
+
+    await ctx.db.delete(url._id);
+  },
+});
+
+/**
+ * Helper function to check if the user is the owner of the url
+ * @param ctx - The context object
+ * @param urlSlug - The slug of the url
+ * @returns True if the user is the owner of the url, false otherwise
+ */
+export const isUrlOwner = async (
+  ctx: MutationCtx,
+  user: Doc<"users">,
+  urlSlug: string,
+) => {
+  const url = await ctx.db
+    .query("urls")
+    .withIndex("by_user_slug", (q) =>
+      q.eq("userTableId", user._id).eq("slugAssigned", urlSlug),
+    )
+    .unique();
+
+  if (!url) {
+    return {
+      url: null,
+      isOwner: false,
+    };
+  }
+  return {
+    url,
+    isOwner: url.userTableId === user._id,
+  };
+};

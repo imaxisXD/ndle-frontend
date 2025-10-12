@@ -57,3 +57,20 @@ export const insertIntoRedis = internalAction({
     return result;
   },
 });
+
+export const deleteFromRedis = internalAction({
+  args: {
+    slugAssigned: v.string(),
+  },
+  handler: async (_, args) => {
+    try {
+      const result = await redis.json.del(args.slugAssigned);
+      console.log("redis json delete result", result);
+      return true;
+    } catch (error) {
+      const result = await redis.del(args.slugAssigned);
+      console.log("redis delete result", result);
+      console.error(error);
+    }
+  },
+});

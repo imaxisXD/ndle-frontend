@@ -1,10 +1,10 @@
 import { UrlShortener } from "@/components/url-shortener";
-import { UrlTable } from "@/components/UrlTable";
+import { UrlTable } from "@/components/url-table/UrlTable";
 
 export default function HomeRoute() {
   return (
     <>
-      <header>
+      <header className="px-5">
         <h1
           className="font-doto roundness-100 text-5xl font-bold tracking-tight text-black"
           id="home-heading"
