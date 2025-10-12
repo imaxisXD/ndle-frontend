@@ -17,7 +17,7 @@ export default function App() {
   return (
     <BrowserRouter>
       <QueryClientProvider client={queryClient}>
-        <ToastProvider showCloseButton={true} limit={7}>
+        <ToastProvider showCloseButton={true} limit={5}>
           <div className="bg-home text-foreground dot fixed inset-0 flex overflow-hidden">
             <Sidebar />
             <main className="min-h-0 flex-1 overflow-y-auto">

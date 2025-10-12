@@ -541,28 +541,33 @@ export function UrlTable({
     () => [
       {
         accessorKey: "status",
-        header: () => <span className="text-sm font-medium">Status</span>,
+        header: () => <span className="pl-2 text-sm font-medium">Status</span>,
         cell: ({ row }) => {
           const status = row.original.status;
           const variant: "green" | "yellow" =
             status === "checking" ? "yellow" : "green";
           return (
-            <Badge
-              variant={variant}
-              className={
-                status === "healed"
-                  ? "inline-flex items-center gap-1.5"
-                  : undefined
-              }
-            >
-              {status === "healed" && (
-                <span className="bg-success h-1.5 w-1.5 rounded-full" />
-              )}
-              {STATUS_LABELS[status]}
-            </Badge>
+            <div className="pl-2">
+              <Badge
+                variant={variant}
+                className={
+                  status === "healed"
+                    ? "inline-flex items-center gap-1.5"
+                    : undefined
+                }
+              >
+                {status === "healed" && (
+                  <span className="bg-success h-1.5 w-1.5 rounded-full" />
+                )}
+                {STATUS_LABELS[status]}
+              </Badge>
+            </div>
           );
         },
         enableSorting: false,
+        size: 100,
+        maxSize: 100,
+        minSize: 100,
       },
       {
         accessorKey: "shortUrl",
@@ -572,9 +577,9 @@ export function UrlTable({
           return <ShortUrlCell url={url} onCopy={handleCopy} />;
         },
         enableSorting: false,
-        size: 350,
-        maxSize: 350,
-        minSize: 350,
+        size: 200,
+        maxSize: 200,
+        minSize: 200,
       },
       {
         accessorKey: "clicks",
@@ -600,6 +605,9 @@ export function UrlTable({
             </div>
           );
         },
+        size: 80,
+        maxSize: 80,
+        minSize: 80,
       },
       {
         accessorKey: "createdAt",
@@ -625,6 +633,9 @@ export function UrlTable({
             </p>
           );
         },
+        size: 100,
+        maxSize: 100,
+        minSize: 100,
       },
       {
         id: "actions",
@@ -645,6 +656,9 @@ export function UrlTable({
             </button>
           );
         },
+        size: 80,
+        maxSize: 80,
+        minSize: 80,
       },
     ],
     [handleCopy, navigate],
