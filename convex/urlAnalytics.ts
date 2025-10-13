@@ -2,11 +2,13 @@ import { ConvexError, v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import { getCurrentUser } from "./users";
 
-export const mutateClickCount = mutation({
+export const mutateUrlAnalytics = mutation({
   args: {
     urlId: v.string(),
     userId: v.string(),
     sharedSecret: v.string(),
+    urlStatusMessage: v.string(),
+    urlStatusCode: v.number(),
   },
   handler: async (ctx, args) => {
     if (args.sharedSecret !== process.env.SHARED_SECRET) {
@@ -33,16 +35,21 @@ export const mutateClickCount = mutation({
       .query("urlAnalytics")
       .withIndex("by_url", (q) => q.eq("urlId", normalisedUrlId))
       .unique();
+
     if (!urlAnalytics) {
       return await ctx.db.insert("urlAnalytics", {
         urlId: normalisedUrlId,
         totalClickCounts: 1,
         updatedAt: Date.now(),
+        urlStatusMessage: args.urlStatusMessage,
+        urlStatusCode: args.urlStatusCode,
       });
     } else {
       return await ctx.db.patch(urlAnalytics._id, {
         totalClickCounts: urlAnalytics.totalClickCounts + 1,
         updatedAt: Date.now(),
+        urlStatusMessage: args.urlStatusMessage,
+        urlStatusCode: args.urlStatusCode,
       });
     }
   },

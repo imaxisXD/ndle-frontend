@@ -55,6 +55,8 @@ import { AiSummaryGenerator } from "../ai-summary-generator";
 import { AiChat } from "../ai-chat";
 import { type DisplayUrl, type LinkStatus, STATUS_LABELS } from "./types";
 import { formatRelative } from "@/lib/utils";
+import { CircleGridLoaderIcon } from "../icons";
+import { Skeleton } from "../ui/skeleton";
 
 interface UrlTableProps {
   showSearch?: boolean;
@@ -147,7 +149,7 @@ function ShortUrlCell({
     : `https://${url.shortUrl}`;
   return (
     <div className="w-full space-y-1">
-      <div className="flex items-center justify-start gap-1">
+      <div className="flex items-center justify-start gap-0.5">
         <a
           href={normalizedHref}
           target="_blank"
@@ -407,7 +409,7 @@ export function UrlTable({
 
   const { add } = useToast();
 
-  const urls = useQuery(
+  let urls = useQuery(
     api.urlMainFuction.getUserUrlsWithAnalytics,
     queryArgs ? (queryArgs as never) : undefined,
   );
@@ -580,9 +582,9 @@ export function UrlTable({
         sortingFn: (rowA, rowB) => rowA.original.clicks - rowB.original.clicks,
         cell: ({ row }) => {
           return (
-            <div className="text-left">
-              <p className="text-sm font-medium">{row.original.clicks}</p>
-              <p className="text-muted-foreground text-xs">clicks</p>
+            <div className="flex flex-col items-start justify-center">
+              <p className="pl-5 text-sm font-medium">{row.original.clicks}</p>
+              <p className="text-muted-foreground text-xs">[clicks]</p>
             </div>
           );
         },
@@ -672,14 +674,14 @@ export function UrlTable({
   const pageSize = table.getState().pagination.pageSize;
   const columns_count = table.getAllColumns().length;
 
-  // Don't render until sorting state is loaded
   if (!sortingLoaded) {
-    return <div>Loading...</div>;
+    return null;
   }
-
+  if (urls?.length === 0) {
+    return null;
+  }
   return (
     <div className="border-border bg-card rounded-xl border">
-      {/* Header Section */}
       {showHeader && (
         <div className="border-border border-b p-6">
           <div className="flex items-center justify-between">
@@ -693,7 +695,6 @@ export function UrlTable({
         </div>
       )}
 
-      {/* Search Section */}
       {showSearch && (
         <div className="border-border border-b p-6">
           <div className="relative">
@@ -718,7 +719,6 @@ export function UrlTable({
         </div>
       )}
 
-      {/* Filters Section */}
       {showFilters && (
         <div className="border-border border-b p-6">
           <div className="mb-4 flex items-center justify-between">
@@ -826,45 +826,15 @@ export function UrlTable({
         </div>
       )}
 
-      {/* Table Section */}
       <div className="border-border border-b">
         {isLoading ? (
-          <Table
-            key={`${sorting.map((s) => `${s.id}:${s.desc}`).join("|")}`}
-            style={{ tableLayout: "fixed", width: "100%" }}
-          >
-            <TableHeader className="bg-card sticky top-0 z-10">
-              {table.getHeaderGroups().map((headerGroup) => (
-                <TableRow key={headerGroup.id} className="hover:bg-transparent">
-                  {headerGroup.headers.map((header) => (
-                    <TableHead
-                      key={header.id}
-                      className="px-4 py-3"
-                      style={{ width: header.getSize() }}
-                    >
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext(),
-                          )}
-                    </TableHead>
-                  ))}
-                </TableRow>
-              ))}
-            </TableHeader>
-            <TableBody>
-              {Array.from({ length: pageSize }).map((_, i) => (
-                <TableRow key={`skeleton-${i}`} className="h-14">
-                  {Array.from({ length: columns_count }).map((__, j) => (
-                    <TableCell key={`sk-${i}-${j}`} className="px-4 py-3">
-                      <div className="bg-muted h-4 w-2/3 animate-pulse rounded" />
-                    </TableCell>
-                  ))}
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+          <Skeleton className="diagonal-dash bg-mute flex h-[499px] flex-col items-center justify-center rounded-none">
+            <CircleGridLoaderIcon className="text-muted-foreground mx-auto size-6" />
+            <h3 className="mt-4 text-sm font-medium">Loading</h3>
+            <p className="text-muted-foreground mt-2 h-64 text-xs">
+              Please wait while we load your links
+            </p>
+          </Skeleton>
         ) : isEmpty || filteredUrls.length === 0 ? (
           <Table
             key={`${sorting.map((s) => `${s.id}:${s.desc}`).join("|") || "none"}`}

@@ -332,7 +332,7 @@ export function UrlShortener() {
                       value={field.value || ""}
                       onChange={field.onChange}
                       disabled={!form.watch("expiresEnabled")}
-                      className="max-w-xs text-sm"
+                      className="max-w-xs pl-3 text-sm"
                     />
                   </div>
                 )}

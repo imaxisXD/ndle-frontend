@@ -16,7 +16,6 @@ export default defineSchema({
     userTableId: v.id("users"),
     slugAssigned: v.optional(v.string()),
     redisStatus: v.optional(v.string()),
-    urlStatusCode: v.optional(v.number()),
     urlStatusMessage: v.optional(v.string()),
   })
     .index("by_slug", ["slugAssigned"])
@@ -27,6 +26,8 @@ export default defineSchema({
   urlAnalytics: defineTable({
     urlId: v.id("urls"),
     totalClickCounts: v.number(),
+    urlStatusCode: v.optional(v.number()),
+    urlStatusMessage: v.optional(v.string()),
     updatedAt: v.number(),
   }).index("by_url", ["urlId"]),
 });

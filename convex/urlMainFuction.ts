@@ -4,13 +4,11 @@ import {
   mutation,
   MutationCtx,
   query,
-  QueryCtx,
 } from "./_generated/server";
 import { getCurrentUser } from "./users";
 import { VALIDATION_ERRORS, createSlug, isValidHttpUrl } from "./utils";
 import { Doc } from "./_generated/dataModel";
 import { internal } from "./_generated/api";
-import { CustomCtx } from "convex-helpers/server/customFunctions";
 
 export const createUrl = mutation({
   args: {
@@ -95,6 +93,14 @@ export const createUrl = mutation({
       userTableId: user._id,
       slugAssigned: slug,
       urlStatusMessage: "creating",
+    });
+
+    await ctx.db.insert("urlAnalytics", {
+      urlId: docId,
+      totalClickCounts: 0,
+      updatedAt: Date.now(),
+      urlStatusMessage: "waiting",
+      urlStatusCode: 0,
     });
 
     ctx.scheduler.runAfter(0, internal.redisAction.insertIntoRedis, {

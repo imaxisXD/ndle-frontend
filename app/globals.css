@@ -211,13 +211,13 @@
 }
 
 .diagonal-dash {
-  position: absolute;
+  /* position: absolute; */
   inset: 0;
   width: 100%;
-  height: 100%;
+  height: 499px;
   background-image: repeating-linear-gradient(
     45deg,
-    /* angle */ #e5e7eb 0px,
+    /* angle */ #0307122c 0px,
     /* dash start */ #ffc92100 1px,
     /* dash thickness (2px line) */ transparent 2px,
     /* start gap */ transparent 10px /* gap width */
