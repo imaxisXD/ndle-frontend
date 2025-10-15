@@ -11,7 +11,6 @@ interface AiSummaryGeneratorProps {
 }
 
 export function AiSummaryGenerator({
-  url,
   existingSummary,
   onSummaryGenerated,
 }: AiSummaryGeneratorProps) {

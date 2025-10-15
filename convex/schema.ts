@@ -30,4 +30,19 @@ export default defineSchema({
     urlStatusMessage: v.optional(v.string()),
     updatedAt: v.number(),
   }).index("by_url", ["urlId"]),
+  collections: defineTable({
+    name: v.string(),
+    description: v.optional(v.string()),
+    userTableId: v.id("users"),
+    urls: v.array(v.id("urls")),
+    collectionColor: v.optional(v.string()),
+    normalizedName: v.optional(v.string()),
+    shareAble: v.optional(v.boolean()),
+    shareUrl: v.optional(v.string()),
+    shareExpiresAt: v.optional(v.number()),
+    shareCreatedAt: v.optional(v.number()),
+    shareUpdatedAt: v.optional(v.number()),
+  })
+    .index("by_user", ["userTableId"])
+    .index("by_user_and_normalizedName", ["userTableId", "normalizedName"]),
 });

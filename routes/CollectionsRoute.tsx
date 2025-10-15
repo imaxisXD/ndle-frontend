@@ -1,4 +1,4 @@
-import { Collections } from "@/components/collections";
+import { Collections } from "@/components/collection/collections";
 
 export default function CollectionsRoute() {
   return (

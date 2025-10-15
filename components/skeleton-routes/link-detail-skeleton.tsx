@@ -14,8 +14,6 @@ import {
   CardTitle,
   CardToolbar,
 } from "../ui/card";
-import { OpenInBrowser } from "iconoir-react";
-import { Clock } from "iconoir-react";
 import { Skeleton } from "../ui/skeleton";
 import { CardDescription } from "../ui/card";
 import MetadataCard from "../metadata-card";

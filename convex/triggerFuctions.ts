@@ -4,10 +4,7 @@ import {
   customCtx,
   customMutation,
 } from "convex-helpers/server/customFunctions";
-import {
-  mutation as rawMutation,
-  internalMutation as rawInternalMutation,
-} from "./_generated/server";
+import { mutation as rawMutation } from "./_generated/server";
 
 const triggers = new Triggers<DataModel>();
 

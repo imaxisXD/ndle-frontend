@@ -10,11 +10,12 @@ import {
   flexRender,
 } from "@tanstack/react-table";
 import { useTableSortingURL } from "../../hooks/use-table-sorting-url";
-import { useNavigate } from "react-router";
+import { NavLink, useNavigate } from "react-router";
 import { useToast } from "@/hooks/use-toast";
-import { useQuery } from "convex/react";
+import { useQuery } from "convex-helpers/react/cache/hooks";
 import { api } from "@/convex/_generated/api";
 import { FunctionReturnType } from "convex/server";
+import { Id } from "@/convex/_generated/dataModel";
 import {
   MoreVertCircle,
   Search,
@@ -32,6 +33,7 @@ import {
   ShieldPlusIn,
   ArrowUp,
   ArrowDown,
+  FilterSolid,
 } from "iconoir-react";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
@@ -70,6 +72,7 @@ interface UrlTableProps {
   footerContent?: string;
   searchPlaceholder?: string;
   queryArgs?: Record<string, unknown>;
+  collectionId?: Id<"collections">;
 }
 
 function SortableHeader({
@@ -81,7 +84,9 @@ function SortableHeader({
 }: {
   column: {
     getIsSorted: () => false | "asc" | "desc";
-    getToggleSortingHandler: () => ((event: unknown) => void) | undefined;
+    getToggleSortingHandler: () =>
+      | ((event: React.MouseEvent) => void)
+      | undefined;
     id: string;
   };
   label: string;
@@ -105,7 +110,7 @@ function SortableHeader({
             onClick={(e) => {
               column.getIsSorted();
               const handler = column.getToggleSortingHandler();
-              if (handler) handler(e as unknown);
+              if (handler) handler(e);
             }}
             className="hover:text-foreground flex cursor-pointer items-center gap-2 text-sm font-medium select-none"
           >
@@ -388,6 +393,7 @@ export function UrlTable({
   footerContent = "",
   searchPlaceholder = "Search links by URL, content, or notes...",
   queryArgs,
+  collectionId,
 }: UrlTableProps) {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<
@@ -409,12 +415,21 @@ export function UrlTable({
 
   const { add } = useToast();
 
-  let urls = useQuery(
-    api.urlMainFuction.getUserUrlsWithAnalytics,
-    queryArgs ? (queryArgs as never) : undefined,
+  const urls = useQuery(
+    collectionId
+      ? api.urlMainFuction.getUserUrlsWithAnalyticsByCollection
+      : api.urlMainFuction.getUserUrlsWithAnalytics,
+    collectionId
+      ? ({ collectionId } as never)
+      : queryArgs
+        ? (queryArgs as never)
+        : undefined,
   );
   type UserUrlsResponse = NonNullable<
-    FunctionReturnType<typeof api.urlMainFuction.getUserUrlsWithAnalytics>
+    | FunctionReturnType<typeof api.urlMainFuction.getUserUrlsWithAnalytics>
+    | FunctionReturnType<
+        typeof api.urlMainFuction.getUserUrlsWithAnalyticsByCollection
+      >
   >;
 
   const isLoading = urls === undefined;
@@ -671,7 +686,6 @@ export function UrlTable({
     },
   });
 
-  const pageSize = table.getState().pagination.pageSize;
   const columns_count = table.getAllColumns().length;
 
   if (!sortingLoaded) {
@@ -704,7 +718,7 @@ export function UrlTable({
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder={searchPlaceholder}
-              className="border-input bg-background focus:ring-foreground/20 w-full rounded-md border py-2.5 pr-10 pl-10 text-sm focus:ring-2 focus:outline-none"
+              className="border-border bg-home focus:ring-foreground/20 w-full rounded-md border py-2.5 pr-10 pl-10 text-sm focus:ring-2 focus:outline-none"
             />
             {searchQuery && (
               <button
@@ -720,11 +734,8 @@ export function UrlTable({
       )}
 
       {showFilters && (
-        <div className="border-border border-b p-6">
-          <div className="mb-4 flex items-center justify-between">
-            <div>
-              <h3 className="text-sm font-medium">Filters</h3>
-            </div>
+        <div className="border-border border-b p-6 py-3">
+          <div className="flex items-center justify-end">
             <Button
               variant="secondary"
               type="button"
@@ -735,7 +746,11 @@ export function UrlTable({
                   : "border-border hover:bg-accent border"
               }`}
             >
-              <FilterAlt className="size-4.5" />
+              {!showFiltersPanel ? (
+                <FilterAlt className="size-4.5" />
+              ) : (
+                <FilterSolid className="size-4.5" />
+              )}
               Filters
             </Button>
           </div>
@@ -949,20 +964,7 @@ export function UrlTable({
                   </Fragment>
                 );
               })}
-              {Array.from({
-                length: Math.max(0, pageSize - table.getRowModel().rows.length),
-              }).map((_, i) => (
-                <TableRow key={`pad-data-${i}`} className="h-14">
-                  {Array.from({ length: columns_count }).map((__, j) => (
-                    <TableCell
-                      key={`pad-d-${i}-${j}`}
-                      className="px-4 py-3 opacity-0"
-                    >
-                      &nbsp;
-                    </TableCell>
-                  ))}
-                </TableRow>
-              ))}
+              {/* Removed padding rows to avoid rendering empty rows */}
             </TableBody>
           </Table>
         )}
@@ -972,7 +974,7 @@ export function UrlTable({
       {showPagination && (
         <div className="px-6 py-5">
           {!isLoading && !isEmpty && filteredUrls.length > 0 ? (
-            <div className="flex items-center justify-end gap-6">
+            <div className="flex items-center justify-between gap-6">
               <div className="flex items-center gap-2">
                 <p className="text-sm">Links per page</p>
                 <Select
@@ -1078,7 +1080,12 @@ export function UrlTable({
       {showFooter && (
         <div className="px-6 py-5">
           <div className="flex items-center justify-center">
-            <p className="text-muted-foreground text-sm">{footerContent}</p>
+            <NavLink
+              to="/urls"
+              className="text-sm text-blue-500 underline decoration-blue-500 decoration-dashed underline-offset-2 hover:text-blue-600"
+            >
+              {footerContent}
+            </NavLink>
           </div>
         </div>
       )}

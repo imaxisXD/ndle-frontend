@@ -170,6 +170,46 @@ export const getUserUrlsWithAnalytics = query({
   },
 });
 
+export const getUserUrlsWithAnalyticsByCollection = query({
+  args: {
+    collectionId: v.id("collections"),
+  },
+  handler: async (ctx, args) => {
+    const user = await getCurrentUser(ctx);
+    if (!user) {
+      return null;
+    }
+
+    // Get the collection to access its URLs array
+    const collection = await ctx.db.get(args.collectionId);
+    if (!collection || collection.userTableId !== user._id) {
+      return null;
+    }
+
+    // Get URLs that are in the collection
+    const urls = await Promise.all(
+      collection.urls.map(async (urlId) => {
+        const url = await ctx.db.get(urlId);
+        return url;
+      }),
+    );
+
+    // Filter out any null URLs and get analytics for each
+    const validUrls = urls.filter((url): url is Doc<"urls"> => url !== null);
+    const urlsWithAnalytics = await Promise.all(
+      validUrls.map(async (url) => {
+        const analytics = await ctx.db
+          .query("urlAnalytics")
+          .withIndex("by_url", (q) => q.eq("urlId", url._id))
+          .unique();
+        return { ...url, analytics };
+      }),
+    );
+
+    return urlsWithAnalytics;
+  },
+});
+
 export const deleteUrl = mutation({
   args: {
     urlSlug: v.string(),

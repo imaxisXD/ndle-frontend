@@ -13,6 +13,7 @@ import type {
   FilterApi,
   FunctionReference,
 } from "convex/server";
+import type * as collectionMangament from "../collectionMangament.js";
 import type * as redisAction from "../redisAction.js";
 import type * as triggerFuctions from "../triggerFuctions.js";
 import type * as urlAnalytics from "../urlAnalytics.js";
@@ -29,6 +30,7 @@ import type * as utils from "../utils.js";
  * ```
  */
 declare const fullApi: ApiFromModules<{
+  collectionMangament: typeof collectionMangament;
   redisAction: typeof redisAction;
   triggerFuctions: typeof triggerFuctions;
   urlAnalytics: typeof urlAnalytics;
