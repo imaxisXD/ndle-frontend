@@ -25,41 +25,35 @@ export default function App() {
             <div className="bg-home text-foreground dot flex w-full overflow-hidden">
               <Sidebar />
               <main className="min-h-0 flex-1 overflow-y-auto">
-                <div className="p-8 lg:p-12">
-                  <div className="mx-auto max-w-7xl space-y-8">
-                    <ScrollToTop />
-                    <Routes>
-                      <Route path="/" element={<HomeRoute />} />
-                      <Route path="/analytics" element={<AnalyticsRoute />} />
-                      <Route path="/monitoring" element={<MonitoringRoute />} />
-                      <Route path="/settings" element={<SettingsRoute />} />
-                      <Route path="/create" element={<CreateRoute />} />
-                      <Route
-                        path="/collections"
-                        element={<CollectionsRoute />}
-                      />
-                      <Route
-                        path="/collection/:slug"
-                        element={<CollectionDetailRoute />}
-                      />
-                      <Route path="/memory" element={<MemoryRoute />} />
-                      <Route path="/link/:slug" element={<LinkDetailRoute />} />
-                      <Route
-                        path="*"
-                        element={
-                          <>
-                            <h1 className="text-3xl font-medium tracking-tight">
-                              Not Found
-                            </h1>
-                            <p className="text-muted-foreground mt-2 text-sm">
-                              The page you&apos;re looking for doesn&apos;t
-                              exist.
-                            </p>
-                          </>
-                        }
-                      />
-                    </Routes>
-                  </div>
+                <div className="mx-auto max-w-5xl space-y-8 py-8">
+                  <ScrollToTop />
+                  <Routes>
+                    <Route path="/" element={<HomeRoute />} />
+                    <Route path="/analytics" element={<AnalyticsRoute />} />
+                    <Route path="/monitoring" element={<MonitoringRoute />} />
+                    <Route path="/settings" element={<SettingsRoute />} />
+                    <Route path="/create" element={<CreateRoute />} />
+                    <Route path="/collections" element={<CollectionsRoute />} />
+                    <Route
+                      path="/collection/:slug"
+                      element={<CollectionDetailRoute />}
+                    />
+                    <Route path="/memory" element={<MemoryRoute />} />
+                    <Route path="/link/:slug" element={<LinkDetailRoute />} />
+                    <Route
+                      path="*"
+                      element={
+                        <>
+                          <h1 className="text-3xl font-medium tracking-tight">
+                            Not Found
+                          </h1>
+                          <p className="text-muted-foreground mt-2 text-sm">
+                            The page you&apos;re looking for doesn&apos;t exist.
+                          </p>
+                        </>
+                      }
+                    />
+                  </Routes>
                 </div>
               </main>
             </div>

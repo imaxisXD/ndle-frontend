@@ -110,7 +110,8 @@
   }
 
   html {
-    scrollbar-gutter: stable;
+    scrollbar-gutter: auto both-edges;
+    width: 100vw;
   }
 
   body {
