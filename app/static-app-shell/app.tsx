@@ -24,8 +24,8 @@ export default function App() {
           <ToastProvider showCloseButton={true} limit={5}>
             <div className="bg-home text-foreground dot flex w-full overflow-hidden">
               <Sidebar />
-              <main className="min-h-0 flex-1 overflow-y-auto">
-                <div className="mx-auto max-w-5xl space-y-8 py-8">
+              <main className="flex min-h-0 w-full items-start justify-center overflow-y-auto">
+                <div className="w-5xl flex-col space-y-8 py-8">
                   <ScrollToTop />
                   <Routes>
                     <Route path="/" element={<HomeRoute />} />
