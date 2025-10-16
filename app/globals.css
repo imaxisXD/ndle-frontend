@@ -146,13 +146,13 @@
 
   /* Custom text selection highlight color */
   ::selection {
-    background-color: var(--color-slate-600);
-    color: var(--color-accent);
+    background-color: #fad669e0;
+    color: rgba(48, 48, 48, 0.836);
   }
 
   ::-moz-selection {
-    background-color: var(--color-slate-600);
-    color: var(--color-accent);
+    background-color: #fad669e0;
+    color: rgba(48, 48, 48, 0.836);
   }
 }
 

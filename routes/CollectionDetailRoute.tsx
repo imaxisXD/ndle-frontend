@@ -97,12 +97,12 @@ export default function CollectionDetailRoute() {
           <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
             <AddUrlsButton
               onOpen={() => setIsAddDialogOpen(true)}
-              label="Add URLs"
+              label="Add Links"
             />
             <DialogContent fullscreen className="p-0">
               <div className="flex h-full flex-col">
                 <div className="border-b px-4 py-3">
-                  <DialogTitle>Add URLs to Collection</DialogTitle>
+                  <DialogTitle>Add Links to Collection</DialogTitle>
                   <p className="text-muted-foreground mt-1 text-xs">
                     Let ndle help you pick the perfect links
                   </p>
@@ -146,7 +146,7 @@ export default function CollectionDetailRoute() {
               <DialogContent fullscreen className="p-0">
                 <div className="flex h-full flex-col">
                   <div className="border-b px-4 py-3">
-                    <DialogTitle>Add URLs to Collection</DialogTitle>
+                    <DialogTitle>Add Links to Collection</DialogTitle>
                     <p className="text-muted-foreground mt-1 text-xs">
                       Let ndle help you pick the perfect links
                     </p>

@@ -33,7 +33,7 @@ export default function HomeRoute() {
           defaultPageSize={5}
           headerTitle="Recent Links"
           headerDescription="Your latest shortened links"
-          footerContent="View All Urls"
+          footerContent="View All Links"
         />
       </section>
     </>

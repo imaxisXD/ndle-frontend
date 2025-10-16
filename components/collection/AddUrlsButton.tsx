@@ -14,7 +14,7 @@ interface AddUrlsButtonProps {
 export function AddUrlsButton({
   onOpen,
   hotkey = ["n"],
-  label = "Add URLs",
+  label = "Add Links",
   variant = "default",
   size = "default",
   disabled = false,

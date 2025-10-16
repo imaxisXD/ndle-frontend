@@ -114,9 +114,9 @@ export function UrlPickerTable({ collectionId, onClose }: UrlPickerTableProps) {
     return (
       <div className="border-border bg-muted/30 rounded-lg border border-dashed p-8 text-center">
         <LinkIcon className="text-muted-foreground mx-auto mb-4 h-8 w-8" />
-        <h3 className="mb-1 text-sm font-medium">No URLs Available</h3>
+        <h3 className="mb-1 text-sm font-medium">No Links Available</h3>
         <p className="text-muted-foreground text-xs">
-          All your URLs are already in this collection, or you haven&apos;t
+          All your links are already in this collection, or you haven&apos;t
           created any yet.
         </p>
       </div>

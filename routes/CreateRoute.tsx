@@ -19,10 +19,10 @@ export default function CreateRoute() {
         <div className="space-y-4">
           <div>
             <label htmlFor="bulk-import-urls" className="text-sm font-medium">
-              Bulk Import URLs
+              Bulk Import Links
             </label>
             <p className="text-muted-foreground mt-1 text-xs">
-              Paste multiple URLs (one per line) to create shortened links
+              Paste multiple links (one per line) to create shortened links
             </p>
             <textarea
               id="bulk-import-urls"
