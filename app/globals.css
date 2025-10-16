@@ -111,7 +111,7 @@
 
   html {
     width: 100vw;
-    scrollbar-gutter: stable both-edges;
+    scrollbar-gutter: auto;
     scrollbar-width: thin;
   }
 
