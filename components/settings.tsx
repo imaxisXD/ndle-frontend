@@ -37,8 +37,8 @@ export function Settings() {
     <div className="space-y-6">
       <AccountCard />
 
-      {/* General Settings */}
-      <div className="border-border bg-card rounded-lg border p-6">
+      {/* General Settings TODO: WILL ADD BACK IN LATER */}
+      {/* <div className="border-border bg-card rounded-lg border p-6">
         <div className="mb-6 flex items-center gap-3">
           <div className="rounded-lg bg-blue-100 p-2">
             <Globe className="h-5 w-5 text-blue-600" />
@@ -112,7 +112,7 @@ export function Settings() {
             </select>
           </div>
         </div>
-      </div>
+      </div> */}
 
       {/* Self-Healing Settings */}
       <div className="border-border bg-card rounded-lg border p-6">
@@ -309,8 +309,8 @@ export function Settings() {
         </div>
       </div>
 
-      {/* API Settings */}
-      <div className="border-border bg-card rounded-lg border p-6">
+      {/* API Settings TODO: WILL ADD BACK IN LATER */}
+      {/* <div className="border-border bg-card rounded-lg border p-6">
         <div className="mb-6 flex items-center gap-3">
           <div className="rounded-lg bg-purple-100 p-2">
             <svg
@@ -441,7 +441,7 @@ export function Settings() {
             </div>
           </div>
         </div>
-      </div>
+      </div> */}
 
       {/* Danger Zone */}
       <div className="rounded-lg border border-red-200 bg-red-50 p-6">

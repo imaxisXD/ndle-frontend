@@ -121,7 +121,8 @@ export function Sidebar() {
       </nav>
 
       <div className="flex flex-col gap-4">
-        <NotificationCenter />
+        {/* TODO: WILL ADD BACK IN LATER notification center */}
+        {/* <NotificationCenter /> */}
         <Tooltip>
           <TooltipTrigger
             render={
