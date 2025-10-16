@@ -61,7 +61,6 @@ export function Collections() {
                       {collection.name}
                     </CardTitle>
                   </CardHeading>
-
                   <CardToolbar>
                     <button
                       type="button"

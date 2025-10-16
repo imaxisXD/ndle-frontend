@@ -84,7 +84,7 @@ export function UrlPickerTable({ collectionId, onClose }: UrlPickerTableProps) {
       add({
         type: "success",
         title: "Added",
-        description: `${selected.size} URL(s) added to collection`,
+        description: `${selected.size} Link(s) added to collection`,
       });
       setSelected(new Set());
       onClose?.();

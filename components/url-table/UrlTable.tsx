@@ -55,7 +55,7 @@ import {
 } from "../ui/table";
 import { AiSummaryGenerator } from "../ai-summary-generator";
 import { AiChat } from "../ai-chat";
-import { type DisplayUrl, type LinkStatus, STATUS_LABELS } from "./types";
+import { type DisplayUrl } from "./types";
 import { formatRelative } from "@/lib/utils";
 import { CircleGridLoaderIcon } from "../icons";
 import { Skeleton } from "../ui/skeleton";
@@ -392,7 +392,7 @@ export function UrlTable({
   headerTitle = "",
   headerDescription = "",
   footerContent = "",
-  searchPlaceholder = "Search links by URL, content, or notes...",
+  searchPlaceholder = "Search links by Link, content, or notes...",
   queryArgs,
   collectionId,
 }: UrlTableProps) {
@@ -402,10 +402,9 @@ export function UrlTable({
   >("memory");
 
   const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState<LinkStatus | "all">("all");
+  const [statusFilter, setStatusFilter] = useState<string | "all">("all");
   const [showFiltersPanel, setShowFiltersPanel] = useState(false);
 
-  // Use URL-based sorting persistence
   const {
     sorting,
     isLoaded: sortingLoaded,
@@ -450,12 +449,9 @@ export function UrlTable({
           : makeShortLink(slugSource.replace(/^\/+/, ""))
         : "";
 
-      const message = (doc.urlStatusMessage ?? "").toLowerCase();
-      const status: LinkStatus = message.includes("success")
-        ? "healthy"
-        : message.includes("heal")
-          ? "healed"
-          : "checking";
+      const message = (doc.analytics?.urlStatusMessage ?? "").toLowerCase();
+
+      const status = message;
 
       return {
         id: doc._id,
@@ -536,7 +532,7 @@ export function UrlTable({
         cell: ({ row }) => {
           const status = row.original.status;
           const variant: "green" | "yellow" =
-            status === "checking" ? "yellow" : "green";
+            status === "healthy" ? "green" : "yellow";
           return (
             <div className="pl-2">
               <Badge
@@ -550,7 +546,7 @@ export function UrlTable({
                 {status === "healed" && (
                   <span className="bg-success h-1.5 w-1.5 rounded-full" />
                 )}
-                {STATUS_LABELS[status]}
+                {status}
               </Badge>
             </div>
           );
@@ -562,7 +558,7 @@ export function UrlTable({
       },
       {
         accessorKey: "shortUrl",
-        header: () => <span className="text-sm font-medium">Short URL</span>,
+        header: () => <span className="text-sm font-medium">Short Link</span>,
         cell: ({ row }) => {
           const url = row.original;
           return <ShortUrlCell url={url} onCopy={handleCopy} />;
@@ -772,18 +768,14 @@ export function UrlTable({
                     <button
                       type="button"
                       key={status}
-                      onClick={() =>
-                        setStatusFilter(status as LinkStatus | "all")
-                      }
+                      onClick={() => setStatusFilter(status)}
                       className={`rounded-md px-3 py-1 text-xs transition-colors ${
                         statusFilter === status
                           ? "bg-foreground text-background"
                           : "bg-background border-border hover:bg-accent border"
                       }`}
                     >
-                      {status === "all"
-                        ? "All"
-                        : STATUS_LABELS[status as LinkStatus]}
+                      {status === "all" ? "All" : status}
                     </button>
                   ))}
                 </div>
@@ -813,9 +805,7 @@ export function UrlTable({
               )}
               {statusFilter !== "all" && (
                 <div className="inline-flex items-center">
-                  <Badge variant="primary">
-                    Status: {STATUS_LABELS[statusFilter as LinkStatus]}
-                  </Badge>
+                  <Badge variant="primary">Status: {statusFilter}</Badge>
                   <Button
                     variant="link"
                     type="button"

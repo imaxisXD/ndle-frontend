@@ -52,7 +52,7 @@ const urlFormSchema = z.object({
       },
       {
         message:
-          "Please enter a valid URL (must start with http:// or https://)",
+          "Please enter a valid link (must start with http:// or https://)",
       },
     )
     .refine(
@@ -60,7 +60,7 @@ const urlFormSchema = z.object({
         return val && val.trim() !== "";
       },
       {
-        message: "URL is required",
+        message: "Link is required",
       },
     ),
   shortUrl: z.string().optional(),
@@ -199,7 +199,7 @@ export function UrlShortener() {
   return (
     <Card>
       <CardHeader className="flex w-full flex-col items-start justify-between gap-1">
-        <CardTitle className="text-lg font-medium">Shorten a URL</CardTitle>
+        <CardTitle className="text-lg font-medium">Shorten a Link</CardTitle>
         <CardDescription>
           Create a short link with a human-readable slug, expiration, and more.
         </CardDescription>
@@ -212,7 +212,7 @@ export function UrlShortener() {
               name="url"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Enter your long URL</FormLabel>
+                  <FormLabel>Enter your long link</FormLabel>
                   <FormControl>
                     <div className="flex gap-2">
                       <InputGroup className="border-border rounded-md border bg-white">

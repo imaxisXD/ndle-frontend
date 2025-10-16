@@ -99,7 +99,7 @@ export const createUrl = mutation({
       urlId: docId,
       totalClickCounts: 0,
       updatedAt: Date.now(),
-      urlStatusMessage: "waiting",
+      urlStatusMessage: "no traffic",
       urlStatusCode: 0,
     });
 

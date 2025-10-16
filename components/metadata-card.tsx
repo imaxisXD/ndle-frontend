@@ -22,7 +22,7 @@ export default function MetadataCard({
         <h3 className="text-base font-medium">Metadata</h3>
         <div className="text-muted-foreground mt-4 space-y-2 text-sm">
           <div className="flex items-center gap-2">
-            <OpenInBrowser className="size-4" /> Short URL:{" "}
+            <OpenInBrowser className="size-4" /> Short Link:{" "}
             {shortslug ? (
               <LinkWithIcon
                 link={makeShortLink(shortslug)}
@@ -35,7 +35,7 @@ export default function MetadataCard({
             )}
           </div>
           <div className="flex items-center gap-2">
-            <Link className="size-4" /> Full URL:{" "}
+            <Link className="size-4" /> Full Link:{" "}
             {fullurl ? (
               <code className="max-w-md truncate">{fullurl}</code>
             ) : (

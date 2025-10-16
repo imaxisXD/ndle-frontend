@@ -13,7 +13,7 @@ import { UrlPickerTable } from "@/components/collection/UrlPickerTable";
 import { AddUrlsButton } from "@/components/collection/AddUrlsButton";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ShimmeringText } from "@/components/ui/shimmering-text";
-import { Table2Columns } from "iconoir-react";
+import { BookmarkBook, BookSolid, Table2Columns } from "iconoir-react";
 
 export default function CollectionDetailRoute() {
   const params = useParams();
@@ -132,36 +132,43 @@ export default function CollectionDetailRoute() {
           Collection Links
         </h2>
         {collection.urls.length === 0 ? (
-          <div className="border-border bg-muted/30 mt-6 rounded-lg border border-dashed p-10 text-center">
+          <div className="border-border from-muted/60 mt-6 flex flex-col gap-10 rounded-lg border-2 border-dashed bg-gradient-to-t to-white/10 p-10 text-center">
             <h3 className="text-sm font-medium">
-              ndle&apos;s ready to help you organize
+              ndle is ready to help you organize your links
             </h3>
-            <p className="text-muted-foreground mt-1 text-xs">
-              Start building your curated link collection
-            </p>
-            <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-              <div className="mt-4 inline-block">
-                <AddUrlsButton onOpen={() => setIsAddDialogOpen(true)} />
-              </div>
-              <DialogContent fullscreen className="p-0">
-                <div className="flex h-full flex-col">
-                  <div className="border-b px-4 py-3">
-                    <DialogTitle>Add Links to Collection</DialogTitle>
-                    <p className="text-muted-foreground mt-1 text-xs">
-                      Let ndle help you pick the perfect links
-                    </p>
-                  </div>
-                  <div className="flex-1 overflow-auto p-3">
-                    {collection && (
-                      <UrlPickerTable
-                        collectionId={collection._id as Id<"collections">}
-                        onClose={() => setIsAddDialogOpen(false)}
-                      />
-                    )}
-                  </div>
+            <div className="mt-10 flex flex-col items-center gap-10">
+              <div className="flex flex-col items-center gap-2">
+                <div className="rounded-lg bg-gradient-to-br from-gray-200/80 to-gray-300/60 p-2">
+                  <BookmarkBook className="size-18 text-yellow-500/90" />
                 </div>
-              </DialogContent>
-            </Dialog>
+                <p className="text-muted-foreground mt-1 text-xs">
+                  Start building your curated link collection
+                </p>
+              </div>
+              <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+                <div className="mt-4 inline-block">
+                  <AddUrlsButton onOpen={() => setIsAddDialogOpen(true)} />
+                </div>
+                <DialogContent fullscreen className="p-0">
+                  <div className="flex h-full flex-col">
+                    <div className="border-b px-4 py-3">
+                      <DialogTitle>Add Links to Collection</DialogTitle>
+                      <p className="text-muted-foreground mt-1 text-xs">
+                        Let ndle help you pick the perfect links
+                      </p>
+                    </div>
+                    <div className="flex-1 overflow-auto p-3">
+                      {collection && (
+                        <UrlPickerTable
+                          collectionId={collection._id as Id<"collections">}
+                          onClose={() => setIsAddDialogOpen(false)}
+                        />
+                      )}
+                    </div>
+                  </div>
+                </DialogContent>
+              </Dialog>
+            </div>
           </div>
         ) : (
           <UrlTable

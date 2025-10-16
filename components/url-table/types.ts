@@ -1,12 +1,10 @@
-export type LinkStatus = "healthy" | "healed" | "checking";
-
 export type DisplayUrl = {
   id: string;
   shortUrl: string;
   originalUrl: string;
   clicks: number;
   createdAt: number;
-  status: LinkStatus;
+  status: string;
   healingHistory?: Array<{
     date: string;
     action: string;
@@ -24,10 +22,4 @@ export type DisplayUrl = {
       percentage: number;
     }>;
   };
-};
-
-export const STATUS_LABELS: Record<LinkStatus, string> = {
-  healthy: "Healthy",
-  healed: "Auto-healed",
-  checking: "Checking",
 };
