@@ -1,7 +1,6 @@
 import { ShieldAlert, ShieldPlusIn } from "iconoir-react";
-import { STATUS_LABELS, type LinkStatus } from "./types";
 
-export function StatusBadge({ status }: { status: LinkStatus }) {
+export function StatusBadge({ status }: { status: string }) {
   const icon =
     status === "healthy" ? (
       <ShieldPlusIn className="text-success h-4 w-4" />
@@ -22,7 +21,7 @@ export function StatusBadge({ status }: { status: LinkStatus }) {
               : "bg-secondary text-warning border-warning/25 inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-xs"
         }
       >
-        {STATUS_LABELS[status]}
+        {status}
       </span>
     </div>
   );
