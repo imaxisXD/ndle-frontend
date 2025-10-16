@@ -405,7 +405,11 @@ export function UrlTable({
   const [showFiltersPanel, setShowFiltersPanel] = useState(false);
 
   // Use URL-based sorting persistence
-  const { sorting, updateSorting } = useTableSortingURL();
+  const {
+    sorting,
+    isLoaded: sortingLoaded,
+    updateSorting,
+  } = useTableSortingURL();
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
 
@@ -684,6 +688,12 @@ export function UrlTable({
 
   const columns_count = table.getAllColumns().length;
 
+  if (!sortingLoaded) {
+    return null;
+  }
+  if (urls?.length === 0) {
+    return null;
+  }
   return (
     <div className="border-border bg-card rounded-xl border">
       {showHeader && (
