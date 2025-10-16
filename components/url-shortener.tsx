@@ -34,6 +34,7 @@ import {
 } from "@/components/ui/form";
 import { cn } from "@/lib/utils";
 import { ShimmeringPhrases } from "./ui/shimmering-phrases";
+import { makeShortLink } from "@/lib/config";
 
 const urlFormSchema = z.object({
   url: z
@@ -169,7 +170,7 @@ export function UrlShortener() {
         expiresAt: expiresAtValue,
       });
 
-      const finalShort = `ndle.im/${result.slug}`;
+      const finalShort = makeShortLink(result.slug);
       add({
         type: "success",
         title: "Short link ready",
@@ -280,7 +281,7 @@ export function UrlShortener() {
                           <label htmlFor="slug-random" className="text-sm">
                             Random slug{" "}
                             <span className="text-muted-foreground text-xs">
-                              (e.g., ndle.im/a1b2c3)
+                              (e.g., {makeShortLink("a1b2c3")})
                             </span>
                           </label>
                         </div>
@@ -293,7 +294,7 @@ export function UrlShortener() {
                           <label htmlFor="slug-human" className="text-sm">
                             Human-readable slug{" "}
                             <span className="text-muted-foreground text-xs">
-                              (e.g., ndle.im/raregeckosjam)
+                              (e.g., {makeShortLink("raregeckosjam")})
                             </span>
                           </label>
                         </div>

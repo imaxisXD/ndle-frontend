@@ -3,6 +3,7 @@ import { Card, CardContent } from "./ui/card";
 import { AntennaSignal, Clock, Link, OpenInBrowser } from "iconoir-react";
 import { Skeleton } from "./ui/skeleton";
 import LinkWithIcon from "./ui/link-with-icon";
+import { makeShortLink } from "@/lib/config";
 
 export default function MetadataCard({
   shortslug,
@@ -24,10 +25,10 @@ export default function MetadataCard({
             <OpenInBrowser className="size-4" /> Short URL:{" "}
             {shortslug ? (
               <LinkWithIcon
-                link={`ndle.im/${shortslug}`}
+                link={makeShortLink(shortslug)}
                 className="text-foreground text-sm font-normal"
                 iconClassName="size-3"
-                href={`https://ndle.im/${shortslug}`}
+                href={`https://${makeShortLink(shortslug)}`}
               />
             ) : (
               <Skeleton className="w-sm" />

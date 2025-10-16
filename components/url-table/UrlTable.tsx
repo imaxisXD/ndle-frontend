@@ -59,6 +59,7 @@ import { type DisplayUrl, type LinkStatus, STATUS_LABELS } from "./types";
 import { formatRelative } from "@/lib/utils";
 import { CircleGridLoaderIcon } from "../icons";
 import { Skeleton } from "../ui/skeleton";
+import { makeShortLink } from "@/lib/config";
 
 interface UrlTableProps {
   showSearch?: boolean;
@@ -446,7 +447,7 @@ export function UrlTable({
       const formattedShortUrl = slugSource
         ? slugSource.startsWith("http")
           ? slugSource
-          : `ndle.im/${slugSource.replace(/^\/+/, "")}`
+          : makeShortLink(slugSource.replace(/^\/+/, ""))
         : "";
 
       const message = (doc.urlStatusMessage ?? "").toLowerCase();

@@ -152,6 +152,13 @@ User views URLs → routes/HomeRoute.tsx → components/UrlTable.tsx → convex/
 - `UPSTASH_REDIS_REST_TOKEN` - Redis auth token
 - Clerk environment variables
 
+#### Short domain configuration (frontend)
+
+- Local development uses `dev.ndle.im`
+- All other environments use `ndle.im`
+- Optional override: set `NEXT_PUBLIC_SHORT_DOMAIN` (without protocol) to force a domain
+- Helper: see `lib/config.ts` (`getShortDomain`, `makeShortLink`)
+
 ### **Deployment**
 
 - **Frontend**: Vercel (Next.js)

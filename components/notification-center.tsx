@@ -19,6 +19,7 @@ import {
   RefreshDouble,
   XmarkCircle,
 } from "iconoir-react";
+import { getShortDomain } from "@/lib/config";
 
 interface Notification {
   id: string;
@@ -30,24 +31,25 @@ interface Notification {
   link?: string;
 }
 
+const shortDomain = getShortDomain();
 const mockNotifications: Notification[] = [
   {
     id: "1",
     type: "healing",
     title: "Link Auto-Healed",
-    message: "ndle.im/m3p7q1 was automatically fixed using semantic search",
+    message: `${shortDomain}/m3p7q1 was automatically fixed using semantic search`,
     timestamp: "2 minutes ago",
     read: false,
-    link: "ndle.im/m3p7q1",
+    link: `${shortDomain}/m3p7q1`,
   },
   {
     id: "2",
     type: "click",
     title: "High Traffic Alert",
-    message: "ndle.im/a8x9k2 received 100+ clicks in the last hour",
+    message: `${shortDomain}/a8x9k2 received 100+ clicks in the last hour`,
     timestamp: "1 hour ago",
     read: false,
-    link: "ndle.im/a8x9k2",
+    link: `${shortDomain}/a8x9k2`,
   },
   {
     id: "3",
@@ -56,25 +58,25 @@ const mockNotifications: Notification[] = [
     message: "New AI summary created for your latest link",
     timestamp: "3 hours ago",
     read: true,
-    link: "ndle.im/k9n2w5",
+    link: `${shortDomain}/k9n2w5`,
   },
   {
     id: "4",
     type: "created",
     title: "Link Created",
-    message: "Successfully created ndle.im/p4r8t3",
+    message: `Successfully created ${shortDomain}/p4r8t3`,
     timestamp: "5 hours ago",
     read: true,
-    link: "ndle.im/p4r8t3",
+    link: `${shortDomain}/p4r8t3`,
   },
   {
     id: "5",
     type: "error",
     title: "Healing Failed",
-    message: "Unable to find alternative for broken link ndle.im/x7y2z9",
+    message: `Unable to find alternative for broken link ${shortDomain}/x7y2z9`,
     timestamp: "1 day ago",
     read: true,
-    link: "ndle.im/x7y2z9",
+    link: `${shortDomain}/x7y2z9`,
   },
 ];
 

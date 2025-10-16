@@ -14,6 +14,7 @@ import {
   WarningCircle,
   XmarkCircle,
 } from "iconoir-react";
+import { getShortDomain } from "@/lib/config";
 
 interface MonitoredLink {
   id: string;
@@ -27,10 +28,11 @@ interface MonitoredLink {
   ssl: boolean;
 }
 
+const shortDomain = getShortDomain();
 const mockLinks: MonitoredLink[] = [
   {
     id: "1",
-    shortUrl: "ndle.im/a8x9k2",
+    shortUrl: `${shortDomain}/a8x9k2`,
     originalUrl: "https://example.com/blog/how-to-build-a-saas-product",
     status: "healthy",
     uptime: 99.9,
@@ -41,7 +43,7 @@ const mockLinks: MonitoredLink[] = [
   },
   {
     id: "2",
-    shortUrl: "ndle.im/m3p7q1",
+    shortUrl: `${shortDomain}/m3p7q1`,
     originalUrl: "https://example.com/documentation/getting-started",
     status: "warning",
     uptime: 98.5,
@@ -52,7 +54,7 @@ const mockLinks: MonitoredLink[] = [
   },
   {
     id: "3",
-    shortUrl: "ndle.im/k9n2w5",
+    shortUrl: `${shortDomain}/k9n2w5`,
     originalUrl: "https://example.com/pricing/enterprise-plan",
     status: "checking",
     uptime: 100,
@@ -63,7 +65,7 @@ const mockLinks: MonitoredLink[] = [
   },
   {
     id: "4",
-    shortUrl: "ndle.im/p4r8t3",
+    shortUrl: `${shortDomain}/p4r8t3`,
     originalUrl: "https://example.com/features/analytics-dashboard",
     status: "healthy",
     uptime: 99.8,
@@ -74,7 +76,7 @@ const mockLinks: MonitoredLink[] = [
   },
   {
     id: "5",
-    shortUrl: "ndle.im/x7y2z9",
+    shortUrl: `${shortDomain}/x7y2z9`,
     originalUrl: "https://example.com/old-page-404",
     status: "error",
     uptime: 85.2,

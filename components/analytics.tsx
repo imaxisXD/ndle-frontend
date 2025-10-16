@@ -79,11 +79,41 @@ export function Analytics() {
   ];
 
   const topLinks = [
-    { url: "ndle.im/a8x9k2", clicks: 567, change: "+12%" },
-    { url: "ndle.im/k9n2w5", clicks: 342, change: "+8%" },
-    { url: "ndle.im/p4r8t3", clicks: 234, change: "+15%" },
-    { url: "ndle.im/m3p7q1", clicks: 189, change: "-3%" },
-    { url: "ndle.im/x7y2z9", clicks: 97, change: "+5%" },
+    {
+      url:
+        (process.env.NODE_ENV === "development" ? "dev.ndle.im" : "ndle.im") +
+        "/a8x9k2",
+      clicks: 567,
+      change: "+12%",
+    },
+    {
+      url:
+        (process.env.NODE_ENV === "development" ? "dev.ndle.im" : "ndle.im") +
+        "/k9n2w5",
+      clicks: 342,
+      change: "+8%",
+    },
+    {
+      url:
+        (process.env.NODE_ENV === "development" ? "dev.ndle.im" : "ndle.im") +
+        "/p4r8t3",
+      clicks: 234,
+      change: "+15%",
+    },
+    {
+      url:
+        (process.env.NODE_ENV === "development" ? "dev.ndle.im" : "ndle.im") +
+        "/m3p7q1",
+      clicks: 189,
+      change: "-3%",
+    },
+    {
+      url:
+        (process.env.NODE_ENV === "development" ? "dev.ndle.im" : "ndle.im") +
+        "/x7y2z9",
+      clicks: 97,
+      change: "+5%",
+    },
   ];
 
   const topCountries = [

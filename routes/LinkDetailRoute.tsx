@@ -26,17 +26,17 @@ import { LiveClickHero } from "@/components/charts/live-click-hero";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useToast } from "@/hooks/use-toast";
-import { formatRelative } from "@/lib/utils";
 import LinkDetailSkeleton from "@/components/skeleton-routes/link-detail-skeleton";
 import MetadataCard from "@/components/metadata-card";
 import LinkWithIcon from "@/components/ui/link-with-icon";
+import { makeShortLink } from "@/lib/config";
 
 export default function LinkDetailRoute() {
   const params = useParams();
   const navigate = useNavigate();
   const { add } = useToast();
   const slug = params[":slug"] || params.slug || "unknown";
-  const shortUrl = `ndle.im/${slug}`;
+  const shortUrl = makeShortLink(String(slug));
   const deleteUrl = useMutation(api.urlMainFuction.deleteUrl);
   const queryResult = useQuery(api.urlAnalytics.getUrlAnalytics, {
     urlSlug: slug,

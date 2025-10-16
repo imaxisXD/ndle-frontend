@@ -68,7 +68,11 @@ export function Settings() {
             />
             <p className="text-muted-foreground mt-2 text-xs">
               Add a CNAME record pointing to{" "}
-              <code className="bg-muted rounded px-1 py-0.5">ndle.im</code>
+              <code className="bg-muted rounded px-1 py-0.5">
+                {process.env.NODE_ENV === "development"
+                  ? "dev.ndle.im"
+                  : "ndle.im"}
+              </code>
             </p>
           </div>
 

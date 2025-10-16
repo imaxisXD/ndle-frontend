@@ -5,23 +5,25 @@ type MemoryItem = {
   conversations: number;
 };
 
+const domain =
+  process.env.NODE_ENV === "development" ? "dev.ndle.im" : "ndle.im";
 const items: Array<MemoryItem> = [
   {
-    link: "ndle.im/a8x9k2",
+    link: `${domain}/a8x9k2`,
     title: "How to Build a SaaS Product",
     memory:
       "Saved for reference on product development strategies. Key insights about MVP approach.",
     conversations: 5,
   },
   {
-    link: "ndle.im/m3p7q1",
+    link: `${domain}/m3p7q1`,
     title: "Getting Started Documentation",
     memory:
       "Important onboarding resource. Contains setup instructions for new team members.",
     conversations: 12,
   },
   {
-    link: "ndle.im/p4r8t3",
+    link: `${domain}/p4r8t3`,
     title: "Analytics Dashboard Features",
     memory:
       "Competitor analysis reference. Good examples of data visualization patterns.",
