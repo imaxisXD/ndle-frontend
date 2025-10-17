@@ -1,6 +1,10 @@
 import { ConvexError, v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import { getCurrentUser } from "./users";
+import { ShardedCounter } from "@convex-dev/sharded-counter";
+import { components } from "./_generated/api";
+
+export const counter = new ShardedCounter(components.shardedCounter);
 
 export const mutateUrlAnalytics = mutation({
   args: {
@@ -31,6 +35,9 @@ export const mutateUrlAnalytics = mutation({
       console.error("User not found");
       throw new ConvexError("User not found");
     }
+    const key = `url:${normalisedUrlId}`;
+    await counter.inc(ctx, key);
+
     const urlAnalytics = await ctx.db
       .query("urlAnalytics")
       .withIndex("by_url", (q) => q.eq("urlId", normalisedUrlId))
@@ -39,18 +46,23 @@ export const mutateUrlAnalytics = mutation({
     if (!urlAnalytics) {
       return await ctx.db.insert("urlAnalytics", {
         urlId: normalisedUrlId,
-        totalClickCounts: 1,
         updatedAt: Date.now(),
         urlStatusMessage: args.urlStatusMessage,
         urlStatusCode: args.urlStatusCode,
       });
     } else {
-      return await ctx.db.patch(urlAnalytics._id, {
-        totalClickCounts: urlAnalytics.totalClickCounts + 1,
-        updatedAt: Date.now(),
-        urlStatusMessage: args.urlStatusMessage,
-        urlStatusCode: args.urlStatusCode,
-      });
+      // Update only when urlStatusMessage or urlStatusCode is changed or updatedAt is older than 1 hour
+      if (
+        urlAnalytics.urlStatusMessage !== args.urlStatusMessage ||
+        urlAnalytics.urlStatusCode !== args.urlStatusCode ||
+        urlAnalytics.updatedAt < Date.now() - 1000 * 60 * 60 // 1 hour
+      ) {
+        return await ctx.db.patch(urlAnalytics._id, {
+          updatedAt: Date.now(),
+          urlStatusMessage: args.urlStatusMessage,
+          urlStatusCode: args.urlStatusCode,
+        });
+      }
     }
   },
 });
@@ -106,8 +118,14 @@ export const getUrlAnalytics = query({
       .withIndex("by_url", (q) => q.eq("urlId", url._id))
       .unique();
 
+    const key = `url:${url._id}`;
+    const totalClickCounts = await counter.count(ctx, key);
+    const analyticsWithCount = analytics
+      ? { ...analytics, totalClickCounts }
+      : null;
+
     return {
-      analytics,
+      analytics: analyticsWithCount,
       url,
       isError: false,
       message: "success",

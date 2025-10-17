@@ -8,7 +8,10 @@ import {
 import { getCurrentUser } from "./users";
 import { VALIDATION_ERRORS, createSlug, isValidHttpUrl } from "./utils";
 import { Doc } from "./_generated/dataModel";
-import { internal } from "./_generated/api";
+import { internal, components } from "./_generated/api";
+import { ShardedCounter } from "@convex-dev/sharded-counter";
+
+const counter = new ShardedCounter(components.shardedCounter);
 
 export const createUrl = mutation({
   args: {
@@ -97,7 +100,6 @@ export const createUrl = mutation({
 
     await ctx.db.insert("urlAnalytics", {
       urlId: docId,
-      totalClickCounts: 0,
       updatedAt: Date.now(),
       urlStatusMessage: "no traffic",
       urlStatusCode: 0,
@@ -162,7 +164,12 @@ export const getUserUrlsWithAnalytics = query({
           .query("urlAnalytics")
           .withIndex("by_url", (q) => q.eq("urlId", url._id))
           .unique();
-        return { ...url, analytics };
+        const key = `url:${url._id}`;
+        const totalClickCounts = await counter.count(ctx, key);
+        const analyticsWithCount = analytics
+          ? { ...analytics, totalClickCounts }
+          : null;
+        return { ...url, analytics: analyticsWithCount };
       }),
     );
 
@@ -202,7 +209,12 @@ export const getUserUrlsWithAnalyticsByCollection = query({
           .query("urlAnalytics")
           .withIndex("by_url", (q) => q.eq("urlId", url._id))
           .unique();
-        return { ...url, analytics };
+        const key = `url:${url._id}`;
+        const totalClickCounts = await counter.count(ctx, key);
+        const analyticsWithCount = analytics
+          ? { ...analytics, totalClickCounts }
+          : null;
+        return { ...url, analytics: analyticsWithCount };
       }),
     );
 

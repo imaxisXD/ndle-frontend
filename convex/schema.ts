@@ -25,7 +25,6 @@ export default defineSchema({
     .index("by_user_slug", ["userTableId", "slugAssigned"]),
   urlAnalytics: defineTable({
     urlId: v.id("urls"),
-    totalClickCounts: v.number(),
     urlStatusCode: v.optional(v.number()),
     urlStatusMessage: v.optional(v.string()),
     updatedAt: v.number(),

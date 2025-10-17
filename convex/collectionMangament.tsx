@@ -1,6 +1,7 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import { getCurrentUser } from "./users";
+import { counter } from "./urlAnalytics";
 
 export const getCollectionById = query({
   args: {
@@ -137,7 +138,8 @@ export const getUserCollections = query({
             .first();
 
           if (analytics) {
-            totalClickCount += analytics.totalClickCounts;
+            const key = `url:${urlId}`;
+            totalClickCount += await counter.count(ctx, key);
           }
         }
 

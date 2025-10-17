@@ -8,11 +8,6 @@
  * @module
  */
 
-import type {
-  ApiFromModules,
-  FilterApi,
-  FunctionReference,
-} from "convex/server";
 import type * as collectionMangament from "../collectionMangament.js";
 import type * as redisAction from "../redisAction.js";
 import type * as triggerFuctions from "../triggerFuctions.js";
@@ -20,6 +15,12 @@ import type * as urlAnalytics from "../urlAnalytics.js";
 import type * as urlMainFuction from "../urlMainFuction.js";
 import type * as users from "../users.js";
 import type * as utils from "../utils.js";
+
+import type {
+  ApiFromModules,
+  FilterApi,
+  FunctionReference,
+} from "convex/server";
 
 /**
  * A utility for referencing Convex functions in your app's API.
@@ -38,11 +39,40 @@ declare const fullApi: ApiFromModules<{
   users: typeof users;
   utils: typeof utils;
 }>;
+declare const fullApiWithMounts: typeof fullApi;
+
 export declare const api: FilterApi<
-  typeof fullApi,
+  typeof fullApiWithMounts,
   FunctionReference<any, "public">
 >;
 export declare const internal: FilterApi<
-  typeof fullApi,
+  typeof fullApiWithMounts,
   FunctionReference<any, "internal">
 >;
+
+export declare const components: {
+  shardedCounter: {
+    public: {
+      add: FunctionReference<
+        "mutation",
+        "internal",
+        { count: number; name: string; shard?: number; shards?: number },
+        number
+      >;
+      count: FunctionReference<"query", "internal", { name: string }, number>;
+      estimateCount: FunctionReference<
+        "query",
+        "internal",
+        { name: string; readFromShards?: number; shards?: number },
+        any
+      >;
+      rebalance: FunctionReference<
+        "mutation",
+        "internal",
+        { name: string; shards?: number },
+        any
+      >;
+      reset: FunctionReference<"mutation", "internal", { name: string }, any>;
+    };
+  };
+};
