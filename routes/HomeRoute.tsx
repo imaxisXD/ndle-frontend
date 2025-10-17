@@ -1,15 +1,13 @@
+import { NdleDotMatrix } from "@/components/ndle-dot-matrix";
 import { UrlShortener } from "@/components/url-shortener";
 import { UrlTable } from "@/components/url-table/UrlTable";
 
 export default function HomeRoute() {
   return (
     <>
-      <header className="px-5">
-        <h1
-          className="font-doto roundness-100 text-5xl font-bold tracking-tight text-black"
-          id="home-heading"
-        >
-          ndle
+      <header className="flex flex-col items-start">
+        <h1 className="text-5xl font-bold tracking-tight" id="home-heading">
+          <NdleDotMatrix />
         </h1>
         <p className="text-muted-foreground mt-2 text-sm">
           Short. Sharp. Smarter.
