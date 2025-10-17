@@ -37,7 +37,7 @@ export default function MetadataCard({
           <div className="flex items-center gap-2">
             <Link className="size-4" /> Full Link:{" "}
             {fullurl ? (
-              <code className="max-w-md truncate">{fullurl}</code>
+              <code className="max-w-xs truncate">{fullurl}</code>
             ) : (
               <Skeleton className="w-sm" />
             )}
