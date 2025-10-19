@@ -1,7 +1,6 @@
 "use client";
 
 import { NavLink } from "react-router";
-
 import {
   Brain,
   FolderPlus,
@@ -11,8 +10,6 @@ import {
   Reports,
   Settings,
 } from "iconoir-react";
-
-import { NotificationCenter } from "./notification-center";
 import {
   Tooltip,
   TooltipContent,
@@ -42,25 +39,7 @@ export function Sidebar() {
           </TooltipTrigger>
           <TooltipContent side="right">Home</TooltipContent>
         </Tooltip>
-        <Tooltip>
-          <TooltipTrigger
-            render={
-              <NavLink
-                to="/create"
-                className={({ isActive }) =>
-                  `flex h-10 w-10 items-center justify-center rounded-md transition-colors ${
-                    isActive
-                      ? "bg-accent text-accent-foreground"
-                      : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
-                  }`
-                }
-              />
-            }
-          >
-            <Plus className="h-5 w-5" />
-          </TooltipTrigger>
-          <TooltipContent side="right">Create</TooltipContent>
-        </Tooltip>
+
         <Tooltip>
           <TooltipTrigger
             render={
@@ -99,30 +78,7 @@ export function Sidebar() {
           </TooltipTrigger>
           <TooltipContent side="right">Memory</TooltipContent>
         </Tooltip>
-        <Tooltip>
-          <TooltipTrigger
-            render={
-              <NavLink
-                to="/monitoring"
-                className={({ isActive }) =>
-                  `flex h-10 w-10 items-center justify-center rounded-md transition-colors ${
-                    isActive
-                      ? "bg-accent text-accent-foreground"
-                      : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
-                  }`
-                }
-              />
-            }
-          >
-            <Presentation className="size-5" />
-          </TooltipTrigger>
-          <TooltipContent side="right">Monitoring</TooltipContent>
-        </Tooltip>
-      </nav>
 
-      <div className="flex flex-col gap-4">
-        {/* TODO: WILL ADD BACK IN LATER notification center */}
-        {/* <NotificationCenter /> */}
         <Tooltip>
           <TooltipTrigger
             render={
@@ -142,6 +98,31 @@ export function Sidebar() {
           </TooltipTrigger>
           <TooltipContent side="right">Analytics</TooltipContent>
         </Tooltip>
+      </nav>
+
+      <div className="flex flex-col gap-4">
+        {/* TODO: WILL ADD BACK IN LATER notification center */}
+        {/* <NotificationCenter /> */}
+        <Tooltip>
+          <TooltipTrigger
+            render={
+              <NavLink
+                to="/monitoring"
+                className={({ isActive }) =>
+                  `flex h-10 w-10 items-center justify-center rounded-md transition-colors ${
+                    isActive
+                      ? "bg-accent text-accent-foreground"
+                      : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                  }`
+                }
+              />
+            }
+          >
+            <Presentation className="size-5" />
+          </TooltipTrigger>
+          <TooltipContent side="right">Monitoring</TooltipContent>
+        </Tooltip>
+
         <Tooltip>
           <TooltipTrigger
             render={

@@ -26,7 +26,7 @@ import { Internet } from "iconoir-react";
 
 export const description = "A bar chart with a custom label";
 
-const chartData = [
+const defaultData = [
   { month: "Chrome", clicks: 186 },
   { month: "Firefox", clicks: 305 },
   { month: "Safari", clicks: 237 },
@@ -45,7 +45,12 @@ const chartConfig = {
   },
 } satisfies ChartConfig;
 
-export function BrowserChart() {
+export function BrowserChart({
+  data,
+}: {
+  data?: Array<{ month: string; clicks: number }>;
+}) {
+  console.log(data);
   return (
     <Card>
       <CardHeader className="flex flex-col items-start justify-between gap-1">
@@ -64,7 +69,7 @@ export function BrowserChart() {
         >
           <BarChart
             accessibilityLayer
-            data={chartData}
+            data={data ?? defaultData}
             layout="vertical"
             margin={{
               right: 16,
@@ -109,16 +114,19 @@ export function BrowserChart() {
                   indicator="dashed"
                   color="var(--color-pink-600)"
                   labelFormatter={(label, payload) => {
-                    const data = payload[0]?.payload;
-                    const totalClicks = chartData.reduce(
-                      (sum, item) => sum + item.clicks,
+                    const row = payload?.[0]?.payload as
+                      | { month: string; clicks: number }
+                      | undefined;
+                    const dataset = data ?? defaultData;
+                    const totalClicks = dataset.reduce(
+                      (sum: number, item: { month: string; clicks: number }) =>
+                        sum + item.clicks,
                       0,
                     );
-                    const percentage = (
-                      (data.clicks / totalClicks) *
-                      100
-                    ).toFixed(1);
-
+                    const percentage =
+                      row && totalClicks
+                        ? ((row.clicks / totalClicks) * 100).toFixed(1)
+                        : "0.0";
                     return `${label} [${percentage} %]`;
                   }}
                 />

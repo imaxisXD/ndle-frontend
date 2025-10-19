@@ -36,4 +36,4 @@ SCHEMA >
     `timezone` Nullable(String) `json:$.timezone`
 
 ENGINE "MergeTree"
-ENGINE_SORTING_KEY "occurred_at, link_slug"
+ENGINE_SORTING_KEY "link_slug, occurred_at"

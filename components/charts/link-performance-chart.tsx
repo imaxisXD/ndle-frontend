@@ -26,7 +26,7 @@ import { Link } from "iconoir-react";
 
 export const description = "A bar chart showing link performance";
 
-const chartData = [
+const defaultData = [
   { link: "majorforksstrive", clicks: 9 },
   { link: "fancypansbrake", clicks: 6 },
   { link: "busyfactsdoubt", clicks: 8 },
@@ -42,7 +42,11 @@ const chartConfig = {
   },
 } satisfies ChartConfig;
 
-export function LinkPerformanceChart() {
+export function LinkPerformanceChart({
+  data,
+}: {
+  data?: Array<{ link: string; clicks: number }>;
+}) {
   return (
     <Card>
       <CardHeader className="flex flex-col items-start justify-between gap-1.5">
@@ -61,7 +65,7 @@ export function LinkPerformanceChart() {
         >
           <BarChart
             accessibilityLayer
-            data={chartData}
+            data={data ?? defaultData}
             layout="vertical"
             margin={{
               right: 16,
@@ -98,15 +102,18 @@ export function LinkPerformanceChart() {
                   indicator="dashed"
                   color="var(--color-purple-600)"
                   labelFormatter={(label, payload) => {
-                    const data = payload[0]?.payload;
-                    const totalClicks = chartData.reduce(
+                    const row = payload?.[0]?.payload as
+                      | { link: string; clicks: number }
+                      | undefined;
+                    const dataset = data ?? defaultData;
+                    const totalClicks = dataset.reduce(
                       (sum, item) => sum + item.clicks,
                       0,
                     );
-                    const percentage = (
-                      (data.clicks / totalClicks) *
-                      100
-                    ).toFixed(1);
+                    const percentage =
+                      row && totalClicks
+                        ? ((row.clicks / totalClicks) * 100).toFixed(1)
+                        : "0.0";
 
                     return `${label} [${percentage}%]`;
                   }}

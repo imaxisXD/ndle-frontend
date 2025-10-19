@@ -21,7 +21,7 @@ import { ShieldAlert } from "iconoir-react";
 export const description =
   "A donut chart showing bot vs human traffic with active sector";
 
-const chartData = [
+const defaultData = [
   { name: "Human Traffic", value: 18, color: "var(--color-green-500)" },
   { name: "Bot Traffic", value: 5, color: "var(--color-red-500)" },
 ];
@@ -33,7 +33,11 @@ const chartConfig = {
   },
 } satisfies ChartConfig;
 
-export function BotTrafficChart() {
+export function BotTrafficChart({
+  data,
+}: {
+  data?: Array<{ name: string; value: number; color?: string }>;
+}) {
   return (
     <Card>
       <CardHeader className="flex flex-col items-start justify-between gap-1.5">
@@ -52,7 +56,7 @@ export function BotTrafficChart() {
         >
           <PieChart>
             <Pie
-              data={chartData}
+              data={data ?? defaultData}
               cx="50%"
               cy="50%"
               innerRadius={60}
@@ -67,7 +71,7 @@ export function BotTrafficChart() {
                 <Sector {...props} outerRadius={outerRadius + 10} />
               )}
             >
-              {chartData.map((entry, index) => (
+              {(data ?? defaultData).map((entry, index) => (
                 <Cell key={`cell-${index}`} fill={entry.color} />
               ))}
             </Pie>
@@ -77,12 +81,19 @@ export function BotTrafficChart() {
                   className="bg-white/90 backdrop-blur-lg"
                   indicator="dashed"
                   labelFormatter={(label, payload) => {
-                    const data = payload[0]?.payload;
-                    const total = chartData.reduce(
-                      (sum, item) => sum + item.value,
+                    const row = payload?.[0]?.payload as
+                      | { name: string; value: number }
+                      | undefined;
+                    const dataset = data ?? defaultData;
+                    const total = dataset.reduce(
+                      (sum: number, item: { name: string; value: number }) =>
+                        sum + item.value,
                       0,
                     );
-                    const percentage = ((data.value / total) * 100).toFixed(1);
+                    const percentage =
+                      row && total
+                        ? ((row.value / total) * 100).toFixed(1)
+                        : "0.0";
 
                     return `${label} [${percentage}%]`;
                   }}
@@ -92,7 +103,7 @@ export function BotTrafficChart() {
           </PieChart>
         </ChartContainer>
         <div className="mt-4 flex justify-center gap-6">
-          {chartData.map((item) => (
+          {(data ?? defaultData).map((item) => (
             <div key={item.name} className="flex items-center gap-2">
               <div
                 className="h-3 w-3 rounded-full"

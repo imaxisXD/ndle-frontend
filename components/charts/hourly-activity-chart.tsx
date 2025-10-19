@@ -19,7 +19,7 @@ import { Clock } from "iconoir-react";
 
 export const description = "An area chart showing hourly click activity";
 
-const chartData = [
+const defaultData = [
   { hour: "00:00", clicks: 0 },
   { hour: "04:00", clicks: 2 },
   { hour: "08:00", clicks: 0 },
@@ -42,7 +42,11 @@ const chartConfig = {
   },
 } satisfies ChartConfig;
 
-export function HourlyActivityChart() {
+export function HourlyActivityChart({
+  data,
+}: {
+  data?: Array<{ hour: string; clicks: number }>;
+}) {
   return (
     <Card>
       <CardHeader className="flex flex-col items-start justify-between gap-1.5">
@@ -61,7 +65,7 @@ export function HourlyActivityChart() {
         >
           <AreaChart
             accessibilityLayer
-            data={chartData}
+            data={data ?? defaultData}
             margin={{
               top: 20,
               right: 20,

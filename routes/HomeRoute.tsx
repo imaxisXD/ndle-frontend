@@ -6,8 +6,12 @@ export default function HomeRoute() {
   return (
     <>
       <header className="flex flex-col items-start">
-        <h1 className="text-5xl font-bold tracking-tight" id="home-heading">
-          <NdleDotMatrix />
+        <h1
+          className="font-doto roundness-100 text-5xl font-bold tracking-tight"
+          id="home-heading"
+        >
+          {/* <NdleDotMatrix /> */}
+          ndle
         </h1>
         <p className="text-muted-foreground mt-2 text-sm">
           Short. Sharp. Smarter.

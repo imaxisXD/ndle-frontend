@@ -26,7 +26,7 @@ import { Server } from "iconoir-react";
 
 export const description = "A bar chart showing datacenter performance";
 
-const chartData = [
+const defaultData = [
   { datacenter: "BOM (Bombay)", clicks: 11 },
   { datacenter: "MRS (Marseille)", clicks: 12 },
 ];
@@ -41,7 +41,11 @@ const chartConfig = {
   },
 } satisfies ChartConfig;
 
-export function DatacenterChart() {
+export function DatacenterChart({
+  data,
+}: {
+  data?: Array<{ datacenter: string; clicks: number }>;
+}) {
   return (
     <Card>
       <CardHeader className="flex flex-col items-start justify-between gap-1.5">
@@ -60,7 +64,7 @@ export function DatacenterChart() {
         >
           <BarChart
             accessibilityLayer
-            data={chartData}
+            data={data ?? defaultData}
             layout="vertical"
             margin={{
               right: 16,
@@ -97,15 +101,18 @@ export function DatacenterChart() {
                   indicator="dashed"
                   color="#d97706"
                   labelFormatter={(label, payload) => {
-                    const data = payload[0]?.payload;
-                    const totalClicks = chartData.reduce(
+                    const row = payload?.[0]?.payload as
+                      | { datacenter: string; clicks: number }
+                      | undefined;
+                    const dataset = data ?? defaultData;
+                    const totalClicks = dataset.reduce(
                       (sum, item) => sum + item.clicks,
                       0,
                     );
-                    const percentage = (
-                      (data.clicks / totalClicks) *
-                      100
-                    ).toFixed(1);
+                    const percentage =
+                      row && totalClicks
+                        ? ((row.clicks / totalClicks) * 100).toFixed(1)
+                        : "0.0";
 
                     return `${label} [${percentage}%]`;
                   }}

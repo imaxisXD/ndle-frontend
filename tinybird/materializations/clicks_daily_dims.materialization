@@ -1,0 +1,36 @@
+DESCRIPTION >
+    Daily aggregated clicks metrics (UTC) with key dimensions for analytics.
+
+SQL >
+    SELECT
+        toStartOfDay(occurred_at) AS day_start,
+        link_slug,
+        user_id,
+        ifNull(device_type, 'unknown') AS device_type,
+        ifNull(browser, 'unknown') AS browser,
+        ifNull(os, 'unknown') AS os,
+        ifNull(country, 'unknown') AS country,
+        ifNull(worker_datacenter, 'unknown') AS worker_datacenter,
+        is_bot,
+        count() AS clicks,
+        uniq(session_id) AS unique_sessions,
+        countIf(first_click_of_session = 1) AS new_sessions,
+        countIf(is_bot = 0) AS human_clicks,
+        countIf(is_bot = 1) AS bot_clicks,
+        avgOrNull(latency_ms_worker) AS avg_latency
+    FROM link_clicks
+    GROUP BY
+        day_start,
+        link_slug,
+        user_id,
+        device_type,
+        browser,
+        os,
+        country,
+        worker_datacenter,
+        is_bot
+    ORDER BY day_start
+
+TARGET_TABLE clicks_daily_dims
+
+

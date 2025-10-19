@@ -4,7 +4,6 @@ import HomeRoute from "@/routes/HomeRoute";
 import AnalyticsRoute from "@/routes/AnalyticsRoute";
 import MonitoringRoute from "@/routes/MonitoringRoute";
 import SettingsRoute from "@/routes/SettingsRoute";
-import CreateRoute from "@/routes/CreateRoute";
 import CollectionsRoute from "@/routes/CollectionsRoute";
 import MemoryRoute from "@/routes/MemoryRoute";
 import LinkDetailRoute from "@/routes/LinkDetailRoute";
@@ -32,7 +31,6 @@ export default function App() {
                     <Route path="/analytics" element={<AnalyticsRoute />} />
                     <Route path="/monitoring" element={<MonitoringRoute />} />
                     <Route path="/settings" element={<SettingsRoute />} />
-                    <Route path="/create" element={<CreateRoute />} />
                     <Route path="/collections" element={<CollectionsRoute />} />
                     <Route
                       path="/collection/:slug"

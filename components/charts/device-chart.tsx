@@ -26,7 +26,7 @@ import { AppleImac2021 as DeviceDesktop } from "iconoir-react";
 
 export const description = "A bar chart showing device type distribution";
 
-const chartData = [
+const defaultData = [
   { device: "Desktop", clicks: 18 },
   { device: "Mobile", clicks: 5 },
 ];
@@ -41,7 +41,11 @@ const chartConfig = {
   },
 } satisfies ChartConfig;
 
-export function DeviceChart() {
+export function DeviceChart({
+  data,
+}: {
+  data?: Array<{ device: string; clicks: number }>;
+}) {
   return (
     <Card>
       <CardHeader className="flex flex-col items-start justify-between gap-1.5">
@@ -60,7 +64,7 @@ export function DeviceChart() {
         >
           <BarChart
             accessibilityLayer
-            data={chartData}
+            data={data ?? defaultData}
             layout="vertical"
             margin={{
               right: 16,
@@ -96,15 +100,18 @@ export function DeviceChart() {
                   indicator="dashed"
                   color="var(--color-orange-600)"
                   labelFormatter={(label, payload) => {
-                    const data = payload[0]?.payload;
-                    const totalClicks = chartData.reduce(
+                    const row = payload?.[0]?.payload as
+                      | { device: string; clicks: number }
+                      | undefined;
+                    const dataset = data ?? defaultData;
+                    const totalClicks = dataset.reduce(
                       (sum, item) => sum + item.clicks,
                       0,
                     );
-                    const percentage = (
-                      (data.clicks / totalClicks) *
-                      100
-                    ).toFixed(1);
+                    const percentage =
+                      row && totalClicks
+                        ? ((row.clicks / totalClicks) * 100).toFixed(1)
+                        : "0.0";
 
                     return `${label} [${percentage}%]`;
                   }}

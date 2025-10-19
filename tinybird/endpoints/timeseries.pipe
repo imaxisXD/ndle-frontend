@@ -1,0 +1,28 @@
+DESCRIPTION >
+    Timeseries analytics using cost-optimized pre-aggregated data
+
+NODE redirect_to_optimized
+SQL >
+    %
+    SELECT
+        day AS bucket_start,
+        countMerge(total_clicks) AS clicks,
+        uniqMerge(unique_sessions) AS unique_sessions,
+        countMerge(new_sessions) AS new_sessions,
+        countMerge(human_clicks) AS human_clicks,
+        countMerge(bot_clicks) AS bot_clicks,
+        avgMerge(avg_latency) AS avg_latency
+    FROM link_clicks_daily_mv
+    WHERE
+        day >= toDate({{DateTime(start_date, '1970-01-01 00:00:00')}})
+        AND day <= toDate({{DateTime(end_date, '2100-01-01 00:00:00')}})
+        {% if defined(link_slug) %}
+        AND link_slug = {{String(link_slug)}}
+        {% end %}
+        {% if defined(user_id) %}
+        AND user_id = {{String(user_id)}}
+        {% end %}
+    GROUP BY bucket_start
+    ORDER BY bucket_start
+
+TYPE endpoint

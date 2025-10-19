@@ -26,7 +26,7 @@ import { AppleImac2021 as Monitor } from "iconoir-react";
 
 export const description = "A bar chart showing operating system distribution";
 
-const chartData = [{ os: "macOS", clicks: 23 }];
+const defaultData = [{ os: "macOS", clicks: 23 }];
 
 const chartConfig = {
   clicks: {
@@ -38,7 +38,11 @@ const chartConfig = {
   },
 } satisfies ChartConfig;
 
-export function OperatingSystemChart() {
+export function OperatingSystemChart({
+  data,
+}: {
+  data?: Array<{ os: string; clicks: number }>;
+}) {
   return (
     <Card>
       <CardHeader className="flex flex-col items-start justify-between gap-1.5">
@@ -57,7 +61,7 @@ export function OperatingSystemChart() {
         >
           <BarChart
             accessibilityLayer
-            data={chartData}
+            data={data ?? defaultData}
             layout="vertical"
             margin={{
               right: 16,
@@ -93,15 +97,19 @@ export function OperatingSystemChart() {
                   indicator="dashed"
                   color="#4f46e5"
                   labelFormatter={(label, payload) => {
-                    const data = payload[0]?.payload;
-                    const totalClicks = chartData.reduce(
-                      (sum, item) => sum + item.clicks,
+                    const row = payload?.[0]?.payload as
+                      | { os: string; clicks: number }
+                      | undefined;
+                    const dataset = data ?? defaultData;
+                    const totalClicks = dataset.reduce(
+                      (sum: number, item: { os: string; clicks: number }) =>
+                        sum + item.clicks,
                       0,
                     );
-                    const percentage = (
-                      (data.clicks / totalClicks) *
-                      100
-                    ).toFixed(1);
+                    const percentage =
+                      row && totalClicks
+                        ? ((row.clicks / totalClicks) * 100).toFixed(1)
+                        : "0.0";
 
                     return `${label} [${percentage}%]`;
                   }}

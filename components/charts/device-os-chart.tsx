@@ -35,13 +35,13 @@ import {
 } from "iconoir-react";
 
 // Device Chart Data
-const deviceData = [
+const defaultDeviceData = [
   { device: "Desktop", clicks: 18 },
   { device: "Mobile", clicks: 5 },
 ];
 
 // OS Chart Data
-const osData = [{ os: "macOS", clicks: 23 }];
+const defaultOsData = [{ os: "macOS", clicks: 23 }];
 
 const deviceConfig = {
   clicks: {
@@ -63,7 +63,13 @@ const osConfig = {
   },
 } satisfies ChartConfig;
 
-export function DeviceOSChart() {
+export function DeviceOSChart({
+  deviceData,
+  osData,
+}: {
+  deviceData?: Array<{ device: string; clicks: number }>;
+  osData?: Array<{ os: string; clicks: number }>;
+}) {
   return (
     <Card>
       <CardHeader className="flex flex-col items-start justify-between gap-1.5">
@@ -99,7 +105,7 @@ export function DeviceOSChart() {
               >
                 <BarChart
                   accessibilityLayer
-                  data={deviceData}
+                  data={deviceData ?? defaultDeviceData}
                   layout="vertical"
                   margin={{ right: 16 }}
                 >
@@ -111,8 +117,8 @@ export function DeviceOSChart() {
                       x2="1"
                       y2="0"
                     >
-                      <stop offset="0%" stopColor="var(--color-orange-300)" />
-                      <stop offset="100%" stopColor="var(--color-orange-500)" />
+                      <stop offset="0%" stopColor="#b5e48c" />
+                      <stop offset="100%" stopColor="#99d98c" />
                     </linearGradient>
                   </defs>
                   <CartesianGrid horizontal={false} />
@@ -133,15 +139,18 @@ export function DeviceOSChart() {
                         indicator="dashed"
                         color="var(--color-orange-600)"
                         labelFormatter={(label, payload) => {
-                          const data = payload[0]?.payload;
-                          const totalClicks = deviceData.reduce(
+                          const row = payload?.[0]?.payload as
+                            | { device: string; clicks: number }
+                            | undefined;
+                          const dataset = deviceData ?? defaultDeviceData;
+                          const totalClicks = dataset.reduce(
                             (sum, item) => sum + item.clicks,
                             0,
                           );
-                          const percentage = (
-                            (data.clicks / totalClicks) *
-                            100
-                          ).toFixed(1);
+                          const percentage =
+                            row && totalClicks
+                              ? ((row.clicks / totalClicks) * 100).toFixed(1)
+                              : "0.0";
                           return `${label} [${percentage}%]`;
                         }}
                       />
@@ -181,7 +190,7 @@ export function DeviceOSChart() {
               >
                 <BarChart
                   accessibilityLayer
-                  data={osData}
+                  data={osData ?? defaultOsData}
                   layout="vertical"
                   margin={{ right: 16 }}
                 >
@@ -193,8 +202,8 @@ export function DeviceOSChart() {
                       x2="1"
                       y2="0"
                     >
-                      <stop offset="0%" stopColor="#6366f1" />
-                      <stop offset="100%" stopColor="#4f46e5" />
+                      <stop offset="0%" stopColor="#ffc8dd" />
+                      <stop offset="100%" stopColor="#ffafcc" />
                     </linearGradient>
                   </defs>
                   <CartesianGrid horizontal={false} />
@@ -215,15 +224,18 @@ export function DeviceOSChart() {
                         indicator="dashed"
                         color="#4f46e5"
                         labelFormatter={(label, payload) => {
-                          const data = payload[0]?.payload;
-                          const totalClicks = osData.reduce(
+                          const row = payload?.[0]?.payload as
+                            | { os: string; clicks: number }
+                            | undefined;
+                          const dataset = osData ?? defaultOsData;
+                          const totalClicks = dataset.reduce(
                             (sum, item) => sum + item.clicks,
                             0,
                           );
-                          const percentage = (
-                            (data.clicks / totalClicks) *
-                            100
-                          ).toFixed(1);
+                          const percentage =
+                            row && totalClicks
+                              ? ((row.clicks / totalClicks) * 100).toFixed(1)
+                              : "0.0";
                           return `${label} [${percentage}%]`;
                         }}
                       />

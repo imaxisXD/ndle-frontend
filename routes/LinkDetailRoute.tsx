@@ -8,13 +8,7 @@ import {
   CardToolbar,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import {
-  BinMinusIn,
-  Clock,
-  Link,
-  OpenInBrowser,
-  OpenNewWindow,
-} from "iconoir-react";
+import { BinMinusIn } from "iconoir-react";
 import { BrowserChart } from "@/components/charts/browser-chart";
 import { CountryChart } from "@/components/charts/country-chart";
 import { DeviceOSChart } from "@/components/charts/device-os-chart";
@@ -23,6 +17,11 @@ import { BotTrafficChart } from "@/components/charts/bot-traffic-chart";
 import { LatencyChart } from "@/components/charts/latency-chart";
 import { HourlyActivityChart } from "@/components/charts/hourly-activity-chart";
 import { LiveClickHero } from "@/components/charts/live-click-hero";
+import { useState } from "react";
+import { TimeRangeSelector } from "@/components/analytics/TimeRangeSelector";
+import { useBreakdown, useTimeseries } from "@/hooks/useAnalytics";
+import type { AnalyticsRange } from "@/lib/analyticsRanges";
+import { getUtcRange } from "@/lib/analyticsRanges";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useToast } from "@/hooks/use-toast";
@@ -36,6 +35,42 @@ export default function LinkDetailRoute() {
   const navigate = useNavigate();
   const { add } = useToast();
   const slug = params[":slug"] || params.slug || "unknown";
+  const [range, setRange] = useState<AnalyticsRange>("7d");
+
+  const timeseries = useTimeseries({
+    range,
+    linkSlug: String(slug),
+    scope: "link",
+  });
+
+  const browsers = useBreakdown({
+    dimension: "browser",
+    range,
+    linkSlug: String(slug),
+    scope: "link",
+  });
+
+  const countries = useBreakdown({
+    dimension: "country",
+    range,
+    linkSlug: String(slug),
+    scope: "link",
+  });
+
+  const devices = useBreakdown({
+    dimension: "device",
+    range,
+    linkSlug: String(slug),
+    scope: "link",
+  });
+
+  const os = useBreakdown({
+    dimension: "os",
+    range,
+    linkSlug: String(slug),
+    scope: "link",
+  });
+
   const shortUrl = makeShortLink(String(slug));
   const deleteUrl = useMutation(api.urlMainFuction.deleteUrl);
   const queryResult = useQuery(api.urlAnalytics.getUrlAnalytics, {
@@ -56,6 +91,103 @@ export default function LinkDetailRoute() {
     });
   }
 
+  type TimeseriesRow = {
+    bucket_start: string;
+    clicks: number;
+    human_clicks?: number;
+    bot_clicks?: number;
+  };
+  type BreakdownRow = { label: string | null; clicks: number };
+
+  // Map API results to chart-friendly shapes
+  const tsRows: Array<TimeseriesRow> =
+    (timeseries.data as { data: Array<TimeseriesRow> } | undefined)?.data ?? [];
+  const formatBucket = (s: string) => {
+    const d = new Date(s);
+    const yyyy = d.getUTCFullYear();
+    const mm = String(d.getUTCMonth() + 1).padStart(2, "0");
+    const dd = String(d.getUTCDate()).padStart(2, "0");
+    return `${yyyy}-${mm}-${dd}`;
+  };
+  const formatHour = (s: string) => {
+    const d = new Date(s);
+    const HH = String(d.getUTCHours()).padStart(2, "0");
+    return `${HH}:00`;
+  };
+  // Build a day -> clicks map for zero-filling
+  const dayToClicks = new Map<string, number>();
+  for (const r of tsRows) {
+    const key = formatBucket(r.bucket_start);
+    dayToClicks.set(key, (dayToClicks.get(key) ?? 0) + r.clicks);
+  }
+
+  // Zero-fill from selected range start..end so the area chart has a flat baseline
+  const clicksTimelineData: Array<{ time: string; clicks: number }> = [];
+  if (tsRows.length > 0) {
+    const { start, end } = getUtcRange(range);
+    const startDay = new Date(
+      Date.UTC(start.getUTCFullYear(), start.getUTCMonth(), start.getUTCDate()),
+    );
+    const endDay = new Date(
+      Date.UTC(end.getUTCFullYear(), end.getUTCMonth(), end.getUTCDate()),
+    );
+    for (
+      let d = startDay;
+      d.getTime() <= endDay.getTime();
+      d = new Date(
+        Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate() + 1),
+      )
+    ) {
+      const yyyy = d.getUTCFullYear();
+      const mm = String(d.getUTCMonth() + 1).padStart(2, "0");
+      const dd = String(d.getUTCDate()).padStart(2, "0");
+      const key = `${yyyy}-${mm}-${dd}`;
+      clicksTimelineData.push({ time: key, clicks: dayToClicks.get(key) ?? 0 });
+    }
+  }
+  const hourlyActivityData = tsRows.map((r) => ({
+    hour: formatHour(r.bucket_start),
+    clicks: r.clicks,
+  }));
+  const humanClicks = tsRows.reduce(
+    (s: number, r) => s + (r.human_clicks ?? 0),
+    0,
+  );
+  const botClicks = tsRows.reduce((s: number, r) => s + (r.bot_clicks ?? 0), 0);
+  const botHumanData = [
+    {
+      name: "Human Traffic",
+      value: humanClicks,
+      color: "var(--color-green-500)",
+    },
+    { name: "Bot Traffic", value: botClicks, color: "var(--color-red-500)" },
+  ];
+  const browserRows: Array<BreakdownRow> =
+    (browsers.data as { data: Array<BreakdownRow> } | undefined)?.data ?? [];
+  const countryRows: Array<BreakdownRow> =
+    (countries.data as { data: Array<BreakdownRow> } | undefined)?.data ?? [];
+  const deviceRows: Array<BreakdownRow> =
+    (devices.data as { data: Array<BreakdownRow> } | undefined)?.data ?? [];
+  const osRows: Array<BreakdownRow> =
+    (os.data as { data: Array<BreakdownRow> } | undefined)?.data ?? [];
+
+  const browserData = browserRows.map((r) => ({
+    month: r.label ?? "unknown",
+    clicks: r.clicks ?? 0,
+  }));
+  const countryData = countryRows.map((r) => ({
+    country: r.label ?? "unknown",
+    clicks: r.clicks ?? 0,
+  }));
+  const deviceData = deviceRows.map((r) => ({
+    device: r.label ?? "unknown",
+    clicks: r.clicks ?? 0,
+  }));
+  const osData = osRows.map((r) => ({
+    os: r.label ?? "unknown",
+    clicks: r.clicks ?? 0,
+  }));
+
   return (
     <>
       <header className="space-y-4">
@@ -65,19 +197,26 @@ export default function LinkDetailRoute() {
             Link analytics and settings
           </p>
         </div>
+        <div className="flex items-center justify-end">
+          <TimeRangeSelector value={range} onChange={setRange} />
+        </div>
         <LiveClickHero counterValue={analyticsData?.totalClickCounts || 0} />
       </header>
 
       <section className="grid gap-6 lg:grid-cols-2">
-        <ClicksTimelineChart />
-        <BrowserChart />
-        <CountryChart />
-        <DeviceOSChart />
+        <ClicksTimelineChart
+          data={clicksTimelineData}
+          isLoading={timeseries.isLoading}
+        />
+        <BrowserChart data={browserData} />
+        <CountryChart data={countryData} />
+        <DeviceOSChart deviceData={deviceData} osData={osData} />
+        {/* <DatacenterChart data={datacenterData} /> */}
         {/* <LinkPerformanceChart /> */}
-        <BotTrafficChart />
+        <BotTrafficChart data={botHumanData} />
         <LatencyChart />
-        <HourlyActivityChart />
-        {/* <DatacenterChart /> */}
+        <HourlyActivityChart data={hourlyActivityData} />
+        {/* <DatacenterChart data={datacenterData} /> */}
       </section>
 
       <section className="mt-6 grid gap-6 lg:grid-cols-2">
