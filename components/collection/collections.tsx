@@ -13,14 +13,15 @@ import {
 } from "@ui/card";
 import { Folder, MoreVertCircle } from "iconoir-react";
 import { CreateCollectionButton } from "./create-collection-button";
-import { api } from "@/convex/_generated/api";
-import { useQuery } from "convex-helpers/react/cache/hooks";
 import { COLLECTION_COLORS } from "./colors";
 import { NavLink } from "react-router";
+import { CollectionsType } from "@/routes/CollectionsRoute";
 
-export function Collections() {
-  const collections = useQuery(api.collectionMangament.getUserCollections);
-
+export function Collections({
+  collections,
+}: {
+  collections: CollectionsType | undefined;
+}) {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-end">

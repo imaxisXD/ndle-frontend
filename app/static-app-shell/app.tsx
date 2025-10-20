@@ -12,9 +12,12 @@ import { ToastProvider } from "@/components/ui/base-toast";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import ScrollToTop from "@/components/scroll-to-top";
 import { ConvexQueryCacheProvider } from "convex-helpers/react/cache/provider";
+import { api } from "@/convex/_generated/api";
+import { useQuery } from "convex/react";
 
 export default function App() {
   const queryClient = new QueryClient();
+  const collections = useQuery(api.collectionMangament.getUserCollections);
 
   return (
     <ConvexQueryCacheProvider>
@@ -31,7 +34,10 @@ export default function App() {
                     <Route path="/analytics" element={<AnalyticsRoute />} />
                     <Route path="/monitoring" element={<MonitoringRoute />} />
                     <Route path="/settings" element={<SettingsRoute />} />
-                    <Route path="/collections" element={<CollectionsRoute />} />
+                    <Route
+                      path="/collections"
+                      element={<CollectionsRoute collections={collections} />}
+                    />
                     <Route
                       path="/collection/:slug"
                       element={<CollectionDetailRoute />}
@@ -42,7 +48,7 @@ export default function App() {
                       path="*"
                       element={
                         <>
-                          <h1 className="text-3xl font-medium tracking-tight">
+                          <h1 className="font-doto roundness-100 text-4xl font-black tracking-tight">
                             Not Found
                           </h1>
                           <p className="text-muted-foreground mt-2 text-sm">

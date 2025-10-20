@@ -1,4 +1,3 @@
-import { NdleDotMatrix } from "@/components/ndle-dot-matrix";
 import { UrlShortener } from "@/components/url-shortener";
 import { UrlTable } from "@/components/url-table/UrlTable";
 

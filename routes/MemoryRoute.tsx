@@ -35,9 +35,7 @@ export default function MemoryRoute() {
   return (
     <>
       <header>
-        <h1 className="text-3xl font-medium tracking-tight">
-          Memory & Conversations
-        </h1>
+        <h1 className="font-doto roundness-100 text-4xl font-black">Memory</h1>
         <p className="text-muted-foreground mt-2 text-sm">
           AI-powered summaries, notes, and conversations about your links
         </p>
