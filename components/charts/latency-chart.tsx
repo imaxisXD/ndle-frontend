@@ -27,12 +27,7 @@ import { Timer } from "iconoir-react";
 export const description =
   "A bar chart showing latency performance distribution";
 
-const chartData = [
-  { range: "0-100ms", count: 8 },
-  { range: "100-300ms", count: 7 },
-  { range: "300-500ms", count: 5 },
-  { range: "500ms+", count: 3 },
-];
+export type LatencyBucket = { range: string; count: number };
 
 const chartConfig = {
   count: {
@@ -44,7 +39,7 @@ const chartConfig = {
   },
 } satisfies ChartConfig;
 
-export function LatencyChart() {
+export function LatencyChart({ data }: { data: Array<LatencyBucket> }) {
   return (
     <Card>
       <CardHeader className="flex flex-col items-start justify-between gap-1.5">
@@ -63,7 +58,7 @@ export function LatencyChart() {
         >
           <BarChart
             accessibilityLayer
-            data={chartData}
+            data={data}
             margin={{
               top: 20,
               right: 20,
@@ -105,13 +100,17 @@ export function LatencyChart() {
                   indicator="dashed"
                   color="var(--color-teal-600)"
                   labelFormatter={(label, payload) => {
-                    const data = payload[0]?.payload;
-                    const total = chartData.reduce(
-                      (sum, item) => sum + item.count,
+                    const point = payload?.[0]?.payload as
+                      | { count?: number }
+                      | undefined;
+                    const total = data.reduce(
+                      (sum, item) => sum + (item.count ?? 0),
                       0,
                     );
-                    const percentage = ((data.count / total) * 100).toFixed(1);
-
+                    const percentage =
+                      total > 0
+                        ? (((point?.count ?? 0) / total) * 100).toFixed(1)
+                        : "0.0";
                     return `${label} [${percentage}%]`;
                   }}
                 />

@@ -49,7 +49,7 @@ export default function LinkDetailSkeleton({ shortUrl }: { shortUrl: string }) {
         <CountryChart />
         <DeviceOSChart />
         <BotTrafficChart />
-        <LatencyChart />
+        <LatencyChart data={[]} />
         <HourlyActivityChart />
       </section>
 
