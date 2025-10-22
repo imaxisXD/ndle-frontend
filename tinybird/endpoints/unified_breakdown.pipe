@@ -1,0 +1,146 @@
+DESCRIPTION >
+    All-in-one breakdown endpoint returning structured data for all dimensions
+
+NODE filtered_data
+SQL >
+    %
+    SELECT 
+        browser,
+        device_type,
+        os,
+        country,
+        worker_datacenter,
+        ifNull(utm_source, 'direct') as utm_source,
+        link_slug,
+        countMerge(total_clicks) as clicks, 
+        uniqMerge(unique_sessions) as unique_sessions,
+        countMerge(new_sessions) as new_sessions, 
+        countMerge(human_clicks) as human_clicks,
+        countMerge(bot_clicks) as bot_clicks, 
+        avgMerge(avg_latency) as avg_latency
+    FROM link_clicks_daily_mv
+    WHERE day >= toDate({{DateTime(start_date, '1970-01-01 00:00:00')}})
+      AND day <= toDate({{DateTime(end_date, '2100-01-01 00:00:00')}})
+      {% if defined(link_slug) %} AND link_slug = {{String(link_slug)}} {% end %}
+      {% if defined(user_id) %} AND user_id = {{String(user_id)}} {% end %}
+    GROUP BY browser, device_type, os, country, worker_datacenter, utm_source, link_slug
+
+NODE all_breakdowns
+SQL >
+    %
+    SELECT 
+        'browsers' as breakdown_type,
+        browser as label,
+        sum(clicks) as total_clicks,
+        sum(unique_sessions) as total_sessions,
+        sum(new_sessions) as total_new_sessions,
+        sum(human_clicks) as total_human_clicks,
+        sum(bot_clicks) as total_bot_clicks,
+        avg(avg_latency) as avg_latency_ms
+    FROM filtered_data
+    GROUP BY browser
+    ORDER BY total_clicks DESC
+    LIMIT {{Int32(limit, 20)}}
+
+    UNION ALL
+
+    SELECT 
+        'devices' as breakdown_type,
+        device_type as label,
+        sum(clicks) as total_clicks,
+        sum(unique_sessions) as total_sessions,
+        sum(new_sessions) as total_new_sessions,
+        sum(human_clicks) as total_human_clicks,
+        sum(bot_clicks) as total_bot_clicks,
+        avg(avg_latency) as avg_latency_ms
+    FROM filtered_data
+    GROUP BY device_type
+    ORDER BY total_clicks DESC
+    LIMIT {{Int32(limit, 20)}}
+
+    UNION ALL
+
+    SELECT 
+        'operating_systems' as breakdown_type,
+        os as label,
+        sum(clicks) as total_clicks,
+        sum(unique_sessions) as total_sessions,
+        sum(new_sessions) as total_new_sessions,
+        sum(human_clicks) as total_human_clicks,
+        sum(bot_clicks) as total_bot_clicks,
+        avg(avg_latency) as avg_latency_ms
+    FROM filtered_data
+    GROUP BY os
+    ORDER BY total_clicks DESC
+    LIMIT {{Int32(limit, 20)}}
+
+    UNION ALL
+
+    SELECT 
+        'countries' as breakdown_type,
+        country as label,
+        sum(clicks) as total_clicks,
+        sum(unique_sessions) as total_sessions,
+        sum(new_sessions) as total_new_sessions,
+        sum(human_clicks) as total_human_clicks,
+        sum(bot_clicks) as total_bot_clicks,
+        avg(avg_latency) as avg_latency_ms
+    FROM filtered_data
+    GROUP BY country
+    ORDER BY total_clicks DESC
+    LIMIT {{Int32(limit, 20)}}
+
+    UNION ALL
+
+    SELECT 
+        'datacenters' as breakdown_type,
+        worker_datacenter as label,
+        sum(clicks) as total_clicks,
+        sum(unique_sessions) as total_sessions,
+        sum(new_sessions) as total_new_sessions,
+        sum(human_clicks) as total_human_clicks,
+        sum(bot_clicks) as total_bot_clicks,
+        avg(avg_latency) as avg_latency_ms
+    FROM filtered_data
+    GROUP BY worker_datacenter
+    ORDER BY total_clicks DESC
+    LIMIT {{Int32(limit, 20)}}
+
+    UNION ALL
+
+    SELECT 
+        'traffic_sources' as breakdown_type,
+        utm_source as label,
+        sum(clicks) as total_clicks,
+        sum(unique_sessions) as total_sessions,
+        sum(new_sessions) as total_new_sessions,
+        sum(human_clicks) as total_human_clicks,
+        sum(bot_clicks) as total_bot_clicks,
+        avg(avg_latency) as avg_latency_ms
+    FROM filtered_data
+    GROUP BY utm_source
+    ORDER BY total_clicks DESC
+    LIMIT {{Int32(limit, 20)}}
+
+    UNION ALL
+
+    SELECT 
+        'top_links' as breakdown_type,
+        link_slug as label,
+        sum(clicks) as total_clicks,
+        sum(unique_sessions) as total_sessions,
+        sum(new_sessions) as total_new_sessions,
+        sum(human_clicks) as total_human_clicks,
+        sum(bot_clicks) as total_bot_clicks,
+        avg(avg_latency) as avg_latency_ms
+    FROM filtered_data
+    {% if not defined(link_slug) %}
+    GROUP BY link_slug
+    ORDER BY total_clicks DESC
+    LIMIT {{Int32(limit, 20)}}
+    {% else %}
+    WHERE 1=0
+    GROUP BY link_slug
+    {% end %}
+
+TYPE endpoint

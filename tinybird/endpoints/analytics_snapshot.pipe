@@ -1,0 +1,197 @@
+DESCRIPTION >
+    Consolidated analytics breakdowns as JSON columns over a date range (UTC).
+
+NODE filtered_data
+SQL >
+    %
+    SELECT 
+        browser,
+        device_type,
+        os,
+        country,
+        worker_datacenter,
+        ifNull(utm_source, 'direct') as utm_source,
+        link_slug,
+        countMerge(total_clicks) as clicks, 
+        uniqMerge(unique_sessions) as unique_sessions,
+        countMerge(new_sessions) as new_sessions, 
+        countMerge(human_clicks) as human_clicks,
+        countMerge(bot_clicks) as bot_clicks, 
+        avgMerge(avg_latency) as avg_latency
+    FROM link_clicks_daily_mv
+    WHERE day >= toDate({{DateTime(start_date, '1970-01-01 00:00:00')}})
+      AND day <= toDate({{DateTime(end_date, '2100-01-01 00:00:00')}})
+      {% if defined(link_slug) %} AND link_slug = {{String(link_slug)}} {% end %}
+      {% if defined(user_id) %} AND user_id = {{String(user_id)}} {% end %}
+    GROUP BY browser, device_type, os, country, worker_datacenter, utm_source, link_slug
+
+NODE browsers_breakdown
+SQL >
+    %
+    SELECT toJSONString(
+        arraySort(x -> -tupleElement(x, 2), 
+            arraySlice(
+                groupArray(tuple(browser, total_clicks, total_sessions, total_new_sessions, total_human, total_bot, avg_latency_val)),
+                1, {{Int32(limit, 20)}}
+            )
+        )
+    ) as browsers_json
+    FROM (
+        SELECT browser, 
+               sum(clicks) as total_clicks, 
+               sum(unique_sessions) as total_sessions,
+               sum(new_sessions) as total_new_sessions,
+               sum(human_clicks) as total_human,
+               sum(bot_clicks) as total_bot,
+               avg(avg_latency) as avg_latency_val
+        FROM filtered_data
+        GROUP BY browser
+        ORDER BY total_clicks DESC
+    )
+
+NODE devices_breakdown
+SQL >
+    %
+    SELECT toJSONString(
+        arraySort(x -> -tupleElement(x, 2), 
+            arraySlice(
+                groupArray(tuple(device_type, total_clicks, total_sessions, total_new_sessions, total_human, total_bot, avg_latency_val)),
+                1, {{Int32(limit, 20)}}
+            )
+        )
+    ) as devices_json
+    FROM (
+        SELECT device_type, 
+               sum(clicks) as total_clicks, 
+               sum(unique_sessions) as total_sessions,
+               sum(new_sessions) as total_new_sessions,
+               sum(human_clicks) as total_human,
+               sum(bot_clicks) as total_bot,
+               avg(avg_latency) as avg_latency_val
+        FROM filtered_data
+        GROUP BY device_type
+        ORDER BY total_clicks DESC
+    )
+
+NODE os_breakdown
+SQL >
+    %
+    SELECT toJSONString(
+        arraySort(x -> -tupleElement(x, 2), 
+            arraySlice(
+                groupArray(tuple(os, total_clicks, total_sessions, total_new_sessions, total_human, total_bot, avg_latency_val)),
+                1, {{Int32(limit, 20)}}
+            )
+        )
+    ) as os_json
+    FROM (
+        SELECT os, 
+               sum(clicks) as total_clicks, 
+               sum(unique_sessions) as total_sessions,
+               sum(new_sessions) as total_new_sessions,
+               sum(human_clicks) as total_human,
+               sum(bot_clicks) as total_bot,
+               avg(avg_latency) as avg_latency_val
+        FROM filtered_data
+        GROUP BY os
+        ORDER BY total_clicks DESC
+    )
+
+NODE countries_breakdown
+SQL >
+    %
+    SELECT toJSONString(
+        arraySort(x -> -tupleElement(x, 2), 
+            arraySlice(
+                groupArray(tuple(country, total_clicks, total_sessions, total_new_sessions, total_human, total_bot, avg_latency_val)),
+                1, {{Int32(limit, 20)}}
+            )
+        )
+    ) as countries_json
+    FROM (
+        SELECT country, 
+               sum(clicks) as total_clicks, 
+               sum(unique_sessions) as total_sessions,
+               sum(new_sessions) as total_new_sessions,
+               sum(human_clicks) as total_human,
+               sum(bot_clicks) as total_bot,
+               avg(avg_latency) as avg_latency_val
+        FROM filtered_data
+        GROUP BY country
+        ORDER BY total_clicks DESC
+    )
+
+NODE datacenters_breakdown
+SQL >
+    %
+    SELECT toJSONString(
+        arraySort(x -> -tupleElement(x, 2), 
+            arraySlice(
+                groupArray(tuple(worker_datacenter, total_clicks, total_sessions, total_new_sessions, total_human, total_bot, avg_latency_val)),
+                1, {{Int32(limit, 20)}}
+            )
+        )
+    ) as datacenters_json
+    FROM (
+        SELECT worker_datacenter, 
+               sum(clicks) as total_clicks, 
+               sum(unique_sessions) as total_sessions,
+               sum(new_sessions) as total_new_sessions,
+               sum(human_clicks) as total_human,
+               sum(bot_clicks) as total_bot,
+               avg(avg_latency) as avg_latency_val
+        FROM filtered_data
+        GROUP BY worker_datacenter
+        ORDER BY total_clicks DESC
+    )
+
+NODE utm_sources_breakdown
+SQL >
+    %
+    SELECT toJSONString(
+        arraySort(x -> -tupleElement(x, 2), 
+            arraySlice(
+                groupArray(tuple(utm_source, total_clicks, total_sessions, total_new_sessions, total_human, total_bot, avg_latency_val)),
+                1, {{Int32(limit, 20)}}
+            )
+        )
+    ) as traffic_sources_json
+    FROM (
+        SELECT utm_source, 
+               sum(clicks) as total_clicks, 
+               sum(unique_sessions) as total_sessions,
+               sum(new_sessions) as total_new_sessions,
+               sum(human_clicks) as total_human,
+               sum(bot_clicks) as total_bot,
+               avg(avg_latency) as avg_latency_val
+        FROM filtered_data
+        GROUP BY utm_source
+        ORDER BY total_clicks DESC
+    )
+
+NODE links_breakdown
+SQL >
+    %
+    SELECT toJSONString(
+        arraySort(x -> -tupleElement(x, 2), 
+            arraySlice(
+                groupArray(tuple(link_slug, total_clicks, total_sessions)),
+                1, {{Int32(limit, 20)}}
+            )
+        )
+    ) as top_links_json
+    FROM (
+        SELECT link_slug, 
+               sum(clicks) as total_clicks, 
+               sum(unique_sessions) as total_sessions
+        FROM filtered_data
+        {% if not defined(link_slug) %}
+        GROUP BY link_slug
+        ORDER BY total_clicks DESC
+        {% else %}
+        WHERE 1=0
+        GROUP BY link_slug
+        {% end %}
+    )
+
+TYPE endpoint

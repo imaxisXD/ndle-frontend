@@ -5,7 +5,6 @@ import {
   Brain,
   FolderPlus,
   HomeAlt,
-  Plus,
   Presentation,
   Reports,
   Settings,

@@ -321,3 +321,72 @@ export function createSlug(slugType: "random" | "human"): string {
     return nanoid();
   }
 }
+
+// Analytics Cache Utilities
+
+/**
+ * Generate a cache key for analytics data
+ */
+export function generateCacheKey(params: {
+  userId: string;
+  range: string;
+  linkSlug?: string;
+  scope: string;
+}): string {
+  return `${params.userId}_${params.range}_${params.linkSlug || "all"}_${params.scope}`;
+}
+
+/**
+ * Get TTL (time-to-live) in seconds based on the analytics range
+ * - 24h range: 60s (1 min) - real-time data needs to be fresh
+ * - 7d-30d: 180s (3 min) - recent data can be slightly stale
+ * - 3mo+: 600s (10 min) - historical data can be more stale
+ */
+export function getTTLForRange(range: string): number {
+  if (range === "24h") return 360;
+  if (["7d", "30d"].includes(range)) return 480;
+  return 600; // 3mo, 12mo, mtd, qtd, ytd, all
+}
+
+/**
+ * Check if a cache entry is still valid based on TTL
+ */
+export function isCacheValid(cache: {
+  created_at: number;
+  ttl_seconds: number;
+}): boolean {
+  const nowInSeconds = Date.now() / 1000;
+  return nowInSeconds - cache.created_at < cache.ttl_seconds;
+}
+
+export type DashboardTimeseriesRow = {
+  bucket_start: string;
+  clicks: number;
+  human_clicks?: number;
+  bot_clicks?: number;
+  unique_sessions?: number;
+  new_sessions?: number;
+  avg_latency?: number | null;
+};
+
+export type DashboardBreakdownRow = {
+  label: string | null;
+  clicks: number;
+  unique_sessions?: number;
+  new_sessions?: number;
+  human_clicks?: number;
+  bot_clicks?: number;
+  avg_latency?: number | null;
+};
+
+export type TinybirdResult<T> = {
+  data: Array<T>;
+};
+
+export type DashboardAnalyticsPayload = {
+  timeseries: TinybirdResult<DashboardTimeseriesRow>;
+  browsers: TinybirdResult<DashboardBreakdownRow>;
+  countries: TinybirdResult<DashboardBreakdownRow>;
+  devices: TinybirdResult<DashboardBreakdownRow>;
+  os: TinybirdResult<DashboardBreakdownRow>;
+};

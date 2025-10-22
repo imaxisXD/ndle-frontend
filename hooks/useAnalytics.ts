@@ -2,6 +2,8 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { AnalyticsRange } from "@/lib/analyticsRanges";
+import { useAction } from "convex/react";
+import { api } from "@/convex/_generated/api";
 
 type Scope = "user" | "link";
 
@@ -117,3 +119,27 @@ export function useTrafficSources({
     retry: false,
   });
 }
+
+// Batched dashboard analytics hook - fetches all analytics data in one request
+// export function useDashboardAnalytics({
+//   range,
+//   linkSlug,
+//   bypassCache = false,
+// }: {
+//   range: AnalyticsRange;
+//   linkSlug?: string;
+//   bypassCache?: boolean;
+// }) {
+//   const fetchDashboard = useAction(api.tinyBirdAction.getDashboardAnalytics);
+
+//   return useQuery({
+//     queryKey: ["analytics", "dashboard", linkSlug, range],
+//     queryFn: async ({ signal }) => {
+//       const data = await fetchDashboard({ range, linkSlug, bypassCache });
+//       return data;
+//     },
+//     staleTime: 60_000,
+//     gcTime: 300_000,
+//     retry: false,
+//   });
+// }

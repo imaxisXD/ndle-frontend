@@ -17,9 +17,8 @@ import { BotTrafficChart } from "@/components/charts/bot-traffic-chart";
 import { LatencyChart } from "@/components/charts/latency-chart";
 import { HourlyActivityChart } from "@/components/charts/hourly-activity-chart";
 import { LiveClickHero } from "@/components/charts/live-click-hero";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { TimeRangeSelector } from "@/components/analytics/TimeRangeSelector";
-import { useBreakdown, useTimeseries } from "@/hooks/useAnalytics";
 import type { AnalyticsRange } from "@/lib/analyticsRanges";
 import { getUtcRange } from "@/lib/analyticsRanges";
 import { useMutation, useQuery } from "convex/react";
@@ -37,39 +36,23 @@ export default function LinkDetailRoute() {
   const slug = params[":slug"] || params.slug || "unknown";
   const [range, setRange] = useState<AnalyticsRange>("7d");
 
-  const timeseries = useTimeseries({
+  const dashboardRes = useQuery(api.analyticsCache.getAnalytics, {
     range,
     linkSlug: String(slug),
-    scope: "link",
+    scope: "dashboard",
   });
+  const requestRefresh = useMutation(api.analyticsCache.requestRefresh);
 
-  const browsers = useBreakdown({
-    dimension: "browser",
-    range,
-    linkSlug: String(slug),
-    scope: "link",
-  });
-
-  const countries = useBreakdown({
-    dimension: "country",
-    range,
-    linkSlug: String(slug),
-    scope: "link",
-  });
-
-  const devices = useBreakdown({
-    dimension: "device",
-    range,
-    linkSlug: String(slug),
-    scope: "link",
-  });
-
-  const os = useBreakdown({
-    dimension: "os",
-    range,
-    linkSlug: String(slug),
-    scope: "link",
-  });
+  useEffect(() => {
+    if (!dashboardRes || !dashboardRes.fresh) {
+      void requestRefresh({
+        range,
+        linkSlug: String(slug),
+        scope: "dashboard",
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dashboardRes?.fresh, range, slug, requestRefresh]);
 
   const shortUrl = makeShortLink(String(slug));
   const deleteUrl = useMutation(api.urlMainFuction.deleteUrl);
@@ -99,9 +82,23 @@ export default function LinkDetailRoute() {
   };
   type BreakdownRow = { label: string | null; clicks: number };
 
-  // Map API results to chart-friendly shapes
-  const tsRows: Array<TimeseriesRow> =
-    (timeseries.data as { data: Array<TimeseriesRow> } | undefined)?.data ?? [];
+  // Extract data from Convex cached payload
+  type SnapshotTuples = Array<[string | null, number]>;
+  type SnapshotPayload = {
+    browsers?: SnapshotTuples;
+    devices?: SnapshotTuples;
+    os?: SnapshotTuples;
+    countries?: SnapshotTuples;
+    datacenters?: SnapshotTuples;
+    traffic_sources?: SnapshotTuples;
+    top_links?: SnapshotTuples;
+  };
+  const payload = (dashboardRes?.data ?? null) as {
+    timeseries?: { data: Array<TimeseriesRow> };
+    snapshot?: SnapshotPayload;
+  } | null;
+  const snapPayload: SnapshotPayload = payload?.snapshot ?? {};
+  const tsRows: Array<TimeseriesRow> = payload?.timeseries?.data ?? [];
   const formatBucket = (s: string) => {
     const d = new Date(s);
     const yyyy = d.getUTCFullYear();
@@ -162,14 +159,15 @@ export default function LinkDetailRoute() {
     },
     { name: "Bot Traffic", value: botClicks, color: "var(--color-red-500)" },
   ];
-  const browserRows: Array<BreakdownRow> =
-    (browsers.data as { data: Array<BreakdownRow> } | undefined)?.data ?? [];
-  const countryRows: Array<BreakdownRow> =
-    (countries.data as { data: Array<BreakdownRow> } | undefined)?.data ?? [];
-  const deviceRows: Array<BreakdownRow> =
-    (devices.data as { data: Array<BreakdownRow> } | undefined)?.data ?? [];
-  const osRows: Array<BreakdownRow> =
-    (os.data as { data: Array<BreakdownRow> } | undefined)?.data ?? [];
+  const toBreakdown = (tuples?: Array<[string | null, number]>) =>
+    (tuples ?? []).map((t) => ({
+      label: t?.[0] ?? "unknown",
+      clicks: t?.[1] ?? 0,
+    }));
+  const browserRows: Array<BreakdownRow> = toBreakdown(snapPayload?.browsers);
+  const countryRows: Array<BreakdownRow> = toBreakdown(snapPayload?.countries);
+  const deviceRows: Array<BreakdownRow> = toBreakdown(snapPayload?.devices);
+  const osRows: Array<BreakdownRow> = toBreakdown(snapPayload?.os);
 
   const browserData = browserRows.map((r) => ({
     month: r.label ?? "unknown",
@@ -187,7 +185,8 @@ export default function LinkDetailRoute() {
     os: r.label ?? "unknown",
     clicks: r.clicks ?? 0,
   }));
-
+  console.log("snapPayload", snapPayload);
+  console.log("payload", payload);
   return (
     <>
       <header className="space-y-4">
@@ -197,26 +196,20 @@ export default function LinkDetailRoute() {
             Link analytics and settings
           </p>
         </div>
-        <div className="flex items-center justify-end">
+        <div className="flex items-center justify-end gap-2">
           <TimeRangeSelector value={range} onChange={setRange} />
         </div>
         <LiveClickHero counterValue={analyticsData?.totalClickCounts || 0} />
       </header>
 
       <section className="grid gap-6 lg:grid-cols-2">
-        <ClicksTimelineChart
-          data={clicksTimelineData}
-          isLoading={timeseries.isLoading}
-        />
+        <ClicksTimelineChart data={clicksTimelineData} />
         <BrowserChart data={browserData} />
         <CountryChart data={countryData} />
         <DeviceOSChart deviceData={deviceData} osData={osData} />
-        {/* <DatacenterChart data={datacenterData} /> */}
-        {/* <LinkPerformanceChart /> */}
         <BotTrafficChart data={botHumanData} />
         <LatencyChart />
         <HourlyActivityChart data={hourlyActivityData} />
-        {/* <DatacenterChart data={datacenterData} /> */}
       </section>
 
       <section className="mt-6 grid gap-6 lg:grid-cols-2">
