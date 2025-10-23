@@ -47,7 +47,7 @@ export function Collections({
                 tabIndex={0}
                 className="block h-full"
               >
-                <CardHeader className="flex items-start justify-between">
+                <CardHeader className="flex items-center justify-between">
                   <CardHeading className="flex items-center justify-between gap-2">
                     <div
                       className="flex h-10 w-10 items-center justify-center rounded-lg"

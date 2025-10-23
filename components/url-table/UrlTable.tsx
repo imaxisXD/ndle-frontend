@@ -431,7 +431,6 @@ export function UrlTable({
         typeof api.urlMainFuction.getUserUrlsWithAnalyticsByCollection
       >
   >;
-
   const isLoading = urls === undefined;
   const isEmpty = urls === null || (Array.isArray(urls) && urls.length === 0);
 
@@ -835,7 +834,7 @@ export function UrlTable({
       <div className="border-border border-b">
         {isLoading ? (
           <Skeleton className="diagonal-dash bg-mute flex h-[499px] flex-col items-center justify-center rounded-none">
-            <CircleGridLoaderIcon className="text-muted-foreground mx-auto size-6" />
+            <CircleGridLoaderIcon className="mx-auto size-6" />
             <h3 className="mt-4 text-sm font-medium">Loading</h3>
             <p className="text-muted-foreground mt-2 h-64 text-xs">
               Please wait while we load your links
@@ -846,7 +845,7 @@ export function UrlTable({
             key={`${sorting.map((s) => `${s.id}:${s.desc}`).join("|") || "none"}`}
             style={{ tableLayout: "fixed", width: "100%" }}
           >
-            <TableHeader className="bg-card sticky top-0 z-10">
+            <TableHeader className="bg-card sticky top-0">
               {table.getHeaderGroups().map((headerGroup) => (
                 <TableRow key={headerGroup.id} className="hover:bg-transparent">
                   {headerGroup.headers.map((header) => (
@@ -885,7 +884,7 @@ export function UrlTable({
             key={`${sorting.map((s) => `${s.id}:${s.desc}`).join("|") || "none"}`}
             style={{ tableLayout: "fixed", width: "100%" }}
           >
-            <TableHeader className="bg-card sticky top-0 z-10">
+            <TableHeader className="bg-card sticky top-0">
               {table.getHeaderGroups().map((headerGroup) => (
                 <TableRow key={headerGroup.id} className="hover:bg-transparent">
                   {headerGroup.headers.map((header) => {

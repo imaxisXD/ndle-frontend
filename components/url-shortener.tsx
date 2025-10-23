@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { CircleGridLoaderIcon } from "./icons";
 import {
   Card,
@@ -20,6 +19,7 @@ import { api } from "@/convex/_generated/api";
 import { ConvexError } from "convex/values";
 import { InputGroup, InputGroupAddon, InputGroupInput } from "./ui/input-group";
 import { useForm } from "react-hook-form";
+import type { FieldErrors } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import validator from "validator";
@@ -35,40 +35,70 @@ import {
 import { cn } from "@/lib/utils";
 import { ShimmeringPhrases } from "./ui/shimmering-phrases";
 import { makeShortLink } from "@/lib/config";
+import { CalendarPreset } from "./ui/calendar-presets";
+import { format } from "date-fns";
 
-const urlFormSchema = z.object({
-  url: z
-    .string()
-    .refine(
-      (val) => {
-        if (!val || val.trim() === "") return true;
+const urlFormSchema = z
+  .object({
+    url: z
+      .string()
+      .refine(
+        (val) => {
+          if (!val || val.trim() === "") return true;
 
-        const isValid = validator.isURL(val, {
-          protocols: ["http", "https"],
-          require_protocol: true,
-          require_valid_protocol: true,
-        });
-        return isValid;
-      },
-      {
-        message:
-          "Please enter a valid link (must start with http:// or https://)",
-      },
-    )
-    .refine(
-      (val) => {
-        return val && val.trim() !== "";
-      },
-      {
-        message: "Link is required",
-      },
-    ),
-  shortUrl: z.string().optional(),
-  slugMode: z.enum(["random", "human"]),
-  expiresEnabled: z.boolean(),
-  expiresAt: z.string().optional(),
-  trackingEnabled: z.boolean(),
-});
+          const isValid = validator.isURL(val, {
+            protocols: ["http", "https"],
+            require_protocol: true,
+            require_valid_protocol: true,
+          });
+          return isValid;
+        },
+        {
+          message: "Please enter a valid link",
+        },
+      )
+      .refine(
+        (val) => {
+          return val && val.trim() !== "";
+        },
+        {
+          message: "Link is required",
+        },
+      ),
+    shortUrl: z.string().optional(),
+    slugMode: z.enum(["random", "human"]),
+    expiresEnabled: z.boolean(),
+    expiresAt: z.string().optional(),
+    trackingEnabled: z.boolean(),
+  })
+  .superRefine((data, ctx) => {
+    if (!data.expiresEnabled) return;
+    const val = data.expiresAt ?? "";
+    if (val.trim() === "") {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["expiresAt"],
+        message: "Expiration is required when enabled.",
+      });
+      return;
+    }
+    const ts = Date.parse(val);
+    if (Number.isNaN(ts)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["expiresAt"],
+        message: "Choose a valid date and time.",
+      });
+      return;
+    }
+    if (ts <= Date.now()) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["expiresAt"],
+        message: "Expiration must be in the future.",
+      });
+    }
+  });
 
 type UrlFormValues = z.infer<typeof urlFormSchema>;
 
@@ -149,20 +179,6 @@ export function UrlShortener() {
           ? new Date(values.expiresAt).getTime()
           : undefined;
 
-      if (
-        values.expiresEnabled &&
-        values.expiresAt &&
-        Number.isNaN(expiresAtValue)
-      ) {
-        add({
-          type: "error",
-          title: "Invalid expiration",
-          description:
-            "Choose a valid future date and time for when the short link should stop working.",
-        });
-        return;
-      }
-
       const result = await createUrl({
         url: values.url,
         slugType: values.slugMode,
@@ -196,6 +212,30 @@ export function UrlShortener() {
     }
   };
 
+  const onInvalid = (errors: FieldErrors<UrlFormValues>) => {
+    if (form.getValues("expiresEnabled") && errors.expiresAt?.message) {
+      add({
+        type: "error",
+        title: "Invalid expiration",
+        description: String(errors.expiresAt.message),
+      });
+      return;
+    }
+    if (errors.url?.message) {
+      add({
+        type: "error",
+        title: "Invalid URL",
+        description: String(errors.url.message),
+      });
+      return;
+    }
+    add({
+      type: "error",
+      title: "Please fix the form",
+      description: "Some fields have errors. Review and try again.",
+    });
+  };
+
   return (
     <Card>
       <CardHeader className="flex w-full flex-col items-start justify-between gap-1">
@@ -205,7 +245,7 @@ export function UrlShortener() {
         </CardDescription>
       </CardHeader>
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)}>
+        <form onSubmit={form.handleSubmit(onSubmit, onInvalid)}>
           <CardContent className="space-y-6">
             <FormField
               control={form.control}
@@ -220,9 +260,7 @@ export function UrlShortener() {
                           className={cn(
                             "bg-transparent pl-3 transition-transform duration-300 ease-in",
                             {
-                              // When no favicon: hidden behind input
                               "-z-10 -translate-x-5": !faviconUrl,
-                              // When favicon loaded: slides in from left
                               "z-0 -translate-x-1": faviconUrl,
                             },
                           )}
@@ -327,15 +365,31 @@ export function UrlShortener() {
                 control={form.control}
                 name="expiresAt"
                 render={({ field }) => (
-                  <div className="flex gap-2 pl-6">
-                    <Input
-                      type="datetime-local"
-                      value={field.value || ""}
-                      onChange={field.onChange}
-                      disabled={!form.watch("expiresEnabled")}
-                      className="max-w-xs pl-3 text-sm"
-                    />
-                  </div>
+                  <FormItem>
+                    <div className="flex pl-3">
+                      <CalendarPreset
+                        disabled={!form.watch("expiresEnabled")}
+                        isPro={true}
+                        value={field.value ? new Date(field.value) : undefined}
+                        onSelectDate={(d) => {
+                          if (!d) {
+                            field.onChange("");
+                            return;
+                          }
+                          const v = format(d, "yyyy-MM-dd'T'HH:mm");
+                          field.onChange(v);
+                        }}
+                        onUpgradeClick={() =>
+                          add({
+                            type: "default",
+                            title: "Upgrade required",
+                            description: "Custom date requires PRO",
+                          })
+                        }
+                      />
+                    </div>
+                    <FormMessage />
+                  </FormItem>
                 )}
               />
 
@@ -343,7 +397,7 @@ export function UrlShortener() {
                 control={form.control}
                 name="trackingEnabled"
                 render={({ field }) => (
-                  <div className="flex items-center gap-2 text-sm">
+                  <div className="mt-6 flex items-center gap-2 text-sm">
                     <Checkbox
                       size="sm"
                       checked={field.value}

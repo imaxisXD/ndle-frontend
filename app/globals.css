@@ -244,15 +244,16 @@
 }
 
 .diagonal-dash {
-  /* position: absolute; */
   inset: 0;
   width: 100%;
   height: 499px;
-  background-image: repeating-linear-gradient(
-    45deg,
-    /* angle */ #0307122c 0px,
-    /* dash start */ #ffc92100 1px,
-    /* dash thickness (2px line) */ transparent 2px,
-    /* start gap */ transparent 10px /* gap width */
+  background-image: url("/pattern-dashed.svg");
+  background-color: var(--color-gray-100);
+  background-repeat: repeat;
+  background-size: 64px;
+  mask-image: radial-gradient(
+    circle farthest-corner at 50% 100%,
+    black 20%,
+    transparent 80%
   );
 }

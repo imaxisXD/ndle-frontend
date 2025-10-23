@@ -8,7 +8,7 @@ import {
 import { getCurrentUser } from "./users";
 import { VALIDATION_ERRORS, createSlug, isValidHttpUrl } from "./utils";
 import { Doc } from "./_generated/dataModel";
-import { internal, components } from "./_generated/api";
+import { internal, components, api } from "./_generated/api";
 import { ShardedCounter } from "@convex-dev/sharded-counter";
 
 const counter = new ShardedCounter(components.shardedCounter);
@@ -64,6 +64,15 @@ export const createUrl = mutation({
       throw new ConvexError(errorCopy[isValidUrl.errorCode!]);
     }
 
+    if (args.expiresAt !== undefined) {
+      if (!Number.isFinite(args.expiresAt)) {
+        throw new ConvexError("Invalid expiration");
+      }
+      if (args.expiresAt <= Date.now()) {
+        throw new ConvexError("Expiration must be in the future");
+      }
+    }
+
     //checking if the url is already shortened by the user
     const existingUrl = await ctx.db
       .query("urls")
@@ -111,6 +120,13 @@ export const createUrl = mutation({
       slugAssigned: slug,
       docId: docId,
     });
+
+    if (args.expiresAt !== undefined) {
+      // Schedule the deletion of the url after the expiration time
+      ctx.scheduler.runAt(args.expiresAt, api.urlMainFuction.deleteUrl, {
+        urlSlug: slug,
+      });
+    }
 
     return { docId, slug };
   },
