@@ -30,27 +30,51 @@ export const setCacheEntry = internalMutation({
   },
   returns: v.id("analytics_cache"),
   handler: async (ctx, args) => {
-    // Delete old cache entry if exists
     const existing = await ctx.db
       .query("analytics_cache")
       .withIndex("by_cache_key", (q) => q.eq("cache_key", args.cache_key))
       .first();
 
     if (existing) {
-      await ctx.db.delete(existing._id);
+      await ctx.db.patch(existing._id, {
+        response_data: args.response_data,
+        created_at: Date.now() / 1000, // Unix timestamp in seconds
+        ttl_seconds: args.ttl_seconds,
+        user_id: args.user_id,
+        query_scope: args.query_scope,
+      });
+      return existing._id;
+    } else {
+      // Insert new cache entry
+      const id = await ctx.db.insert("analytics_cache", {
+        cache_key: args.cache_key,
+        response_data: args.response_data,
+        created_at: Date.now() / 1000, // Unix timestamp in seconds
+        ttl_seconds: args.ttl_seconds,
+        user_id: args.user_id,
+        query_scope: args.query_scope,
+      });
+
+      return id;
     }
+  },
+});
 
-    // Insert new cache entry
-    const id = await ctx.db.insert("analytics_cache", {
-      cache_key: args.cache_key,
-      response_data: args.response_data,
-      created_at: Date.now() / 1000, // Unix timestamp in seconds
-      ttl_seconds: args.ttl_seconds,
-      user_id: args.user_id,
-      query_scope: args.query_scope,
-    });
-
-    return id;
+export const markRefreshDone = internalMutation({
+  args: { cacheKey: v.string() },
+  returns: v.null(),
+  handler: async (ctx, { cacheKey }) => {
+    const entry = await ctx.db
+      .query("analytics_cache")
+      .withIndex("by_cache_key", (q) => q.eq("cache_key", cacheKey))
+      .first();
+    if (entry) {
+      await ctx.db.patch(entry._id, {
+        refresh_status: "idle",
+        refresh_lease_until: 0,
+      });
+    }
+    return null;
   },
 });
 
@@ -189,6 +213,23 @@ export const requestRefresh = mutation({
     if (isFresh) {
       return { scheduled: false };
     }
+    // If a cache row exists, acquire a short lease to prevent duplicate scheduling.
+    if (entry) {
+      const nowSec = Date.now() / 1000;
+      const busy =
+        entry.refresh_status === "running" &&
+        (entry.refresh_lease_until ?? 0) > nowSec;
+      if (busy) {
+        return { scheduled: false };
+      }
+      // Acquire lease (racing patches here will cause one mutation to retry;
+      // on retry, it will see busy and bail, preventing duplicate scheduling).
+      await ctx.db.patch(entry._id, {
+        refresh_status: "running",
+        refresh_lease_until: nowSec + 90,
+      });
+    }
+
     // schedule background refresh
     await ctx.scheduler.runAfter(0, internal.tinyBirdAction.refreshAnalytics, {
       cacheKey,

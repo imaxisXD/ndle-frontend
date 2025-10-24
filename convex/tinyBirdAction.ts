@@ -231,6 +231,14 @@ export const refreshAnalytics = internalAction({
           error,
         )}`,
       );
+    } finally {
+      try {
+        await ctx.runMutation(internal.analyticsCache.markRefreshDone, {
+          cacheKey,
+        });
+      } catch (e) {
+        console.error("Failed to mark refresh done for", cacheKey, e);
+      }
     }
   },
 });

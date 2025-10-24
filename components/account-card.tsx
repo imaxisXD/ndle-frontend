@@ -66,6 +66,7 @@ export function AccountCard() {
       <CardContent className="space-y-6 p-6">
         <div className="flex min-w-0 items-center gap-4">
           <Image
+            unoptimized
             src={user.imageUrl}
             alt={user.firstName ?? "Profile"}
             width={48}

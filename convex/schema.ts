@@ -51,6 +51,10 @@ export default defineSchema({
     ttl_seconds: v.number(),
     query_scope: v.string(),
     user_id: v.string(),
+    refresh_status: v.optional(
+      v.union(v.literal("idle"), v.literal("running")),
+    ),
+    refresh_lease_until: v.optional(v.number()),
   })
     .index("by_cache_key", ["cache_key"])
     .index("by_user_and_created", ["user_id", "created_at"])
