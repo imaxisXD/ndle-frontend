@@ -126,7 +126,14 @@ export async function GET(request: NextRequest) {
       console.log(`API: Error fetching favicon for domain: ${domain}`, error);
       return NextResponse.json(
         { error: "Favicon not found or not accessible" },
-        { status: 404 },
+        {
+          status: 404,
+          headers: {
+            // Cache 404 responses for 1 hour to reduce load
+            "Cache-Control": "public, max-age=3600",
+            "CDN-Cache-Control": "public, max-age=3600",
+          },
+        },
       );
     }
 
@@ -148,7 +155,18 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    return NextResponse.json(responseData);
+    return NextResponse.json(responseData, {
+      headers: {
+        // Cache for 7 days (604800 seconds)
+        // stale-while-revalidate allows serving stale content for 30 days while fetching fresh data
+        "Cache-Control":
+          "public, max-age=604800, stale-while-revalidate=2592000",
+        // Cloudflare-specific header to cache for 30 days at the edge
+        "CDN-Cache-Control": "public, max-age=2592000",
+        // Helps Cloudflare identify cacheable content
+        Vary: "Accept-Encoding",
+      },
+    });
   } catch (error) {
     console.error("Error fetching favicon:", error);
     return NextResponse.json(
