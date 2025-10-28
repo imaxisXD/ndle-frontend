@@ -33,6 +33,54 @@ const faviconResponseSchema = z.object({
 
 type FaviconResponse = z.infer<typeof faviconResponseSchema>;
 
+/**
+ * Optimized cache headers for Railway + Cloudflare setup
+ * - Cloudflare-CDN-Cache-Control: Controls edge caching at Cloudflare (most specific, takes precedence)
+ * - CDN-Cache-Control: Controls other CDNs downstream
+ * - Cache-Control: Controls browser/client caching
+ * - stale-while-revalidate: Serve stale content while fetching fresh data in background
+ */
+const getCacheHeaders = (isCacheable: boolean): Record<string, string> => {
+  if (!isCacheable) {
+    return {
+      "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
+      "Cloudflare-CDN-Cache-Control": "no-store, no-cache, must-revalidate",
+      Pragma: "no-cache",
+      Expires: "0",
+    };
+  }
+
+  // For successful favicon responses - long-term caching
+  return {
+    // Browser/client cache for 30 days
+    "Cache-Control": "public, max-age=2592000, stale-while-revalidate=86400",
+    // Cloudflare edge cache for 60 days (stale-while-revalidate for 30 more days)
+    "Cloudflare-CDN-Cache-Control":
+      "public, max-age=5184000, stale-while-revalidate=2592000",
+    // Other CDNs cache for 45 days
+    "CDN-Cache-Control":
+      "public, max-age=3888000, stale-while-revalidate=1728000",
+    // Mark response as immutable since favicons rarely change
+    Vary: "Accept-Encoding",
+  };
+};
+
+/**
+ * Cache headers for error responses - much shorter
+ */
+const getErrorCacheHeaders = (): Record<string, string> => {
+  return {
+    // Browser cache for 1 hour
+    "Cache-Control": "public, max-age=3600, stale-while-revalidate=86400",
+    // Cloudflare edge cache for 6 hours (allow stale for 24 hours)
+    "Cloudflare-CDN-Cache-Control":
+      "public, max-age=21600, stale-while-revalidate=86400",
+    // Other CDNs cache for 3 hours
+    "CDN-Cache-Control": "public, max-age=10800, stale-while-revalidate=86400",
+    Vary: "Accept-Encoding",
+  };
+};
+
 export async function GET(request: NextRequest) {
   const requestId = crypto.randomUUID().slice(0, 8);
   const timestamp = new Date().toISOString();
@@ -52,7 +100,10 @@ export async function GET(request: NextRequest) {
       const errorMessage =
         validationResult.error.errors[0]?.message || "Invalid request";
       console.log("API: Validation failed:", validationResult.error.errors);
-      return NextResponse.json({ error: errorMessage }, { status: 400 });
+      return NextResponse.json(
+        { error: errorMessage },
+        { status: 400, headers: getErrorCacheHeaders() },
+      );
     }
 
     const { url: validatedUrl } = validationResult.data;
@@ -63,7 +114,7 @@ export async function GET(request: NextRequest) {
     } catch {
       return NextResponse.json(
         { error: "Could not parse URL" },
-        { status: 400 },
+        { status: 400, headers: getErrorCacheHeaders() },
       );
     }
 
@@ -72,7 +123,7 @@ export async function GET(request: NextRequest) {
     if (!domain) {
       return NextResponse.json(
         { error: "Could not extract domain from URL" },
-        { status: 400 },
+        { status: 400, headers: getErrorCacheHeaders() },
       );
     }
 
@@ -80,7 +131,7 @@ export async function GET(request: NextRequest) {
     if (!validator.isFQDN(domain)) {
       return NextResponse.json(
         { error: "Invalid domain format" },
-        { status: 400 },
+        { status: 400, headers: getErrorCacheHeaders() },
       );
     }
 
@@ -92,7 +143,7 @@ export async function GET(request: NextRequest) {
     ) {
       return NextResponse.json(
         { error: "Private/localhost domains are not allowed" },
-        { status: 400 },
+        { status: 400, headers: getErrorCacheHeaders() },
       );
     }
 
@@ -109,7 +160,7 @@ export async function GET(request: NextRequest) {
     if (blockedPatterns.some((pattern) => pattern.test(domain))) {
       return NextResponse.json(
         { error: "Domain not allowed" },
-        { status: 400 },
+        { status: 400, headers: getErrorCacheHeaders() },
       );
     }
 
@@ -135,16 +186,12 @@ export async function GET(request: NextRequest) {
         `[${requestId}] ❌ Error fetching favicon for domain: ${domain}`,
         error,
       );
-      console.log(`[${requestId}] 📦 Sending 404 with 1-hour cache`);
+      console.log(`[${requestId}] 📦 Sending 404 with error cache headers`);
       return NextResponse.json(
         { error: "Favicon not found or not accessible" },
         {
           status: 404,
-          headers: {
-            // Cache 404 responses for 1 hour to reduce load
-            "Cache-Control": "public, max-age=3600",
-            "CDN-Cache-Control": "public, max-age=3600",
-          },
+          headers: getErrorCacheHeaders(),
         },
       );
     }
@@ -165,27 +212,17 @@ export async function GET(request: NextRequest) {
       );
       return NextResponse.json(
         { error: "Internal server error" },
-        { status: 500 },
+        { status: 500, headers: getErrorCacheHeaders() },
       );
     }
 
-    const cacheHeaders = {
-      // Cache for 7 days (604800 seconds)
-      // stale-while-revalidate allows serving stale content for 30 days while fetching fresh data
-      "Cache-Control": "public, max-age=604800, stale-while-revalidate=2592000",
-      // Cloudflare-specific header to cache for 30 days at the edge
-      "CDN-Cache-Control": "public, max-age=2592000",
-      // Helps Cloudflare identify cacheable content
-      Vary: "Accept-Encoding",
-    };
+    const cacheHeaders = getCacheHeaders(true);
 
     console.log(
-      `[${requestId}] 📦 Sending response with cache headers:`,
+      `[${requestId}] 📦 Sending response with optimized cache headers:`,
       cacheHeaders,
     );
-    console.log(
-      `[${requestId}] 💾 Response will be cached - subsequent requests should not see this log`,
-    );
+    console.log(`[${requestId}] 💾 Response will be cached across all layers`);
 
     return NextResponse.json(responseData, {
       headers: cacheHeaders,
@@ -194,7 +231,7 @@ export async function GET(request: NextRequest) {
     console.error(`[${requestId}] 💥 Unexpected error:`, error);
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 },
+      { status: 500, headers: getErrorCacheHeaders() },
     );
   }
 }

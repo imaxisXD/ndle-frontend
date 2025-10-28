@@ -26,7 +26,33 @@ const schema = z.object({
   link_slug: z.string().min(1).optional(),
 });
 
+/**
+ * Cache headers for authenticated analytics endpoints
+ * User-specific data should be private but can be served stale while revalidating
+ */
+const getAnalyticsCacheHeaders = (hasAuth: boolean): Record<string, string> => {
+  if (!hasAuth) {
+    return {
+      "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
+      "Cloudflare-CDN-Cache-Control": "no-store, no-cache, must-revalidate",
+      Pragma: "no-cache",
+      Expires: "0",
+    };
+  }
+
+  return {
+    // 60 seconds in browser cache, stale-while-revalidate for 2 minutes
+    "Cache-Control": "private, max-age=60, stale-while-revalidate=120",
+    // Cloudflare: 5 minutes cache, but don't cache in edge for user-specific data
+    "Cloudflare-CDN-Cache-Control":
+      "private, max-age=300, stale-while-revalidate=600",
+    Vary: "Authorization, Cookie",
+  };
+};
+
 export async function GET(req: NextRequest) {
+  const requestId = crypto.randomUUID().slice(0, 8);
+
   try {
     const { userId } = await auth();
     const { searchParams } = new URL(req.url);
@@ -35,12 +61,18 @@ export async function GET(req: NextRequest) {
       link_slug: searchParams.get("link_slug") ?? undefined,
     });
     if (!parsed.success) {
-      return NextResponse.json({ error: "Invalid params" }, { status: 400 });
+      return NextResponse.json(
+        { error: "Invalid params" },
+        { status: 400, headers: getAnalyticsCacheHeaders(false) },
+      );
     }
     const { range, link_slug } = parsed.data;
     const scopeUserId = link_slug ? undefined : (userId ?? undefined);
     if (!link_slug && !scopeUserId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json(
+        { error: "Unauthorized" },
+        { status: 401, headers: getAnalyticsCacheHeaders(false) },
+      );
     }
 
     const ip = req.headers.get("x-forwarded-for") || "unknown";
@@ -53,7 +85,7 @@ export async function GET(req: NextRequest) {
     if (!success) {
       return NextResponse.json(
         { error: "Too many requests", limit: rlLimit, remaining },
-        { status: 429 },
+        { status: 429, headers: getAnalyticsCacheHeaders(false) },
       );
     }
 
@@ -117,12 +149,24 @@ export async function GET(req: NextRequest) {
         avg_latency,
       },
     });
-    res.headers.set("Cache-Control", "s-maxage=60, stale-while-revalidate=120");
+
+    // Apply optimized cache headers
+    const cacheHeaders = getAnalyticsCacheHeaders(!!scopeUserId);
+    Object.entries(cacheHeaders).forEach(([key, value]) => {
+      res.headers.set(key, value);
+    });
+
+    console.log(
+      `[${requestId}] Analytics overview cached with headers:`,
+      cacheHeaders,
+    );
+
     return res;
   } catch (e: unknown) {
+    console.error("Analytics overview error:", e);
     return NextResponse.json(
       { error: e instanceof Error ? e.message : "Server error" },
-      { status: 502 },
+      { status: 502, headers: getAnalyticsCacheHeaders(false) },
     );
   }
 }
