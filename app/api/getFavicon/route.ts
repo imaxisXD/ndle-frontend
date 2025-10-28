@@ -105,7 +105,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const faviconUrl = `https://www.google.com/s2/favicons?domain=${domain}&sz=32`;
+    const faviconUrl = `https://favicon.vemetric.com/${domain}?size=32`;
 
     try {
       const response = await fetch(faviconUrl, {
