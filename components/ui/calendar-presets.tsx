@@ -76,90 +76,92 @@ export function CalendarPreset({
   ];
 
   return (
-    <div className="flex flex-col gap-2">
-      <Popover open={open} onOpenChange={setOpen}>
-        <PopoverTrigger
-          className="text-xs"
-          render={
-            <Button
-              disabled={disabled}
-              variant="outline"
-              className="h-8 w-48 justify-between rounded-sm bg-white py-0 font-normal disabled:cursor-not-allowed disabled:opacity-50"
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger
+        className="text-xs"
+        render={
+          <Button
+            disabled={disabled}
+            variant="outline"
+            className="h-8 w-48 justify-between rounded-sm bg-white py-0 font-normal disabled:cursor-not-allowed disabled:opacity-50"
+          />
+        }
+      >
+        <span className="inline-flex w-full items-center justify-between">
+          <CalendarPlus className="size-4" />
+          {date ? date.toLocaleDateString() : "Select date"}
+          <ChevronDownIcon className="size-4" />
+        </span>
+      </PopoverTrigger>
+      <PopoverContent
+        className="max-w-sm overflow-hidden p-0"
+        align="start"
+        showArrow={false}
+      >
+        <div className="px-4 py-4">
+          <div className="relative">
+            <Calendar
+              mode="single"
+              selected={date}
+              onSelect={(d) => {
+                handleSelect(d);
+                if (isPro && d) setOpen(false);
+              }}
+              defaultMonth={date}
+              timeZone={timeZone}
+              disabled={disabledMatcher}
+              className="bg-transparent p-0 [--cell-size:--spacing(9.5)]"
             />
-          }
-        >
-          <span className="inline-flex w-full items-center justify-between">
-            <CalendarPlus className="size-4" />
-            {date ? date.toLocaleDateString() : "Select date"}
-            <ChevronDownIcon className="size-4" />
-          </span>
-        </PopoverTrigger>
-        <PopoverContent className="max-w-sm overflow-hidden p-0" align="start">
-          <div className="px-4 py-4">
-            <div className="relative">
-              <Calendar
-                mode="single"
-                selected={date}
-                onSelect={(d) => {
-                  handleSelect(d);
-                  if (isPro && d) setOpen(false);
-                }}
-                defaultMonth={date}
-                timeZone={timeZone}
-                disabled={disabledMatcher}
-                className="bg-transparent p-0 [--cell-size:--spacing(9.5)]"
-              />
-              {!isPro && (
-                <div className="bg-background/60 pointer-events-auto absolute inset-0 flex items-center justify-center rounded-md backdrop-blur-sm">
-                  <span className="flex items-center gap-2 text-sm">
-                    <Lock className="size-4" /> Custom date requires {""}
-                    <span className="badge-pro">PRO</span>
-                  </span>
-                </div>
-              )}
-            </div>
-          </div>
-          <div className="flex flex-wrap gap-2 border-t px-4 py-4">
-            {presets.slice(0, 5).map((preset) => (
-              <Button
-                disabled={disabled || !isPro}
-                key={preset.label}
-                variant="outline"
-                size="sm"
-                className="flex-1"
-                onClick={() => {
-                  selectPreset(preset.value);
-                  setOpen(false);
-                }}
-              >
-                {preset.label}
-              </Button>
-            ))}
-            <Tooltip>
-              <TooltipTrigger
-                render={
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="flex-1"
-                    disabled={disabled || !isPro}
-                    onClick={() => (isPro ? undefined : onUpgradeClick?.())}
-                  />
-                }
-              >
-                <span className="inline-flex items-center">
-                  {!isPro && <Lock className="mr-1 size-3" />}
-                  Custom
-                  {!isPro && <span className="badge-pro ml-1">PRO</span>}
+            {!isPro && (
+              <div className="bg-background/60 pointer-events-auto absolute inset-0 flex items-center justify-center rounded-md backdrop-blur-sm">
+                <span className="flex items-center gap-2 text-sm">
+                  <Lock className="size-4" /> Custom date requires {""}
+                  <span className="badge-pro">PRO</span>
                 </span>
-              </TooltipTrigger>
-              {!isPro && (
-                <TooltipContent>Custom date is a PRO feature</TooltipContent>
-              )}
-            </Tooltip>
+              </div>
+            )}
           </div>
-        </PopoverContent>
-      </Popover>
-    </div>
+        </div>
+        <div className="flex flex-wrap gap-2 border-t px-4 py-4">
+          {presets.slice(0, 5).map((preset) => (
+            <Button
+              disabled={disabled || !isPro}
+              key={preset.label}
+              variant="outline"
+              size="sm"
+              className="flex-1"
+              onClick={() => {
+                selectPreset(preset.value);
+                setOpen(false);
+              }}
+            >
+              {preset.label}
+            </Button>
+          ))}
+          <Tooltip>
+            <TooltipTrigger
+              render={
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="flex-1"
+                  disabled={disabled || !isPro}
+                  onClick={() => (isPro ? undefined : onUpgradeClick?.())}
+                />
+              }
+            >
+              <span className="inline-flex items-center">
+                {!isPro && <Lock className="mr-1 size-3" />}
+                Custom
+                {!isPro && <span className="badge-pro ml-1">PRO</span>}
+              </span>
+            </TooltipTrigger>
+            {!isPro && (
+              <TooltipContent>Custom date is a PRO feature</TooltipContent>
+            )}
+          </Tooltip>
+        </div>
+      </PopoverContent>
+    </Popover>
   );
 }

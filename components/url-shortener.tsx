@@ -37,6 +37,7 @@ import { ShimmeringPhrases } from "./ui/shimmering-phrases";
 import { makeShortLink } from "@/lib/config";
 import { CalendarPreset } from "./ui/calendar-presets";
 import { format } from "date-fns";
+import { HotkeyButton } from "./ui/hotkey-button";
 
 const urlFormSchema = z
   .object({
@@ -258,10 +259,12 @@ export function UrlShortener() {
                       <InputGroup className="border-border rounded-md border bg-white">
                         <InputGroupAddon
                           className={cn(
-                            "bg-transparent pl-3 transition-transform duration-300 ease-in",
+                            "bg-transparent pl-3 transition-transform duration-200 ease-in",
                             {
-                              "-z-10 -translate-x-5": !faviconUrl,
-                              "z-0 -translate-x-1": faviconUrl,
+                              "-z-10 -translate-x-5 scale-0 opacity-0":
+                                !faviconUrl,
+                              "z-0 -translate-x-1 scale-100 opacity-100":
+                                faviconUrl,
                             },
                           )}
                         >
@@ -270,7 +273,7 @@ export function UrlShortener() {
                             <img
                               src={faviconUrl}
                               alt={field.value}
-                              className="size-5 rounded-md"
+                              className="size-5 rounded-full"
                             />
                           )}
                         </InputGroupAddon>
@@ -412,8 +415,10 @@ export function UrlShortener() {
           </CardContent>
           <CardFooter className="flex-wrap justify-between gap-3 py-5">
             <div className="flex items-center gap-2">
-              <Button
+              <HotkeyButton
+                hotkey={isSubmitting ? "" : "meta + enter"}
                 type="submit"
+                onClick={() => form.handleSubmit(onSubmit, onInvalid)()}
                 disabled={!form.watch("url") || isSubmitting}
                 className="bg-accent hover:bg-accent/90 w-36 rounded-sm text-sm font-medium text-black drop-shadow-none transition-shadow duration-75 ease-out hover:drop-shadow-sm disabled:cursor-not-allowed disabled:opacity-60"
               >
@@ -425,7 +430,7 @@ export function UrlShortener() {
                 ) : (
                   "Shorten"
                 )}
-              </Button>
+              </HotkeyButton>
             </div>
           </CardFooter>
         </form>

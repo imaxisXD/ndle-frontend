@@ -68,14 +68,24 @@ export function HotkeyButton({
   enabled = true,
   ...props
 }: HotkeyButtonProps) {
-  // Register hotkeys with react-hotkeys-hook
+  // Check if hotkey is empty
+  const hasHotkey = Array.isArray(hotkey)
+    ? hotkey.length > 0 && hotkey.some((key) => key.trim() !== "")
+    : hotkey.trim() !== "";
+
+  // Register hotkeys with react-hotkeys-hook only if hotkey is provided
   useHotkeys(hotkey, onClick, {
     preventDefault: true,
     enableOnFormTags: true,
-    enabled,
+    enabled: enabled && hasHotkey,
   });
 
   const renderHotkeyDisplay = () => {
+    // Don't render anything if no hotkey is provided
+    if (!hasHotkey) {
+      return null;
+    }
+
     if (Array.isArray(hotkey)) {
       return (
         <KbdGroup>
