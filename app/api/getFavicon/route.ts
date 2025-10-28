@@ -34,6 +34,14 @@ const faviconResponseSchema = z.object({
 type FaviconResponse = z.infer<typeof faviconResponseSchema>;
 
 export async function GET(request: NextRequest) {
+  const requestId = crypto.randomUUID().slice(0, 8);
+  const timestamp = new Date().toISOString();
+
+  console.log(
+    `[${requestId}] 🔥 CACHE MISS - Request hit origin server at ${timestamp}`,
+  );
+  console.log(`[${requestId}] Request URL: ${request.url}`);
+
   try {
     const { searchParams } = new URL(request.url);
     const url = searchParams.get("url");
@@ -123,7 +131,11 @@ export async function GET(request: NextRequest) {
         throw new Error("Favicon not accessible");
       }
     } catch (error) {
-      console.log(`API: Error fetching favicon for domain: ${domain}`, error);
+      console.log(
+        `[${requestId}] ❌ Error fetching favicon for domain: ${domain}`,
+        error,
+      );
+      console.log(`[${requestId}] 📦 Sending 404 with 1-hour cache`);
       return NextResponse.json(
         { error: "Favicon not found or not accessible" },
         {
@@ -137,7 +149,9 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    console.log(`API: Successfully fetched favicon for domain: ${domain}`);
+    console.log(
+      `[${requestId}] ✅ Successfully fetched favicon for domain: ${domain}`,
+    );
 
     const responseData: FaviconResponse = {
       faviconUrl,
@@ -146,7 +160,7 @@ export async function GET(request: NextRequest) {
     const responseValidation = faviconResponseSchema.safeParse(responseData);
     if (!responseValidation.success) {
       console.error(
-        "API: Response validation failed:",
+        `[${requestId}] Response validation failed:`,
         responseValidation.error,
       );
       return NextResponse.json(
@@ -155,20 +169,29 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    const cacheHeaders = {
+      // Cache for 7 days (604800 seconds)
+      // stale-while-revalidate allows serving stale content for 30 days while fetching fresh data
+      "Cache-Control": "public, max-age=604800, stale-while-revalidate=2592000",
+      // Cloudflare-specific header to cache for 30 days at the edge
+      "CDN-Cache-Control": "public, max-age=2592000",
+      // Helps Cloudflare identify cacheable content
+      Vary: "Accept-Encoding",
+    };
+
+    console.log(
+      `[${requestId}] 📦 Sending response with cache headers:`,
+      cacheHeaders,
+    );
+    console.log(
+      `[${requestId}] 💾 Response will be cached - subsequent requests should not see this log`,
+    );
+
     return NextResponse.json(responseData, {
-      headers: {
-        // Cache for 7 days (604800 seconds)
-        // stale-while-revalidate allows serving stale content for 30 days while fetching fresh data
-        "Cache-Control":
-          "public, max-age=604800, stale-while-revalidate=2592000",
-        // Cloudflare-specific header to cache for 30 days at the edge
-        "CDN-Cache-Control": "public, max-age=2592000",
-        // Helps Cloudflare identify cacheable content
-        Vary: "Accept-Encoding",
-      },
+      headers: cacheHeaders,
     });
   } catch (error) {
-    console.error("Error fetching favicon:", error);
+    console.error(`[${requestId}] 💥 Unexpected error:`, error);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 },
