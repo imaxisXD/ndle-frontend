@@ -13,7 +13,12 @@ export const mutateUrlAnalytics = mutation({
     sharedSecret: v.string(),
     urlStatusMessage: v.string(),
     urlStatusCode: v.number(),
+    requestId: v.string(),
   },
+  returns: v.object({
+    processed: v.boolean(),
+    message: v.string(),
+  }),
   handler: async (ctx, args) => {
     if (args.sharedSecret !== process.env.SHARED_SECRET) {
       console.error("Invalid shared secret");
@@ -35,21 +40,31 @@ export const mutateUrlAnalytics = mutation({
       console.error("User not found");
       throw new ConvexError("User not found");
     }
-    const key = `url:${normalisedUrlId}`;
-    await counter.inc(ctx, key);
-
     const urlAnalytics = await ctx.db
       .query("urlAnalytics")
       .withIndex("by_url", (q) => q.eq("urlId", normalisedUrlId))
       .unique();
 
+    // Idempotency check: if this requestId was already processed, return early
+    if (urlAnalytics?.lastProcessedRequestId === args.requestId) {
+      console.log(
+        `Duplicate request detected for requestId: ${args.requestId}, urlId: ${normalisedUrlId}`,
+      );
+      return { processed: false, message: "Request already processed" };
+    }
+
+    const key = `url:${normalisedUrlId}`;
+    await counter.inc(ctx, key);
+
     if (!urlAnalytics) {
-      return await ctx.db.insert("urlAnalytics", {
+      await ctx.db.insert("urlAnalytics", {
         urlId: normalisedUrlId,
         updatedAt: Date.now(),
         urlStatusMessage: args.urlStatusMessage,
         urlStatusCode: args.urlStatusCode,
+        lastProcessedRequestId: args.requestId,
       });
+      return { processed: true, message: "Analytics created" };
     } else {
       // Update only when urlStatusMessage or urlStatusCode is changed or updatedAt is older than 1 hour
       if (
@@ -57,12 +72,22 @@ export const mutateUrlAnalytics = mutation({
         urlAnalytics.urlStatusCode !== args.urlStatusCode ||
         urlAnalytics.updatedAt < Date.now() - 1000 * 60 * 60 // 1 hour
       ) {
-        return await ctx.db.patch(urlAnalytics._id, {
+        await ctx.db.patch(urlAnalytics._id, {
           updatedAt: Date.now(),
           urlStatusMessage: args.urlStatusMessage,
           urlStatusCode: args.urlStatusCode,
+          lastProcessedRequestId: args.requestId,
         });
+        return { processed: true, message: "Analytics updated" };
       }
+      // Even if we don't update the analytics, we still need to update the requestId
+      await ctx.db.patch(urlAnalytics._id, {
+        lastProcessedRequestId: args.requestId,
+      });
+      return {
+        processed: true,
+        message: "Request processed, no analytics update needed",
+      };
     }
   },
 });

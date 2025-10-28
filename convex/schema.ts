@@ -28,6 +28,7 @@ export default defineSchema({
     urlStatusCode: v.optional(v.number()),
     urlStatusMessage: v.optional(v.string()),
     updatedAt: v.number(),
+    lastProcessedRequestId: v.optional(v.string()),
   }).index("by_url", ["urlId"]),
   collections: defineTable({
     name: v.string(),
