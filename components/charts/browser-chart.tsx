@@ -50,7 +50,6 @@ export function BrowserChart({
 }: {
   data?: Array<{ month: string; clicks: number }>;
 }) {
-  console.log(data);
   return (
     <Card>
       <CardHeader className="flex flex-col items-start justify-between gap-1">

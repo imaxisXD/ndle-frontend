@@ -174,7 +174,7 @@ export function CountryChart({
                       | undefined;
                     const code = (row?.country || "").slice(0, 2).toLowerCase();
                     const showFlag = /^[a-z]{2}$/.test(code) && code !== "ot";
-                    const src = `https://hatscripts.github.io/circle-flags/flags/${code}.svg`;
+                    const src = `/api/flag?code=${code}`;
                     // Center vertically within the bar and position horizontally inside
                     const flagY = y + height / 2 - 6; // -6 to center a 12px flag
                     const textY = y + height / 2 + 5; // +5 to position text below flag
@@ -187,6 +187,7 @@ export function CountryChart({
                             width={12}
                             height={12}
                           >
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
                             <img
                               alt={row?.country || String(value)}
                               src={src}
