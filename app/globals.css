@@ -200,6 +200,23 @@
   border: 1px solid var(--color-border);
 }
 
+@layer utilities {
+  .animate-live-blip {
+    animation: live-blip 1.15s steps(2, start) infinite;
+  }
+}
+
+@keyframes live-blip {
+  0%,
+  45% {
+    opacity: 1;
+  }
+  55%,
+  100% {
+    opacity: 0.2;
+  }
+}
+
 .roundness-100 {
   font-variation-settings: "ROND" 100;
 }

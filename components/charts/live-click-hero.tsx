@@ -20,11 +20,16 @@ export function LiveClickHero({ counterValue }: { counterValue: number }) {
             <MouseButtonLeft className="size-5" />
           </span>
           <div className="flex flex-col items-start justify-center">
-            <h2 className="text-primary text-base leading-none font-medium tracking-tight">
+            <h2 className="text-primary flex items-center justify-center gap-2 text-base leading-none font-medium tracking-tight">
+              <span className="relative inline-flex size-2.5 items-center justify-center">
+                <span className="absolute inline-flex size-[170%] rounded-full bg-emerald-400/25 blur-xs" />
+                <span className="absolute inline-flex size-full rounded-full border border-emerald-400/70" />
+                <span className="animate-live-blip relative inline-flex size-[80%] rounded-full bg-gradient-to-tr from-emerald-300 to-emerald-500 shadow-[0_0_6px_rgba(16,185,129,0.85)] duration-500 ease-linear" />
+              </span>
               Live Click Counter
             </h2>
             <p className="text-muted-foreground mt-1 text-xs">
-              Across all sessions for this link
+              Shows the realtime click count
             </p>
           </div>
         </div>
