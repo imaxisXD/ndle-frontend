@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Doto, Geist_Mono } from "next/font/google";
 import type React from "react";
+import Script from "next/script";
 import "./globals.css";
 import ConvexClientProvider from "@/components/ConvexClientProvider";
 
@@ -34,6 +35,28 @@ export default function RootLayout({
     >
       <body>
         <ConvexClientProvider>{children}</ConvexClientProvider>
+        <Script
+          id="openpanel-init"
+          strategy="afterInteractive"
+          dangerouslySetInnerHTML={{
+            __html: `
+              window.op = window.op || function (...args) {
+                (window.op.q = window.op.q || []).push(args);
+              };
+              window.op('init', {
+                clientId: '3fee2715-1da7-4c02-a23f-e9fa96094c1b',
+                trackScreenViews: true,
+                trackOutgoingLinks: true,
+                trackAttributes: true,
+              });
+            `,
+          }}
+        />
+        <Script
+          id="openpanel-script"
+          src="https://openpanel.dev/op1.js"
+          strategy="afterInteractive"
+        />
       </body>
     </html>
   );
