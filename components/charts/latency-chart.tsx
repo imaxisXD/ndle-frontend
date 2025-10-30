@@ -48,7 +48,8 @@ export function LatencyChart({
   isLoading?: boolean;
 }) {
   const showEmptyState =
-    !isLoading && Array.isArray(data) && data.length === 0;
+    (!isLoading && Array.isArray(data) && data.length === 0) ||
+    data === undefined;
   return (
     <Card>
       <CardHeader className="flex flex-col items-start justify-between gap-1.5">
@@ -118,29 +119,31 @@ export function LatencyChart({
               tickMargin={10}
               fontSize={12}
             />
-            <ChartTooltip
-              content={
-                <ChartTooltipContent
-                  className="bg-white/90 backdrop-blur-lg"
-                  indicator="dashed"
-                  color="var(--color-teal-600)"
-                  labelFormatter={(label, payload) => {
-                    const point = payload?.[0]?.payload as
-                      | { count?: number }
-                      | undefined;
-                    const total = data.reduce(
-                      (sum, item) => sum + (item.count ?? 0),
-                      0,
-                    );
-                    const percentage =
-                      total > 0
-                        ? (((point?.count ?? 0) / total) * 100).toFixed(1)
-                        : "0.0";
-                    return `${label} [${percentage}%]`;
-                  }}
-                />
-              }
-            />
+            {data && (
+              <ChartTooltip
+                content={
+                  <ChartTooltipContent
+                    className="bg-white/90 backdrop-blur-lg"
+                    indicator="dashed"
+                    color="var(--color-teal-600)"
+                    labelFormatter={(label, payload) => {
+                      const point = payload?.[0]?.payload as
+                        | { count?: number }
+                        | undefined;
+                      const total = data.reduce(
+                        (sum, item) => sum + (item.count ?? 0),
+                        0,
+                      );
+                      const percentage =
+                        total > 0
+                          ? (((point?.count ?? 0) / total) * 100).toFixed(1)
+                          : "0.0";
+                      return `${label} [${percentage}%]`;
+                    }}
+                  />
+                }
+              />
+            )}
             <Bar
               dataKey="count"
               fill="url(#barGradientLatency)"
