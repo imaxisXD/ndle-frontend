@@ -61,6 +61,22 @@ export function ClicksTimelineChart({
           <ChartContainer
             config={chartConfig}
             className="aspect-auto h-[340px] w-full sm:h-[380px] md:h-[420px]"
+            isLoading={isLoading}
+            showEmptyState={showEmptyState}
+            loadingContent={
+              <CircleGridLoaderIcon
+                title="Loading analytics"
+                className="text-primary"
+              />
+            }
+            emptyStateContent={
+              <div className="text-center">
+                <p className="text-foreground font-medium">No analytics yet</p>
+                <p className="text-muted-foreground mt-1 text-xs">
+                  This link hasn’t received any clicks in the selected range.
+                </p>
+              </div>
+            }
           >
             <AreaChart
               accessibilityLayer
@@ -143,26 +159,6 @@ export function ClicksTimelineChart({
               />
             </AreaChart>
           </ChartContainer>
-
-          {isLoading ? (
-            <div className="bg-background/50 absolute inset-0 z-10 grid place-items-center backdrop-blur-[1px]">
-              <CircleGridLoaderIcon
-                title="Loading analytics"
-                className="text-primary"
-              />
-            </div>
-          ) : null}
-
-          {showEmptyState ? (
-            <div className="absolute inset-0 z-10 grid place-items-center">
-              <div className="text-center">
-                <p className="text-foreground font-medium">No analytics yet</p>
-                <p className="text-muted-foreground mt-1 text-xs">
-                  This link hasn’t received any clicks in the selected range.
-                </p>
-              </div>
-            </div>
-          ) : null}
         </div>
       </CardContent>
     </Card>

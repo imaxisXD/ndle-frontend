@@ -33,6 +33,7 @@ import {
   AppleImac2021 as Monitor,
   Laptop as DeviceDesktop,
 } from "iconoir-react";
+import { CircleGridLoaderIcon } from "@/components/icons";
 
 // Device Chart Data
 const defaultDeviceData = [
@@ -66,10 +67,16 @@ const osConfig = {
 export function DeviceOSChart({
   deviceData,
   osData,
+  isLoading,
 }: {
   deviceData?: Array<{ device: string; clicks: number }>;
   osData?: Array<{ os: string; clicks: number }>;
+  isLoading?: boolean;
 }) {
+  const showDeviceEmpty =
+    !isLoading && Array.isArray(deviceData) && deviceData.length === 0;
+  const showOsEmpty =
+    !isLoading && Array.isArray(osData) && osData.length === 0;
   return (
     <Card>
       <CardHeader className="flex flex-col items-start justify-between gap-1.5">
@@ -102,6 +109,22 @@ export function DeviceOSChart({
               <ChartContainer
                 config={deviceConfig}
                 className="aspect-auto h-[200px] w-full"
+                isLoading={isLoading}
+                showEmptyState={showDeviceEmpty}
+                loadingContent={
+                  <CircleGridLoaderIcon
+                    title="Loading analytics"
+                    className="text-primary"
+                  />
+                }
+                emptyStateContent={
+                  <div className="text-center">
+                    <p className="text-foreground font-medium">No analytics yet</p>
+                    <p className="text-muted-foreground mt-1 text-xs">
+                      This link hasn’t received any clicks in the selected range.
+                    </p>
+                  </div>
+                }
               >
                 <BarChart
                   accessibilityLayer
@@ -187,6 +210,22 @@ export function DeviceOSChart({
               <ChartContainer
                 config={osConfig}
                 className="aspect-auto h-[200px] w-full"
+                isLoading={isLoading}
+                showEmptyState={showOsEmpty}
+                loadingContent={
+                  <CircleGridLoaderIcon
+                    title="Loading analytics"
+                    className="text-primary"
+                  />
+                }
+                emptyStateContent={
+                  <div className="text-center">
+                    <p className="text-foreground font-medium">No analytics yet</p>
+                    <p className="text-muted-foreground mt-1 text-xs">
+                      This link hasn’t received any clicks in the selected range.
+                    </p>
+                  </div>
+                }
               >
                 <BarChart
                   accessibilityLayer

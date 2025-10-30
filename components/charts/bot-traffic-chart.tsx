@@ -17,6 +17,7 @@ import {
   ChartTooltipContent,
 } from "@/components/ui/chart";
 import { ShieldAlert } from "iconoir-react";
+import { CircleGridLoaderIcon } from "@/components/icons";
 
 export const description =
   "A donut chart showing bot vs human traffic with active sector";
@@ -35,9 +36,13 @@ const chartConfig = {
 
 export function BotTrafficChart({
   data,
+  isLoading,
 }: {
   data?: Array<{ name: string; value: number; color?: string }>;
+  isLoading?: boolean;
 }) {
+  const showEmptyState =
+    !isLoading && Array.isArray(data) && data.length === 0;
   return (
     <Card>
       <CardHeader className="flex flex-col items-start justify-between gap-1.5">
@@ -53,6 +58,22 @@ export function BotTrafficChart({
         <ChartContainer
           config={chartConfig}
           className="aspect-auto h-[250px] w-full"
+          isLoading={isLoading}
+          showEmptyState={showEmptyState}
+          loadingContent={
+            <CircleGridLoaderIcon
+              title="Loading analytics"
+              className="text-primary"
+            />
+          }
+          emptyStateContent={
+            <div className="text-center">
+              <p className="text-foreground font-medium">No analytics yet</p>
+              <p className="text-muted-foreground mt-1 text-xs">
+                This link hasn’t received any clicks in the selected range.
+              </p>
+            </div>
+          }
         >
           <PieChart>
             <Pie

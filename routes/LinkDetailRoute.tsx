@@ -24,10 +24,11 @@ export default function LinkDetailRoute() {
     linkSlug: String(slug),
     scope: "dashboard",
   });
+
   const requestRefresh = useMutation(api.analyticsCache.requestRefresh);
 
   useEffect(() => {
-    if (!dashboardRes || !dashboardRes.fresh) {
+    if (dashboardRes && dashboardRes.fresh === false) {
       void requestRefresh({
         range,
         linkSlug: String(slug),
@@ -89,6 +90,7 @@ export default function LinkDetailRoute() {
         botHumanData={derived.botHumanData}
         latencyBuckets={derived.latencyBuckets}
         hourlyActivityData={derived.hourlyActivityData}
+        isLoading={Boolean(!dashboardRes || dashboardRes.fresh === false)}
       />
 
       <section className="mt-6 grid gap-6 lg:grid-cols-2">

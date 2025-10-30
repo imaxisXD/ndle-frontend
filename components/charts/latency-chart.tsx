@@ -23,6 +23,7 @@ import {
   ChartTooltipContent,
 } from "@/components/ui/chart";
 import { Timer } from "iconoir-react";
+import { CircleGridLoaderIcon } from "@/components/icons";
 
 export const description =
   "A bar chart showing latency performance distribution";
@@ -39,7 +40,15 @@ const chartConfig = {
   },
 } satisfies ChartConfig;
 
-export function LatencyChart({ data }: { data: Array<LatencyBucket> }) {
+export function LatencyChart({
+  data,
+  isLoading,
+}: {
+  data?: Array<LatencyBucket>;
+  isLoading?: boolean;
+}) {
+  const showEmptyState =
+    !isLoading && Array.isArray(data) && data.length === 0;
   return (
     <Card>
       <CardHeader className="flex flex-col items-start justify-between gap-1.5">
@@ -55,10 +64,26 @@ export function LatencyChart({ data }: { data: Array<LatencyBucket> }) {
         <ChartContainer
           config={chartConfig}
           className="aspect-auto h-[250px] w-full"
+          isLoading={isLoading}
+          showEmptyState={showEmptyState}
+          loadingContent={
+            <CircleGridLoaderIcon
+              title="Loading analytics"
+              className="text-primary"
+            />
+          }
+          emptyStateContent={
+            <div className="text-center">
+              <p className="text-foreground font-medium">No analytics yet</p>
+              <p className="text-muted-foreground mt-1 text-xs">
+                This link hasn’t received any clicks in the selected range.
+              </p>
+            </div>
+          }
         >
           <BarChart
             accessibilityLayer
-            data={data}
+            data={data ?? []}
             margin={{
               top: 20,
               right: 20,

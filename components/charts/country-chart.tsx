@@ -97,6 +97,22 @@ export function CountryChart({
           <ChartContainer
             config={chartConfig}
             className="aspect-auto h-[250px] w-full"
+            isLoading={isLoading}
+            showEmptyState={showEmptyState}
+            loadingContent={
+              <CircleGridLoaderIcon
+                title="Loading analytics"
+                className="text-primary"
+              />
+            }
+            emptyStateContent={
+              <div className="text-center">
+                <p className="text-foreground font-medium">No analytics yet</p>
+                <p className="text-muted-foreground mt-1 text-xs">
+                  This link hasn’t received any clicks in the selected range.
+                </p>
+              </div>
+            }
           >
             <BarChart accessibilityLayer data={visible} layout="vertical">
               <defs>
@@ -210,26 +226,6 @@ export function CountryChart({
               </Bar>
             </BarChart>
           </ChartContainer>
-
-          {isLoading ? (
-            <div className="bg-background/50 absolute inset-0 z-10 grid place-items-center backdrop-blur-[1px]">
-              <CircleGridLoaderIcon
-                title="Loading analytics"
-                className="text-primary"
-              />
-            </div>
-          ) : null}
-
-          {showEmptyState ? (
-            <div className="absolute inset-0 z-10 grid place-items-center">
-              <div className="text-center">
-                <p className="text-foreground font-medium">No analytics yet</p>
-                <p className="text-muted-foreground mt-1 text-xs">
-                  This link hasn’t received any clicks in the selected range.
-                </p>
-              </div>
-            </div>
-          ) : null}
         </div>
         <div className="mt-3 flex items-center justify-end">
           <button

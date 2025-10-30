@@ -20,6 +20,7 @@ export function AnalyticsSection({
   botHumanData,
   latencyBuckets,
   hourlyActivityData,
+  isLoading,
 }: {
   clicksTimelineData: Array<{ time: string; clicks: number }>;
   browserData: Array<{ month: string; clicks: number }>;
@@ -29,16 +30,21 @@ export function AnalyticsSection({
   botHumanData: Array<{ name: string; value: number; color: string }>;
   latencyBuckets: Array<LatencyBucket>;
   hourlyActivityData: Array<{ hour: string; clicks: number }>;
+  isLoading: boolean;
 }) {
   return (
     <section className="grid gap-6 lg:grid-cols-2">
-      <ClicksTimelineChart data={clicksTimelineData} />
-      <BrowserChart data={browserData} />
-      <CountryChart data={countryData} />
-      <DeviceOSChart deviceData={deviceData} osData={osData} />
-      <BotTrafficChart data={botHumanData} />
-      <LatencyChart data={latencyBuckets} />
-      <HourlyActivityChart data={hourlyActivityData} />
+      <ClicksTimelineChart data={clicksTimelineData} isLoading={isLoading} />
+      <BrowserChart data={browserData} isLoading={isLoading} />
+      <CountryChart data={countryData} isLoading={isLoading} />
+      <DeviceOSChart
+        deviceData={deviceData}
+        osData={osData}
+        isLoading={isLoading}
+      />
+      <BotTrafficChart data={botHumanData} isLoading={isLoading} />
+      <LatencyChart data={latencyBuckets} isLoading={isLoading} />
+      <HourlyActivityChart data={hourlyActivityData} isLoading={isLoading} />
     </section>
   );
 }

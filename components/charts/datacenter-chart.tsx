@@ -23,6 +23,7 @@ import {
   ChartTooltipContent,
 } from "@/components/ui/chart";
 import { Server } from "iconoir-react";
+import { CircleGridLoaderIcon } from "@/components/icons";
 
 export const description = "A bar chart showing datacenter performance";
 
@@ -43,9 +44,13 @@ const chartConfig = {
 
 export function DatacenterChart({
   data,
+  isLoading,
 }: {
   data?: Array<{ datacenter: string; clicks: number }>;
+  isLoading?: boolean;
 }) {
+  const showEmptyState =
+    !isLoading && Array.isArray(data) && data.length === 0;
   return (
     <Card>
       <CardHeader className="flex flex-col items-start justify-between gap-1.5">
@@ -61,6 +66,22 @@ export function DatacenterChart({
         <ChartContainer
           config={chartConfig}
           className="aspect-auto h-[200px] w-full"
+          isLoading={isLoading}
+          showEmptyState={showEmptyState}
+          loadingContent={
+            <CircleGridLoaderIcon
+              title="Loading analytics"
+              className="text-primary"
+            />
+          }
+          emptyStateContent={
+            <div className="text-center">
+              <p className="text-foreground font-medium">No analytics yet</p>
+              <p className="text-muted-foreground mt-1 text-xs">
+                This link hasn’t received any clicks in the selected range.
+              </p>
+            </div>
+          }
         >
           <BarChart
             accessibilityLayer
