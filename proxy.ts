@@ -1,4 +1,5 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
+import { NextResponse } from "next/server";
 
 const isPublicRoute = createRouteMatcher(["/sign-in(.*)", "/sign-up(.*)"]);
 const isAppRoute = createRouteMatcher(["/static-app-shell(.*)"]);
@@ -10,6 +11,12 @@ export default clerkMiddleware(async (auth, req) => {
 
   if (isAppRoute(req)) {
     await auth.protect();
+    if (
+      req.nextUrl.pathname === "/static-app-shell" ||
+      req.nextUrl.pathname.startsWith("/static-app-shell/")
+    ) {
+      return NextResponse.redirect(new URL("/", req.nextUrl));
+    }
     return;
   }
 
