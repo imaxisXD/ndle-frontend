@@ -44,6 +44,7 @@ export default function RootLayout({
                 (window.op.q = window.op.q || []).push(args);
               };
               window.op('init', {
+                apiUrl: 'https://openpanel-api-production-b833.up.railway.app/api', 
                 clientId: '3fee2715-1da7-4c02-a23f-e9fa96094c1b',
                 trackScreenViews: true,
                 trackOutgoingLinks: true,
