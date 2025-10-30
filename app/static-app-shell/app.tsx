@@ -24,10 +24,10 @@ export default function App() {
       <BrowserRouter>
         <QueryClientProvider client={queryClient}>
           <ToastProvider showCloseButton={true} limit={5}>
-            <div className="bg-home text-foreground dot flex w-full overflow-hidden">
+            <div className="bg-home text-foreground dot flex min-h-screen w-full gap-4 overflow-hidden">
               <Sidebar />
-              <main className="flex min-h-0 w-full items-start justify-center overflow-y-auto">
-                <div className="w-5xl flex-col space-y-8 py-8">
+              <main className="flex min-h-screen w-full flex-1 items-start justify-center overflow-y-auto border-x border-dashed px-4 py-8">
+                <div className="flex w-full max-w-6xl flex-col space-y-8 px-6 py-8">
                   <ScrollToTop />
                   <Routes>
                     <Route path="/" element={<HomeRoute />} />
