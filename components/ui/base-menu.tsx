@@ -303,7 +303,7 @@ function MenuShortcut({
       data-slot="menu-shortcut"
       {...props}
       className={cn(
-        "ms-auto flex h-4.5 w-5 items-center justify-center rounded-xs bg-gradient-to-tr from-black to-black/70 text-xs text-white opacity-90",
+        "ms-auto flex h-4.5 w-7 items-center justify-center gap-1 rounded-xs border border-black bg-gradient-to-br from-black to-black/50 text-xs text-white opacity-90",
         className,
       )}
     />

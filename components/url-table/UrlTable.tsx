@@ -38,6 +38,7 @@ import {
   FilterSolid,
   BinMinusIn,
   Page,
+  KeyCommand,
 } from "iconoir-react";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
@@ -224,7 +225,9 @@ function ActionsMenuCell({
         >
           <Reports />
           <span>Analytics</span>
-          <MenuShortcut>⌘A</MenuShortcut>
+          <MenuShortcut>
+            <KeyCommand className="size-2.5 text-white" strokeWidth="2" /> A
+          </MenuShortcut>
         </MenuItem>
 
         <MenuItem
@@ -237,7 +240,9 @@ function ActionsMenuCell({
         >
           <BinMinusIn />
           <span>Delete</span>
-          <MenuShortcut>⌘D</MenuShortcut>
+          <MenuShortcut>
+            <KeyCommand className="size-2.5 text-white" strokeWidth="2" /> D
+          </MenuShortcut>
         </MenuItem>
       </MenuContent>
     </Menu>

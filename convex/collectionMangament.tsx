@@ -1,4 +1,4 @@
-import { v } from "convex/values";
+import { ConvexError, v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import { getCurrentUser } from "./users";
 import { counter } from "./urlAnalytics";
@@ -201,5 +201,26 @@ export const createCollection = mutation({
       shareCreatedAt: undefined,
       shareUpdatedAt: undefined,
     });
+  },
+});
+
+export const deleteCollection = mutation({
+  args: {
+    collectionId: v.id("collections"),
+  },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    const user = await getCurrentUser(ctx);
+    if (!user) {
+      throw new ConvexError("User not found");
+    }
+
+    const collection = await ctx.db.get(args.collectionId);
+    if (!collection || collection.userTableId !== user._id) {
+      throw new ConvexError("Collection not found or access denied");
+    }
+
+    await ctx.db.delete(args.collectionId);
+    return null;
   },
 });
