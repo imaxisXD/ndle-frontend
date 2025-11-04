@@ -3,7 +3,6 @@
   "version": "0.1.0",
   "private": true,
   "engines": {
-    "bun": "canary",
     "node": "22.x"
   },
   "scripts": {
