@@ -8,9 +8,11 @@ import { Button } from "./ui/button";
 import {
   CheckCircle,
   RefreshDouble,
+  Restart,
   ShieldAlert,
   ShieldCheck,
   ShieldXmark,
+  SystemRestart,
   WarningCircle,
   XmarkCircle,
 } from "iconoir-react";
@@ -106,7 +108,9 @@ export function LinkMonitoring() {
       case "error":
         return <ShieldXmark className="h-5 w-5 text-red-600" />;
       case "checking":
-        return <RefreshDouble className="size-4 animate-spin text-blue-600" />;
+        return (
+          <SystemRestart className="size-4 animate-spin text-blue-600 duration-500" />
+        );
     }
   };
 

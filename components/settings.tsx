@@ -474,23 +474,6 @@ export function Settings() {
               Delete All
             </button>
           </div>
-
-          <div className="flex items-center justify-between rounded-lg border border-red-200 bg-white p-4">
-            <div>
-              <h4 className="text-sm font-medium text-red-900">
-                Delete Account
-              </h4>
-              <p className="mt-1 text-xs text-red-700">
-                Permanently delete your account and all associated data
-              </p>
-            </div>
-            <button
-              type="button"
-              className="rounded-md bg-red-600 px-4 py-2 text-sm text-white transition-colors hover:bg-red-700"
-            >
-              Delete Account
-            </button>
-          </div>
         </div>
       </div>
     </div>

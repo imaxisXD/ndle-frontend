@@ -828,7 +828,7 @@ export function UrlTable({
     return null;
   }
   return (
-    <div className="border-border bg-card rounded-xl border">
+    <div className="border-border bg-card rounded-md border">
       {showHeader && (
         <div className="border-border border-b p-6">
           <div className="flex items-center justify-between">

@@ -121,12 +121,6 @@ export default function CollectionDetailRoute() {
         </div>
       </header>
 
-      <section aria-labelledby="add-link-heading">
-        <h2 className="sr-only" id="add-link-heading">
-          Add Link to Collection
-        </h2>
-      </section>
-
       <section aria-labelledby="collection-links-heading">
         <h2 className="sr-only" id="collection-links-heading">
           Collection Links

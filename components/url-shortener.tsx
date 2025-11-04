@@ -396,7 +396,7 @@ export function UrlShortener() {
                 )}
               />
 
-              <FormField
+              {/* <FormField
                 control={form.control}
                 name="trackingEnabled"
                 render={({ field }) => (
@@ -410,7 +410,7 @@ export function UrlShortener() {
                     <label htmlFor="opt-tracking">Enable click tracking</label>
                   </div>
                 )}
-              />
+              /> */}
             </div>
           </CardContent>
           <CardFooter className="flex-wrap justify-between gap-3 py-5">
