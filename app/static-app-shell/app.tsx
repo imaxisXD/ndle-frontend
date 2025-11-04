@@ -26,7 +26,7 @@ export default function App() {
           <ToastProvider showCloseButton={true} limit={5}>
             <div className="bg-home text-foreground dot flex min-h-screen w-full gap-4 overflow-hidden">
               <Sidebar />
-              <main className="flex min-h-screen w-full flex-1 items-start justify-center overflow-y-auto border-x border-dashed px-4 py-8">
+              <main className="flex min-h-screen w-full flex-1 items-start justify-center overflow-y-auto px-4 py-8">
                 <div className="flex w-full max-w-6xl flex-col space-y-8 px-6 py-8">
                   <ScrollToTop />
                   <Routes>

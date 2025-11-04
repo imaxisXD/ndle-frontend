@@ -8,16 +8,18 @@ import {
   Presentation,
   Reports,
   Settings,
+  Suggestion,
 } from "iconoir-react";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/base-tooltip";
+import Link from "next/link";
 
 export function Sidebar() {
   return (
-    <aside className="my-auto ml-4 flex h-[90vh] w-16 flex-shrink-0 flex-col items-center rounded-sm border border-dashed border-gray-400/60 bg-white py-6 shadow-2xs">
+    <aside className="my-auto ml-4 flex h-[90vh] w-16 flex-shrink-0 flex-col items-center rounded-sm border border-dashed border-gray-400/60 bg-white py-4 shadow-2xs">
       <nav className="flex flex-1 flex-col gap-4">
         <Tooltip>
           <TooltipTrigger
@@ -102,6 +104,7 @@ export function Sidebar() {
       <div className="flex flex-col gap-4">
         {/* TODO: WILL ADD BACK IN LATER notification center */}
         {/* <NotificationCenter /> */}
+
         <Tooltip>
           <TooltipTrigger
             render={
@@ -140,6 +143,21 @@ export function Sidebar() {
             <Settings className="size-5" />
           </TooltipTrigger>
           <TooltipContent side="right">Settings</TooltipContent>
+        </Tooltip>
+
+        <Tooltip>
+          <TooltipTrigger
+            render={
+              <Link
+                href="https://ndles.userjot.com/?cursor=1&order=top&limit=10"
+                target="_blank"
+                className="text-muted-foreground hover:bg-accent hover:text-accent-foreground flex h-10 w-10 items-center justify-center rounded-md transition-colors"
+              />
+            }
+          >
+            <Suggestion className="size-5 fill-sky-200 text-blue-500" />
+          </TooltipTrigger>
+          <TooltipContent side="right">Feedback</TooltipContent>
         </Tooltip>
       </div>
     </aside>

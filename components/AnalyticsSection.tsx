@@ -33,7 +33,7 @@ export function AnalyticsSection({
   isLoading: boolean;
 }) {
   return (
-    <section className="grid gap-6 lg:grid-cols-2">
+    <section data-analytics-section className="grid gap-6 lg:grid-cols-2">
       <ClicksTimelineChart data={clicksTimelineData} isLoading={isLoading} />
       <BrowserChart data={browserData} isLoading={isLoading} />
       <CountryChart data={countryData} isLoading={isLoading} />

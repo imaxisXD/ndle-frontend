@@ -13,9 +13,11 @@ import { useTableSortingURL } from "../../hooks/use-table-sorting-url";
 import { NavLink, useNavigate } from "react-router";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery } from "convex-helpers/react/cache/hooks";
+import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { FunctionReturnType } from "convex/server";
 import { Id } from "@/convex/_generated/dataModel";
+import { useHotkeys } from "react-hotkeys-hook";
 import {
   MoreVertCircle,
   Search,
@@ -34,6 +36,8 @@ import {
   ArrowUp,
   ArrowDown,
   FilterSolid,
+  BinMinusIn,
+  Page,
 } from "iconoir-react";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
@@ -53,10 +57,26 @@ import {
   TableHeader,
   TableRow,
 } from "../ui/table";
+import {
+  Menu,
+  MenuContent,
+  MenuItem,
+  MenuShortcut,
+  MenuTrigger,
+} from "../ui/base-menu";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogTitle,
+  DialogAction,
+  DialogClose,
+} from "../ui/base-dialog";
 import { AiSummaryGenerator } from "../ai-summary-generator";
 import { AiChat } from "../ai-chat";
 import { type DisplayUrl } from "./types";
-import { formatRelative } from "@/lib/utils";
+import { formatRelative, cn } from "@/lib/utils";
 import { CircleGridLoaderIcon } from "../icons";
 import { Skeleton } from "../ui/skeleton";
 import { makeShortLink } from "@/lib/config";
@@ -140,6 +160,87 @@ function SortableHeader({
       />
       <TooltipContent side="top">{tooltipText}</TooltipContent>
     </Tooltip>
+  );
+}
+
+function ActionsMenuCell({
+  url,
+  onNavigateToAnalytics,
+  onDeleteClick,
+}: {
+  url: DisplayUrl;
+  onNavigateToAnalytics: (slug: string) => void;
+  onDeleteClick: (slug: string, shortUrl: string) => void;
+}) {
+  const slug = url.shortUrl.split("/").pop() || "";
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  useHotkeys(
+    "meta+a",
+    (e) => {
+      if (menuOpen) {
+        e.preventDefault();
+        onNavigateToAnalytics(slug);
+        setMenuOpen(false);
+      }
+    },
+    { enabled: menuOpen, preventDefault: true },
+  );
+
+  useHotkeys(
+    "meta+d",
+    (e) => {
+      if (menuOpen) {
+        e.preventDefault();
+        onDeleteClick(slug, url.shortUrl);
+        setMenuOpen(false);
+      }
+    },
+    { enabled: menuOpen, preventDefault: true },
+  );
+
+  return (
+    <Menu open={menuOpen} onOpenChange={setMenuOpen}>
+      <MenuTrigger
+        render={
+          <button
+            type="button"
+            className="text-muted-foreground hover:bg-muted hover:text-foreground rounded-md p-2 transition-colors"
+            onClick={(e) => {
+              e.stopPropagation();
+            }}
+          >
+            <MoreVertCircle className="size-4.5" />
+          </button>
+        }
+      />
+      <MenuContent sideOffset={4} className="w-48">
+        <MenuItem
+          onClick={(e) => {
+            e.stopPropagation();
+            onNavigateToAnalytics(slug);
+            setMenuOpen(false);
+          }}
+        >
+          <Reports />
+          <span>Analytics</span>
+          <MenuShortcut>⌘A</MenuShortcut>
+        </MenuItem>
+
+        <MenuItem
+          variant="destructive"
+          onClick={(e) => {
+            e.stopPropagation();
+            onDeleteClick(slug, url.shortUrl);
+            setMenuOpen(false);
+          }}
+        >
+          <BinMinusIn />
+          <span>Delete</span>
+          <MenuShortcut>⌘D</MenuShortcut>
+        </MenuItem>
+      </MenuContent>
+    </Menu>
   );
 }
 
@@ -404,6 +505,11 @@ export function UrlTable({
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string | "all">("all");
   const [showFiltersPanel, setShowFiltersPanel] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [urlToDelete, setUrlToDelete] = useState<{
+    slug: string;
+    shortUrl: string;
+  } | null>(null);
 
   const {
     sorting,
@@ -414,6 +520,7 @@ export function UrlTable({
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
 
   const { add } = useToast();
+  const deleteUrl = useMutation(api.urlMainFuction.deleteUrl);
 
   const urls = useQuery(
     collectionId
@@ -522,6 +629,37 @@ export function UrlTable({
   );
 
   const navigate = useNavigate();
+
+  const handleNavigateToAnalytics = (slug: string) => {
+    navigate(`/link/${slug}`);
+  };
+
+  const handleDeleteClick = useCallback((slug: string, shortUrl: string) => {
+    setUrlToDelete({ slug, shortUrl });
+    setDeleteDialogOpen(true);
+  }, []);
+
+  const handleDeleteConfirm = useCallback(async () => {
+    if (!urlToDelete) return;
+
+    try {
+      await deleteUrl({ urlSlug: urlToDelete.slug });
+      setDeleteDialogOpen(false);
+      setUrlToDelete(null);
+      add({
+        type: "success",
+        title: "Link deleted",
+        description: `The link has been deleted successfully`,
+      });
+    } catch (error) {
+      add({
+        type: "error",
+        title: "Error",
+        description:
+          error instanceof Error ? error.message : "Failed to delete link",
+      });
+    }
+  }, [urlToDelete, deleteUrl, add]);
 
   const columns = useMemo<ColumnDef<DisplayUrl>[]>(
     () => [
@@ -637,23 +775,17 @@ export function UrlTable({
         cell: ({ row }) => {
           const url = row.original;
           return (
-            <button
-              type="button"
-              className="text-muted-foreground hover:bg-muted hover:text-foreground rounded-md p-2 transition-colors"
-              onClick={(e) => {
-                e.stopPropagation();
-                const slug = url.shortUrl.split("/").pop() || "";
-                navigate(`/link/${slug}`);
-              }}
-            >
-              <MoreVertCircle className="size-4.5" />
-            </button>
+            <ActionsMenuCell
+              url={url}
+              onNavigateToAnalytics={handleNavigateToAnalytics}
+              onDeleteClick={handleDeleteClick}
+            />
           );
         },
         size: 40,
       },
     ],
-    [handleCopy, navigate],
+    [handleCopy, handleNavigateToAnalytics, handleDeleteClick],
   );
 
   const table = useReactTable({
@@ -1079,6 +1211,48 @@ export function UrlTable({
           </div>
         </div>
       )}
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent className="gap-2">
+          <DialogTitle className="flex items-center gap-2 text-red-600">
+            <BinMinusIn className="size-5 fill-red-100" />
+            Confirm Link Delete
+          </DialogTitle>
+          <DialogDescription className="text-primary mt-4 text-sm">
+            Are you sure you want to delete this link and all its data? <br />
+            <span className="text-muted-foreground text-xs">
+              [Note : This action is permanent and cannot be undone]
+            </span>
+            {urlToDelete && (
+              <div className="my-4">
+                <p className="text-sm font-medium">Link to delete:</p>
+                <p className="text-muted-foreground text-xs">
+                  [{urlToDelete.shortUrl}]
+                </p>
+              </div>
+            )}
+          </DialogDescription>
+          <DialogFooter>
+            <DialogClose
+              render={
+                <Button variant="outline" type="button">
+                  Cancel
+                </Button>
+              }
+            />
+            <DialogAction
+              onClick={handleDeleteConfirm}
+              className={cn(
+                "bg-destructive text-destructive-foreground hover:bg-destructive/90",
+              )}
+            >
+              <BinMinusIn />
+              Delete Link
+            </DialogAction>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
