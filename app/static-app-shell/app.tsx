@@ -31,7 +31,14 @@ export default function App() {
                   <ScrollToTop />
                   <Routes>
                     <Route path="/" element={<HomeRoute />} />
-                    <Route path="/analytics" element={<AnalyticsRoute />} />
+                    <Route
+                      path="/analytics"
+                      element={
+                        <AnalyticsRoute
+                          userId={collections?.[0]?.userTableId ?? ""}
+                        />
+                      }
+                    />
                     <Route path="/monitoring" element={<MonitoringRoute />} />
                     <Route path="/settings" element={<SettingsRoute />} />
                     <Route

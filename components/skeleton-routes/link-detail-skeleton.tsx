@@ -36,9 +36,6 @@ export default function LinkDetailSkeleton({ shortUrl }: { shortUrl: string }) {
               strokeWidth={2}
             />
           </a>
-          <p className="text-muted-foreground text-sm">
-            Link analytics and settings
-          </p>
         </div>
         <LiveClickHero counterValue={0} />
       </header>

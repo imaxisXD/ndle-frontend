@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useCallback, useMemo } from "react";
 import { SortingState, OnChangeFn } from "@tanstack/react-table";
 import { useSearchParams } from "react-router";
 
@@ -25,21 +25,14 @@ function compactToSorting(compact: CompactSorting): SortingState {
 // Hook to persist only sorting state in URL parameters with compact format using React Router
 export function useTableSortingURL() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const [sorting, setSorting] = useState<SortingState>([]);
-  const [isLoaded, setIsLoaded] = useState(false);
 
-  // Load sorting from URL on mount
-  useEffect(() => {
+  const sorting = useMemo<SortingState>(() => {
     try {
       const sortParam = searchParams.get("sort");
-      if (sortParam) {
-        const parsedSorting = compactToSorting(sortParam);
-        setSorting(parsedSorting);
-      }
+      return sortParam ? compactToSorting(sortParam) : [];
     } catch (error) {
-      console.warn("Failed to load sorting from URL:", error);
-    } finally {
-      setIsLoaded(true);
+      console.warn("Failed to parse sorting from URL:", error);
+      return [];
     }
   }, [searchParams]);
 
@@ -50,8 +43,6 @@ export function useTableSortingURL() {
         typeof updaterOrValue === "function"
           ? updaterOrValue(sorting)
           : updaterOrValue;
-
-      setSorting(newSorting);
 
       const compactSorting = sortingToCompact(newSorting);
 
@@ -72,7 +63,6 @@ export function useTableSortingURL() {
 
   return {
     sorting,
-    isLoaded,
     updateSorting,
   };
 }

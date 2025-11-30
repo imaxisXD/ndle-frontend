@@ -10,6 +10,11 @@ import { DayButton, DayPicker, getDefaultClassNames } from "react-day-picker";
 
 import { cn } from "@/lib/utils";
 import { Button, buttonVariants } from "@/components/ui/button";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/base-tooltip";
 
 function Calendar({
   className,
@@ -110,8 +115,7 @@ function Calendar({
         range_middle: cn("rounded-none", defaultClassNames.range_middle),
         range_end: cn("rounded-r-md bg-accent", defaultClassNames.range_end),
         today: cn(
-          "bg-accent text-accent-foreground rounded-md data-[selected=true]:rounded-none",
-          defaultClassNames.today,
+          "rounded-md [&_button]:relative [&_button]:after:content-[''] [&_button]:after:absolute [&_button]:after:w-1.5 [&_button]:after:h-1.5 [&_button]:after:rounded-full [&_button]:after:bg-primary [&_button]:after:left-1/2 [&_button]:after:-translate-x-1/2 [&_button]:after:bottom-1",
         ),
         outside: cn(
           "text-muted-foreground aria-selected:text-muted-foreground",
@@ -185,7 +189,7 @@ function CalendarDayButton({
     if (modifiers.focused) ref.current?.focus();
   }, [modifiers.focused]);
 
-  return (
+  const buttonEl = (
     <Button
       ref={ref}
       variant="ghost"
@@ -208,6 +212,40 @@ function CalendarDayButton({
       {...props}
     />
   );
+
+  if (modifiers.today) {
+    return (
+      <Tooltip>
+        <TooltipTrigger>
+          <span className="inline-block w-full">{buttonEl}</span>
+        </TooltipTrigger>
+        <TooltipContent className="text-xs">
+          Today is not allowed
+        </TooltipContent>
+      </Tooltip>
+    );
+  }
+
+  // Other disabled days: past or beyond free limit
+  if (modifiers.disabled) {
+    const m = modifiers as unknown as Record<string, boolean>;
+    const message = m.past
+      ? "Past dates are not allowed"
+      : m.afterLimit
+        ? "Free plan allows up to 29 days ahead. Upgrade to Pro for more."
+        : "This date is not selectable";
+
+    return (
+      <Tooltip>
+        <TooltipTrigger>
+          <span className="inline-block w-full">{buttonEl}</span>
+        </TooltipTrigger>
+        <TooltipContent className="text-xs">{message}</TooltipContent>
+      </Tooltip>
+    );
+  }
+
+  return buttonEl;
 }
 
 export { Calendar, CalendarDayButton };

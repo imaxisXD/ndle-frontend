@@ -12,6 +12,7 @@ interface HotkeyButtonProps
   size?: VariantProps<typeof Button>["size"];
   asChild?: boolean;
   enabled?: boolean;
+  kbdClassName?: string;
 }
 
 /**
@@ -66,6 +67,7 @@ export function HotkeyButton({
   onClick,
   children,
   enabled = true,
+  kbdClassName,
   ...props
 }: HotkeyButtonProps) {
   // Check if hotkey is empty
@@ -92,7 +94,9 @@ export function HotkeyButton({
           {hotkey.map((key, index) => {
             const formattedKeys = formatHotkey(key);
             return formattedKeys.map((formattedKey, keyIndex) => (
-              <Kbd key={`${index}-${keyIndex}`}>{formattedKey}</Kbd>
+              <Kbd key={`${index}-${keyIndex}`} className={kbdClassName}>
+                {formattedKey}
+              </Kbd>
             ));
           })}
         </KbdGroup>
@@ -101,13 +105,15 @@ export function HotkeyButton({
 
     const formattedKeys = formatHotkey(hotkey);
     if (formattedKeys.length === 1) {
-      return <Kbd>{formattedKeys[0]}</Kbd>;
+      return <Kbd className={kbdClassName}>{formattedKeys[0]}</Kbd>;
     }
 
     return (
       <KbdGroup>
         {formattedKeys.map((key, index) => (
-          <Kbd key={index}>{key}</Kbd>
+          <Kbd key={index} className={kbdClassName}>
+            {key}
+          </Kbd>
         ))}
       </KbdGroup>
     );

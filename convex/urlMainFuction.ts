@@ -19,6 +19,21 @@ export const createUrl = mutation({
     slugType: v.union(v.literal("random"), v.literal("human")),
     trackingEnabled: v.boolean(),
     expiresAt: v.optional(v.number()),
+    qrEnabled: v.optional(v.boolean()),
+    qrStyle: v.optional(
+      v.object({
+        fg: v.string(),
+        bg: v.string(),
+        margin: v.number(),
+        logoMode: v.union(
+          v.literal("brand"),
+          v.literal("custom"),
+          v.literal("none"),
+        ),
+        logoScale: v.number(),
+        customLogoUrl: v.optional(v.string()),
+      }),
+    ),
   },
   returns: v.object({
     docId: v.id("urls"),
@@ -102,6 +117,8 @@ export const createUrl = mutation({
       shortUrl: slug,
       trackingEnabled: args.trackingEnabled,
       expiresAt: args.expiresAt ?? undefined,
+      qrEnabled: args.qrEnabled ?? false,
+      qrStyle: args.qrStyle ?? undefined,
       userTableId: user._id,
       slugAssigned: slug,
       urlStatusMessage: "creating",

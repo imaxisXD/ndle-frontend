@@ -207,7 +207,7 @@ export function Collections({
             <Card
               variant="accent"
               key={collection.id}
-              className="group hover:border-accent border-border cursor-pointer border transition-all duration-100 ease-in-out hover:border-dashed hover:drop-shadow"
+              className="group hover:border-accent border-border cursor-pointer border transition-all duration-100 ease-in-out hover:border-dashed hover:shadow-[0px_0px_0px_4px_#ffca0026]"
             >
               <CardHeader className="flex items-center">
                 <NavLink

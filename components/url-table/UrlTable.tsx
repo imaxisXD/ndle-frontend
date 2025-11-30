@@ -23,21 +23,12 @@ import {
   Search,
   XmarkCircle,
   FilterAlt,
-  Copy,
   OpenNewWindow,
   DataTransferDown,
-  Brain,
-  Clock,
-  MessageText,
-  PageEdit,
-  Reports,
-  ReportsSolid,
-  ShieldPlusIn,
   ArrowUp,
   ArrowDown,
   FilterSolid,
   BinMinusIn,
-  Page,
   KeyCommand,
 } from "iconoir-react";
 import { Badge } from "../ui/badge";
@@ -74,14 +65,19 @@ import {
   DialogAction,
   DialogClose,
 } from "../ui/base-dialog";
-import { AiSummaryGenerator } from "../ai-summary-generator";
-import { AiChat } from "../ai-chat";
 import { type DisplayUrl } from "./types";
 import { formatRelative, cn } from "@/lib/utils";
 import { CircleGridLoaderIcon } from "../icons";
 import { Skeleton } from "../ui/skeleton";
 import { makeShortLink } from "@/lib/config";
-
+import NumberFlow from "@number-flow/react";
+import { ChartLineIcon } from "lucide-react";
+import {
+  Copy,
+  CopyIcon,
+  CopySimpleIcon,
+  TrashIcon,
+} from "@phosphor-icons/react";
 interface UrlTableProps {
   showSearch?: boolean;
   showFilters?: boolean;
@@ -223,7 +219,7 @@ function ActionsMenuCell({
             setMenuOpen(false);
           }}
         >
-          <Reports />
+          <ChartLineIcon />
           <span>Analytics</span>
           <MenuShortcut>
             <KeyCommand className="size-2.5 text-white" strokeWidth="2" /> A
@@ -238,7 +234,7 @@ function ActionsMenuCell({
             setMenuOpen(false);
           }}
         >
-          <BinMinusIn />
+          <TrashIcon weight="duotone" />
           <span>Delete</span>
           <MenuShortcut>
             <KeyCommand className="size-2.5 text-white" strokeWidth="2" /> D
@@ -273,7 +269,8 @@ function ShortUrlCell({
             {url.shortUrl}
           </code>
           <OpenNewWindow
-            className="size-3 flex-shrink-0 group-hover:text-blue-600"
+            fontSize={8}
+            className="flex-shrink-0 group-hover:text-blue-600"
             strokeWidth={2.4}
           />
         </a>
@@ -287,7 +284,7 @@ function ShortUrlCell({
             onCopy(url.shortUrl);
           }}
         >
-          <Copy className="size-4" strokeWidth={1.8} />
+          <CopySimpleIcon />
         </Button>
       </div>
       <p
@@ -297,194 +294,6 @@ function ShortUrlCell({
         {url.originalUrl}
       </p>
     </div>
-  );
-}
-
-function ExpandedRowContent({
-  columnsCount,
-  url,
-  activeTab,
-  setActiveTab,
-}: {
-  columnsCount: number;
-  url: DisplayUrl;
-  activeTab: "memory" | "chat" | "healing" | "analytics";
-  setActiveTab: (tab: "memory" | "chat" | "healing" | "analytics") => void;
-}) {
-  return (
-    <TableRow>
-      <TableCell colSpan={columnsCount} className="bg-muted/20 p-0">
-        <div className="p-6">
-          <div className="border-border mb-4 flex gap-2 border-b">
-            <button
-              type="button"
-              onClick={() => setActiveTab("memory")}
-              className={`flex items-center gap-2 border-b-2 px-4 py-2 text-sm transition-colors ${
-                activeTab === "memory"
-                  ? "border-foreground text-foreground"
-                  : "text-muted-foreground hover:text-foreground border-transparent"
-              }`}
-            >
-              <Brain className="h-4 w-4" />
-              Memory
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveTab("chat")}
-              className={`flex items-center gap-2 border-b-2 px-4 py-2 text-sm transition-colors ${
-                activeTab === "chat"
-                  ? "border-foreground text-foreground"
-                  : "text-muted-foreground hover:text-foreground border-transparent"
-              }`}
-            >
-              <MessageText className="h-4 w-4" />
-              Chat
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveTab("healing")}
-              className={`flex items-center gap-2 border-b-2 px-4 py-2 text-sm transition-colors ${
-                activeTab === "healing"
-                  ? "border-foreground text-foreground"
-                  : "text-muted-foreground hover:text-foreground border-transparent"
-              }`}
-            >
-              <ShieldPlusIn className="h-4 w-4" />
-              Healing History
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveTab("analytics")}
-              className={`flex items-center gap-2 border-b-2 px-4 py-2 text-sm transition-colors ${
-                activeTab === "analytics"
-                  ? "border-foreground text-foreground"
-                  : "text-muted-foreground hover:text-foreground border-transparent"
-              }`}
-            >
-              <Reports className="h-4 w-4" />
-              Analytics
-            </button>
-          </div>
-
-          <div className="space-y-4">
-            {activeTab === "memory" && (
-              <div className="space-y-4">
-                <AiSummaryGenerator url={url.originalUrl} />
-
-                <div className="border-border bg-card rounded-lg border p-4">
-                  <div className="mb-2 flex items-center gap-2">
-                    <PageEdit className="text-muted-foreground h-4 w-4" />
-                    <h4 className="text-sm font-medium">Your Notes</h4>
-                  </div>
-                  <p className="text-muted-foreground text-sm">
-                    Add your notes here.
-                  </p>
-                </div>
-
-                <div className="rounded-lg border border-yellow-200 bg-yellow-50 p-4">
-                  <div className="mb-2 flex items-center gap-2">
-                    <Clock className="h-4 w-4 text-yellow-700" />
-                    <h4 className="text-sm font-medium text-yellow-900">
-                      Why You Saved This
-                    </h4>
-                  </div>
-                  <p className="text-sm text-yellow-700">
-                    Keep a brief reason for future context.
-                  </p>
-                </div>
-              </div>
-            )}
-
-            {activeTab === "chat" && (
-              <div className="space-y-4">
-                <AiChat linkUrl={url.originalUrl} />
-              </div>
-            )}
-
-            {activeTab === "healing" && (
-              <div className="space-y-3">
-                <div className="border-border bg-muted/30 rounded-lg border border-dashed p-8 text-center">
-                  <ShieldPlusIn className="mx-auto h-8 w-8 text-green-600" />
-                  <p className="text-foreground mt-2 text-sm">
-                    Link is healthy
-                  </p>
-                  <p className="text-muted-foreground mt-1 text-xs">
-                    No healing actions required
-                  </p>
-                </div>
-              </div>
-            )}
-
-            {activeTab === "analytics" &&
-              (url.analytics ? (
-                <div className="space-y-6">
-                  <div>
-                    <h4 className="text-sm font-medium">Clicks Over Time</h4>
-                    <div className="mt-3 space-y-2">
-                      {url.analytics.dailyClicks.map((d) => (
-                        <div key={d.day} className="flex items-center gap-3">
-                          <span className="w-8 text-xs">{d.day}</span>
-                          <div className="flex-1">
-                            <div className="bg-muted h-2 overflow-hidden rounded-md">
-                              <div
-                                className="bg-foreground h-full"
-                                style={{
-                                  width: `${
-                                    (d.clicks /
-                                      Math.max(
-                                        ...url.analytics!.dailyClicks.map(
-                                          (x) => x.clicks,
-                                        ),
-                                      )) *
-                                    100
-                                  }%`,
-                                }}
-                              />
-                            </div>
-                          </div>
-                          <span className="w-10 text-right text-xs">
-                            {d.clicks}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div>
-                    <h4 className="text-sm font-medium">Top Countries</h4>
-                    <div className="mt-3 space-y-4">
-                      {url.analytics.topCountries.map((c) => (
-                        <div key={c.country}>
-                          <div className="mb-1 flex items-center justify-between">
-                            <span className="text-xs">{c.country}</span>
-                            <span className="text-xs">{c.clicks}</span>
-                          </div>
-                          <div className="bg-muted h-2 overflow-hidden rounded-full">
-                            <div
-                              className="bg-foreground h-full"
-                              style={{ width: `${c.percentage}%` }}
-                            />
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <div className="border-border bg-muted/30 rounded-lg border border-dashed p-8 text-center">
-                  <ReportsSolid className="text-muted-foreground/60 mx-auto h-8 w-8" />
-                  <p className="text-foreground mt-2 text-sm font-medium">
-                    No analytics yet
-                  </p>
-                  <p className="text-muted-foreground mt-1 text-xs">
-                    Clicks and geography will appear here
-                  </p>
-                </div>
-              ))}
-          </div>
-        </div>
-      </TableCell>
-    </TableRow>
   );
 }
 
@@ -516,11 +325,7 @@ export function UrlTable({
     shortUrl: string;
   } | null>(null);
 
-  const {
-    sorting,
-    isLoaded: sortingLoaded,
-    updateSorting,
-  } = useTableSortingURL();
+  const { sorting, updateSorting } = useTableSortingURL();
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
 
@@ -737,7 +542,9 @@ export function UrlTable({
         cell: ({ row }) => {
           return (
             <div className="flex flex-col items-start justify-center">
-              <p className="pl-5 text-sm font-medium">{row.original.clicks}</p>
+              <p className="pl-5 text-sm font-medium">
+                <NumberFlow value={row.original.clicks} isolate={true} />
+              </p>
               <p className="text-muted-foreground text-xs">[clicks]</p>
             </div>
           );
@@ -821,9 +628,6 @@ export function UrlTable({
 
   const columns_count = table.getAllColumns().length;
 
-  if (!sortingLoaded) {
-    return null;
-  }
   if (urls?.length === 0) {
     return null;
   }
@@ -1054,17 +858,11 @@ export function UrlTable({
             </TableHeader>
             <TableBody>
               {table.getRowModel().rows.map((row) => {
-                const url = row.original;
-                const isExpandedRow = expandedId === url.id;
-
                 return (
                   <Fragment key={row.id}>
                     <TableRow
                       data-state={row.getIsSelected() && "selected"}
-                      onClick={() =>
-                        setExpandedId(isExpandedRow ? null : url.id)
-                      }
-                      className="odd:bg-background even:bg-muted/30 h-14 cursor-pointer"
+                      className="odd:bg-background even:bg-muted/30 h-14"
                     >
                       {row.getVisibleCells().map((cell) => (
                         <TableCell
@@ -1079,15 +877,6 @@ export function UrlTable({
                         </TableCell>
                       ))}
                     </TableRow>
-
-                    {isExpandedRow && (
-                      <ExpandedRowContent
-                        columnsCount={columns_count}
-                        url={url}
-                        activeTab={activeTab}
-                        setActiveTab={setActiveTab}
-                      />
-                    )}
                   </Fragment>
                 );
               })}
@@ -1221,7 +1010,7 @@ export function UrlTable({
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <DialogContent className="gap-2">
           <DialogTitle className="flex items-center gap-2 text-red-600">
-            <BinMinusIn className="size-5 fill-red-100" />
+            <TrashIcon weight="duotone" className="size-6" />
             Confirm Link Delete
           </DialogTitle>
           <DialogDescription className="text-primary mt-4 text-sm">
@@ -1249,11 +1038,11 @@ export function UrlTable({
             <DialogAction
               onClick={handleDeleteConfirm}
               className={cn(
-                "bg-destructive text-destructive-foreground hover:bg-destructive/90",
+                "bg-destructive text-destructive-foreground hover:bg-destructive/90 flex items-center justify-center gap-2",
               )}
             >
-              <BinMinusIn />
-              Delete Link
+              <TrashIcon weight="duotone" />
+              <span>Delete Link</span>
             </DialogAction>
           </DialogFooter>
         </DialogContent>

@@ -33,31 +33,42 @@ export default function RootLayout({
       lang="en"
       className={`${geistMono.variable} ${doto.variable} antialiased`}
     >
+      <head>
+        <Script
+          src="https://cdn.visitors.now/v.js"
+          data-token="5a3e9fdd-566d-40d3-94fc-264351530748"
+        />
+      </head>
       <body>
         <ConvexClientProvider>{children}</ConvexClientProvider>
-        <Script
-          id="openpanel-init"
-          strategy="afterInteractive"
-          dangerouslySetInnerHTML={{
-            __html: `
-              window.op = window.op || function (...args) {
-                (window.op.q = window.op.q || []).push(args);
-              };
-              window.op('init', {
-                apiUrl: 'https://openpanel-api-production-b833.up.railway.app', 
-                clientId: '3fee2715-1da7-4c02-a23f-e9fa96094c1b',
-                trackScreenViews: true,
-                trackOutgoingLinks: true,
-                trackAttributes: true,
-              });
-            `,
-          }}
-        />
-        <Script
-          id="openpanel-script"
-          src="https://openpanel.dev/op1.js"
-          strategy="afterInteractive"
-        />
+        {typeof window !== "undefined" &&
+          window.location.hostname !== "localhost" && (
+            <>
+              <Script
+                id="openpanel-init"
+                strategy="afterInteractive"
+                dangerouslySetInnerHTML={{
+                  __html: `
+                  window.op = window.op || function (...args) {
+                    (window.op.q = window.op.q || []).push(args);
+                  };
+                  window.op('init', {
+                    apiUrl: 'https://openpanel-api-production-b833.up.railway.app', 
+                    clientId: '3fee2715-1da7-4c02-a23f-e9fa96094c1b',
+                    trackScreenViews: true,
+                    trackOutgoingLinks: true,
+                    trackAttributes: true,
+                  });
+                `,
+                }}
+              />
+              <Script
+                id="openpanel-script"
+                src="https://openpanel.dev/op1.js"
+                strategy="afterInteractive"
+              />
+            </>
+          )}
       </body>
     </html>
   );

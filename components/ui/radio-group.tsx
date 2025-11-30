@@ -4,7 +4,7 @@ import * as React from "react";
 import { cn } from "@/lib/utils";
 import { cva, VariantProps } from "class-variance-authority";
 import { RadioGroup as RadioGroupPrimitive } from "radix-ui";
-import { Circle } from "iconoir-react";
+// "Dot" will be rendered via CSS for precise centering across DPIs
 
 type RadioVariant = "primary" | "mono";
 type RadioSize = "sm" | "md" | "lg";
@@ -61,7 +61,11 @@ const radioItemVariants = cva(
     focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50
     aria-invalid:border-destructive/60 aria-invalid:ring-destructive/10 aria-invalid:border-destructive aria-invalid:ring-destructive/20
     [[data-invalid=true]_&]:border-destructive/60 [[data-invalid=true]_&]:ring-destructive/10 [[data-invalid=true]_&]:border-destructive [[data-invalid=true]_&]:ring-destructive/20
-    border-checkbox-border text-primary data-[state=checked]:bg-accent/80 data-[state=checked]:border-primary/60 data-[state=checked]:text-primary/80  
+    border-checkbox-border text-primary 
+    hover:border-primary/50 hover:bg-accent/20
+    data-[state=checked]:outline data-[state=checked]:outline-2 data-[state=checked]:outline-offset-2 data-[state=checked]:outline-ring/50
+    data-[state=checked]:bg-accent/80 data-[state=checked]:border-primary/60 data-[state=checked]:text-primary/80
+    transition-[transform,background-color,border-color,box-shadow] duration-150 ease-out active:scale-[0.90] cursor-pointer
   `,
   {
     variants: {
@@ -86,6 +90,12 @@ function RadioGroupItem({
   // Use the variant and size from context if not provided at the item level.
   const { size: contextSize } = React.useContext(RadioGroupContext);
   const effectiveSize = size ?? contextSize;
+  const dotSizeClass =
+    effectiveSize === "sm"
+      ? "size-2"
+      : effectiveSize === "md"
+        ? "size-2.5"
+        : "size-3";
 
   return (
     <RadioGroupPrimitive.Item
@@ -97,7 +107,7 @@ function RadioGroupItem({
         data-slot="radio-group-indicator"
         className="flex items-center justify-center"
       >
-        <Circle className="fill-current text-current" />
+        <div className={cn("rounded-full bg-current", dotSizeClass)} />
       </RadioGroupPrimitive.Indicator>
     </RadioGroupPrimitive.Item>
   );

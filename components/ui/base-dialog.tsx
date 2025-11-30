@@ -116,12 +116,12 @@ function DialogContent({
           <DialogPrimitive.Close
             data-slot="alert-dialog-dismiss"
             className={cn(
-              buttonVariants({ variant: "dim", size: "sm" }),
-              "absolute end-2.5 top-2.5",
+              buttonVariants({ variant: "dim" }),
+              "group absolute end-2.5 top-3 hover:bg-red-200/10",
               className,
             )}
           >
-            <XmarkCircle />
+            <XmarkCircle className="size-5 text-red-500 group-hover:text-red-400" />
             <span className="sr-only">Close</span>
           </DialogPrimitive.Close>
         )}

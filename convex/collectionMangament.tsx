@@ -144,6 +144,7 @@ export const getUserCollections = query({
         }
 
         return {
+          userTableId: collection.userTableId,
           id: collection._id,
           name: collection.name,
           description: collection.description,

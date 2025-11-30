@@ -9,7 +9,6 @@ export default function HomeRoute() {
           className="font-doto roundness-100 text-5xl font-bold tracking-tight"
           id="home-heading"
         >
-          {/* <NdleDotMatrix /> */}
           ndle
         </h1>
         <p className="text-muted-foreground mt-2 text-sm">

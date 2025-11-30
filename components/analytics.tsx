@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import {
   Select,
@@ -16,26 +16,228 @@ import {
   MagicWand,
   ShieldCheck,
   StatsDownSquare,
+  RefreshDouble,
+  Expand,
 } from "iconoir-react";
+import { Button, buttonVariants } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogBody,
+} from "@/components/ui/base-dialog";
+import { useAnalyticsV2 } from "@/hooks/useAnalyticsV2";
+import { useColdAnalytics } from "@/hooks/use-cold-analytics";
+import { format, subDays, startOfDay, endOfDay } from "date-fns";
+import { Skeleton } from "@/components/ui/skeleton";
+import { ProgressListItem } from "@/components/analytics/ProgressListItem";
+import { CountryChart } from "@/components/charts/country-chart";
 
-export function Analytics() {
-  const [timeRange, setTimeRange] = useState<"7d" | "30d" | "90d" | "1y">(
-    "30d",
+type TimeRange = "7d" | "30d" | "90d" | "1y";
+
+function getCountryFlag(countryCode: string) {
+  const code = (countryCode || "").slice(0, 2).toLowerCase();
+  const showFlag = /^[a-z]{2}$/.test(code) && code !== "ot" && code !== "un";
+
+  if (!showFlag) return <Globe className="text-muted-foreground size-3" />;
+
+  return (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      alt={countryCode}
+      src={`/api/flag?code=${code}`}
+      className="size-3 shrink-0"
+    />
   );
+}
+
+export function Analytics({ userId }: { userId: string }) {
+  const [timeRange, setTimeRange] = useState<TimeRange>("30d");
+
+  // Calculate start/end dates based on selection
+  const { start, end } = useMemo(() => {
+    const now = new Date();
+    const end = endOfDay(now);
+    let start = startOfDay(subDays(now, 30)); // Default
+
+    switch (timeRange) {
+      case "7d":
+        start = startOfDay(subDays(now, 7));
+        break;
+      case "30d":
+        start = startOfDay(subDays(now, 30));
+        break;
+      case "90d":
+        start = startOfDay(subDays(now, 90));
+        break;
+      case "1y":
+        start = startOfDay(subDays(now, 365));
+        break;
+    }
+
+    return {
+      start: format(start, "yyyy-MM-dd"),
+      end: format(end, "yyyy-MM-dd"),
+    };
+  }, [timeRange]);
+
+  // Fetch Data with Polling (10s), passing the user ID
+  console.log("Fetching analytics data for user", userId);
+  const { data, isLoading, isError, error } = useAnalyticsV2({
+    start,
+    end,
+    userId,
+    pollingInterval: 10000,
+  });
+
+  const {
+    data: coldData,
+    loading: coldLoading,
+    error: coldError,
+  } = useColdAnalytics(data?.cold || []);
+
+  console.log("Analytics data", data);
+  console.log("Cold data", coldData);
+
+  // --- Derived Stats (from API Data + Cold Data) ---
+
+  const totalHotClicks = data?.meta.hot_count ?? 0;
+  const totalColdClicks = coldData?.totalClicks ?? 0;
+  const totalClicks = totalHotClicks + totalColdClicks;
+
+  // Example: Grouping by Day for the Chart
+  const clicksData = useMemo(() => {
+    const daysOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+    const grouped: Record<string, number> = {};
+
+    // Initialize all days with 0
+    daysOfWeek.forEach((day) => {
+      grouped[day] = 0;
+    });
+
+    // Start with hot data
+    if (data?.hot) {
+      data.hot.forEach((row) => {
+        const date = new Date(row.occurred_at).toLocaleDateString("en-US", {
+          weekday: "short",
+        });
+        if (grouped[date] !== undefined) {
+          grouped[date] += 1;
+        }
+      });
+    }
+
+    // Merge cold data
+    if (coldData?.clicksByDay) {
+      Object.entries(coldData.clicksByDay).forEach(([dayStr, count]) => {
+        const date = new Date(dayStr).toLocaleDateString("en-US", {
+          weekday: "short",
+        });
+        if (grouped[date] !== undefined) {
+          grouped[date] += count;
+        }
+      });
+    }
+
+    return daysOfWeek.map((day) => ({ day, clicks: grouped[day] }));
+  }, [data?.hot, coldData?.clicksByDay]);
+
+  const maxClicks =
+    clicksData.length > 0 ? Math.max(...clicksData.map((d) => d.clicks)) : 0;
+
+  // Example: Top Countries (Calculated for stats)
+  const topCountries = useMemo(() => {
+    const counts: Record<string, number> = {};
+
+    // Hot
+    if (data?.hot) {
+      data.hot.forEach((row) => {
+        const country = row.country || "Unknown";
+        counts[country] = (counts[country] || 0) + 1;
+      });
+    }
+
+    // Cold
+    if (coldData?.countryCounts) {
+      Object.entries(coldData.countryCounts).forEach(([country, count]) => {
+        counts[country] = (counts[country] || 0) + count;
+      });
+    }
+
+    return Object.entries(counts)
+      .sort(([, a], [, b]) => b - a)
+      .map(([country, clicks]) => ({
+        country,
+        clicks,
+        percentage:
+          totalClicks > 0 ? Math.round((clicks / totalClicks) * 100) : 0,
+      }));
+  }, [data?.hot, coldData?.countryCounts, totalClicks]);
+
+  // Example: Top Links
+  const topLinks = useMemo(() => {
+    const counts: Record<string, number> = {};
+
+    // Hot
+    if (data?.hot) {
+      data.hot.forEach((row) => {
+        const url = row.short_url || row.link_slug; // Fallback
+        counts[url] = (counts[url] || 0) + 1;
+      });
+    }
+
+    // Cold
+    if (coldData?.linkCounts) {
+      Object.entries(coldData.linkCounts).forEach(([url, count]) => {
+        counts[url] = (counts[url] || 0) + count;
+      });
+    }
+
+    return Object.entries(counts)
+      .sort(([, a], [, b]) => b - a)
+      .slice(0, 5)
+      .map(([url, clicks]) => ({
+        url,
+        clicks,
+        change: "0%", // Delta not calculated in this simple view
+      }));
+  }, [data?.hot, coldData?.linkCounts]);
+
+  if (isError) {
+    return (
+      <div className="rounded-lg bg-red-50 p-6 text-red-500">
+        Error loading analytics: {error?.message}
+      </div>
+    );
+  }
+
+  if (coldError) {
+    console.error("Cold analytics error:", coldError);
+    // We don't block the whole UI, but we can show a toast or partial error state if needed.
+    // For now, we'll let the user know in the "Archived Files" card or via a subtle alert.
+  }
 
   const stats = [
     {
       label: "Total Links",
-      value: "24",
+      value: "24", // Static for now, or fetch from another API
       icon: StatsDownSquare,
       change: "[+3] this week",
       trend: "up",
     },
     {
-      label: "Total Clicks",
-      value: "1,429",
+      label: "Total Clicks (Period)",
+      value: isLoading ? "..." : totalClicks.toLocaleString(),
       icon: CursorPointer,
-      change: "[+127] today",
+      change: coldLoading ? (
+        <span className="flex items-center gap-1">
+          <RefreshDouble className="h-3 w-3 animate-spin" /> Processing archive
+        </span>
+      ) : (
+        "Real-time + Archived"
+      ),
       trend: "up",
     },
     {
@@ -46,10 +248,25 @@ export function Analytics() {
       trend: "neutral",
     },
     {
-      label: "Archived",
-      value: "12",
+      label: "Archived Files",
+      value: isLoading ? (
+        "..."
+      ) : (
+        <div className="flex items-center gap-2">
+          {data?.meta.files_count.toString() ?? "0"}
+          {coldLoading && (
+            <RefreshDouble className="text-muted-foreground h-3 w-3 animate-spin" />
+          )}
+        </div>
+      ),
       icon: Archive,
-      change: "via Wayback",
+      change: coldData ? (
+        `Loaded ${coldData.totalClicks} clicks`
+      ) : coldError ? (
+        <span className="text-red-500">Failed to load archive</span>
+      ) : (
+        "Cold Storage"
+      ),
       trend: "neutral",
     },
     {
@@ -61,70 +278,12 @@ export function Analytics() {
     },
     {
       label: "Countries",
-      value: "12",
+      value: isLoading ? "..." : topCountries.length.toString(),
       icon: Globe,
-      change: "[5] new",
+      change: "Active Regions",
       trend: "up",
     },
   ];
-
-  const clicksData = [
-    { day: "Mon", clicks: 145 },
-    { day: "Tue", clicks: 189 },
-    { day: "Wed", clicks: 234 },
-    { day: "Thu", clicks: 198 },
-    { day: "Fri", clicks: 267 },
-    { day: "Sat", clicks: 156 },
-    { day: "Sun", clicks: 240 },
-  ];
-
-  const topLinks = [
-    {
-      url:
-        (process.env.NODE_ENV === "development" ? "dev.ndle.im" : "ndle.im") +
-        "/a8x9k2",
-      clicks: 567,
-      change: "+12%",
-    },
-    {
-      url:
-        (process.env.NODE_ENV === "development" ? "dev.ndle.im" : "ndle.im") +
-        "/k9n2w5",
-      clicks: 342,
-      change: "+8%",
-    },
-    {
-      url:
-        (process.env.NODE_ENV === "development" ? "dev.ndle.im" : "ndle.im") +
-        "/p4r8t3",
-      clicks: 234,
-      change: "+15%",
-    },
-    {
-      url:
-        (process.env.NODE_ENV === "development" ? "dev.ndle.im" : "ndle.im") +
-        "/m3p7q1",
-      clicks: 189,
-      change: "-3%",
-    },
-    {
-      url:
-        (process.env.NODE_ENV === "development" ? "dev.ndle.im" : "ndle.im") +
-        "/x7y2z9",
-      clicks: 97,
-      change: "+5%",
-    },
-  ];
-
-  const topCountries = [
-    { country: "United States", clicks: 456, percentage: 32 },
-    { country: "United Kingdom", clicks: 289, percentage: 20 },
-    { country: "Germany", clicks: 214, percentage: 15 },
-    { country: "Canada", clicks: 186, percentage: 13 },
-    { country: "France", clicks: 142, percentage: 10 },
-  ];
-
-  const maxClicks = Math.max(...clicksData.map((d) => d.clicks));
 
   return (
     <div className="space-y-6">
@@ -136,10 +295,12 @@ export function Analytics() {
               <div className="flex items-start justify-between">
                 <div className="flex-1">
                   <p className="text-muted-foreground text-xs">{stat.label}</p>
-                  <p className="mt-2 text-2xl font-medium">{stat.value}</p>
-                  <p className="text-muted-foreground mt-1 text-xs">
+                  <div className="mt-2 text-2xl font-medium">
+                    {isLoading ? <Skeleton className="h-8 w-16" /> : stat.value}
+                  </div>
+                  <div className="text-muted-foreground mt-1 text-xs">
                     {stat.change}
-                  </p>
+                  </div>
                 </div>
                 <div className="bg-muted rounded-lg p-3">
                   <stat.icon className="text-muted-foreground h-5 w-5" />
@@ -157,9 +318,14 @@ export function Analytics() {
           <CardContent className="p-6">
             <div className="mb-6 flex items-center justify-between">
               <div>
-                <h3 className="text-base font-medium">Clicks Over Time</h3>
+                <h3 className="flex items-center gap-2 text-base font-medium">
+                  Clicks Over Time
+                  {(isLoading || coldLoading) && (
+                    <RefreshDouble className="text-muted-foreground h-3 w-3 animate-spin" />
+                  )}
+                </h3>
                 <p className="text-muted-foreground mt-1 text-xs">
-                  Daily click activity
+                  Activity in selected range
                 </p>
               </div>
               <Select
@@ -180,80 +346,54 @@ export function Analytics() {
               </Select>
             </div>
 
-            <div className="space-y-5.5">
-              {clicksData.map((data) => (
-                <div key={data.day} className="flex items-center gap-3">
-                  <span className="w-8 text-sm">{data.day}</span>
-                  <div className="flex-1">
-                    <div className="bg-muted h-2 overflow-hidden rounded-md">
-                      <div
-                        className="bg-foreground h-full transition-all duration-500"
-                        style={{ width: `${(data.clicks / maxClicks) * 100}%` }}
-                      />
-                    </div>
-                  </div>
-                  <span className="w-12 text-right text-xs font-medium">
-                    {data.clicks}
+            {isLoading ? (
+              <div className="space-y-4">
+                {[1, 2, 3, 4, 5].map((i) => (
+                  <Skeleton key={i} className="h-8 w-full" />
+                ))}
+              </div>
+            ) : clicksData.length === 0 ? (
+              <div className="text-muted-foreground flex h-40 items-center justify-center text-sm">
+                No clicks recorded in this period.
+              </div>
+            ) : (
+              <div className="space-y-3.5">
+                {clicksData.map((data) => (
+                  <ProgressListItem
+                    key={data.day}
+                    label={data.day}
+                    value={data.clicks}
+                    total={maxClicks}
+                  />
+                ))}
+              </div>
+            )}
+
+            {!isLoading && clicksData.length > 0 && (
+              <div className="border-border mt-6 border-t pt-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-muted-foreground text-xs">
+                    Average per day
+                  </span>
+                  <span className="text-sm font-medium">
+                    [
+                    {Math.round(
+                      clicksData.reduce((sum, d) => sum + d.clicks, 0) /
+                        Math.max(clicksData.length, 1),
+                    )}
+                    ]
                   </span>
                 </div>
-              ))}
-            </div>
-
-            <div className="border-border mt-6 border-t pt-4">
-              <div className="flex items-center justify-between">
-                <span className="text-muted-foreground text-xs">
-                  Average per day
-                </span>
-                <span className="text-sm font-medium">
-                  {Math.round(
-                    clicksData.reduce((sum, d) => sum + d.clicks, 0) /
-                      clicksData.length,
-                  )}
-                </span>
               </div>
-            </div>
+            )}
           </CardContent>
         </Card>
 
         {/* Top Countries */}
-        <Card>
-          <CardContent className="p-6">
-            <div className="mb-6">
-              <h3 className="text-base font-medium">Top Countries</h3>
-              <p className="text-muted-foreground mt-1 text-xs">
-                Clicks by geographic location
-              </p>
-            </div>
-
-            <div className="space-y-6">
-              {topCountries.map((country) => (
-                <div key={country.country}>
-                  <div className="mb-2 flex items-center justify-between">
-                    <span className="text-sm">{country.country}</span>
-                    <span className="text-sm font-medium">
-                      {country.clicks}
-                    </span>
-                  </div>
-                  <div className="bg-muted h-2 overflow-hidden rounded-full">
-                    <div
-                      className="bg-foreground h-full transition-all duration-500"
-                      style={{ width: `${country.percentage}%` }}
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <div className="border-border mt-6 border-t pt-4">
-              <div className="flex items-center justify-between">
-                <span className="text-muted-foreground text-xs">
-                  Total countries
-                </span>
-                <span className="text-sm font-medium">12</span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        <CountryChart
+          data={topCountries}
+          isLoading={isLoading || coldLoading}
+        />
       </div>
 
       {/* Top Performing Links */}
@@ -266,40 +406,48 @@ export function Analytics() {
             </p>
           </div>
 
-          <div className="space-y-3">
-            {topLinks.map((link, index) => (
-              <div
-                key={link.url}
-                className="border-border bg-background hover:bg-muted/30 flex items-center justify-between rounded-lg border p-4 transition-colors"
-              >
-                <div className="flex items-center gap-4">
-                  <div className="bg-muted flex h-8 w-8 items-center justify-center rounded-full text-sm font-medium">
-                    {index + 1}
+          {isLoading ? (
+            <div className="space-y-4">
+              {[1, 2, 3].map((i) => (
+                <Skeleton key={i} className="h-12 w-full" />
+              ))}
+            </div>
+          ) : topLinks.length === 0 ? (
+            <div className="text-muted-foreground flex h-20 items-center justify-center text-sm">
+              No link activity found.
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {topLinks.map((link, index) => (
+                <div
+                  key={link.url}
+                  className="border-border bg-background hover:bg-muted/30 flex items-center justify-between rounded-lg border p-4 transition-colors"
+                >
+                  <div className="flex items-center gap-4">
+                    <div className="bg-muted flex h-8 w-8 items-center justify-center rounded-full text-sm font-medium">
+                      {index + 1}
+                    </div>
+                    <code className="max-w-[200px] truncate text-sm font-medium md:max-w-md">
+                      {link.url}
+                    </code>
                   </div>
-                  <code className="text-sm font-medium">{link.url}</code>
-                </div>
-                <div className="flex items-center gap-6">
-                  <div className="text-right">
-                    <p className="text-sm font-medium">{link.clicks}</p>
-                    <p className="text-muted-foreground text-xs">clicks</p>
+                  <div className="flex items-center gap-6">
+                    <div className="text-right">
+                      <p className="text-sm font-medium">{link.clicks}</p>
+                      <p className="text-muted-foreground text-xs">clicks</p>
+                    </div>
+                    <span className="text-muted-foreground text-xs">
+                      {link.change}
+                    </span>
                   </div>
-                  <span
-                    className={`text-xs ${
-                      link.change.startsWith("+")
-                        ? "text-green-600"
-                        : "text-red-600"
-                    }`}
-                  >
-                    {link.change}
-                  </span>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </CardContent>
       </Card>
 
-      {/* Healing Activity */}
+      {/* Healing Activity - STATIC FOR NOW */}
       <div className="grid gap-6 lg:grid-cols-2">
         <Card>
           <CardContent className="p-6">

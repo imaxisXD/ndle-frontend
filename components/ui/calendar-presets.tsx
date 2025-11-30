@@ -2,9 +2,11 @@
 
 import * as React from "react";
 import { addDays, startOfToday } from "date-fns";
-import { CalendarPlus, ChevronDownIcon, Lock } from "lucide-react";
+import { CalendarPlus, ChevronDownIcon } from "lucide-react";
+import { Lock, Spark, Star } from "iconoir-react";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
+import type { Matcher } from "react-day-picker";
 import {
   Popover,
   PopoverContent,
@@ -15,6 +17,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/base-tooltip";
+import { cn } from "@/lib/utils";
 
 type Calendar19Props = {
   isPro?: boolean;
@@ -31,7 +34,6 @@ export function CalendarPreset({
   onSelectDate,
   onUpgradeClick,
 }: Calendar19Props) {
-  const [date, setDate] = React.useState<Date | undefined>(value);
   const [timeZone, setTimeZone] = React.useState<string | undefined>();
   const [open, setOpen] = React.useState(false);
 
@@ -39,40 +41,40 @@ export function CalendarPreset({
     setTimeZone(Intl.DateTimeFormat().resolvedOptions().timeZone);
   }, []);
 
-  React.useEffect(() => {
-    setDate(value);
-  }, [value]);
-
-  const disabledMatcher = { before: startOfToday() } as const;
+  // Disable:
+  // - All past dates
+  // - Today
+  // - For free users, anything after 30 days from today
+  const today = startOfToday();
+  const freeMaxDate = addDays(today, 29);
+  const disabledMatcher: Matcher | Matcher[] = isPro
+    ? [{ before: addDays(today, 1) }] // past + today
+    : [{ before: addDays(today, 1) }, { after: freeMaxDate }];
 
   const handleSelect = (d?: Date) => {
-    if (!isPro) return; // custom selection is PRO-only
-    setDate(d);
     onSelectDate?.(d);
   };
 
   const selectPreset = (daysFromToday: number | undefined) => {
     if (typeof daysFromToday !== "number") {
-      // Custom preset: gate behind PRO
-      if (!isPro) {
-        onUpgradeClick?.();
-        return;
-      }
       return;
     }
     const base = startOfToday();
     const newDate = addDays(base, daysFromToday);
-    setDate(newDate);
     onSelectDate?.(newDate);
   };
 
-  const presets: Array<{ label: string; value: number | undefined }> = [
-    { label: "Today", value: 0 },
-    { label: "Tomorrow", value: 1 },
-    { label: "In 3 days", value: 3 },
-    { label: "In a week", value: 7 },
-    { label: "In 2 weeks", value: 14 },
-    { label: "Custom", value: undefined },
+  const presets: Array<{
+    label: string;
+    value: number | undefined;
+    proOnly?: boolean;
+    width?: string;
+  }> = [
+    { label: "Tomorrow", value: 1, width: "w-28" },
+    { label: "In 3 days", value: 3, width: "w-28" },
+    { label: "In a week", value: 7, width: "w-28" },
+    { label: "In 2 weeks", value: 14, width: "w-28" },
+    { label: "In 2 months", value: 60, proOnly: true, width: "w-62" },
   ];
 
   return (
@@ -89,7 +91,7 @@ export function CalendarPreset({
       >
         <span className="inline-flex w-full items-center justify-between">
           <CalendarPlus className="size-4" />
-          {date ? date.toLocaleDateString() : "Select date"}
+          {value ? value.toLocaleDateString() : "Select date"}
           <ChevronDownIcon className="size-4" />
         </span>
       </PopoverTrigger>
@@ -102,64 +104,82 @@ export function CalendarPreset({
           <div className="relative">
             <Calendar
               mode="single"
-              selected={date}
+              selected={value}
               onSelect={(d) => {
                 handleSelect(d);
-                if (isPro && d) setOpen(false);
+                if (d) setOpen(false);
               }}
-              defaultMonth={date}
+              defaultMonth={value}
               timeZone={timeZone}
               disabled={disabledMatcher}
+              modifiers={
+                isPro
+                  ? { past: { before: addDays(today, 1) } }
+                  : {
+                      past: { before: addDays(today, 1) },
+                      afterLimit: { after: freeMaxDate },
+                    }
+              }
               className="bg-transparent p-0 [--cell-size:--spacing(9.5)]"
             />
-            {!isPro && (
-              <div className="bg-background/60 pointer-events-auto absolute inset-0 flex items-center justify-center rounded-md backdrop-blur-sm">
-                <span className="flex items-center gap-2 text-sm">
-                  <Lock className="size-4" /> Custom date requires {""}
-                  <span className="badge-pro">PRO</span>
-                </span>
-              </div>
-            )}
           </div>
         </div>
-        <div className="flex flex-wrap gap-2 border-t px-4 py-4">
-          {presets.slice(0, 5).map((preset) => (
-            <Button
-              disabled={disabled || !isPro}
-              key={preset.label}
-              variant="outline"
-              size="sm"
-              className="flex-1"
-              onClick={() => {
-                selectPreset(preset.value);
-                setOpen(false);
-              }}
-            >
-              {preset.label}
-            </Button>
-          ))}
-          <Tooltip>
-            <TooltipTrigger
-              render={
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="flex-1"
-                  disabled={disabled || !isPro}
-                  onClick={() => (isPro ? undefined : onUpgradeClick?.())}
-                />
-              }
-            >
-              <span className="inline-flex items-center">
-                {!isPro && <Lock className="mr-1 size-3" />}
-                Custom
-                {!isPro && <span className="badge-pro ml-1">PRO</span>}
-              </span>
-            </TooltipTrigger>
-            {!isPro && (
-              <TooltipContent>Custom date is a PRO feature</TooltipContent>
-            )}
-          </Tooltip>
+        <div className="flex flex-wrap justify-evenly gap-2 border-t px-1 py-4">
+          {presets.map((preset) => {
+            const locked = !!preset.proOnly && !isPro;
+            return (
+              <Tooltip key={preset.label}>
+                <TooltipTrigger>
+                  <Button
+                    disabled={disabled || locked}
+                    variant="outline"
+                    size="sm"
+                    className={cn(
+                      "flex-1",
+                      preset.width,
+                      locked
+                        ? "text-accent hover- hover:text-accent bg-gradient-to-tl from-black to-black/80 opacity-50 hover:bg-gradient-to-tl hover:from-black hover:to-black/80"
+                        : "",
+                    )}
+                    onClick={() => {
+                      if (locked) {
+                        console.log("locked");
+                        onUpgradeClick?.();
+                        setOpen(false);
+                        return;
+                      }
+                      selectPreset(preset.value);
+                      setOpen(false);
+                    }}
+                  >
+                    <span className="inline-flex items-center gap-1.5 font-normal">
+                      {locked ? (
+                        <span className="inline-flex items-center gap-1.5 text-xs">
+                          <Lock
+                            className="size-4 fill-amber-50/20"
+                            strokeWidth={1.5}
+                          />
+                          <span className="font-doto roundness-100 font-black tracking-tighter">
+                            [Pro Only]
+                          </span>
+                        </span>
+                      ) : null}
+                      {preset.label}
+                    </span>
+                  </Button>
+                </TooltipTrigger>
+                {locked ? (
+                  <TooltipContent className="flex items-center gap-2 text-xs">
+                    Pro only preset,
+                    <Button size="sm" className="h-6 rounded-sm px-2">
+                      <Spark className="size-4 fill-white" />
+                      Upgrade to Pro
+                    </Button>
+                  </TooltipContent>
+                ) : null}
+              </Tooltip>
+            );
+          })}
         </div>
       </PopoverContent>
     </Popover>

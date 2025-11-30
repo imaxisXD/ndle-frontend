@@ -6,10 +6,6 @@ export const COLLECTION_COLORS = [
   "#ec4899", // Pink
   "#06b6d4", // Cyan
   "#ef4444", // Red
-  "#84cc16", // Lime
-  "#14b8a6", // Teal
-  "#a855f7", // Purple
-  "#22c55e", // Green
 ] as const;
 
 export function getRandomCollectionColor(): string {

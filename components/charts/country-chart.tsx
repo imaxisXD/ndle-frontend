@@ -1,241 +1,158 @@
 "use client";
 
 import * as React from "react";
-
+import { useMemo } from "react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
-  Bar,
-  BarChart,
-  CartesianGrid,
-  LabelList,
-  XAxis,
-  YAxis,
-} from "recharts";
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogBody,
+} from "@/components/ui/base-dialog";
+import { Button } from "@/components/ui/button";
+import { Expand, Globe } from "iconoir-react";
+import { ProgressListItem } from "@/components/analytics/ProgressListItem";
+import { cn } from "@/lib/utils";
 
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
-  ChartConfig,
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-} from "@/components/ui/chart";
-import { Globe } from "iconoir-react";
-import { cn, countryCodeToName } from "@/lib/utils";
-import { CircleGridLoaderIcon } from "@/components/icons";
+function getCountryFlag(countryCode: string, size: number = 4) {
+  const code = (countryCode || "").slice(0, 2).toLowerCase();
+  const showFlag = /^[a-z]{2}$/.test(code) && code !== "ot" && code !== "un";
 
-export const description =
-  "A bar chart showing country-wise click distribution";
+  if (!showFlag) return <Globe className="text-muted-foreground size-4" />;
 
-const chartConfig = {
-  clicks: {
-    label: "Clicks",
-    color: "var(--color-blue-600)",
-  },
-  label: {
-    color: "var(--primary)",
-  },
-} satisfies ChartConfig;
+  return (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      alt={countryCode}
+      src={`/api/flag?code=${code}`}
+      className={cn("shrink-0", size ? `size-${size}` : "size-4")}
+    />
+  );
+}
 
 export function CountryChart({
   data,
-  limit = 6,
   isLoading,
+  limit = 7,
   className,
 }: {
   data?: Array<{ country: string; clicks: number }>;
-  limit?: number;
   isLoading?: boolean;
+  limit?: number;
   className?: string;
 }) {
-  const [showAll, setShowAll] = React.useState(false);
-  const dataset = (data ?? []).map((d) => ({
-    ...d,
-    countryFull: countryCodeToName(d.country),
-  }));
-  const totalClicks = dataset.reduce(
-    (sum: number, row) => sum + (row.clicks || 0),
-    0,
-  );
-  const showEmptyState = !isLoading && Array.isArray(data) && data.length === 0;
+  const topCountries = useMemo(() => {
+    if (!data || data.length === 0) return [];
 
-  const sorted = [...dataset].sort((a, b) => b.clicks - a.clicks);
-  const top = sorted.slice(0, limit);
+    const totalClicks = data.reduce((sum, item) => sum + item.clicks, 0);
 
-  const topSum = top.reduce((s, r) => s + r.clicks, 0);
-  const otherClicks = Math.max(totalClicks - topSum, 0);
-  const visible = showAll
-    ? sorted
-    : otherClicks > 0
-      ? [
-          ...top,
-          {
-            country: "OTHER",
-            countryFull: "Other",
-            countryFlag: "",
-            clicks: otherClicks,
-          },
-        ]
-      : top;
+    return data
+      .slice()
+      .sort((a, b) => b.clicks - a.clicks)
+      .map((item) => ({
+        country: item.country,
+        clicks: item.clicks,
+        percentage:
+          totalClicks > 0 ? Math.round((item.clicks / totalClicks) * 100) : 0,
+      }));
+  }, [data]);
+
   return (
-    <Card className={cn("overflow-hidden", className)}>
-      <CardHeader className="flex flex-col items-start justify-between gap-1.5">
-        <CardTitle className="flex items-center gap-2 font-medium">
-          <Globe className="size-5" />
-          Country Distribution
-        </CardTitle>
-        <CardDescription className="text-xs">
-          Click distribution by country
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div className="relative">
-          <ChartContainer
-            config={chartConfig}
-            className="aspect-auto h-[250px] w-full"
-            isLoading={isLoading}
-            showEmptyState={showEmptyState}
-            loadingContent={
-              <CircleGridLoaderIcon
-                title="Loading analytics"
-                className="text-primary"
-              />
-            }
-            emptyStateContent={
-              <div className="text-center">
-                <p className="text-foreground font-medium">No analytics yet</p>
-                <p className="text-muted-foreground mt-1 text-xs">
-                  This link hasn’t received any clicks in the selected range.
-                </p>
-              </div>
-            }
-          >
-            <BarChart accessibilityLayer data={visible} layout="vertical">
-              <defs>
-                <linearGradient
-                  id="barGradientHorizontalCountry"
-                  x1="0"
-                  y1="0"
-                  x2="1"
-                  y2="0"
-                >
-                  <stop offset="80%" stopColor="var(--color-sky-400)" />
-                  <stop offset="100%" stopColor="var(--color-sky-300)" />
-                </linearGradient>
-              </defs>
-              <CartesianGrid horizontal={false} />
-              <YAxis
-                dataKey="countryFull"
-                type="category"
-                tickLine={false}
-                tickMargin={10}
-                axisLine={false}
-                hide
-              />
-              <XAxis dataKey="clicks" type="number" hide />
-              <ChartTooltip
-                cursor={false}
-                content={
-                  <ChartTooltipContent
-                    className="bg-white/90 backdrop-blur-lg"
-                    indicator="dashed"
-                    color="#8FD4FF"
-                    labelFormatter={(label, payload) => {
-                      const row = payload?.[0]?.payload as
-                        | {
-                            country: string;
-                            countryFull: string;
-                            clicks: number;
-                          }
-                        | undefined;
-                      const percentage =
-                        row && totalClicks
-                          ? ((row.clicks / totalClicks) * 100).toFixed(1)
-                          : "0.0";
-                      return `${row?.countryFull ?? label} [${percentage}%]`;
-                    }}
-                  />
+    <Card className={cn("flex h-full flex-col", className)}>
+      <CardContent className="grow p-6">
+        <div className="mb-6 flex items-start justify-between">
+          <div>
+            <h3 className="text-base font-medium">Top Countries</h3>
+            <p className="text-muted-foreground mt-1 text-xs">
+              Clicks by geographic location
+            </p>
+          </div>
+          {topCountries.length > limit && (
+            <Dialog>
+              <DialogTrigger
+                render={
+                  <Button variant="ghost" size="icon">
+                    <Expand className="h-4 w-4" />
+                  </Button>
                 }
-              />
-              <Bar
-                dataKey="clicks"
-                layout="vertical"
-                fill="url(#barGradientHorizontalCountry)"
-                radius={6}
-                barSize={24}
-              >
-                <LabelList
-                  dataKey="countryFull"
-                  position="insideLeft"
-                  offset={8}
-                  className="fill-(--color-label)"
-                  fontSize={12}
-                  content={(props) => {
-                    const { x, y, value, index, height } = props as unknown as {
-                      x: number;
-                      y: number;
-                      value: string;
-                      index: number;
-                      height: number;
-                    };
-                    const row = visible[index] as unknown as
-                      | {
-                          country: string;
-                          countryFull: string;
-                        }
-                      | undefined;
-                    const code = (row?.country || "").slice(0, 2).toLowerCase();
-                    const showFlag = /^[a-z]{2}$/.test(code) && code !== "ot";
-                    const src = `/api/flag?code=${code}`;
-                    // Center vertically within the bar and position horizontally inside
-                    const flagY = y + height / 2 - 6; // -6 to center a 12px flag
-                    const textY = y + height / 2 + 5; // +5 to position text below flag
-                    return (
-                      <g>
-                        {showFlag ? (
-                          <foreignObject
-                            x={x + 4}
-                            y={flagY}
-                            width={12}
-                            height={12}
+              ></DialogTrigger>
+              <DialogContent className="flex flex-col gap-5 sm:max-w-md">
+                <DialogHeader className="bg-transparent">
+                  <DialogTitle>All Countries</DialogTitle>
+                </DialogHeader>
+                <DialogBody className="rounded-sm bg-white p-2">
+                  <div className="max-h-[50vh] space-y-3.5 overflow-y-auto px-2 py-4">
+                    {topCountries.map((country) => (
+                      <ProgressListItem
+                        key={country.country}
+                        label={
+                          <div
+                            className="flex items-center gap-2"
+                            title={country.country}
                           >
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img
-                              alt={row?.country || String(value)}
-                              src={src}
-                              className="size-3 shrink-0"
-                            />
-                          </foreignObject>
-                        ) : null}
-                        <text
-                          x={x + (showFlag ? 20 : 8)}
-                          y={textY}
-                          className="fill-(--color-label)"
-                          fontSize={12}
-                        >
-                          {value}
-                        </text>
-                      </g>
-                    );
-                  }}
-                />
-              </Bar>
-            </BarChart>
-          </ChartContainer>
+                            {getCountryFlag(country.country, 4)}
+                            <span className="text-muted-foreground text-xs">
+                              {country.country}
+                            </span>
+                          </div>
+                        }
+                        value={country.clicks}
+                        percentage={country.percentage}
+                      />
+                    ))}
+                  </div>
+                </DialogBody>
+              </DialogContent>
+            </Dialog>
+          )}
         </div>
-        <div className="mt-3 flex items-center justify-end">
-          <button
-            type="button"
-            className="text-muted-foreground hover:text-foreground text-xs underline"
-            onClick={() => setShowAll((v) => !v)}
-          >
-            {showAll ? "Show top" : `Show all`}
-          </button>
-        </div>
+
+        {isLoading ? (
+          <div className="space-y-4">
+            {[1, 2, 3, 4, 5].map((i) => (
+              <Skeleton key={i} className="h-8 w-full" />
+            ))}
+          </div>
+        ) : topCountries.length === 0 ? (
+          <div className="text-muted-foreground flex h-40 items-center justify-center text-sm">
+            No location data available.
+          </div>
+        ) : (
+          <div className="space-y-3.5">
+            {topCountries.slice(0, limit).map((country) => (
+              <ProgressListItem
+                key={country.country}
+                label={
+                  <div
+                    className="flex items-center gap-2"
+                    title={country.country}
+                  >
+                    {getCountryFlag(country.country)}
+                    <span className="text-sm">{country.country}</span>
+                  </div>
+                }
+                value={country.clicks}
+                percentage={country.percentage}
+              />
+            ))}
+          </div>
+        )}
+
+        {!isLoading && (
+          <div className="border-border mt-6 border-t pt-4">
+            <div className="flex items-center justify-between">
+              <span className="text-muted-foreground text-xs">
+                Total countries
+              </span>
+              <span className="text-sm font-medium">
+                [{topCountries.length}]
+              </span>
+            </div>
+          </div>
+        )}
       </CardContent>
     </Card>
   );

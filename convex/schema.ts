@@ -13,6 +13,21 @@ export default defineSchema({
     shortUrl: v.string(),
     trackingEnabled: v.boolean(),
     expiresAt: v.optional(v.number()),
+    qrEnabled: v.optional(v.boolean()),
+    qrStyle: v.optional(
+      v.object({
+        fg: v.string(),
+        bg: v.string(), // allow 'transparent' or hex
+        margin: v.number(),
+        logoMode: v.union(
+          v.literal("brand"),
+          v.literal("custom"),
+          v.literal("none"),
+        ),
+        logoScale: v.number(),
+        customLogoUrl: v.optional(v.string()),
+      }),
+    ),
     userTableId: v.id("users"),
     slugAssigned: v.optional(v.string()),
     redisStatus: v.optional(v.string()),
