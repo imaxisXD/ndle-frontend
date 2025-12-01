@@ -15,8 +15,8 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
-import { GraphUp as TrendingUpward } from "iconoir-react";
 import { CircleGridLoaderIcon } from "@/components/icons";
+import { MouseLeftClickIcon } from "@phosphor-icons/react";
 
 export const description = "A line chart showing clicks over time";
 
@@ -47,11 +47,11 @@ export function ClicksTimelineChart({
         <div className="flex w-full items-center justify-between gap-3">
           <div className="flex min-w-0 flex-col gap-1.5">
             <CardTitle className="flex items-center gap-2 font-medium">
-              <TrendingUpward className="size-5" />
-              Clicks Over Time
+              <MouseLeftClickIcon className="text-muted-foreground size-5" />
+              Link Click Activity
             </CardTitle>
-            <CardDescription className="text-xs">
-              Daily click activity trend (updates with selected date range)
+            <CardDescription className="pl-1 text-xs">
+              Link click activity over time
             </CardDescription>
           </div>
         </div>
@@ -136,6 +136,8 @@ export function ClicksTimelineChart({
                 cursor={false}
                 content={
                   <ChartTooltipContent
+                    className="rounded-sm bg-gradient-to-br from-black/80 to-black text-white *:text-inherit [&_*]:text-inherit"
+                    labelClassName="text-white font-medium"
                     labelFormatter={(value) => {
                       const d = new Date(String(value));
                       if (Number.isNaN(d.getTime())) return String(value);

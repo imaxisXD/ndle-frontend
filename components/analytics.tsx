@@ -17,41 +17,16 @@ import {
   ShieldCheck,
   StatsDownSquare,
   RefreshDouble,
-  Expand,
 } from "iconoir-react";
-import { Button, buttonVariants } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-  DialogBody,
-} from "@/components/ui/base-dialog";
 import { useAnalyticsV2 } from "@/hooks/useAnalyticsV2";
 import { useColdAnalytics } from "@/hooks/use-cold-analytics";
 import { format, subDays, startOfDay, endOfDay } from "date-fns";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ProgressListItem } from "@/components/analytics/ProgressListItem";
 import { CountryChart } from "@/components/charts/country-chart";
+import NumberFlow from "@number-flow/react";
 
 type TimeRange = "7d" | "30d" | "90d" | "1y";
-
-function getCountryFlag(countryCode: string) {
-  const code = (countryCode || "").slice(0, 2).toLowerCase();
-  const showFlag = /^[a-z]{2}$/.test(code) && code !== "ot" && code !== "un";
-
-  if (!showFlag) return <Globe className="text-muted-foreground size-3" />;
-
-  return (
-    // eslint-disable-next-line @next/next/no-img-element
-    <img
-      alt={countryCode}
-      src={`/api/flag?code=${code}`}
-      className="size-3 shrink-0"
-    />
-  );
-}
 
 export function Analytics({ userId }: { userId: string }) {
   const [timeRange, setTimeRange] = useState<TimeRange>("30d");
@@ -228,7 +203,7 @@ export function Analytics({ userId }: { userId: string }) {
       trend: "up",
     },
     {
-      label: "Total Clicks (Period)",
+      label: "Total Clicks (All Time)",
       value: isLoading ? "..." : totalClicks.toLocaleString(),
       icon: CursorPointer,
       change: coldLoading ? (
@@ -236,7 +211,7 @@ export function Analytics({ userId }: { userId: string }) {
           <RefreshDouble className="h-3 w-3 animate-spin" /> Processing archive
         </span>
       ) : (
-        "Real-time + Archived"
+        "Real-time"
       ),
       trend: "up",
     },
@@ -246,42 +221,6 @@ export function Analytics({ userId }: { userId: string }) {
       icon: ShieldCheck,
       change: "[3] active",
       trend: "neutral",
-    },
-    {
-      label: "Archived Files",
-      value: isLoading ? (
-        "..."
-      ) : (
-        <div className="flex items-center gap-2">
-          {data?.meta.files_count.toString() ?? "0"}
-          {coldLoading && (
-            <RefreshDouble className="text-muted-foreground h-3 w-3 animate-spin" />
-          )}
-        </div>
-      ),
-      icon: Archive,
-      change: coldData ? (
-        `Loaded ${coldData.totalClicks} clicks`
-      ) : coldError ? (
-        <span className="text-red-500">Failed to load archive</span>
-      ) : (
-        "Cold Storage"
-      ),
-      trend: "neutral",
-    },
-    {
-      label: "AI Conversations",
-      value: "45",
-      icon: MagicWand,
-      change: "[18] this week",
-      trend: "up",
-    },
-    {
-      label: "Countries",
-      value: isLoading ? "..." : topCountries.length.toString(),
-      icon: Globe,
-      change: "Active Regions",
-      trend: "up",
     },
   ];
 
@@ -296,7 +235,11 @@ export function Analytics({ userId }: { userId: string }) {
                 <div className="flex-1">
                   <p className="text-muted-foreground text-xs">{stat.label}</p>
                   <div className="mt-2 text-2xl font-medium">
-                    {isLoading ? <Skeleton className="h-8 w-16" /> : stat.value}
+                    {isLoading ? (
+                      <Skeleton className="h-8 w-16" />
+                    ) : (
+                      <NumberFlow value={Number(stat.value)} />
+                    )}
                   </div>
                   <div className="text-muted-foreground mt-1 text-xs">
                     {stat.change}
@@ -313,7 +256,6 @@ export function Analytics({ userId }: { userId: string }) {
 
       {/* Charts Section */}
       <div className="grid gap-6 lg:grid-cols-2">
-        {/* Clicks Over Time */}
         <Card>
           <CardContent className="p-6">
             <div className="mb-6 flex items-center justify-between">

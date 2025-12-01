@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import * as RechartsPrimitive from "recharts";
+import NumberFlow from "@number-flow/react";
 
 import { cn } from "@/lib/utils";
 
@@ -252,10 +253,11 @@ function ChartTooltipContent({
                           {itemConfig?.label || item.name}
                         </span>
                       </div>
-                      {item.value && (
-                        <span className="text-foreground font-mono font-medium tabular-nums">
-                          {item.value.toLocaleString()}
-                        </span>
+                      {item.value !== undefined && item.value !== null && (
+                        <NumberFlow
+                          value={Number(item.value)}
+                          className="font-mono font-medium tabular-nums"
+                        />
                       )}
                     </div>
                   </>

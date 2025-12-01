@@ -72,12 +72,7 @@ import { Skeleton } from "../ui/skeleton";
 import { makeShortLink } from "@/lib/config";
 import NumberFlow from "@number-flow/react";
 import { ChartLineIcon } from "lucide-react";
-import {
-  Copy,
-  CopyIcon,
-  CopySimpleIcon,
-  TrashIcon,
-} from "@phosphor-icons/react";
+import { CopySimpleIcon, TrashIcon } from "@phosphor-icons/react";
 interface UrlTableProps {
   showSearch?: boolean;
   showFilters?: boolean;
@@ -1000,7 +995,7 @@ export function UrlTable({
               to="/urls"
               className="text-sm text-blue-500 underline decoration-blue-500 decoration-dashed underline-offset-2 hover:text-blue-600"
             >
-              {footerContent}
+              [{footerContent}]
             </NavLink>
           </div>
         </div>

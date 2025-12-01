@@ -56,6 +56,19 @@ export const mutateUrlAnalytics = mutation({
     const key = `url:${normalisedUrlId}`;
     await counter.inc(ctx, key);
 
+    // Incremnt user total clicks
+    await counter.inc(ctx, `user:${user._id}`);
+
+    // Incremnt collection total clicks
+    const collections = await ctx.db
+      .query("collections")
+      .withIndex("by_urls", (q) => q.eq("urls", [normalisedUrlId]))
+      .collect();
+
+    for (const collection of collections) {
+      await counter.inc(ctx, `collection:${collection._id}`);
+    }
+
     if (!urlAnalytics) {
       await ctx.db.insert("urlAnalytics", {
         urlId: normalisedUrlId,
@@ -155,5 +168,16 @@ export const getUrlAnalytics = query({
       isError: false,
       message: "success",
     };
+  },
+});
+
+export const getUsersTotalClicks = query({
+  args: {},
+  handler: async (ctx) => {
+    const user = await getCurrentUser(ctx);
+    if (!user) {
+      return 0;
+    }
+    return await counter.count(ctx, `user:${user._id}`);
   },
 });

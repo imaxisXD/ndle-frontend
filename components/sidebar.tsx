@@ -4,6 +4,7 @@ import { NavLink } from "react-router";
 import {
   Brain,
   FolderPlus,
+  Headset,
   HomeAlt,
   Presentation,
   Reports,
@@ -16,6 +17,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/base-tooltip";
 import Link from "next/link";
+import { HeadsetIcon } from "@phosphor-icons/react";
 
 export function Sidebar() {
   return (
@@ -151,11 +153,11 @@ export function Sidebar() {
               <Link
                 href="https://ndles.userjot.com/?cursor=1&order=top&limit=10"
                 target="_blank"
-                className="text-muted-foreground hover:bg-accent hover:text-accent-foreground flex h-10 w-10 items-center justify-center rounded-md transition-colors"
+                className="text-muted-foreground hover:text-accent-foreground flex h-10 w-10 items-center justify-center rounded-md transition-colors hover:bg-blue-500/20"
               />
             }
           >
-            <Suggestion className="size-5 fill-sky-200 text-blue-500" />
+            <HeadsetIcon className="size-5 text-blue-500" />
           </TooltipTrigger>
           <TooltipContent side="right">Feedback</TooltipContent>
         </Tooltip>

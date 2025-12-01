@@ -2,7 +2,13 @@
 
 import * as React from "react";
 import { useMemo } from "react";
-import { Card, CardContent } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardTitle,
+  CardDescription,
+  CardHeader,
+} from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Dialog,
@@ -62,54 +68,60 @@ export function CountryChart({
 
   return (
     <Card className={cn("flex h-full flex-col", className)}>
-      <CardContent className="grow p-6">
-        <div className="mb-6 flex items-start justify-between">
-          <div>
-            <h3 className="text-base font-medium">Top Countries</h3>
-            <p className="text-muted-foreground mt-1 text-xs">
+      <CardHeader className="border-b py-2.5">
+        <div className="flex w-full items-center justify-between gap-3">
+          <div className="flex min-w-0 flex-col gap-1">
+            <CardTitle className="flex items-center gap-2 font-medium">
+              <Globe className="size-5" />
+              Top Countries
+            </CardTitle>
+            <CardDescription className="space-between flex w-full text-xs">
               Clicks by geographic location
-            </p>
+            </CardDescription>
           </div>
-          {topCountries.length > limit && (
-            <Dialog>
-              <DialogTrigger
-                render={
-                  <Button variant="ghost" size="icon">
-                    <Expand className="h-4 w-4" />
-                  </Button>
-                }
-              ></DialogTrigger>
-              <DialogContent className="flex flex-col gap-5 sm:max-w-md">
-                <DialogHeader className="bg-transparent">
-                  <DialogTitle>All Countries</DialogTitle>
-                </DialogHeader>
-                <DialogBody className="rounded-sm bg-white p-2">
-                  <div className="max-h-[50vh] space-y-3.5 overflow-y-auto px-2 py-4">
-                    {topCountries.map((country) => (
-                      <ProgressListItem
-                        key={country.country}
-                        label={
-                          <div
-                            className="flex items-center gap-2"
-                            title={country.country}
-                          >
-                            {getCountryFlag(country.country, 4)}
-                            <span className="text-muted-foreground text-xs">
-                              {country.country}
-                            </span>
-                          </div>
-                        }
-                        value={country.clicks}
-                        percentage={country.percentage}
-                      />
-                    ))}
-                  </div>
-                </DialogBody>
-              </DialogContent>
-            </Dialog>
-          )}
+          <div className="mb-6 flex items-start justify-between">
+            {topCountries.length > limit && (
+              <Dialog>
+                <DialogTrigger
+                  render={
+                    <Button variant="ghost" size="icon">
+                      <Expand className="h-4 w-4" />
+                    </Button>
+                  }
+                ></DialogTrigger>
+                <DialogContent className="flex flex-col gap-5 sm:max-w-md">
+                  <DialogHeader className="bg-transparent">
+                    <DialogTitle>All Countries</DialogTitle>
+                  </DialogHeader>
+                  <DialogBody className="rounded-sm bg-white p-2">
+                    <div className="max-h-[50vh] space-y-3.5 overflow-y-auto px-2 py-4">
+                      {topCountries.map((country) => (
+                        <ProgressListItem
+                          key={country.country}
+                          label={
+                            <div
+                              className="flex items-center gap-2"
+                              title={country.country}
+                            >
+                              {getCountryFlag(country.country, 4)}
+                              <span className="text-muted-foreground text-xs">
+                                {country.country}
+                              </span>
+                            </div>
+                          }
+                          value={country.clicks}
+                          percentage={country.percentage}
+                        />
+                      ))}
+                    </div>
+                  </DialogBody>
+                </DialogContent>
+              </Dialog>
+            )}
+          </div>
         </div>
-
+      </CardHeader>
+      <CardContent className="grow p-6">
         {isLoading ? (
           <div className="space-y-4">
             {[1, 2, 3, 4, 5].map((i) => (

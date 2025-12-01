@@ -58,6 +58,7 @@ export default defineSchema({
     shareCreatedAt: v.optional(v.number()),
     shareUpdatedAt: v.optional(v.number()),
   })
+    .index("by_urls", ["urls"])
     .index("by_user", ["userTableId"])
     .index("by_user_and_normalizedName", ["userTableId", "normalizedName"]),
   analytics_cache: defineTable({

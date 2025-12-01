@@ -53,8 +53,7 @@ export function BrowserChart({
   data?: Array<{ month: string; clicks: number }>;
   isLoading?: boolean;
 }) {
-  const showEmptyState =
-    !isLoading && Array.isArray(data) && data.length === 0;
+  const showEmptyState = !isLoading && Array.isArray(data) && data.length === 0;
   return (
     <Card>
       <CardHeader className="flex flex-col items-start justify-between gap-1">

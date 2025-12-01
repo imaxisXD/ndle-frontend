@@ -29,7 +29,7 @@ export function LiveClickHero({ counterValue }: { counterValue: number }) {
               Live Click Counter
             </h2>
             <p className="text-muted-foreground mt-1 text-xs">
-              Shows the realtime click count
+              The realtime link click counter
             </p>
           </div>
         </div>
@@ -40,10 +40,6 @@ export function LiveClickHero({ counterValue }: { counterValue: number }) {
             includeDecimals={false}
             fontSize="44px"
             color="inherit"
-            // digitStyles={{
-            //   fontFamily: "var(--font-doto)",
-            //   fontVariationSettings: '"ROND" 0',
-            // }}
             containerStyles={{
               margin: "0 auto",
             }}

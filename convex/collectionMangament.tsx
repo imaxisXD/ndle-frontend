@@ -105,6 +105,15 @@ export const addUrlToCollection = mutation({
       urls: [...collection.urls, args.urlId],
     });
 
+    const currentUrlClicks = await counter.count(ctx, `url:${args.urlId}`);
+    if (currentUrlClicks > 0) {
+      await counter.add(
+        ctx,
+        `collection:${args.collectionId}`,
+        currentUrlClicks,
+      );
+    }
+
     return null;
   },
 });
@@ -129,19 +138,10 @@ export const getUserCollections = query({
     const collectionsWithClickCount = await Promise.all(
       collections.map(async (collection) => {
         let totalClickCount = 0;
-
-        // Iterate through each URL in the collection to get its analytics
-        for (const urlId of collection.urls) {
-          const analytics = await ctx.db
-            .query("urlAnalytics")
-            .withIndex("by_url", (q) => q.eq("urlId", urlId))
-            .first();
-
-          if (analytics) {
-            const key = `url:${urlId}`;
-            totalClickCount += await counter.count(ctx, key);
-          }
-        }
+        totalClickCount = await counter.count(
+          ctx,
+          `collection:${collection._id}`,
+        );
 
         return {
           userTableId: collection.userTableId,
