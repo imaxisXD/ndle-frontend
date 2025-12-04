@@ -34,6 +34,7 @@ import {
   MenuShortcut,
   MenuTrigger,
 } from "@/components/ui/base-menu";
+import { Kbd } from "@/components/ui/kbd";
 import {
   Dialog,
   DialogContent,
@@ -110,7 +111,10 @@ function CollectionMenuCell({
           <Page />
           <span>View</span>
           <MenuShortcut>
-            <KeyCommand className="size-2.5 text-white" strokeWidth="2" /> V
+            <Kbd>
+              <KeyCommand className="size-2.5 text-white" strokeWidth="2" />
+            </Kbd>
+            <Kbd>V</Kbd>
           </MenuShortcut>
         </MenuItem>
         <MenuItem
@@ -125,7 +129,10 @@ function CollectionMenuCell({
           <BinMinusIn />
           <span>Delete</span>
           <MenuShortcut>
-            <KeyCommand className="size-2.5 text-white" strokeWidth="2" />D
+            <Kbd>
+              <KeyCommand className="size-2.5 text-white" strokeWidth="2" />
+            </Kbd>
+            <Kbd>D</Kbd>
           </MenuShortcut>
         </MenuItem>
       </MenuContent>

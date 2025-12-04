@@ -1,11 +1,14 @@
 import { useHotkeys } from "react-hotkeys-hook";
 import { Button } from "./button";
 import { Kbd, KbdGroup } from "./kbd";
+import { KeyCommand } from "iconoir-react";
 import type { VariantProps } from "class-variance-authority";
 import type * as React from "react";
 
-interface HotkeyButtonProps
-  extends Omit<React.ComponentProps<"button">, "onClick"> {
+interface HotkeyButtonProps extends Omit<
+  React.ComponentProps<"button">,
+  "onClick"
+> {
   hotkey: string | string[];
   onClick: () => void;
   variant?: VariantProps<typeof Button>["variant"];
@@ -90,33 +93,56 @@ export function HotkeyButton({
       return null;
     }
 
+    const renderKey = (
+      originalPart: string,
+      formattedKey: string,
+      key: string,
+    ) => {
+      // Use KeyCommand icon for meta modifier
+      if (
+        originalPart.toLowerCase() === "meta" ||
+        originalPart.toLowerCase() === "cmd"
+      ) {
+        return (
+          <Kbd key={key} className={kbdClassName}>
+            <KeyCommand className="size-2.5 text-white" strokeWidth="2" />
+          </Kbd>
+        );
+      }
+      return (
+        <Kbd key={key} className={kbdClassName}>
+          {formattedKey}
+        </Kbd>
+      );
+    };
+
     if (Array.isArray(hotkey)) {
       return (
         <KbdGroup>
           {hotkey.map((key, index) => {
+            const parts = key
+              .split("+")
+              .map((part) => part.trim().toLowerCase());
             const formattedKeys = formatHotkey(key);
-            return formattedKeys.map((formattedKey, keyIndex) => (
-              <Kbd key={`${index}-${keyIndex}`} className={kbdClassName}>
-                {formattedKey}
-              </Kbd>
-            ));
+            return formattedKeys.map((formattedKey, keyIndex) =>
+              renderKey(parts[keyIndex], formattedKey, `${index}-${keyIndex}`),
+            );
           })}
         </KbdGroup>
       );
     }
 
+    const parts = hotkey.split("+").map((part) => part.trim().toLowerCase());
     const formattedKeys = formatHotkey(hotkey);
     if (formattedKeys.length === 1) {
-      return <Kbd className={kbdClassName}>{formattedKeys[0]}</Kbd>;
+      return renderKey(parts[0], formattedKeys[0], "0");
     }
 
     return (
       <KbdGroup>
-        {formattedKeys.map((key, index) => (
-          <Kbd key={index} className={kbdClassName}>
-            {key}
-          </Kbd>
-        ))}
+        {formattedKeys.map((formattedKey, index) =>
+          renderKey(parts[index], formattedKey, String(index)),
+        )}
       </KbdGroup>
     );
   };

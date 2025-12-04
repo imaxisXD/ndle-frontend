@@ -4,6 +4,7 @@ import * as React from "react";
 import { cn } from "@/lib/utils";
 import { Menu as MenuPrimitive } from "@base-ui-components/react/menu";
 import { Check, ChevronRight, Circle } from "lucide-react";
+import { KbdGroup } from "./kbd";
 
 // Root - Groups all parts of the menu
 function Menu({ ...props }: React.ComponentProps<typeof MenuPrimitive.Root>) {
@@ -123,7 +124,7 @@ function MenuItem({
         "data-[highlighted=true]:bg-accent data-[highlighted=true]:text-accent-foreground",
         inset && "ps-7",
         variant === "destructive" &&
-          "text-destructive hover:text-destructive focus:text-destructive hover:bg-destructive/5 focus:bg-destructive/5 data-[active=true]:bg-destructive/5",
+          "text-destructive hover:text-destructive focus:text-destructive hover:bg-destructive focus:bg-destructive/10 data-[active=true]:bg-destructive",
         className,
       )}
     />
@@ -278,7 +279,7 @@ function MenuSubmenuTrigger({
       className={cn(
         "flex cursor-default items-center gap-2 rounded-md px-2 py-1.5 text-sm outline-hidden select-none",
         "focus:bg-accent focus:text-foreground",
-        "[&[data-popup-open]]:bg-accent [&[data-popup-open]]:text-foreground",
+        "data-popup-open:bg-accent data-popup-open:text-foreground",
         "[&_svg:not([role=img]):not([class*=text-])]:opacity-60 [&>svg]:pointer-events-none [&>svg]:shrink-0 [&>svg:not([class*=size-])]:size-4",
         inset && "ps-7",
         className,
@@ -296,17 +297,17 @@ function MenuSubmenuTrigger({
 // Shortcut - A shortcut display component
 function MenuShortcut({
   className,
+  children,
   ...props
 }: React.HTMLAttributes<HTMLSpanElement>) {
   return (
-    <span
+    <KbdGroup
       data-slot="menu-shortcut"
       {...props}
-      className={cn(
-        "ms-auto flex h-4.5 w-7 items-center justify-center gap-1 rounded-xs border border-black bg-gradient-to-br from-black to-black/50 text-xs text-white opacity-90",
-        className,
-      )}
-    />
+      className={cn("ms-auto", className)}
+    >
+      {children}
+    </KbdGroup>
   );
 }
 

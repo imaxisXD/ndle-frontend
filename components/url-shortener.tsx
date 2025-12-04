@@ -567,31 +567,29 @@ export function UrlShortener() {
 
             {/* Advanced Options */}
             <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <HotkeyButton
-                  kbdClassName="no-underline text-xs h-fit py-0.5 shadow-xs bg-gray-100/50 backdrop-blur-sm text-black/60 rounded-xs border"
-                  type="button"
-                  hotkey="a"
-                  enableOnFormTags={false}
-                  onClick={() => setAdvancedOpen(!advancedOpen)}
-                  className="group hover-text-black bg-transparent px-1 py-0 text-xs hover:bg-transparent hover:font-medium hover:shadow-none"
+              <HotkeyButton
+                kbdClassName="no-underline text-xs h-fit py-0.5 shadow-xs from-gray-200 to-gray-100 backdrop-blur-sm text-black/60 rounded-xs border"
+                type="button"
+                hotkey="a"
+                enableOnFormTags={false}
+                onClick={() => setAdvancedOpen(!advancedOpen)}
+                className="group hover:bg-muted/70 bg-transparent px-1.5 py-0 text-xs text-black outline-1 hover:font-medium hover:shadow-none"
+              >
+                <span
+                  className={cn(
+                    "text-xs underline decoration-blue-600 decoration-dashed underline-offset-4",
+                    {
+                      "text-muted-foreground font-normal": advancedOpen,
+                      "": !advancedOpen,
+                    },
+                  )}
                 >
-                  <span
-                    className={cn(
-                      "text-xs underline decoration-blue-600 decoration-dashed underline-offset-4",
-                      {
-                        "text-muted-foreground font-normal": advancedOpen,
-                        "group-hover:text-muted-foreground text-black":
-                          !advancedOpen,
-                      },
-                    )}
-                  >
-                    {advancedOpen
-                      ? "[Hide Advance Options]"
-                      : "[Show Advance Options]"}
-                  </span>
-                </HotkeyButton>
-              </div>
+                  {advancedOpen
+                    ? "[Hide Advance Options]"
+                    : "[Show Advance Options]"}
+                </span>
+              </HotkeyButton>
+
               <AdvancedOptions
                 form={form}
                 open={advancedOpen}

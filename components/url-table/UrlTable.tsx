@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 import React, { useCallback, useMemo, useState, Fragment } from "react";
 import {
   ColumnDef,
@@ -56,6 +57,7 @@ import {
   MenuShortcut,
   MenuTrigger,
 } from "../ui/base-menu";
+import { Kbd } from "../ui/kbd";
 import {
   Dialog,
   DialogContent,
@@ -72,11 +74,7 @@ import { Skeleton } from "../ui/skeleton";
 import { makeShortLink } from "@/lib/config";
 import NumberFlow from "@number-flow/react";
 import { ChartLineIcon } from "lucide-react";
-import {
-  CopySimpleIcon,
-  GlobeSimpleIcon,
-  TrashIcon,
-} from "@phosphor-icons/react";
+import { CopyIcon, GlobeSimpleIcon, TrashIcon } from "@phosphor-icons/react";
 interface UrlTableProps {
   showSearch?: boolean;
   showFilters?: boolean;
@@ -172,15 +170,16 @@ function ActionsMenuCell({
   const [menuOpen, setMenuOpen] = useState(false);
 
   useHotkeys(
-    "meta+a",
+    ["a", "A"],
     (e) => {
       if (menuOpen) {
         e.preventDefault();
+        e.stopPropagation();
         onNavigateToAnalytics(slug);
         setMenuOpen(false);
       }
     },
-    { enabled: menuOpen, preventDefault: true },
+    { enabled: menuOpen, preventDefault: true, enableOnFormTags: false },
   );
 
   useHotkeys(
@@ -210,7 +209,18 @@ function ActionsMenuCell({
           </button>
         }
       />
-      <MenuContent sideOffset={4} className="w-48">
+      <MenuContent
+        sideOffset={4}
+        className="w-48"
+        onKeyDown={(e) => {
+          if ((e.key === "a" || e.key === "A") && menuOpen) {
+            e.preventDefault();
+            e.stopPropagation();
+            onNavigateToAnalytics(slug);
+            setMenuOpen(false);
+          }
+        }}
+      >
         <MenuItem
           onClick={(e) => {
             e.stopPropagation();
@@ -221,7 +231,7 @@ function ActionsMenuCell({
           <ChartLineIcon />
           <span>Analytics</span>
           <MenuShortcut>
-            <KeyCommand className="size-2.5 text-white" strokeWidth="2" /> A
+            <Kbd>A</Kbd>
           </MenuShortcut>
         </MenuItem>
 
@@ -236,7 +246,10 @@ function ActionsMenuCell({
           <TrashIcon weight="duotone" />
           <span>Delete</span>
           <MenuShortcut>
-            <KeyCommand className="size-2.5 text-white" strokeWidth="2" /> D
+            <Kbd>
+              <KeyCommand className="size-2.5 text-white" strokeWidth="2" />
+            </Kbd>
+            <Kbd>D</Kbd>
           </MenuShortcut>
         </MenuItem>
       </MenuContent>
@@ -293,36 +306,46 @@ function ShortUrlCell({
     : `https://${url.shortUrl}`;
   return (
     <div className="w-full space-y-1">
-      <div className="flex items-center justify-start gap-0.5">
-        <UrlFavicon url={url.originalUrl} />
+      <div className="flex items-center justify-start gap-1">
         <a
           href={normalizedHref}
           target="_blank"
           rel="noopener noreferrer"
-          className="group text-muted-foreground hover:bg-muted hover:text-foreground flex min-w-0 items-center gap-1 rounded-md py-2 pr-3 pl-1 transition-colors"
+          className="text-muted-foreground group hover:bg-muted hover:text-foreground flex min-w-0 items-center gap-2 rounded-md py-2 pr-3 pl-2 transition-colors"
           onClick={(e) => e.stopPropagation()}
         >
-          <code className="text-foreground truncate text-sm font-medium group-hover:underline group-hover:decoration-blue-500 group-hover:decoration-dashed group-hover:underline-offset-2">
-            {url.shortUrl}
-          </code>
-          <OpenNewWindow
-            fontSize={8}
-            className="shrink-0 group-hover:text-blue-600"
-            strokeWidth={2.4}
-          />
+          <UrlFavicon url={url.originalUrl} />
+          <div className="flex items-center gap-1">
+            <code className="text-foreground truncate text-sm font-medium group-hover:underline group-hover:decoration-blue-500 group-hover:decoration-dashed group-hover:underline-offset-2">
+              {url.shortUrl}
+            </code>
+            <OpenNewWindow
+              fontSize={6}
+              className="shrink-0 group-hover:text-blue-600"
+              strokeWidth={2.5}
+            />
+          </div>
         </a>
-        <Button
-          size="icon"
-          variant="link"
-          type="button"
-          className="text-muted-foreground hover:bg-muted flex shrink-0 items-center justify-center rounded-md p-1 transition-colors hover:text-blue-600"
-          onClick={(e) => {
-            e.stopPropagation();
-            onCopy(url.shortUrl);
-          }}
-        >
-          <CopySimpleIcon />
-        </Button>
+
+        <Tooltip>
+          <TooltipTrigger
+            render={
+              <Button
+                size="icon"
+                variant="link"
+                type="button"
+                className="text-muted-foreground hover:bg-muted flex shrink-0 items-center justify-center rounded-md p-1 transition-colors hover:text-blue-600"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onCopy(url.shortUrl);
+                }}
+              >
+                <CopyIcon weight="duotone" strokeWidth={2.5} />
+              </Button>
+            }
+          />
+          <TooltipContent side="top">Copy</TooltipContent>
+        </Tooltip>
       </div>
       <p
         className="text-muted-foreground truncate pl-1 text-xs"
@@ -897,7 +920,7 @@ export function UrlTable({
                   <Fragment key={row.id}>
                     <TableRow
                       data-state={row.getIsSelected() && "selected"}
-                      className="odd:bg-background even:bg-muted/30 h-14"
+                      className="bg-muted/30 h-14"
                     >
                       {row.getVisibleCells().map((cell) => (
                         <TableCell
