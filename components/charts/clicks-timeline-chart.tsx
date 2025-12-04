@@ -136,7 +136,7 @@ export function ClicksTimelineChart({
                 cursor={false}
                 content={
                   <ChartTooltipContent
-                    className="rounded-sm bg-gradient-to-br from-black/80 to-black text-white *:text-inherit [&_*]:text-inherit"
+                    className="rounded-sm bg-linear-to-br from-black/80 to-black text-white *:text-inherit **:text-inherit"
                     labelClassName="text-white font-medium"
                     labelFormatter={(value) => {
                       const d = new Date(String(value));

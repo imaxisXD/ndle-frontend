@@ -28,7 +28,6 @@ export default function LinkDetailRoute() {
   const { add } = useToast();
   const slug = params[":slug"] || params.slug || "unknown";
   const [range, setRange] = useState<AnalyticsRange>("7d");
-  const [activeTab, setActiveTab] = useState<string | null>("analytics");
 
   const dashboardRes = useQuery(api.analyticsCache.getAnalytics, {
     range,
@@ -104,7 +103,6 @@ export default function LinkDetailRoute() {
 
   return (
     <div className="space-y-8">
-      {/* Enhanced Header */}
       <LinkHeader
         shortUrl={shortUrl}
         fullUrl={url?.fullurl}
@@ -118,15 +116,11 @@ export default function LinkDetailRoute() {
       />
 
       {/* Tabbed Navigation */}
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
+      <Tabs defaultValue="analytics">
         <TabsList variant="line" size="md" className="mb-6">
           <TabsTrigger value="analytics">
             <GraphUp className="size-4" />
             Analytics
-          </TabsTrigger>
-          <TabsTrigger value="settings">
-            <Settings className="size-4" />
-            Settings
           </TabsTrigger>
           <TabsTrigger value="activity">
             <List className="size-4" />
@@ -139,6 +133,10 @@ export default function LinkDetailRoute() {
           <TabsTrigger value="health">
             <ShieldCheck className="size-4" />
             Health
+          </TabsTrigger>
+          <TabsTrigger value="settings">
+            <Settings className="size-4" />
+            Settings
           </TabsTrigger>
         </TabsList>
 

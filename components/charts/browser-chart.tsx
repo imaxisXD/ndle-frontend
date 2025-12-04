@@ -27,15 +27,6 @@ import { CircleGridLoaderIcon } from "@/components/icons";
 
 export const description = "A bar chart with a custom label";
 
-const defaultData = [
-  { month: "Chrome", clicks: 186 },
-  { month: "Firefox", clicks: 305 },
-  { month: "Safari", clicks: 237 },
-  { month: "Brave", clicks: 73 },
-  { month: "Edge", clicks: 209 },
-  { month: "Opera", clicks: 214 },
-];
-
 const chartConfig = {
   clicks: {
     label: "Clicks",
@@ -88,7 +79,7 @@ export function BrowserChart({
         >
           <BarChart
             accessibilityLayer
-            data={data ?? defaultData}
+            data={data}
             layout="vertical"
             margin={{
               right: 16,
@@ -136,7 +127,7 @@ export function BrowserChart({
                     const row = payload?.[0]?.payload as
                       | { month: string; clicks: number }
                       | undefined;
-                    const dataset = data ?? defaultData;
+                    const dataset = data ?? [];
                     const totalClicks = dataset.reduce(
                       (sum: number, item: { month: string; clicks: number }) =>
                         sum + item.clicks,

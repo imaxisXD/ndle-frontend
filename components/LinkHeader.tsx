@@ -6,7 +6,7 @@ import { LiveClickHero } from "@/components/charts/live-click-hero";
 import { LinkActionsBar } from "@/components/LinkActionsBar";
 import type { AnalyticsRange } from "@/lib/analyticsRanges";
 import { formatRelative } from "@/lib/utils";
-import { ArrowRight } from "iconoir-react";
+import { LinkIcon } from "@phosphor-icons/react";
 
 export function LinkHeader({
   shortUrl,
@@ -47,7 +47,7 @@ export function LinkHeader({
             {/* Destination URL Preview */}
             {fullUrl && (
               <div className="text-muted-foreground flex items-center gap-2 text-sm">
-                <ArrowRight className="size-3.5 shrink-0" />
+                <LinkIcon className="size-3.5 shrink-0" />
                 <span className="max-w-xs truncate md:max-w-md" title={fullUrl}>
                   {fullUrl}
                 </span>
@@ -57,7 +57,7 @@ export function LinkHeader({
             {/* Creation time */}
             {creationTime && (
               <p className="text-muted-foreground/70 text-xs">
-                Created {formatRelative(creationTime)}
+                [Created {formatRelative(creationTime)}]
               </p>
             )}
           </div>
