@@ -54,14 +54,14 @@ const buttonVariants = cva(
       },
       mode: {
         default:
-          "focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
-        icon: "focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+          "focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2",
+        icon: "focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2",
         link: "text-primary h-auto p-0 bg-transparent rounded-none hover:bg-transparent data-[state=open]:bg-transparent",
         input: `
             justify-start font-normal hover:bg-background [&_svg]:transition-colors [&_svg]:hover:text-foreground data-[state=open]:bg-background 
-            focus-visible:border-ring focus-visible:outline-hidden focus-visible:ring-[3px] focus-visible:ring-ring/30 
-            [[data-state=open]>&]:border-ring [[data-state=open]>&]:outline-hidden [[data-state=open]>&]:ring-[3px] 
-            [[data-state=open]>&]:ring-ring/30 
+            focus-visible:border-accent focus-visible:outline-hidden focus-visible:ring-[3px] focus-visible:ring-accent/30 
+            [[data-state=open]>&]:border-accent [[data-state=open]>&]:outline-hidden [[data-state=open]>&]:ring-[3px] 
+            [[data-state=open]>&]:ring-accent/30 
             aria-invalid:border-destructive/60 aria-invalid:ring-destructive/10 dark:aria-invalid:border-destructive dark:aria-invalid:ring-destructive/20
             in-data-[invalid=true]:border-destructive/60 in-data-[invalid=true]:ring-destructive/10  dark:in-data-[invalid=true]:border-destructive dark:in-data-[invalid=true]:ring-destructive/20
           `,

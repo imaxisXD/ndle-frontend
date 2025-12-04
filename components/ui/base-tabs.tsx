@@ -79,14 +79,14 @@ const tabsListVariants = cva("flex items-center shrink-0", {
 
 // Variants for TabsTrigger
 const tabsTriggerVariants = cva(
-  "shrink-0 cursor-pointer whitespace-nowrap inline-flex justify-center items-center font-medium ring-offset-background transition-colors focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-disabled:pointer-events-none data-disabled:opacity-50 [&_svg]:shrink-0 [&_svg]:text-muted-foreground [&:hover_svg]:text-primary [&[aria-selected=true]_svg]:text-primary [&[data-selected]_svg]:text-primary",
+  "shrink-0 cursor-pointer whitespace-nowrap inline-flex justify-center items-center font-medium ring-offset-background transition-colors focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-disabled:pointer-events-none data-disabled:opacity-50 [&_svg]:shrink-0 [&_svg]:text-muted-foreground [&:hover_svg]:text-primary [&[aria-selected=true]_svg]:text-primary [&[data-selected]_svg]:text-primary",
   {
     variants: {
       variant: {
         default:
           "text-muted-foreground hover:text-foreground aria-selected:bg-background aria-selected:text-foreground aria-selected:shadow-xs aria-selected:shadow-black/5 data-[selected]:bg-background data-[selected]:text-foreground data-[selected]:shadow-xs data-[selected]:shadow-black/5",
         button:
-          "focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-lg text-accent-foreground hover:text-foreground aria-selected:bg-accent aria-selected:text-foreground data-[selected]:bg-accent data-[selected]:text-foreground",
+          "focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 rounded-lg text-accent-foreground hover:text-foreground aria-selected:bg-accent aria-selected:text-foreground data-[selected]:bg-accent data-[selected]:text-foreground",
         line: "border-b-2 text-muted-foreground border-transparent hover:text-primary aria-selected:border-primary aria-selected:text-primary data-[selected]:border-primary data-[selected]:text-primary",
       },
       size: {
@@ -121,7 +121,7 @@ const tabsTriggerVariants = cva(
 
 // Variants for TabsContent
 const tabsContentVariants = cva(
-  "mt-2.5 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+  "mt-2.5 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2",
   {
     variants: {
       variant: {

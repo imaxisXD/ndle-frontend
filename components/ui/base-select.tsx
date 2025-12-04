@@ -123,7 +123,7 @@ const selectTriggerVariants = cva(
   `
 		group relative flex w-fit items-center justify-between gap-2 rounded-md border whitespace-nowrap select-none
 		shadow-xs transition-[color,box-shadow,border-color] outline-none
-		focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]
+		focus-visible:border-accent focus-visible:ring-accent/50 focus-visible:ring-[3px]
 		aria-invalid:ring-destructive/50 aria-invalid:border-destructive
 		data-[disabled]:pointer-events-none data-[disabled]:opacity-60
 		*:data-[slot=select-value]:line-clamp-1 *:data-[slot=select-value]:flex *:data-[slot=select-value]:items-center *:data-[slot=select-value]:gap-2

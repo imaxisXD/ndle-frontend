@@ -10,7 +10,7 @@ import { Check, Minus } from "iconoir-react";
 const checkboxVariants = cva(
   `
     group peer bg-white shrink-0 rounded-[3.5px] border border-checkbox-border ring-offset-background focus-visible:outline-none 
-    focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 
+    focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 
     aria-invalid:border-destructive/60 aria-invalid:ring-destructive/10 aria-invalid:border-destructive aria-invalid:ring-destructive/20
     [[data-invalid=true]_&]:border-destructive/60 [[data-invalid=true]_&]:ring-destructive/10 [[data-invalid=true]_&]:border-destructive [[data-invalid=true]_&]:ring-destructive/20,
     data-[state=checked]:bg-accent/80 data-[state=checked]:border-primary data-[state=checked]:text-primary data-[state=indeterminate]:bg-primary data-[state=indeterminate]:border-primary data-[state=indeterminate]:text-primary-foreground

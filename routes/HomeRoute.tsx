@@ -11,6 +11,7 @@ export default function HomeRoute() {
         >
           ndle
         </h1>
+
         <p className="text-muted-foreground mt-2 text-sm">
           Short. Sharp. Smarter.
         </p>

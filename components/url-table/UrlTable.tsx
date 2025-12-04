@@ -13,6 +13,7 @@ import { useTableSortingURL } from "../../hooks/use-table-sorting-url";
 import { NavLink, useNavigate } from "react-router";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery } from "convex-helpers/react/cache/hooks";
+import { useQuery as useReactQuery } from "@tanstack/react-query";
 import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { FunctionReturnType } from "convex/server";
@@ -71,7 +72,11 @@ import { Skeleton } from "../ui/skeleton";
 import { makeShortLink } from "@/lib/config";
 import NumberFlow from "@number-flow/react";
 import { ChartLineIcon } from "lucide-react";
-import { CopySimpleIcon, TrashIcon } from "@phosphor-icons/react";
+import {
+  CopySimpleIcon,
+  GlobeSimpleIcon,
+  TrashIcon,
+} from "@phosphor-icons/react";
 interface UrlTableProps {
   showSearch?: boolean;
   showFilters?: boolean;
@@ -239,6 +244,43 @@ function ActionsMenuCell({
   );
 }
 
+function UrlFavicon({ url }: { url: string }) {
+  const [imgError, setImgError] = useState(false);
+  const { data: faviconUrl, isLoading } = useReactQuery({
+    queryKey: ["favicon", url],
+    queryFn: async () => {
+      const response = await fetch(
+        `/api/getFavicon?url=${encodeURIComponent(url)}`,
+      );
+      if (!response.ok) return null;
+      const data = await response.json();
+      return data.faviconUrl;
+    },
+    enabled: !!url,
+    staleTime: 1000 * 60 * 60 * 24 * 7, // 7 days - favicons rarely change
+    gcTime: 1000 * 60 * 60 * 24 * 30, // 30 days
+    retry: 1,
+    refetchOnWindowFocus: false,
+  });
+
+  const showPlaceholder = isLoading || !faviconUrl || imgError;
+
+  return (
+    <div className="bg-muted flex size-5 shrink-0 items-center justify-center rounded-full">
+      {showPlaceholder ? (
+        <GlobeSimpleIcon className="size-5 text-blue-500" weight="duotone" />
+      ) : (
+        <img
+          src={faviconUrl}
+          alt=""
+          className="size-5 rounded-full object-cover"
+          onError={() => setImgError(true)}
+        />
+      )}
+    </div>
+  );
+}
+
 function ShortUrlCell({
   url,
   onCopy,
@@ -252,6 +294,7 @@ function ShortUrlCell({
   return (
     <div className="w-full space-y-1">
       <div className="flex items-center justify-start gap-0.5">
+        <UrlFavicon url={url.originalUrl} />
         <a
           href={normalizedHref}
           target="_blank"
@@ -990,7 +1033,7 @@ export function UrlTable({
           <div className="flex items-center justify-center">
             <NavLink
               to="/urls"
-              className="text-sm text-blue-500 underline decoration-blue-500 decoration-dashed underline-offset-2 hover:text-blue-600"
+              className="text-sm text-blue-500 hover:text-blue-600 hover:underline hover:decoration-blue-500 hover:decoration-dashed hover:underline-offset-4"
             >
               [{footerContent}]
             </NavLink>

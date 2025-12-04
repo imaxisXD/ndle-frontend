@@ -10,9 +10,9 @@ import { Check, NavArrowDown, XmarkCircle } from "iconoir-react";
 const inputVariants = cva(
   `
     flex w-full bg-background border border-input shadow-xs shadow-black/5 transition-[color,box-shadow] text-foreground placeholder:text-muted-foreground/80 
-    focus-visible:ring-ring/30 focus-visible:border-ring focus-visible:outline-none focus-visible:ring-[3px]     
-    has-[[data-slot=combobox-input]:focus-visible]:ring-ring/30 
-    has-[[data-slot=combobox-input]:focus-visible]:border-ring
+    focus-visible:ring-accent/30 focus-visible:border-accent focus-visible:outline-none focus-visible:ring-[3px]     
+    has-[[data-slot=combobox-input]:focus-visible]:ring-accent/30 
+    has-[[data-slot=combobox-input]:focus-visible]:border-accent
     has-[[data-slot=combobox-input]:focus-visible]:outline-none
     has-[[data-slot=combobox-input]:focus-visible]:ring-[3px]
     [&_[data-slot=combobox-input]]:grow
@@ -324,7 +324,7 @@ function ComboboxClear({
       data-slot="combobox-clear"
       className={cn(
         "ring-offset-background absolute end-6 top-1/2 -translate-y-1/2 cursor-pointer rounded-sm opacity-70",
-        "focus:ring-ring opacity-60 transition-opacity hover:opacity-100 focus:ring-2 focus:ring-offset-2 focus:outline-none disabled:pointer-events-none",
+        "focus:ring-accent opacity-60 transition-opacity hover:opacity-100 focus:ring-2 focus:ring-offset-2 focus:outline-none disabled:pointer-events-none",
         "data-[disabled]:pointer-events-none",
         className,
       )}
@@ -346,7 +346,7 @@ function ComboboxIcon({
       data-slot="combobox-icon"
       className={cn(
         "ring-offset-background absolute end-2 top-1/2 -translate-y-1/2 cursor-pointer rounded-sm opacity-70 transition-opacity",
-        "focus:ring-ring opacity-60 focus:ring-2 focus:ring-offset-2 focus:outline-none disabled:pointer-events-none",
+        "focus:ring-accent opacity-60 focus:ring-2 focus:ring-offset-2 focus:outline-none disabled:pointer-events-none",
         "data-[disabled]:pointer-events-none",
         className,
       )}

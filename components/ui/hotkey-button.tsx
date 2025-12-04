@@ -12,6 +12,7 @@ interface HotkeyButtonProps
   size?: VariantProps<typeof Button>["size"];
   asChild?: boolean;
   enabled?: boolean;
+  enableOnFormTags?: boolean;
   kbdClassName?: string;
 }
 
@@ -67,6 +68,7 @@ export function HotkeyButton({
   onClick,
   children,
   enabled = true,
+  enableOnFormTags = true,
   kbdClassName,
   ...props
 }: HotkeyButtonProps) {
@@ -78,7 +80,7 @@ export function HotkeyButton({
   // Register hotkeys with react-hotkeys-hook only if hotkey is provided
   useHotkeys(hotkey, onClick, {
     preventDefault: true,
-    enableOnFormTags: true,
+    enableOnFormTags,
     enabled: enabled && hasHotkey,
   });
 

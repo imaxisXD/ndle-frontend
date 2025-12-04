@@ -58,7 +58,7 @@ function RadioGroup({
 const radioItemVariants = cva(
   `
     peer aspect-square rounded-full border outline-hidden ring-offset-background focus:outline-none focus-visible:ring-2 
-    focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50
+    focus-visible:ring-accent focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50
     aria-invalid:border-destructive/60 aria-invalid:ring-destructive/10 aria-invalid:border-destructive aria-invalid:ring-destructive/20
     [[data-invalid=true]_&]:border-destructive/60 [[data-invalid=true]_&]:ring-destructive/10 [[data-invalid=true]_&]:border-destructive [[data-invalid=true]_&]:ring-destructive/20
     border-checkbox-border text-primary 

@@ -8,8 +8,8 @@ import { cva, type VariantProps } from "class-variance-authority";
 const textareaVariants = cva(
   `
     w-full bg-background border border-input bg-background text-foreground shadow-xs shadow-black/5 transition-[color,box-shadow] 
-    text-foreground placeholder:text-muted-foreground/80 focus-visible:border-ring focus-visible:outline-none focus-visible:ring-[3px] 
-    focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:opacity-50 [&[readonly]]:opacity-70 
+    text-foreground placeholder:text-muted-foreground/80 focus-visible:border-accent focus-visible:outline-none focus-visible:ring-[3px] 
+    focus-visible:ring-accent/30 disabled:cursor-not-allowed disabled:opacity-50 [&[readonly]]:opacity-70 
     aria-invalid:border-destructive aria-invalid:border-destructive/60 aria-invalid:ring-destructive/10 dark:aria-invalid:border-destructive dark:aria-invalid:ring-destructive/20
   `,
   {

@@ -42,27 +42,19 @@ const urlFormSchema = z
   .object({
     url: z
       .string()
+      .trim()
+      .min(1, "Link is required")
       .refine(
         (val) => {
-          if (!val || val.trim() === "") return true;
-
-          const isValid = validator.isURL(val, {
+          if (!val) return true;
+          return validator.isURL(val, {
             protocols: ["http", "https"],
-            require_protocol: true,
+            require_protocol: false,
             require_valid_protocol: true,
           });
-          return isValid;
         },
         {
           message: "Please enter a valid link",
-        },
-      )
-      .refine(
-        (val) => {
-          return val && val.trim() !== "";
-        },
-        {
-          message: "Link is required",
         },
       ),
     shortUrl: z.string().optional(),
@@ -338,45 +330,50 @@ export function UrlShortener() {
     if (values.tagsEnabled) chips.push("Tags & Notes");
 
     return chips;
-  }, [
-    // Watch all enabled flags to update chips
-    form.watch("utmEnabled"),
-    form.watch("abEnabled"),
-    form.watch("activateAtEnabled"),
-    form.watch("targetingEnabled"),
-    form.watch("passwordEnabled"),
-    form.watch("qrEnabled"),
-    form.watch("fallbackEnabled"),
-    form.watch("socialEnabled"),
-    form.watch("tagsEnabled"),
-  ]);
+  }, [form]);
 
   const handleUrlBlur = async (urlValue: string) => {
-    if (urlValue.trim()) {
+    const trimmedValue = urlValue.trim();
+    if (trimmedValue) {
       const isValid = await form.trigger("url");
       if (isValid) {
-        setCurrentUrl(urlValue);
+        // Ensure URL has protocol for favicon fetching
+        const urlWithProtocol = /^https?:\/\//i.test(trimmedValue)
+          ? trimmedValue
+          : `https://${trimmedValue}`;
+        setCurrentUrl(urlWithProtocol);
       } else {
         setCurrentUrl(null);
       }
     } else {
+      // Clear errors for empty field - required check happens on submit
+      form.clearErrors("url");
       setCurrentUrl(null);
     }
   };
 
   const handleUrlChange = () => {
     setCurrentUrl(null);
+    // Clear URL error when user starts typing again
+    if (form.formState.errors.url) {
+      form.clearErrors("url");
+    }
   };
 
   const onSubmit = async (values: UrlFormValues) => {
     try {
+      let urlToShorten = values.url.trim();
+      if (!/^https?:\/\//i.test(urlToShorten)) {
+        urlToShorten = `https://${urlToShorten}`;
+      }
+
       const expiresAtValue =
         values.expiresEnabled && values.expiresAt
           ? new Date(values.expiresAt).getTime()
           : undefined;
 
       const result = await createUrl({
-        url: values.url,
+        url: urlToShorten,
         slugType: values.slugMode,
         trackingEnabled: values.trackingEnabled,
         expiresAt: expiresAtValue,
@@ -467,7 +464,7 @@ export function UrlShortener() {
             <FormField
               control={form.control}
               name="url"
-              render={({ field }) => (
+              render={({ field, fieldState }) => (
                 <FormItem>
                   <FormLabel>Enter your long link</FormLabel>
                   <FormControl>
@@ -496,6 +493,7 @@ export function UrlShortener() {
                         <InputGroupInput
                           placeholder="https://example.com/very/long/url/path"
                           className="border-border rounded-md rounded-l-none border-y border-l-0 pl-0"
+                          aria-invalid={fieldState.invalid}
                           {...field}
                           onChange={(e) => {
                             field.onChange(e);
@@ -574,12 +572,13 @@ export function UrlShortener() {
                   kbdClassName="no-underline text-xs h-fit py-0.5 shadow-xs bg-gray-100/50 backdrop-blur-sm text-black/60 rounded-xs border"
                   type="button"
                   hotkey="a"
+                  enableOnFormTags={false}
                   onClick={() => setAdvancedOpen(!advancedOpen)}
                   className="group hover-text-black bg-transparent px-1 py-0 text-xs hover:bg-transparent hover:font-medium hover:shadow-none"
                 >
                   <span
                     className={cn(
-                      "underline decoration-blue-600 decoration-dashed underline-offset-4",
+                      "text-xs underline decoration-blue-600 decoration-dashed underline-offset-4",
                       {
                         "text-muted-foreground font-normal": advancedOpen,
                         "group-hover:text-muted-foreground text-black":
@@ -588,8 +587,8 @@ export function UrlShortener() {
                     )}
                   >
                     {advancedOpen
-                      ? "Hide Advance Options"
-                      : "Show Advance Options"}
+                      ? "[Hide Advance Options]"
+                      : "[Show Advance Options]"}
                   </span>
                 </HotkeyButton>
               </div>
@@ -600,7 +599,7 @@ export function UrlShortener() {
               />
             </div>
           </CardContent>
-          <CardFooter className="bg-background/80 supports-[backdrop-filter]:bg-background/60 sticky -bottom-4 z-10 flex-wrap justify-between gap-3 rounded-b-md border-t py-5 backdrop-blur">
+          <CardFooter className="bg-background/80 supports-backdrop-filter:bg-background/60 sticky -bottom-4 z-10 flex-wrap justify-between gap-3 rounded-b-md border-t py-5 backdrop-blur">
             <div className="flex items-center gap-2">
               <HotkeyButton
                 hotkey={isSubmitting ? "" : "meta + enter"}
