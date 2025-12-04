@@ -28,7 +28,6 @@ import {
   ArrowUp,
   ArrowDown,
   FilterSolid,
-  BinMinusIn,
   KeyCommand,
 } from "iconoir-react";
 import { Badge } from "../ui/badge";
@@ -265,7 +264,7 @@ function ShortUrlCell({
           </code>
           <OpenNewWindow
             fontSize={8}
-            className="flex-shrink-0 group-hover:text-blue-600"
+            className="shrink-0 group-hover:text-blue-600"
             strokeWidth={2.4}
           />
         </a>
@@ -273,7 +272,7 @@ function ShortUrlCell({
           size="icon"
           variant="link"
           type="button"
-          className="text-muted-foreground hover:bg-muted flex flex-shrink-0 items-center justify-center rounded-md p-1 transition-colors hover:text-blue-600"
+          className="text-muted-foreground hover:bg-muted flex shrink-0 items-center justify-center rounded-md p-1 transition-colors hover:text-blue-600"
           onClick={(e) => {
             e.stopPropagation();
             onCopy(url.shortUrl);
@@ -306,11 +305,6 @@ export function UrlTable({
   queryArgs,
   collectionId,
 }: UrlTableProps) {
-  const [expandedId, setExpandedId] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<
-    "memory" | "chat" | "healing" | "analytics"
-  >("memory");
-
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string | "all">("all");
   const [showFiltersPanel, setShowFiltersPanel] = useState(false);
@@ -435,9 +429,12 @@ export function UrlTable({
 
   const navigate = useNavigate();
 
-  const handleNavigateToAnalytics = (slug: string) => {
-    navigate(`/link/${slug}`);
-  };
+  const handleNavigateToAnalytics = useCallback(
+    (slug: string) => {
+      navigate(`/link/${slug}`);
+    },
+    [navigate],
+  );
 
   const handleDeleteClick = useCallback((slug: string, shortUrl: string) => {
     setUrlToDelete({ slug, shortUrl });
