@@ -196,14 +196,12 @@ export function AdvancedOptions({
     control: form.control,
   });
 
-  // Create a map of enable key -> watched value
-  const enabledMap: Record<string, any> = ENABLE_KEYS_ARRAY.reduce(
-    (acc, key) => {
-      acc[key] = watchedValues?.[key];
-      return acc;
-    },
-    {} as Record<string, any>,
-  );
+  // Create a map of enable key -> watched value for checking active states
+  const enabledMap = ENABLE_KEYS_ARRAY.reduce((acc, key) => {
+    (acc as Record<EnableKey, UrlFormValues[EnableKey]>)[key] =
+      watchedValues?.[key];
+    return acc;
+  }, {} as Partial<UrlFormValues>);
 
   const handleSwitchChange = (
     key: string,

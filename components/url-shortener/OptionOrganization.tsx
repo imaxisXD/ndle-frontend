@@ -50,6 +50,7 @@ import {
   Check,
 } from "iconoir-react";
 import { FolderPlusIcon } from "@phosphor-icons/react";
+import type { UrlFormValues } from "../url-shortener";
 
 type CollectionOption = {
   id: string;
@@ -58,14 +59,6 @@ type CollectionOption = {
 };
 
 const NONE_VALUE = "none";
-
-type UrlFormValues = {
-  tags?: string[];
-  collectionId?: string | null;
-  newCollectionName?: string;
-  newCollectionColor?: string;
-  notes?: string;
-};
 
 export function OptionOrganization({
   form,
