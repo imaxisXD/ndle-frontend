@@ -212,6 +212,7 @@ export function isValidHttpUrl(
   try {
     url = new URL(urlString);
   } catch (err) {
+    console.log("err", err);
     return {
       valid: false,
       url: null,

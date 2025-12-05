@@ -208,7 +208,7 @@ const urlFormSchema = z
     }
   });
 
-type UrlFormValues = z.infer<typeof urlFormSchema>;
+export type UrlFormValues = z.infer<typeof urlFormSchema>;
 
 export function UrlShortener() {
   const [currentUrl, setCurrentUrl] = useState<string | null>(null);
@@ -597,7 +597,7 @@ export function UrlShortener() {
               />
             </div>
           </CardContent>
-          <CardFooter className="bg-background/80 supports-backdrop-filter:bg-background/60 sticky -bottom-4 z-10 flex-wrap justify-between gap-3 rounded-b-md border-t py-5 backdrop-blur">
+          <CardFooter className="bg-background/80 supports-backdrop-filter:bg-background/60 sticky -bottom-8 z-10 flex-wrap justify-between gap-3 rounded-b-md border-t py-5 backdrop-blur">
             <div className="flex items-center gap-2">
               <HotkeyButton
                 hotkey={isSubmitting ? "" : "meta + enter"}

@@ -11,6 +11,7 @@ const nextConfig: NextConfig = {
       destination: "/static-app-shell",
     },
   ],
+
   reactCompiler: true,
 };
 

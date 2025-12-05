@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, type ComponentType } from "react";
 import { UseFormReturn, useWatch } from "react-hook-form";
+import type { UrlFormValues } from "../url-shortener";
 import { cn } from "@/lib/utils";
 import {
   Collapsible,
@@ -9,7 +10,6 @@ import {
 } from "@/components/ui/base-collapsible";
 import { Switch, SwitchWrapper } from "@/components/ui/switch";
 import { AnimatePresence, motion } from "motion/react";
-
 import { OptionScheduling } from "./OptionScheduling";
 import { OptionUTMBuilder } from "./OptionUTMBuilder";
 import { OptionABTesting } from "./OptionABTesting";
@@ -31,15 +31,34 @@ const ENABLE_KEYS = [
   "qrEnabled",
   "socialEnabled",
   "tagsEnabled",
-] as const;
+] as const satisfies readonly (keyof UrlFormValues)[];
+
+type EnableKey = (typeof ENABLE_KEYS)[number];
+
+type OptionComponent = ComponentType<{ form: UseFormReturn<UrlFormValues> }>;
+
+type OptionItem = {
+  key: string;
+  label: string;
+  component: OptionComponent;
+  enableKey: EnableKey;
+  description: string;
+};
+
+type OptionGroup = {
+  title: string;
+  items: OptionItem[];
+};
+
+const ENABLE_KEYS_ARRAY: EnableKey[] = [...ENABLE_KEYS];
 
 type AdvancedOptionsProps = {
-  form: UseFormReturn<any>;
+  form: UseFormReturn<UrlFormValues>;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 };
 
-const GROUPS = [
+const GROUPS: OptionGroup[] = [
   {
     title: "Attribution",
     items: [
@@ -131,45 +150,37 @@ export function AdvancedOptions({
   onOpenChange,
 }: AdvancedOptionsProps) {
   const [activeTab, setActiveTab] = useState("utm");
-  const [isClient, setIsClient] = useState(false);
 
-  // Watch all enable keys to ensure reactivity when toggling switches
-  const watchedValues = useWatch({
+  // Watch all fields to ensure reactivity when toggling switches
+  const watchedValues = useWatch<UrlFormValues>({
     control: form.control,
-    name: ENABLE_KEYS as unknown as string[],
   });
 
   // Create a map of enable key -> watched value for easy lookup
-  const enabledMap = ENABLE_KEYS.reduce(
-    (acc, key, index) => {
-      acc[key] = watchedValues?.[index] ?? false;
+  const enabledMap: Record<EnableKey, boolean> = ENABLE_KEYS_ARRAY.reduce(
+    (acc, key) => {
+      acc[key] = Boolean(watchedValues?.[key]);
       return acc;
     },
-    {} as Record<string, boolean>,
+    {} as Record<EnableKey, boolean>,
   );
-
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
 
   const activeItem = GROUPS.flatMap((g) => g.items).find(
     (i) => i.key === activeTab,
   );
 
-  if (!isClient) return null;
-
   return (
     <Collapsible open={open} onOpenChange={onOpenChange}>
       <CollapsiblePanel>
-        <div className="bg-muted/30 border-border/50 mt-2 flex flex-col overflow-hidden rounded-xl border shadow-sm md:flex-row">
+        <div className="bg-muted/30 border-border mt-2 flex flex-col overflow-hidden rounded-lg border md:flex-row">
           {/* Sidebar */}
-          <div className="bg-muted/30 border-border/50 w-full shrink-0 space-y-6 border-b p-3 md:w-60 md:border-r md:border-b-0 md:p-4">
+          <div className="bg-muted/10 border-border w-full shrink-0 space-y-6 border-b p-3 md:w-60 md:border-r md:border-b-0 md:p-4">
             {GROUPS.map((group) => (
               <div key={group.title}>
-                <h4 className="text-muted-foreground mb-2 px-2 text-xs font-semibold tracking-wider uppercase">
+                <h4 className="text-muted-foreground pointer-events-none mb-3 px-1 text-xs">
                   {group.title}
                 </h4>
-                <div className="flex flex-col gap-1">
+                <div className="flex flex-col gap-1.5">
                   {group.items.map((item) => {
                     const isEnabled = enabledMap[item.enableKey];
                     const isActive = activeTab === item.key;
@@ -180,10 +191,10 @@ export function AdvancedOptions({
                         type="button"
                         onClick={() => setActiveTab(item.key)}
                         className={cn(
-                          "group relative flex items-center justify-between rounded-md px-3 py-2 text-left text-sm transition-all duration-200",
+                          "group text-primary relative flex items-center justify-between rounded-sm px-3 py-2 text-left text-xs font-medium transition-colors duration-200",
                           isActive
-                            ? "bg-background text-foreground ring-border/50 font-medium shadow-sm ring-1"
-                            : "text-muted-foreground hover:bg-background/50 hover:text-foreground",
+                            ? "ring-border/50 to-primary/80 bg-linear-to-tr from-black text-white shadow-sm ring-1"
+                            : "hover:text-foreground hover:ring-border/50 hover:bg-white hover:ring",
                         )}
                       >
                         <span className="truncate">{item.label}</span>
@@ -207,7 +218,7 @@ export function AdvancedOptions({
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -10 }}
-                  transition={{ duration: 0.2 }}
+                  transition={{ duration: 0.05 }}
                   className="flex h-full flex-col p-4 md:p-6"
                 >
                   <div className="border-border/50 mb-6 flex items-start justify-between border-b pb-4">
