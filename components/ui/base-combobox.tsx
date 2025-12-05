@@ -4,7 +4,8 @@ import * as React from "react";
 import { cn } from "@/lib/utils";
 import { Combobox as ComboboxPrimitive } from "@base-ui-components/react/combobox";
 import { cva, type VariantProps } from "class-variance-authority";
-import { Check, NavArrowDown, XmarkCircle } from "iconoir-react";
+import { NavArrowDown, XmarkCircle } from "iconoir-react";
+import { CheckFatIcon } from "@phosphor-icons/react";
 
 // Define input size variants (without file: part)
 const inputVariants = cva(
@@ -245,7 +246,7 @@ function ComboboxItem({
         "relative flex cursor-default items-center",
         "text-foreground relative items-center gap-2 rounded-md py-1.5 ps-7 pe-2 text-sm outline-hidden transition-colors select-none data-disabled:pointer-events-none data-disabled:opacity-50",
         "[&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*=size-])]:size-4 [&_svg:not([role=img]):not([class*=text-])]:opacity-60",
-        "data-[highlighted]:text-foreground data-[highlighted]:before:bg-accent data-[highlighted]:relative data-[highlighted]:z-0 data-[highlighted]:before:absolute data-[highlighted]:before:inset-x-1 data-[highlighted]:before:inset-y-0 data-[highlighted]:before:z-[-1] data-[highlighted]:before:rounded-sm",
+        "data-[highlighted]:text-foreground data-[highlighted]:before:bg-muted/80 data-[highlighted]:relative data-[highlighted]:z-0 data-[highlighted]:before:absolute data-[highlighted]:before:inset-x-1 data-[highlighted]:before:inset-y-0 data-[highlighted]:before:z-[-1] data-[highlighted]:before:rounded-sm",
         className,
       )}
       {...props}
@@ -267,7 +268,7 @@ function ComboboxItemIndicator({
       )}
       {...props}
     >
-      <Check className="text-primary h-4 w-4" />
+      <CheckFatIcon weight="duotone" className="size-3.5 text-green-600" />
     </ComboboxPrimitive.ItemIndicator>
   );
 }

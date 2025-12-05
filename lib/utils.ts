@@ -12,6 +12,25 @@ export function cn(...inputs: ClassValue[]): string {
 }
 
 /**
+ * Windows-style folder name validation used across collection creation flows.
+ * Rejects control chars, reserved names, trailing dot/space, and invalid symbols.
+ */
+export function getWindowsFolderNameError(name: string): string | null {
+  const trimmed = name.trim();
+  if (trimmed.length === 0)
+    return "Collection name cannot be empty or whitespace";
+  if (trimmed === "." || trimmed === "..") return "Name cannot be '.' or '..'";
+  if (/[\x00-\x1f]/.test(trimmed))
+    return "Name cannot contain control characters";
+  if (/[<>:"/\\|?*]/.test(trimmed))
+    return 'Name cannot contain < > : " / \\ | ? *';
+  if (/[ .]$/.test(trimmed)) return "Name cannot end with a space or period";
+  if (/^(con|prn|aux|nul|com[1-9]|lpt[1-9])(\..*)?$/i.test(trimmed))
+    return "Reserved Windows name not allowed";
+  return null;
+}
+
+/**
  * Formats a timestamp relative to the current time.
  *
  * @param ts - The timestamp to format.

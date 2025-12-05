@@ -34,6 +34,7 @@ export const createUrl = mutation({
         customLogoUrl: v.optional(v.string()),
       }),
     ),
+    collectionId: v.optional(v.id("collections")),
   },
   returns: v.object({
     docId: v.id("urls"),
@@ -142,6 +143,16 @@ export const createUrl = mutation({
       // Schedule the deletion of the url after the expiration time
       ctx.scheduler.runAt(args.expiresAt, api.urlMainFuction.deleteUrl, {
         urlSlug: slug,
+      });
+    }
+
+    if (args.collectionId) {
+      const collection = await ctx.db.get(args.collectionId);
+      if (!collection || collection.userTableId !== user._id) {
+        throw new ConvexError("Collection not found or access denied");
+      }
+      await ctx.db.patch(args.collectionId, {
+        urls: [...collection.urls, docId],
       });
     }
 

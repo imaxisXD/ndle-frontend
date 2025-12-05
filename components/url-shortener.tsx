@@ -16,6 +16,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { ConvexError } from "convex/values";
+import type { Id } from "@/convex/_generated/dataModel";
 import { InputGroup, InputGroupAddon, InputGroupInput } from "./ui/input-group";
 import { useForm } from "react-hook-form";
 import type { FieldErrors } from "react-hook-form";
@@ -37,6 +38,7 @@ import { makeShortLink, getShortDomain } from "@/lib/config";
 import { HotkeyButton } from "./ui/hotkey-button";
 import { Badge } from "@/components/ui/badge";
 import { AdvancedOptions } from "./url-shortener/AdvancedOptions";
+import { getRandomCollectionColor } from "@/components/collection/colors";
 
 const urlFormSchema = z
   .object({
@@ -127,6 +129,9 @@ const urlFormSchema = z
     socialDescription: z.string().optional(),
     socialImageUrl: z.string().optional(),
     // Tags / Notes
+    collectionId: z.string().optional(),
+    newCollectionName: z.string().optional(),
+    newCollectionColor: z.string().optional(),
     tagsEnabled: z.boolean().optional(),
     tags: z.array(z.string()).optional(),
     notes: z.string().optional(),
@@ -269,6 +274,9 @@ export function UrlShortener() {
       socialTitle: "",
       socialDescription: "",
       socialImageUrl: "",
+      collectionId: "",
+      newCollectionName: "",
+      newCollectionColor: "",
       tagsEnabled: false,
       tags: [],
       notes: "",
@@ -281,6 +289,9 @@ export function UrlShortener() {
   const { add } = useToast();
 
   const createUrl = useMutation(api.urlMainFuction.createUrl);
+  const createCollection = useMutation(
+    api.collectionMangament.createCollection,
+  );
 
   const { data: faviconData } = useQuery({
     queryKey: ["favicon", currentUrl],
@@ -327,7 +338,13 @@ export function UrlShortener() {
     if (values.qrEnabled) chips.push("QR Code");
     if (values.fallbackEnabled) chips.push("Fallback");
     if (values.socialEnabled) chips.push("Social");
-    if (values.tagsEnabled) chips.push("Tags & Notes");
+    if (
+      values.tagsEnabled ||
+      (values.tags && values.tags.length > 0) ||
+      values.collectionId ||
+      values.notes
+    )
+      chips.push("Tags & Notes");
 
     return chips;
   }, [form]);
@@ -367,6 +384,21 @@ export function UrlShortener() {
         urlToShorten = `https://${urlToShorten}`;
       }
 
+      let collectionIdToUse =
+        values.collectionId && values.collectionId.trim().length > 0
+          ? values.collectionId
+          : undefined;
+
+      if (values.newCollectionName?.trim()) {
+        const newId = await createCollection({
+          name: values.newCollectionName.trim(),
+          description: "",
+          collectionColor:
+            values.newCollectionColor?.trim() || getRandomCollectionColor(),
+        });
+        collectionIdToUse = newId;
+      }
+
       const expiresAtValue =
         values.expiresEnabled && values.expiresAt
           ? new Date(values.expiresAt).getTime()
@@ -377,6 +409,7 @@ export function UrlShortener() {
         slugType: values.slugMode,
         trackingEnabled: values.trackingEnabled,
         expiresAt: expiresAtValue,
+        collectionId: collectionIdToUse as Id<"collections"> | undefined,
         qrEnabled: values.qrEnabled ?? false,
         qrStyle: values.qrEnabled
           ? {
@@ -407,7 +440,14 @@ export function UrlShortener() {
       });
 
       // Reset but retain the last generated short URL for optional previews
-      form.reset({ ...form.getValues(), shortUrl: finalShort, url: "" });
+      form.reset({
+        ...form.getValues(),
+        shortUrl: finalShort,
+        url: "",
+        collectionId: "",
+        newCollectionName: "",
+        newCollectionColor: "",
+      });
       setCurrentUrl(null);
     } catch (error) {
       const message =
@@ -491,6 +531,7 @@ export function UrlShortener() {
                           )}
                         </InputGroupAddon>
                         <InputGroupInput
+                          id="destination-url-input"
                           placeholder="https://example.com/very/long/url/path"
                           className="border-border rounded-md rounded-l-none border-y border-l-0 pl-0"
                           aria-invalid={fieldState.invalid}
@@ -526,6 +567,7 @@ export function UrlShortener() {
                         className="grid gap-3"
                         value={field.value}
                         onValueChange={field.onChange}
+                        name={field.name}
                       >
                         <div className="flex items-center gap-2">
                           <RadioGroupItem
