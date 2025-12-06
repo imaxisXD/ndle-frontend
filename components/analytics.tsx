@@ -3,17 +3,7 @@
 import { useState, useMemo } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import {
-  Select,
-  SelectTrigger,
-  SelectValue,
-  SelectContent,
-  SelectItem,
-} from "@/components/ui/base-select";
-import {
-  Archive,
   CursorPointer,
-  Globe,
-  MagicWand,
   ShieldCheck,
   StatsDownSquare,
   RefreshDouble,
@@ -22,8 +12,8 @@ import { useAnalyticsV2 } from "@/hooks/useAnalyticsV2";
 import { useColdAnalytics } from "@/hooks/use-cold-analytics";
 import { format, subDays, startOfDay, endOfDay } from "date-fns";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ProgressListItem } from "@/components/analytics/ProgressListItem";
 import { CountryChart } from "@/components/charts/country-chart";
+import { ClicksChart } from "@/components/charts/clicks-chart";
 import NumberFlow from "@number-flow/react";
 
 type TimeRange = "7d" | "30d" | "90d" | "1y";
@@ -118,9 +108,6 @@ export function Analytics({ userId }: { userId: string }) {
 
     return daysOfWeek.map((day) => ({ day, clicks: grouped[day] }));
   }, [data?.hot, coldData?.clicksByDay]);
-
-  const maxClicks =
-    clicksData.length > 0 ? Math.max(...clicksData.map((d) => d.clicks)) : 0;
 
   // Example: Top Countries (Calculated for stats)
   const topCountries = useMemo(() => {
@@ -256,80 +243,12 @@ export function Analytics({ userId }: { userId: string }) {
 
       {/* Charts Section */}
       <div className="grid gap-6 lg:grid-cols-2">
-        <Card>
-          <CardContent className="p-6">
-            <div className="mb-6 flex items-center justify-between">
-              <div>
-                <h3 className="flex items-center gap-2 text-base font-medium">
-                  Clicks Over Time
-                  {(isLoading || coldLoading) && (
-                    <RefreshDouble className="text-muted-foreground h-3 w-3 animate-spin" />
-                  )}
-                </h3>
-                <p className="text-muted-foreground mt-1 text-xs">
-                  Activity in selected range
-                </p>
-              </div>
-              <Select
-                value={timeRange}
-                onValueChange={(value) =>
-                  setTimeRange(value as typeof timeRange)
-                }
-              >
-                <SelectTrigger size="sm" className="bg-white shadow-2xl">
-                  <SelectValue placeholder="Select range" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="7d">Last 7 days</SelectItem>
-                  <SelectItem value="30d">Last 30 days</SelectItem>
-                  <SelectItem value="90d">Last 90 days</SelectItem>
-                  <SelectItem value="1y">Last year</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            {isLoading ? (
-              <div className="space-y-4">
-                {[1, 2, 3, 4, 5].map((i) => (
-                  <Skeleton key={i} className="h-8 w-full" />
-                ))}
-              </div>
-            ) : clicksData.length === 0 ? (
-              <div className="text-muted-foreground flex h-40 items-center justify-center text-sm">
-                No clicks recorded in this period.
-              </div>
-            ) : (
-              <div className="space-y-3.5">
-                {clicksData.map((data) => (
-                  <ProgressListItem
-                    key={data.day}
-                    label={data.day}
-                    value={data.clicks}
-                    total={maxClicks}
-                  />
-                ))}
-              </div>
-            )}
-
-            {!isLoading && clicksData.length > 0 && (
-              <div className="border-border mt-6 border-t pt-4">
-                <div className="flex items-center justify-between">
-                  <span className="text-muted-foreground text-xs">
-                    Average per day
-                  </span>
-                  <span className="text-sm font-medium">
-                    [
-                    {Math.round(
-                      clicksData.reduce((sum, d) => sum + d.clicks, 0) /
-                        Math.max(clicksData.length, 1),
-                    )}
-                    ]
-                  </span>
-                </div>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+        <ClicksChart
+          data={clicksData}
+          isLoading={isLoading || coldLoading}
+          timeRange={timeRange}
+          onTimeRangeChange={(value) => setTimeRange(value)}
+        />
 
         {/* Top Countries */}
         <CountryChart

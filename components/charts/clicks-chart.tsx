@@ -25,62 +25,30 @@ import {
 } from "@/components/ui/chart";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-  DialogBody,
-} from "@/components/ui/base-dialog";
-import { Button } from "@/components/ui/button";
-import { Expand, Globe } from "iconoir-react";
-import { ProgressListItem } from "@/components/analytics/ProgressListItem";
-import { cn, countryCodeToName } from "@/lib/utils";
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/base-select";
+import { Calendar, RefreshDouble } from "iconoir-react";
+import { cn } from "@/lib/utils";
 
-function getCountryFlag(countryCode: string) {
-  const code = (countryCode || "").slice(0, 2).toLowerCase();
-  const showFlag = /^[a-z]{2}$/.test(code) && code !== "ot" && code !== "un";
-
-  if (!showFlag) return <Globe className="text-muted-foreground size-4" />;
-
-  return (
-    // eslint-disable-next-line @next/next/no-img-element
-    <img
-      alt={countryCode}
-      src={`/api/flag?code=${code}`}
-      className="size-4 shrink-0"
-    />
-  );
-}
-
-function getFlagUrl(countryCode: string): string | null {
-  const code = (countryCode || "").slice(0, 2).toLowerCase();
-  const showFlag = /^[a-z]{2}$/.test(code) && code !== "ot" && code !== "un";
-  return showFlag ? `/api/flag?code=${code}` : null;
-}
-
-// Custom label component to render flag + country name inside the bar
+// Custom label component to render day name inside the bar
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function CountryLabel(props: any) {
+function DayLabel(props: any) {
   const { x = 0, y = 0, height = 0, value = "" } = props;
-  const flagUrl = getFlagUrl(String(value));
 
   return (
     <foreignObject
       x={Number(x) + 8}
       y={Number(y)}
-      width={160}
+      width={120}
       height={Number(height)}
     >
-      <div className="flex h-full items-center gap-2">
-        {flagUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={flagUrl} alt={String(value)} className="size-4 shrink-0" />
-        ) : (
-          <Globe className="text-muted-foreground size-4" />
-        )}
+      <div className="flex h-full items-center">
         <span className="truncate text-xs font-medium text-black">
-          {countryCodeToName(String(value))}
+          {String(value)}
         </span>
       </div>
     </foreignObject>
@@ -97,36 +65,31 @@ const chartConfig = {
   },
 } satisfies ChartConfig;
 
-export function CountryChart({
+type TimeRange = "7d" | "30d" | "90d" | "1y";
+
+export function ClicksChart({
   data,
   isLoading,
-  limit = 7,
+  timeRange,
+  onTimeRangeChange,
   className,
 }: {
-  data?: Array<{ country: string; clicks: number }>;
+  data?: Array<{ day: string; clicks: number }>;
   isLoading?: boolean;
-  limit?: number;
+  timeRange: TimeRange;
+  onTimeRangeChange: (value: TimeRange) => void;
   className?: string;
 }) {
-  const topCountries = useMemo(() => {
+  const chartData = useMemo(() => {
     if (!data || data.length === 0) return [];
-
-    const totalClicks = data.reduce((sum, item) => sum + item.clicks, 0);
-
-    return data
-      .slice()
-      .sort((a, b) => b.clicks - a.clicks)
-      .map((item) => ({
-        country: item.country,
-        clicks: item.clicks,
-        percentage:
-          totalClicks > 0 ? Math.round((item.clicks / totalClicks) * 100) : 0,
-      }));
+    return data;
   }, [data]);
 
-  const chartData = useMemo(() => {
-    return topCountries.slice(0, limit);
-  }, [topCountries, limit]);
+  const averageClicks = useMemo(() => {
+    if (!chartData || chartData.length === 0) return 0;
+    const total = chartData.reduce((sum, d) => sum + d.clicks, 0);
+    return Math.round(total / Math.max(chartData.length, 1));
+  }, [chartData]);
 
   return (
     <Card
@@ -139,55 +102,33 @@ export function CountryChart({
         <div className="flex w-full items-center justify-between gap-3">
           <div className="flex min-w-0 flex-col gap-1">
             <CardTitle className="flex items-center gap-2 font-medium text-white">
-              <Globe className="size-5" />
-              Top Countries
+              <Calendar className="size-5" />
+              Clicks Over Time
+              {isLoading && (
+                <RefreshDouble className="h-3 w-3 animate-spin text-zinc-400" />
+              )}
             </CardTitle>
             <CardDescription className="text-xs text-zinc-400">
-              Clicks by geographic location
+              Activity in selected range
             </CardDescription>
           </div>
-          {topCountries.length > limit && (
-            <Dialog>
-              <DialogTrigger
-                render={
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="text-white hover:bg-zinc-800 hover:text-white"
-                  >
-                    <Expand className="h-4 w-4" />
-                  </Button>
-                }
-              />
-              <DialogContent className="flex flex-col gap-5 sm:max-w-md">
-                <DialogHeader className="bg-transparent">
-                  <DialogTitle>All Countries</DialogTitle>
-                </DialogHeader>
-                <DialogBody className="rounded-sm bg-white p-2">
-                  <div className="max-h-[50vh] space-y-3.5 overflow-y-auto px-2 py-4">
-                    {topCountries.map((country) => (
-                      <ProgressListItem
-                        key={country.country}
-                        label={
-                          <div
-                            className="flex items-center gap-2"
-                            title={countryCodeToName(country.country)}
-                          >
-                            {getCountryFlag(country.country)}
-                            <span className="text-muted-foreground text-xs">
-                              {countryCodeToName(country.country)}
-                            </span>
-                          </div>
-                        }
-                        value={country.clicks}
-                        percentage={country.percentage}
-                      />
-                    ))}
-                  </div>
-                </DialogBody>
-              </DialogContent>
-            </Dialog>
-          )}
+          <Select
+            value={timeRange}
+            onValueChange={(value) => onTimeRangeChange(value as TimeRange)}
+          >
+            <SelectTrigger
+              size="sm"
+              className="border-zinc-700 bg-zinc-800 text-white shadow-2xl"
+            >
+              <SelectValue placeholder="Select range" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="7d">Last 7 days</SelectItem>
+              <SelectItem value="30d">Last 30 days</SelectItem>
+              <SelectItem value="90d">Last 90 days</SelectItem>
+              <SelectItem value="1y">Last year</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
       </CardHeader>
       <CardContent className="grow p-6">
@@ -199,7 +140,7 @@ export function CountryChart({
           </div>
         ) : chartData.length === 0 ? (
           <div className="text-muted-foreground flex h-40 items-center justify-center text-sm">
-            No location data available.
+            No clicks recorded in this period.
           </div>
         ) : (
           <ChartContainer
@@ -219,7 +160,7 @@ export function CountryChart({
             >
               <defs>
                 <linearGradient
-                  id="barGradientHorizontalCountry"
+                  id="barGradientHorizontalClicks"
                   x1="0"
                   y1="0"
                   x2="1"
@@ -231,7 +172,7 @@ export function CountryChart({
               </defs>
               <CartesianGrid horizontal={false} />
               <YAxis
-                dataKey="country"
+                dataKey="day"
                 type="category"
                 tickLine={false}
                 tickMargin={10}
@@ -250,7 +191,6 @@ export function CountryChart({
                   <ChartTooltipContent
                     className="rounded-sm bg-linear-to-br from-black/80 to-black text-white *:text-inherit **:text-inherit"
                     labelClassName="text-white font-medium"
-                    labelFormatter={(value) => countryCodeToName(String(value))}
                     indicator="dot"
                     color="white"
                   />
@@ -259,15 +199,15 @@ export function CountryChart({
               <Bar
                 dataKey="clicks"
                 layout="vertical"
-                fill="url(#barGradientHorizontalCountry)"
+                fill="url(#barGradientHorizontalClicks)"
                 radius={4}
                 barSize={28}
                 minPointSize={160}
               >
                 <LabelList
-                  dataKey="country"
+                  dataKey="day"
                   position="insideLeft"
-                  content={CountryLabel}
+                  content={DayLabel}
                 />
                 <LabelList
                   dataKey="clicks"
@@ -284,10 +224,8 @@ export function CountryChart({
       {!isLoading && chartData.length > 0 && (
         <CardFooter className="flex-col items-start gap-2 border-t border-zinc-800 pt-4 text-sm">
           <div className="flex w-full items-center justify-between text-xs text-zinc-400">
-            <span>Total countries</span>
-            <span className="font-medium text-white">
-              {topCountries.length}
-            </span>
+            <span>Average per day</span>
+            <span className="font-medium text-white">[{averageClicks}]</span>
           </div>
         </CardFooter>
       )}

@@ -2,9 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import type { AnalyticsResponse } from "@/types/analytics-v2";
 
-// Environment Variables (Type safety)
-const INTERNAL_API_URL = process.env.INTERNAL_API_URL; // e.g., "http://ndle-ingest-api.railway.internal:3000"
-const API_SECRET = process.env.API_SECRET; // The shared secret you set in Railway
+const INTERNAL_API_URL = process.env.INTERNAL_API_URL;
+const API_SECRET = process.env.API_SECRET;
 
 export async function GET(request: NextRequest) {
   const { userId } = await auth();
