@@ -48,7 +48,7 @@ function getCountryFlag(countryCode: string) {
     <img
       alt={countryCode}
       src={`/api/flag?code=${code}`}
-      className="size-4 shrink-0"
+      className="size-6 shrink-0 rounded-full bg-black p-1"
     />
   );
 }
@@ -131,14 +131,14 @@ export function CountryChart({
   return (
     <Card
       className={cn(
-        "flex h-full flex-col border-zinc-800 bg-[#18181b] text-white",
+        "flex h-full flex-col border-zinc-200 bg-white text-zinc-900",
         className,
       )}
     >
-      <CardHeader className="border-b border-zinc-800">
+      <CardHeader className="border-b border-zinc-200">
         <div className="flex w-full items-center justify-between gap-3">
           <div className="flex min-w-0 flex-col gap-1">
-            <CardTitle className="flex items-center gap-2 font-medium text-white">
+            <CardTitle className="flex items-center gap-2 font-medium text-zinc-900">
               <Globe className="size-5" />
               Top Countries
             </CardTitle>
@@ -153,7 +153,7 @@ export function CountryChart({
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="text-white hover:bg-zinc-800 hover:text-white"
+                    className="text-zinc-900 hover:bg-zinc-100 hover:text-zinc-900"
                   >
                     <Expand className="h-4 w-4" />
                   </Button>
@@ -225,8 +225,8 @@ export function CountryChart({
                   x2="1"
                   y2="0"
                 >
-                  <stop offset="0%" stopColor="#ffffff" stopOpacity={1} />
-                  <stop offset="100%" stopColor="#d4d4d8" stopOpacity={1} />
+                  <stop offset="0%" stopColor="#ffcc00ff" stopOpacity={0.4} />
+                  <stop offset="100%" stopColor="#ffc700" stopOpacity={0.4} />
                 </linearGradient>
               </defs>
               <CartesianGrid horizontal={false} />
@@ -273,7 +273,7 @@ export function CountryChart({
                   dataKey="clicks"
                   position="right"
                   offset={8}
-                  className="fill-white"
+                  className="fill-zinc-600"
                   fontSize={12}
                 />
               </Bar>
@@ -282,10 +282,10 @@ export function CountryChart({
         )}
       </CardContent>
       {!isLoading && chartData.length > 0 && (
-        <CardFooter className="flex-col items-start gap-2 border-t border-zinc-800 pt-4 text-sm">
-          <div className="flex w-full items-center justify-between text-xs text-zinc-400">
+        <CardFooter className="flex-col items-start gap-2 border-t border-zinc-200 pt-4 text-sm">
+          <div className="flex w-full items-center justify-between text-xs text-zinc-500">
             <span>Total countries</span>
-            <span className="font-medium text-white">
+            <span className="font-medium text-zinc-900">
               {topCountries.length}
             </span>
           </div>

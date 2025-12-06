@@ -94,14 +94,14 @@ export function ClicksChart({
   return (
     <Card
       className={cn(
-        "flex h-full flex-col border-zinc-800 bg-[#18181b] text-white",
+        "flex h-full flex-col border-zinc-200 bg-white text-zinc-900",
         className,
       )}
     >
-      <CardHeader className="border-b border-zinc-800">
+      <CardHeader className="border-b border-zinc-200">
         <div className="flex w-full items-center justify-between gap-3">
           <div className="flex min-w-0 flex-col gap-1">
-            <CardTitle className="flex items-center gap-2 font-medium text-white">
+            <CardTitle className="flex items-center gap-2 font-medium text-zinc-900">
               <Calendar className="size-5" />
               Clicks Over Time
               {isLoading && (
@@ -118,7 +118,7 @@ export function ClicksChart({
           >
             <SelectTrigger
               size="sm"
-              className="border-zinc-700 bg-zinc-800 text-white shadow-2xl"
+              className="border-zinc-300 bg-zinc-100 text-zinc-900 shadow-sm"
             >
               <SelectValue placeholder="Select range" />
             </SelectTrigger>
@@ -166,8 +166,8 @@ export function ClicksChart({
                   x2="1"
                   y2="0"
                 >
-                  <stop offset="0%" stopColor="#ffffff" stopOpacity={1} />
-                  <stop offset="100%" stopColor="#d4d4d8" stopOpacity={1} />
+                  <stop offset="0%" stopColor="#ffcc00ff" stopOpacity={1} />
+                  <stop offset="100%" stopColor="#ffc700" stopOpacity={1} />
                 </linearGradient>
               </defs>
               <CartesianGrid horizontal={false} />
@@ -213,7 +213,7 @@ export function ClicksChart({
                   dataKey="clicks"
                   position="right"
                   offset={8}
-                  className="fill-white"
+                  className="fill-zinc-600"
                   fontSize={12}
                 />
               </Bar>
@@ -222,10 +222,10 @@ export function ClicksChart({
         )}
       </CardContent>
       {!isLoading && chartData.length > 0 && (
-        <CardFooter className="flex-col items-start gap-2 border-t border-zinc-800 pt-4 text-sm">
-          <div className="flex w-full items-center justify-between text-xs text-zinc-400">
+        <CardFooter className="flex-col items-start gap-2 border-t border-zinc-200 pt-4 text-sm">
+          <div className="flex w-full items-center justify-between text-xs text-zinc-500">
             <span>Average per day</span>
-            <span className="font-medium text-white">[{averageClicks}]</span>
+            <span className="font-medium text-zinc-900">[{averageClicks}]</span>
           </div>
         </CardFooter>
       )}

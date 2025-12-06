@@ -4,12 +4,10 @@ import { NavLink } from "react-router";
 import {
   Brain,
   FolderPlus,
-  Headset,
   HomeAlt,
   Presentation,
   Reports,
   Settings,
-  Suggestion,
 } from "iconoir-react";
 import {
   Tooltip,
@@ -17,7 +15,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/base-tooltip";
 import Link from "next/link";
-import { HeadsetIcon } from "@phosphor-icons/react";
+import { BrainIcon, ChartBarIcon, FolderIcon, HeadsetIcon } from "@phosphor-icons/react";
 
 export function Sidebar() {
   return (
@@ -58,7 +56,7 @@ export function Sidebar() {
               />
             }
           >
-            <FolderPlus className="size-5" />
+            <FolderIcon className="size-5" />
           </TooltipTrigger>
           <TooltipContent side="right">Collections</TooltipContent>
         </Tooltip>
@@ -74,10 +72,14 @@ export function Sidebar() {
                       : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
                   }`
                 }
-              />
+              >
+                {({ isActive }) => (
+                  <BrainIcon className="size-5" weight={isActive ? "duotone" : "regular"}/>
+                )}
+              </NavLink>
             }
           >
-            <Brain className="size-5" />
+           
           </TooltipTrigger>
           <TooltipContent side="right">Memory</TooltipContent>
         </Tooltip>
@@ -94,11 +96,13 @@ export function Sidebar() {
                       : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
                   }`
                 }
-              />
+              >
+                {({ isActive }) => (
+                  <ChartBarIcon className="size-5" weight={isActive ? "duotone" : "regular"}/>
+                )}
+              </NavLink>
             }
-          >
-            <Reports className="size-5" />
-          </TooltipTrigger>
+          />
           <TooltipContent side="right">Analytics</TooltipContent>
         </Tooltip>
       </nav>
