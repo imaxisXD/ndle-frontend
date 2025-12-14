@@ -1,3 +1,4 @@
+/* eslint-disable @tanstack/query/exhaustive-deps */
 /* eslint-disable @next/next/no-img-element */
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
@@ -25,8 +26,18 @@ const sizeStyles = {
 
 export function UrlFavicon({ url, size = "md" }: UrlFaviconProps) {
   const [imgError, setImgError] = useState(false);
+
+  // Extract hostname for cache key - favicons are per-domain, not per-URL
+  const hostname = (() => {
+    try {
+      return new URL(url).hostname;
+    } catch {
+      return null;
+    }
+  })();
+
   const { data: faviconUrl, isLoading } = useQuery({
-    queryKey: ["favicon", url],
+    queryKey: ["favicon", hostname],
     queryFn: async () => {
       const response = await fetch(
         `/api/getFavicon?url=${encodeURIComponent(url)}`,
@@ -35,7 +46,7 @@ export function UrlFavicon({ url, size = "md" }: UrlFaviconProps) {
       const data = await response.json();
       return data.faviconUrl;
     },
-    enabled: !!url,
+    enabled: !!hostname,
     // Cache settings are inherited from QueryClient defaults in ConvexClientProvider
     retry: 1,
   });
