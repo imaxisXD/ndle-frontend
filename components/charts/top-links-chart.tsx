@@ -1,17 +1,18 @@
 "use client";
 
-/* eslint-disable @next/next/no-img-element */
-import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
-import { useQuery as useReactQuery } from "@tanstack/react-query";
-import { GlobeSimpleIcon } from "@phosphor-icons/react";
 import NumberFlow from "@number-flow/react";
 import { makeShortLink } from "@/lib/config";
 import { NavLink } from "react-router";
 import { NavArrowRight } from "iconoir-react";
-import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/base-tooltip";
+import {
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+} from "@/components/ui/base-tooltip";
+import { UrlFavicon } from "@/components/url-favicon";
 
 export interface TopLink {
   url: string;
@@ -26,43 +27,6 @@ interface TopLinksChartProps {
   isLoading?: boolean;
   limit?: number;
   className?: string;
-}
-
-function UrlFavicon({ url }: { url: string }) {
-  const [imgError, setImgError] = useState(false);
-  const { data: faviconUrl, isLoading } = useReactQuery({
-    queryKey: ["favicon", url],
-    queryFn: async () => {
-      const response = await fetch(
-        `/api/getFavicon?url=${encodeURIComponent(url)}`
-      );
-      if (!response.ok) return null;
-      const data = await response.json();
-      return data.faviconUrl;
-    },
-    enabled: !!url,
-    staleTime: 1000 * 60 * 60 * 24 * 7,
-    gcTime: 1000 * 60 * 60 * 24 * 30,
-    retry: 1,
-    refetchOnWindowFocus: false,
-  });
-
-  const showPlaceholder = isLoading || !faviconUrl || imgError;
-
-  return (
-    <div className="flex size-6 shrink-0 items-center justify-center rounded-full bg-zinc-100">
-      {showPlaceholder ? (
-        <GlobeSimpleIcon className="size-4 text-zinc-400" weight="duotone" />
-      ) : (
-        <img
-          src={faviconUrl}
-          alt=""
-          className="size-6 rounded-full object-cover"
-          onError={() => setImgError(true)}
-        />
-      )}
-    </div>
-  );
 }
 
 export function TopLinksChart({
@@ -115,7 +79,7 @@ export function TopLinksChart({
                       <TooltipTrigger
                         render={
                           <div className="flex items-center gap-2.5">
-                            <UrlFavicon url={link.originalUrl} />
+                            <UrlFavicon url={link.originalUrl} size="sm" />
                             <div className="flex min-w-0 flex-col gap-0.5">
                               <span className="truncate text-sm font-medium text-zinc-900 group-hover:text-black">
                                 {shortLink.replace("https://", "")}
@@ -154,7 +118,7 @@ export function TopLinksChart({
                         render={
                           <NavLink
                             to={`/link/${link.url}`}
-                            className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-zinc-400 opacity-0 transition-all hover:bg-zinc-100 hover:text-zinc-900 group-hover:opacity-100"
+                            className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-zinc-400 opacity-0 transition-all group-hover:opacity-100 hover:bg-zinc-100 hover:text-zinc-900"
                           >
                             <NavArrowRight className="size-4" strokeWidth={2} />
                           </NavLink>
