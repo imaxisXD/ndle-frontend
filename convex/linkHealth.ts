@@ -254,24 +254,68 @@ export const recordHealthCheck = mutation({
     }
 
     // 4. Create incident events on status changes
-    if (wasHealthy && !isNowHealthy) {
-      // Status went DOWN or DEGRADED
+    const isFirstCheck = !previousCheck;
+    const statusWentDown =
+      (wasHealthy && !isNowHealthy) || (isFirstCheck && !isNowHealthy);
+    const statusRecovered = !wasHealthy && isNowHealthy && previousCheck;
+
+    // Generate user-friendly incident messages
+    const getUserFriendlyMessage = (): string => {
+      if (healthStatus === "down") {
+        // Error messages based on status code
+        if (statusCode >= 500) {
+          return "The destination server is experiencing issues and isn't responding properly.";
+        }
+        if (statusCode === 404) {
+          return "The destination page could not be found. It may have been moved or deleted.";
+        }
+        if (statusCode === 403) {
+          return "Access to the destination was blocked. The site may have security restrictions.";
+        }
+        if (statusCode === 401) {
+          return "The destination requires authentication to access.";
+        }
+        if (statusCode === 0 || !statusCode) {
+          if (
+            errorMessage?.includes("abort") ||
+            errorMessage?.includes("timeout")
+          ) {
+            return "The destination took too long to respond and the request timed out.";
+          }
+          return "Unable to reach the destination. It may be offline or unreachable.";
+        }
+        return `The destination returned an error (HTTP ${statusCode}).`;
+      }
+
+      if (healthStatus === "degraded") {
+        return "The destination is responding slower than expected. Performance may be affected.";
+      }
+
+      return "An issue was detected with the link.";
+    };
+
+    if (statusWentDown) {
+      // Status went DOWN or DEGRADED (including first-time checks that are unhealthy)
+      const message = isFirstCheck
+        ? `Initial check failed: ${getUserFriendlyMessage()}`
+        : getUserFriendlyMessage();
+
       await ctx.db.insert("linkIncidents", {
         urlId: normalizedUrl,
         userId: normalizedUser,
         shortUrl,
         type: healthStatus === "down" ? "error" : "warning",
-        message: errorMessage || `Status: ${healthStatus} (HTTP ${statusCode})`,
+        message,
         createdAt: checkedAt,
       });
-    } else if (!wasHealthy && isNowHealthy && previousCheck) {
+    } else if (statusRecovered) {
       // Status RECOVERED
       await ctx.db.insert("linkIncidents", {
         urlId: normalizedUrl,
         userId: normalizedUser,
         shortUrl,
         type: "resolved",
-        message: "Connection restored",
+        message: "Your link is back online and responding normally.",
         createdAt: checkedAt,
       });
     }
