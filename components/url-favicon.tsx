@@ -36,10 +36,8 @@ export function UrlFavicon({ url, size = "md" }: UrlFaviconProps) {
       return data.faviconUrl;
     },
     enabled: !!url,
-    staleTime: 1000 * 60 * 60 * 24 * 7, // 7 days - favicons rarely change
-    gcTime: 1000 * 60 * 60 * 24 * 30, // 30 days
+    // Cache settings are inherited from QueryClient defaults in ConvexClientProvider
     retry: 1,
-    refetchOnWindowFocus: false,
   });
 
   const showPlaceholder = isLoading || !faviconUrl || imgError;

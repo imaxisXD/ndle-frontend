@@ -20,8 +20,10 @@ const queryClient = new QueryClient({
     queries: {
       // gcTime must be >= maxAge for the persister to work correctly
       gcTime: 1000 * 60 * 60 * 24 * 30, // 30 days
-      staleTime: 1000 * 60 * 60 * 24, // 24 hours - consider data fresh for a day
+      staleTime: 1000 * 60 * 60 * 24 * 7, // 7 days - favicons rarely change
       refetchOnWindowFocus: false,
+      refetchOnMount: false, // Don't refetch on component mount if we have cached data
+      refetchOnReconnect: false, // Don't refetch on network reconnect
     },
   },
 });
