@@ -1,3 +1,4 @@
+/* eslint-disable @tanstack/query/no-unstable-deps */
 "use client";
 
 import {

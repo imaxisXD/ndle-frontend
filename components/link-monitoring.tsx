@@ -1,6 +1,4 @@
 "use client";
-
-import { useState } from "react";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Badge } from "@ui/badge";
@@ -14,7 +12,6 @@ import {
   WarningCircle,
   XmarkCircle,
   Refresh,
-  Globe,
 } from "iconoir-react";
 import { getShortDomain } from "@/lib/config";
 import { cn } from "@/lib/utils";
@@ -50,9 +47,9 @@ function formatRelativeTime(timestamp: number): string {
 const shortDomain = getShortDomain();
 
 export function LinkMonitoring() {
-  const [filter, setFilter] = useState<"all" | "healthy" | "warning" | "error">(
-    "all",
-  );
+  // const [filter, setFilter] = useState<"all" | "healthy" | "warning" | "error">(
+  //   "all",
+  // );
 
   const healthData = useQuery(api.linkHealth.getHealthChecksWithStats);
   const recentIncidents = useQuery(api.linkHealth.getRecentIncidents, {
@@ -74,32 +71,10 @@ export function LinkMonitoring() {
     dailySummaries: check.dailySummaries || [],
   }));
 
-  const filteredLinks = links.filter((link) => {
-    if (filter === "all") return true;
-    return link.status === filter;
-  });
-
-  const getStatusIcon = (status: UIStatus) => {
-    switch (status) {
-      case "healthy":
-        return <CheckCircle className="h-5 w-5 text-emerald-500" />;
-      case "warning":
-        return <WarningCircle className="h-5 w-5 text-amber-500" />;
-      case "error":
-        return <XmarkCircle className="h-5 w-5 text-red-500" />;
-    }
-  };
-
-  const getStatusColor = (status: UIStatus) => {
-    switch (status) {
-      case "healthy":
-        return "text-emerald-500 bg-emerald-500/10 border-emerald-500/20";
-      case "warning":
-        return "text-amber-500 bg-amber-500/10 border-amber-500/20";
-      case "error":
-        return "text-red-500 bg-red-500/10 border-red-500/20";
-    }
-  };
+  // const filteredLinks = links.filter((link) => {
+  //   if (filter === "all") return true;
+  //   return link.status === filter;
+  // });
 
   const getResponseTimeColor = (time: number) => {
     if (time === 0) return "text-red-600";
@@ -124,15 +99,6 @@ export function LinkMonitoring() {
     message: inc.message,
     time: formatRelativeTime(inc.createdAt),
   }));
-
-  // Robust Grid Pattern Style
-  const gridPatternStyle = {
-    backgroundImage: `
-      linear-gradient(to right, rgba(0, 0, 0, 0.05) 1px, transparent 1px),
-      linear-gradient(to bottom, rgba(0, 0, 0, 0.05) 1px, transparent 1px)
-    `,
-    backgroundSize: "20px 20px",
-  };
 
   if (isLoading) {
     return (
@@ -249,7 +215,7 @@ export function LinkMonitoring() {
         </Card>
       ) : (
         <div className="grid gap-4">
-          {filteredLinks.map((link) => (
+          {links.map((link) => (
             <Card
               key={link.id}
               className="group bg-card relative overflow-hidden"

@@ -1,7 +1,6 @@
 "use client";
 
 import { Badge } from "@ui/badge";
-import { CheckCircle, WarningCircle, XmarkCircle } from "iconoir-react";
 
 export type Incident = {
   id: string;

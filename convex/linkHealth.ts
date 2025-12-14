@@ -79,12 +79,25 @@ export const syncAllUrlsToMonitoringService = internalAction({
         internal.linkHealth.getAllUrlsQuery,
         { cursor, numItems: BATCH_SIZE },
       );
+      // REsponse body expected format
+      //  const links: NewMonitoredLink[] = body.links.map(link => ({
+      //       convexUrlId: link.convexUrlId,
+      //       convexUserId: link.convexUserId,
+      //       longUrl: link.longUrl,
+      //       shortUrl: link.shortUrl,
+      //       environment: body.environment || 'prod',
+      //       intervalMs: link.intervalMs || DEFAULT_INTERVAL_MS,
+      //       nextCheckAt: new Date(),
+      //       isActive: true,
+      //     }));
 
       const links = result.urls.map((url) => ({
         convexUrlId: url.urlId,
         convexUserId: url.userId,
         shortUrl: url.shortUrl,
         longUrl: url.longUrl,
+        environment,
+        intervalMs: 300000,
       }));
 
       if (links.length > 0) {
@@ -277,6 +290,7 @@ import { query } from "./_generated/server";
  * Get all health checks for current user with computed uptime % and incident count
  */
 export const getHealthChecksWithStats = query({
+  args: {},
   handler: async (ctx) => {
     const identity = await ctx.auth.getUserIdentity();
     if (!identity) return [];

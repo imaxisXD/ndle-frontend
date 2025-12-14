@@ -14,7 +14,6 @@ import { useTableSortingURL } from "../../hooks/use-table-sorting-url";
 import { NavLink, useNavigate } from "react-router";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery } from "convex-helpers/react/cache/hooks";
-import { useQuery as useReactQuery } from "@tanstack/react-query";
 import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { FunctionReturnType } from "convex/server";
@@ -25,7 +24,6 @@ import {
   Search,
   XmarkCircle,
   FilterAlt,
-  OpenNewWindow,
   DataTransferDown,
   ArrowUp,
   ArrowDown,
@@ -74,8 +72,7 @@ import { Skeleton } from "../ui/skeleton";
 import { makeShortLink } from "@/lib/config";
 import NumberFlow from "@number-flow/react";
 import { ChartLineIcon } from "lucide-react";
-import { CopyIcon, GlobeSimpleIcon, TrashIcon } from "@phosphor-icons/react";
-import { UrlFavicon } from "../url-favicon";
+import { CopyIcon, TrashIcon } from "@phosphor-icons/react";
 import { LinkWithFavicon } from "../ui/link-with-favicon";
 interface UrlTableProps {
   showSearch?: boolean;
@@ -405,6 +402,7 @@ export function UrlTable({
     }
 
     return filtered;
+    // eslint-disable-next-line @tanstack/query/no-unstable-deps
   }, [urls, searchQuery, statusFilter]);
 
   const sortedUrls = useMemo(() => {
@@ -481,6 +479,7 @@ export function UrlTable({
           error instanceof Error ? error.message : "Failed to delete link",
       });
     }
+    // eslint-disable-next-line @tanstack/query/no-unstable-deps
   }, [urlToDelete, deleteUrl, add]);
 
   const columns = useMemo<ColumnDef<DisplayUrl>[]>(
