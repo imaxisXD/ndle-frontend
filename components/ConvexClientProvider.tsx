@@ -3,7 +3,7 @@
 import { ClerkProvider, useAuth } from "@clerk/nextjs";
 import { QueryClient } from "@tanstack/react-query";
 import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
-import { createSyncStoragePersister } from "@tanstack/query-sync-storage-persister";
+import { createAsyncStoragePersister } from "@tanstack/query-async-storage-persister";
 import { ConvexReactClient } from "convex/react";
 import { ConvexProviderWithClerk } from "convex/react-clerk";
 import type { ReactNode } from "react";
@@ -26,12 +26,13 @@ const queryClient = new QueryClient({
   },
 });
 
-// Create persister for localStorage - only available on client side
+// Create async persister for localStorage - only available on client side
 const persister =
   typeof window !== "undefined"
-    ? createSyncStoragePersister({
+    ? createAsyncStoragePersister({
         storage: window.localStorage,
         key: "NDLE_QUERY_CACHE",
+        throttleTime: 2000, // Throttle saves to every 2 seconds to avoid spamming localStorage
       })
     : null;
 
