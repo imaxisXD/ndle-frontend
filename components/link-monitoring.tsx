@@ -224,7 +224,7 @@ export function LinkMonitoring() {
                 <div className="flex flex-col gap-1 lg:flex-row lg:items-center lg:justify-between">
                   {/* Link Info */}
                   <div className="flex flex-1 items-start">
-                    <div className="flex items-center gap-10">
+                    <div className="flex w-lg items-center gap-10">
                       <Badge
                         variant={
                           link.status === "healthy"
