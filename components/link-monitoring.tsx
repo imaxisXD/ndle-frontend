@@ -61,7 +61,7 @@ export function LinkMonitoring() {
   // Map health data to UI format
   const links = (healthData ?? []).map((check) => ({
     id: check._id,
-    shortUrl: `${shortDomain}/${check.shortUrl}`,
+    shortUrl: `https://${shortDomain}/${check.shortUrl}`,
     originalUrl: check.longUrl,
     status: mapHealthStatusToUI(check.healthStatus),
     uptime: check.uptime,
