@@ -57,8 +57,10 @@ export function RecentIncidents({ incidents }: { incidents: Array<Incident> }) {
                 </div>
               </div>
               <div className="flex flex-col gap-1">
-                <p className="text-xs">Occurred</p>
-                <p className="text-muted-foreground text-xs">{incident.time}</p>
+                <p className="text-sm">Occurred</p>
+                <p className="text-muted-foreground text-right text-xs">
+                  {incident.time}
+                </p>
               </div>
             </div>
           ))}
