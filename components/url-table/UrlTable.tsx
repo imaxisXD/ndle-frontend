@@ -75,6 +75,8 @@ import { makeShortLink } from "@/lib/config";
 import NumberFlow from "@number-flow/react";
 import { ChartLineIcon } from "lucide-react";
 import { CopyIcon, GlobeSimpleIcon, TrashIcon } from "@phosphor-icons/react";
+import { UrlFavicon } from "../url-favicon";
+import { LinkWithFavicon } from "../ui/link-with-favicon";
 interface UrlTableProps {
   showSearch?: boolean;
   showFilters?: boolean;
@@ -257,43 +259,6 @@ function ActionsMenuCell({
   );
 }
 
-function UrlFavicon({ url }: { url: string }) {
-  const [imgError, setImgError] = useState(false);
-  const { data: faviconUrl, isLoading } = useReactQuery({
-    queryKey: ["favicon", url],
-    queryFn: async () => {
-      const response = await fetch(
-        `/api/getFavicon?url=${encodeURIComponent(url)}`,
-      );
-      if (!response.ok) return null;
-      const data = await response.json();
-      return data.faviconUrl;
-    },
-    enabled: !!url,
-    staleTime: 1000 * 60 * 60 * 24 * 7, // 7 days - favicons rarely change
-    gcTime: 1000 * 60 * 60 * 24 * 30, // 30 days
-    retry: 1,
-    refetchOnWindowFocus: false,
-  });
-
-  const showPlaceholder = isLoading || !faviconUrl || imgError;
-
-  return (
-    <div className="bg-muted flex size-5 shrink-0 items-center justify-center rounded-full">
-      {showPlaceholder ? (
-        <GlobeSimpleIcon className="size-5 text-blue-500" weight="duotone" />
-      ) : (
-        <img
-          src={faviconUrl}
-          alt=""
-          className="size-5 rounded-full object-cover"
-          onError={() => setImgError(true)}
-        />
-      )}
-    </div>
-  );
-}
-
 function ShortUrlCell({
   url,
   onCopy,
@@ -307,25 +272,14 @@ function ShortUrlCell({
   return (
     <div className="w-full space-y-1">
       <div className="flex items-center justify-start gap-1">
-        <a
-          href={normalizedHref}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-muted-foreground group hover:bg-muted hover:text-foreground flex min-w-0 items-center gap-2 rounded-md py-2 pr-3 pl-2 transition-colors"
+        <LinkWithFavicon
+          url={normalizedHref}
+          originalUrl={url.originalUrl}
           onClick={(e) => e.stopPropagation()}
+          asCode
         >
-          <UrlFavicon url={url.originalUrl} />
-          <div className="flex items-center gap-1">
-            <code className="text-foreground truncate text-sm font-medium group-hover:underline group-hover:decoration-blue-500 group-hover:decoration-dashed group-hover:underline-offset-2">
-              {url.shortUrl}
-            </code>
-            <OpenNewWindow
-              fontSize={6}
-              className="shrink-0 group-hover:text-blue-600"
-              strokeWidth={2.5}
-            />
-          </div>
-        </a>
+          {url.shortUrl}
+        </LinkWithFavicon>
 
         <Tooltip>
           <TooltipTrigger

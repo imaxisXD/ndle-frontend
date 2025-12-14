@@ -11,6 +11,7 @@
 import type * as analyticsCache from "../analyticsCache.js";
 import type * as collectionMangament from "../collectionMangament.js";
 import type * as crons from "../crons.js";
+import type * as linkHealth from "../linkHealth.js";
 import type * as redisAction from "../redisAction.js";
 import type * as tinyBirdAction from "../tinyBirdAction.js";
 import type * as triggerFuctions from "../triggerFuctions.js";
@@ -29,6 +30,7 @@ declare const fullApi: ApiFromModules<{
   analyticsCache: typeof analyticsCache;
   collectionMangament: typeof collectionMangament;
   crons: typeof crons;
+  linkHealth: typeof linkHealth;
   redisAction: typeof redisAction;
   tinyBirdAction: typeof tinyBirdAction;
   triggerFuctions: typeof triggerFuctions;

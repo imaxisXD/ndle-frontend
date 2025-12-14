@@ -45,6 +45,52 @@ export default defineSchema({
     updatedAt: v.number(),
     lastProcessedRequestId: v.optional(v.string()),
   }).index("by_url", ["urlId"]),
+  linkHealthChecks: defineTable({
+    urlId: v.id("urls"),
+    userId: v.id("users"),
+    shortUrl: v.string(),
+    longUrl: v.string(),
+    statusCode: v.number(),
+    latencyMs: v.number(),
+    isHealthy: v.boolean(),
+    healthStatus: v.union(
+      v.literal("up"),
+      v.literal("down"),
+      v.literal("degraded"),
+    ),
+    errorMessage: v.optional(v.string()),
+    checkedAt: v.number(),
+  })
+    .index("by_url_id", ["urlId"])
+    .index("by_user_id", ["userId"])
+    .index("by_url_and_time", ["urlId", "checkedAt"]),
+
+  // Daily rollups for uptime % calculation (1 row per URL per day)
+  linkHealthDailySummary: defineTable({
+    urlId: v.id("urls"),
+    userId: v.id("users"),
+    date: v.string(), // "2024-12-13" format
+    totalChecks: v.number(),
+    healthyChecks: v.number(),
+    avgLatencyMs: v.number(),
+    incidentCount: v.number(),
+  })
+    .index("by_url_and_date", ["urlId", "date"])
+    .index("by_user_and_date", ["userId", "date"]),
+
+  // Individual incident events for "Recent Incidents" list
+  linkIncidents: defineTable({
+    urlId: v.id("urls"),
+    userId: v.id("users"),
+    shortUrl: v.string(),
+    type: v.union(
+      v.literal("error"),
+      v.literal("warning"),
+      v.literal("resolved"),
+    ),
+    message: v.string(),
+    createdAt: v.number(),
+  }).index("by_user_recent", ["userId", "createdAt"]),
   collections: defineTable({
     name: v.string(),
     description: v.optional(v.string()),

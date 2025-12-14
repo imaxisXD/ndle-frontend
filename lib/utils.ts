@@ -264,3 +264,29 @@ export function countryCodeToFlagEmoji(code: string): string {
     return "";
   }
 }
+
+/**
+ * Map abbreviated weekday names to their full forms.
+ */
+const WEEKDAY_ABBREVIATIONS: Record<string, string> = {
+  sun: "Sunday",
+  mon: "Monday",
+  tue: "Tuesday",
+  wed: "Wednesday",
+  thu: "Thursday",
+  fri: "Friday",
+  sat: "Saturday",
+};
+
+/**
+ * Expands an abbreviated weekday name to its full form.
+ * Case-insensitive: "sun", "Sun", "SUN" all become "Sunday".
+ *
+ * @param abbreviation - The abbreviated weekday name (e.g., "sun", "mon").
+ * @returns The full weekday name (e.g., "Sunday", "Monday"), or the original input if not recognized.
+ */
+export function expandWeekday(abbreviation: string): string {
+  if (!abbreviation) return abbreviation;
+  const lower = abbreviation.toLowerCase();
+  return WEEKDAY_ABBREVIATIONS[lower] || abbreviation;
+}

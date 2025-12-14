@@ -32,7 +32,7 @@ import {
   SelectItem,
 } from "@/components/ui/base-select";
 import { Calendar, RefreshDouble } from "iconoir-react";
-import { cn } from "@/lib/utils";
+import { cn, expandWeekday } from "@/lib/utils";
 
 // Custom label component to render day name inside the bar
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -48,7 +48,7 @@ function DayLabel(props: any) {
     >
       <div className="flex h-full items-center">
         <span className="truncate text-xs font-medium text-black">
-          {String(value)}
+          {expandWeekday(String(value))}
         </span>
       </div>
     </foreignObject>
@@ -103,7 +103,7 @@ export function ClicksChart({
           <div className="flex min-w-0 flex-col gap-1">
             <CardTitle className="flex items-center gap-2 font-medium text-zinc-900">
               <Calendar className="size-5" />
-              Clicks Over Time
+              Weekly Click Count
               {isLoading && (
                 <RefreshDouble className="h-3 w-3 animate-spin text-zinc-400" />
               )}

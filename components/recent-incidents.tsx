@@ -21,50 +21,50 @@ export function RecentIncidents({ incidents }: { incidents: Array<Incident> }) {
         </p>
       </div>
 
-      <div className="space-y-3">
-        {incidents.map((incident) => (
-          <div
-            key={incident.id}
-            className="border-border bg-background flex items-start gap-4 rounded-lg border p-4"
-          >
-            <div className="mt-0.5 flex-shrink-0">
-              {incident.type === "error" && (
-                <XmarkCircle className="h-5 w-5 text-red-600" />
-              )}
-              {incident.type === "warning" && (
-                <WarningCircle className="h-5 w-5 text-yellow-600" />
-              )}
-              {incident.type === "resolved" && (
-                <CheckCircle className="h-5 w-5 text-green-600" />
-              )}
-            </div>
-            <div className="flex-1">
-              <div className="flex items-center gap-2">
-                <code className="text-sm font-medium">{incident.link}</code>
-                <Badge
-                  variant={
-                    incident.type === "error"
-                      ? "red"
-                      : incident.type === "warning"
-                        ? "yellow"
-                        : "green"
-                  }
-                  label={
-                    incident.type.charAt(0).toUpperCase() +
-                    incident.type.slice(1)
-                  }
-                />
+      {incidents.length === 0 ? (
+        <p className="text-muted-foreground py-8 text-center text-sm">
+          No incidents recorded yet
+        </p>
+      ) : (
+        <div className="space-y-3">
+          {incidents.map((incident) => (
+            <div
+              key={incident.id}
+              className="border-border bg-background flex items-start gap-4 rounded-lg border p-4"
+            >
+              <div className="flex-1">
+                <div className="flex items-center gap-8">
+                  <div className="w-20">
+                    <Badge
+                      variant={
+                        incident.type === "error"
+                          ? "red"
+                          : incident.type === "warning"
+                            ? "yellow"
+                            : "green"
+                      }
+                      label={
+                        incident.type.charAt(0).toUpperCase() +
+                        incident.type.slice(1)
+                      }
+                    />
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <code className="text-sm font-medium">{incident.link}</code>
+                    <p className="text-muted-foreground text-sm">
+                      {incident.message}
+                    </p>
+                  </div>
+                </div>
               </div>
-              <p className="text-muted-foreground mt-1 text-sm">
-                {incident.message}
-              </p>
-              <p className="text-muted-foreground mt-2 text-xs">
-                {incident.time}
-              </p>
+              <div className="flex flex-col gap-1">
+                <p className="text-xs">Occurred</p>
+                <p className="text-muted-foreground text-xs">{incident.time}</p>
+              </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

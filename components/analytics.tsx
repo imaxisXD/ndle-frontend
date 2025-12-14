@@ -15,6 +15,9 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { CountryChart } from "@/components/charts/country-chart";
 import { ClicksChart } from "@/components/charts/clicks-chart";
 import NumberFlow from "@number-flow/react";
+import { useQuery } from "convex/react";
+import { api } from "@/convex/_generated/api";
+import { TopLinksChart } from "@/components/charts/top-links-chart";
 
 type TimeRange = "7d" | "30d" | "90d" | "1y";
 
@@ -62,6 +65,10 @@ export function Analytics({ userId }: { userId: string }) {
     loading: coldLoading,
     error: coldError,
   } = useColdAnalytics(data?.cold || []);
+
+  // Fetch URLs with analytics from Convex for Top Links
+  const urlsWithAnalytics = useQuery(api.urlMainFuction.getUserUrlsWithAnalytics);
+  const urlsLoading = urlsWithAnalytics === undefined;
 
   console.log("Analytics data", data);
   console.log("Cold data", coldData);
@@ -138,34 +145,28 @@ export function Analytics({ userId }: { userId: string }) {
       }));
   }, [data?.hot, coldData?.countryCounts, totalClicks]);
 
-  // Example: Top Links
+  // Top Links from Convex (source of truth for click counts)
   const topLinks = useMemo(() => {
-    const counts: Record<string, number> = {};
-
-    // Hot
-    if (data?.hot) {
-      data.hot.forEach((row) => {
-        const url = row.short_url || row.link_slug; // Fallback
-        counts[url] = (counts[url] || 0) + 1;
-      });
-    }
-
-    // Cold
-    if (coldData?.linkCounts) {
-      Object.entries(coldData.linkCounts).forEach(([url, count]) => {
-        counts[url] = (counts[url] || 0) + count;
-      });
-    }
-
-    return Object.entries(counts)
-      .sort(([, a], [, b]) => b - a)
+    if (!urlsWithAnalytics) return [];
+    return urlsWithAnalytics
+      .filter(
+        (url) =>
+          url.slugAssigned && (url.analytics?.totalClickCounts ?? 0) > 0
+      )
+      .sort(
+        (a, b) =>
+          (b.analytics?.totalClickCounts ?? 0) -
+          (a.analytics?.totalClickCounts ?? 0)
+      )
       .slice(0, 5)
-      .map(([url, clicks]) => ({
-        url,
-        clicks,
-        change: "0%", // Delta not calculated in this simple view
+      .map((url) => ({
+        url: url.slugAssigned as string,
+        originalUrl: url.fullurl,
+        clicks: url.analytics?.totalClickCounts ?? 0,
+        change: "0%",
+        createdAt: url._creationTime,
       }));
-  }, [data?.hot, coldData?.linkCounts]);
+  }, [urlsWithAnalytics]);
 
   if (isError) {
     return (
@@ -258,55 +259,7 @@ export function Analytics({ userId }: { userId: string }) {
       </div>
 
       {/* Top Performing Links */}
-      <Card>
-        <CardContent className="p-6">
-          <div className="mb-6">
-            <h3 className="text-base font-medium">Top Performing Links</h3>
-            <p className="text-muted-foreground mt-1 text-xs">
-              Most clicked links in the selected period
-            </p>
-          </div>
-
-          {isLoading ? (
-            <div className="space-y-4">
-              {[1, 2, 3].map((i) => (
-                <Skeleton key={i} className="h-12 w-full" />
-              ))}
-            </div>
-          ) : topLinks.length === 0 ? (
-            <div className="text-muted-foreground flex h-20 items-center justify-center text-sm">
-              No link activity found.
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {topLinks.map((link, index) => (
-                <div
-                  key={link.url}
-                  className="border-border bg-background hover:bg-muted/30 flex items-center justify-between rounded-lg border p-4 transition-colors"
-                >
-                  <div className="flex items-center gap-4">
-                    <div className="bg-muted flex h-8 w-8 items-center justify-center rounded-full text-sm font-medium">
-                      {index + 1}
-                    </div>
-                    <code className="max-w-[200px] truncate text-sm font-medium md:max-w-md">
-                      {link.url}
-                    </code>
-                  </div>
-                  <div className="flex items-center gap-6">
-                    <div className="text-right">
-                      <p className="text-sm font-medium">{link.clicks}</p>
-                      <p className="text-muted-foreground text-xs">clicks</p>
-                    </div>
-                    <span className="text-muted-foreground text-xs">
-                      {link.change}
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+      <TopLinksChart data={topLinks} isLoading={urlsLoading} />
 
       {/* Healing Activity - STATIC FOR NOW */}
       <div className="grid gap-6 lg:grid-cols-2">
