@@ -2,24 +2,24 @@
 
 import { NavLink } from "react-router";
 import {
-  Brain,
-  FolderPlus,
-  HomeAlt,
-  Presentation,
-  Reports,
-  Settings,
-} from "iconoir-react";
-import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/base-tooltip";
 import Link from "next/link";
-import { BrainIcon, ChartBarIcon, FolderIcon, HeadsetIcon } from "@phosphor-icons/react";
+import {
+  BrainIcon,
+  ChartBarIcon,
+  FolderIcon,
+  GearIcon,
+  HeadsetIcon,
+  HouseIcon,
+  SecurityCameraIcon,
+} from "@phosphor-icons/react";
 
 export function Sidebar() {
   return (
-    <aside className="my-auto ml-4 flex h-[90vh] w-16 flex-shrink-0 flex-col items-center rounded-sm border border-dashed border-gray-400/60 bg-white py-4 shadow-2xs">
+    <aside className="my-auto ml-4 flex h-[90vh] w-16 shrink-0 flex-col items-center rounded-sm border border-dashed border-gray-400/60 bg-white py-4 shadow-2xs">
       <nav className="flex flex-1 flex-col gap-4">
         <Tooltip>
           <TooltipTrigger
@@ -33,11 +33,16 @@ export function Sidebar() {
                       : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
                   }`
                 }
-              />
+              >
+                {({ isActive }) => (
+                  <HouseIcon
+                    className="size-5"
+                    weight={isActive ? "duotone" : "regular"}
+                  />
+                )}
+              </NavLink>
             }
-          >
-            <HomeAlt className="size-5" />
-          </TooltipTrigger>
+          ></TooltipTrigger>
           <TooltipContent side="right">Home</TooltipContent>
         </Tooltip>
 
@@ -53,11 +58,16 @@ export function Sidebar() {
                       : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
                   }`
                 }
-              />
+              >
+                {({ isActive }) => (
+                  <FolderIcon
+                    className="size-5"
+                    weight={isActive ? "duotone" : "regular"}
+                  />
+                )}
+              </NavLink>
             }
-          >
-            <FolderIcon className="size-5" />
-          </TooltipTrigger>
+          ></TooltipTrigger>
           <TooltipContent side="right">Collections</TooltipContent>
         </Tooltip>
         <Tooltip>
@@ -74,13 +84,14 @@ export function Sidebar() {
                 }
               >
                 {({ isActive }) => (
-                  <BrainIcon className="size-5" weight={isActive ? "duotone" : "regular"}/>
+                  <BrainIcon
+                    className="size-5"
+                    weight={isActive ? "duotone" : "regular"}
+                  />
                 )}
               </NavLink>
             }
-          >
-           
-          </TooltipTrigger>
+          ></TooltipTrigger>
           <TooltipContent side="right">Memory</TooltipContent>
         </Tooltip>
 
@@ -98,18 +109,16 @@ export function Sidebar() {
                 }
               >
                 {({ isActive }) => (
-                  <ChartBarIcon className="size-5" weight={isActive ? "duotone" : "regular"}/>
+                  <ChartBarIcon
+                    className="size-5"
+                    weight={isActive ? "duotone" : "regular"}
+                  />
                 )}
               </NavLink>
             }
           />
           <TooltipContent side="right">Analytics</TooltipContent>
         </Tooltip>
-      </nav>
-
-      <div className="flex flex-col gap-4">
-        {/* TODO: WILL ADD BACK IN LATER notification center */}
-        {/* <NotificationCenter /> */}
 
         <Tooltip>
           <TooltipTrigger
@@ -123,13 +132,23 @@ export function Sidebar() {
                       : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
                   }`
                 }
-              />
+              >
+                {({ isActive }) => (
+                  <SecurityCameraIcon
+                    className="size-5"
+                    weight={isActive ? "duotone" : "regular"}
+                  />
+                )}
+              </NavLink>
             }
-          >
-            <Presentation className="size-5" />
-          </TooltipTrigger>
+          ></TooltipTrigger>
           <TooltipContent side="right">Monitoring</TooltipContent>
         </Tooltip>
+      </nav>
+
+      <div className="flex flex-col gap-4">
+        {/* TODO: WILL ADD BACK IN LATER notification center */}
+        {/* <NotificationCenter /> */}
 
         <Tooltip>
           <TooltipTrigger
@@ -143,11 +162,16 @@ export function Sidebar() {
                       : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
                   }`
                 }
-              />
+              >
+                {({ isActive }) => (
+                  <GearIcon
+                    className="size-5"
+                    weight={isActive ? "duotone" : "regular"}
+                  />
+                )}
+              </NavLink>
             }
-          >
-            <Settings className="size-5" />
-          </TooltipTrigger>
+          ></TooltipTrigger>
           <TooltipContent side="right">Settings</TooltipContent>
         </Tooltip>
 
@@ -161,7 +185,7 @@ export function Sidebar() {
               />
             }
           >
-            <HeadsetIcon className="size-5 text-blue-500" />
+            <HeadsetIcon className="size-5 text-blue-500" weight="duotone" />
           </TooltipTrigger>
           <TooltipContent side="right">Feedback</TooltipContent>
         </Tooltip>

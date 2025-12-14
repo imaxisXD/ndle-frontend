@@ -15,10 +15,10 @@ export function StatusBadge({ status }: { status: string }) {
       <span
         className={
           status === "healed"
-            ? "bg-success-container text-foreground border-success/30 inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-xs"
+            ? "bg-success-container text-foreground border-success/30 inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-xs select-none"
             : status === "healthy"
-              ? "bg-secondary text-success border-success/25 inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-xs"
-              : "bg-secondary text-warning border-warning/25 inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-xs"
+              ? "bg-secondary text-success border-success/25 inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-xs select-none"
+              : "bg-secondary text-warning border-warning/25 inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-xs select-none"
         }
       >
         {status}

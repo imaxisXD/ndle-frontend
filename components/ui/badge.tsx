@@ -3,7 +3,7 @@ import * as React from "react";
 import { cn } from "@/lib/utils";
 
 const badgeVariants = cva(
-  "inline-flex items-center rounded-sm border px-2 py-0.5 text-xs transition-colors shadow-xs",
+  "inline-flex items-center rounded-sm border px-2 py-0.5 text-xs transition-colors shadow-xs select-none",
   {
     variants: {
       variant: {
@@ -25,7 +25,8 @@ const badgeVariants = cva(
 );
 
 export interface BadgeProps
-  extends React.HTMLAttributes<HTMLSpanElement>,
+  extends
+    React.HTMLAttributes<HTMLSpanElement>,
     VariantProps<typeof badgeVariants> {
   label?: React.ReactNode;
 }

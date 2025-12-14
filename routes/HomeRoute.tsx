@@ -6,7 +6,7 @@ export default function HomeRoute() {
     <>
       <header className="flex flex-col items-start">
         <h1
-          className="font-doto roundness-100 text-5xl font-bold tracking-tight"
+          className="font-doto roundness-100 text-5xl font-bold tracking-tight transition-all duration-300 ease-in-out select-none hover:font-extrabold"
           id="home-heading"
         >
           ndle
