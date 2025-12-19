@@ -2,12 +2,7 @@
 
 import { useState, useMemo } from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import {
-  CursorPointer,
-  ShieldCheck,
-  StatsDownSquare,
-  RefreshDouble,
-} from "iconoir-react";
+import { CursorPointer, ShieldCheck, StatsDownSquare } from "iconoir-react";
 import { useAnalyticsV2 } from "@/hooks/useAnalyticsV2";
 import { useColdAnalytics } from "@/hooks/use-cold-analytics";
 import { format, subDays, startOfDay, endOfDay } from "date-fns";
@@ -18,6 +13,33 @@ import NumberFlow from "@number-flow/react";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { TopLinksChart } from "@/components/charts/top-links-chart";
+
+// Separate component for Total Clicks with its own Convex data fetching
+function TotalClicksCard() {
+  const totalClicksFromConvex = useQuery(api.urlAnalytics.getUsersTotalClicks);
+  const totalClicks = totalClicksFromConvex ?? 0;
+
+  return (
+    <Card>
+      <CardContent className="p-6">
+        <div className="flex items-start justify-between">
+          <div className="flex-1">
+            <p className="text-muted-foreground text-xs">
+              Total Clicks (All Time)
+            </p>
+            <div className="mt-2 text-2xl font-medium">
+              <NumberFlow value={totalClicks} />
+            </div>
+            <div className="text-muted-foreground mt-1 text-xs">Real-time</div>
+          </div>
+          <div className="bg-muted rounded-lg p-3">
+            <CursorPointer className="text-muted-foreground h-5 w-5" />
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
 
 type TimeRange = "7d" | "30d" | "90d" | "1y";
 
@@ -73,12 +95,6 @@ export function Analytics({ userId }: { userId: string }) {
 
   console.log("Analytics data", data);
   console.log("Cold data", coldData);
-
-  // --- Derived Stats (from API Data + Cold Data) ---
-
-  const totalHotClicks = data?.meta.hot_count ?? 0;
-  const totalColdClicks = coldData?.totalClicks ?? 0;
-  const totalClicks = totalHotClicks + totalColdClicks;
 
   // Example: Grouping by Day for the Chart
   const clicksData = useMemo(() => {
@@ -136,15 +152,17 @@ export function Analytics({ userId }: { userId: string }) {
       });
     }
 
+    // Calculate total from counts for percentage calculation
+    const total = Object.values(counts).reduce((sum, c) => sum + c, 0);
+
     return Object.entries(counts)
       .sort(([, a], [, b]) => b - a)
       .map(([country, clicks]) => ({
         country,
         clicks,
-        percentage:
-          totalClicks > 0 ? Math.round((clicks / totalClicks) * 100) : 0,
+        percentage: total > 0 ? Math.round((clicks / total) * 100) : 0,
       }));
-  }, [data?.hot, coldData?.countryCounts, totalClicks]);
+  }, [data?.hot, coldData?.countryCounts]);
 
   // Top Links from Convex (source of truth for click counts)
   const topLinks = useMemo(() => {
@@ -166,6 +184,7 @@ export function Analytics({ userId }: { userId: string }) {
         change: "0%",
         createdAt: url._creationTime,
       }));
+    // eslint-disable-next-line @tanstack/query/no-unstable-deps
   }, [urlsWithAnalytics]);
 
   if (isError) {
@@ -188,19 +207,6 @@ export function Analytics({ userId }: { userId: string }) {
       value: "24", // Static for now, or fetch from another API
       icon: StatsDownSquare,
       change: "[+3] this week",
-      trend: "up",
-    },
-    {
-      label: "Total Clicks (All Time)",
-      value: isLoading ? "..." : totalClicks.toLocaleString(),
-      icon: CursorPointer,
-      change: coldLoading ? (
-        <span className="flex items-center gap-1">
-          <RefreshDouble className="h-3 w-3 animate-spin" /> Processing archive
-        </span>
-      ) : (
-        "Real-time"
-      ),
       trend: "up",
     },
     {
@@ -240,6 +246,8 @@ export function Analytics({ userId }: { userId: string }) {
             </CardContent>
           </Card>
         ))}
+        {/* Total Clicks - separate component with its own Convex data */}
+        <TotalClicksCard />
       </div>
 
       {/* Charts Section */}
