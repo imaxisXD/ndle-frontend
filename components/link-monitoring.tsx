@@ -1,5 +1,5 @@
 "use client";
-import { useQuery } from "convex/react";
+import { useQuery } from "convex-helpers/react/cache/hooks";
 import { api } from "@/convex/_generated/api";
 import { Badge } from "@ui/badge";
 import { Card, CardContent } from "@ui/card";
@@ -14,35 +14,13 @@ import {
   Refresh,
 } from "iconoir-react";
 import { getShortDomain } from "@/lib/config";
-import { cn } from "@/lib/utils";
+import {
+  cn,
+  formatRelativeTimeCompact,
+  mapHealthStatusToUI,
+  getResponseTimeColor,
+} from "@/lib/utils";
 import { LinkWithFavicon } from "./ui/link-with-favicon";
-
-type HealthStatus = "up" | "down" | "degraded";
-type UIStatus = "healthy" | "warning" | "error";
-
-function mapHealthStatusToUI(status: HealthStatus): UIStatus {
-  switch (status) {
-    case "up":
-      return "healthy";
-    case "degraded":
-      return "warning";
-    case "down":
-      return "error";
-  }
-}
-
-function formatRelativeTime(timestamp: number): string {
-  const now = Date.now();
-  const diff = now - timestamp;
-  const minutes = Math.floor(diff / 60000);
-  const hours = Math.floor(diff / 3600000);
-  const days = Math.floor(diff / 86400000);
-
-  if (minutes < 1) return "now";
-  if (minutes < 60) return `${minutes}m ago`;
-  if (hours < 24) return `${hours}h ago`;
-  return `${days}d ago`;
-}
 
 const shortDomain = getShortDomain();
 
@@ -66,7 +44,7 @@ export function LinkMonitoring() {
     status: mapHealthStatusToUI(check.healthStatus),
     uptime: check.uptime,
     responseTime: check.latencyMs,
-    lastChecked: formatRelativeTime(check.checkedAt),
+    lastChecked: formatRelativeTimeCompact(check.checkedAt),
     incidents: check.incidents,
     dailySummaries: check.dailySummaries || [],
   }));
@@ -75,13 +53,6 @@ export function LinkMonitoring() {
   //   if (filter === "all") return true;
   //   return link.status === filter;
   // });
-
-  const getResponseTimeColor = (time: number) => {
-    if (time === 0) return "text-red-600";
-    if (time < 500) return "text-emerald-600";
-    if (time < 1000) return "text-amber-600";
-    return "text-red-600";
-  };
 
   const healthyCount = links.filter((l) => l.status === "healthy").length;
   const warningCount = links.filter((l) => l.status === "warning").length;
@@ -97,7 +68,7 @@ export function LinkMonitoring() {
     link: inc.shortUrl,
     type: inc.type,
     message: inc.message,
-    time: formatRelativeTime(inc.createdAt),
+    time: formatRelativeTimeCompact(inc.createdAt),
   }));
 
   if (isLoading) {
@@ -188,7 +159,7 @@ export function LinkMonitoring() {
             label: "Healthy Links",
             value: healthyCount,
             icon: CheckCircle,
-            color: "text-emerald-500",
+            color: "text-green-600",
           },
           {
             label: "Warnings",

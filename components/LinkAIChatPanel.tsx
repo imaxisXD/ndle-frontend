@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { MagicWand, Send, Bookmark, EditPencil, Check } from "iconoir-react";
+import { formatRelativeDate } from "@/lib/utils";
 
 interface Message {
   id: string;
@@ -102,14 +103,6 @@ export function LinkAIChatPanel({ shortUrl, fullUrl }: LinkAIChatPanelProps) {
     return "I've analyzed the content and found relevant information that addresses your question. The page contains detailed explanations and practical guidance on this topic.";
   };
 
-  const formatRelativeTime = (timestamp: number) => {
-    const diff = Date.now() - timestamp;
-    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-    if (days === 0) return "Today";
-    if (days === 1) return "Yesterday";
-    return `${days} days ago`;
-  };
-
   return (
     <div className="space-y-6">
       {/* Notes Section */}
@@ -177,7 +170,7 @@ export function LinkAIChatPanel({ shortUrl, fullUrl }: LinkAIChatPanelProps) {
                 >
                   <p className="text-sm">{note.content}</p>
                   <p className="text-muted-foreground mt-2 text-xs">
-                    {formatRelativeTime(note.createdAt)}
+                    {formatRelativeDate(note.createdAt)}
                   </p>
                 </div>
               ))}

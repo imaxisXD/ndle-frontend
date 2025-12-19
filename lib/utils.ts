@@ -77,6 +77,118 @@ export function formatRelative(ts: number): string {
 }
 
 /**
+ * Formats a timestamp relative to the current time using compact notation.
+ * Returns "now", "5m ago", "2h ago", "3d ago" format.
+ *
+ * @param timestamp - The timestamp to format (in milliseconds).
+ * @returns A compact string representing the relative time.
+ */
+export function formatRelativeTimeCompact(timestamp: number): string {
+  const now = Date.now();
+  const diff = now - timestamp;
+  const minutes = Math.floor(diff / 60000);
+  const hours = Math.floor(diff / 3600000);
+  const days = Math.floor(diff / 86400000);
+
+  if (minutes < 1) return "now";
+  if (minutes < 60) return `${minutes}m ago`;
+  if (hours < 24) return `${hours}h ago`;
+  return `${days}d ago`;
+}
+
+/**
+ * Formats a timestamp as a human-readable date.
+ * Returns "Today", "Yesterday", or "X days ago" format.
+ *
+ * @param timestamp - The timestamp to format (in milliseconds).
+ * @returns A human-readable string representing the relative date.
+ */
+export function formatRelativeDate(timestamp: number): string {
+  const diff = Date.now() - timestamp;
+  const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+  if (days === 0) return "Today";
+  if (days === 1) return "Yesterday";
+  return `${days} days ago`;
+}
+
+// ============================================================================
+// Health Monitoring Utilities
+// ============================================================================
+
+/**
+ * API health status from the backend monitoring system.
+ */
+export type HealthStatus = "up" | "down" | "degraded";
+
+/**
+ * UI-friendly health status for display purposes.
+ */
+export type UIStatus = "healthy" | "warning" | "error";
+
+/**
+ * Maps backend health status to UI-friendly status.
+ *
+ * @param status - The health status from the API.
+ * @returns The UI-friendly status string.
+ */
+export function mapHealthStatusToUI(status: HealthStatus): UIStatus {
+  switch (status) {
+    case "up":
+      return "healthy";
+    case "degraded":
+      return "warning";
+    case "down":
+      return "error";
+  }
+}
+
+/**
+ * Returns a Tailwind text color class based on response time.
+ *
+ * @param time - Response time in milliseconds.
+ * @returns Tailwind text color class.
+ */
+export function getResponseTimeColor(time: number): string {
+  if (time === 0) return "text-red-600";
+  if (time < 500) return "text-green-600";
+  if (time < 1000) return "text-yellow-600";
+  return "text-red-600";
+}
+
+/**
+ * Returns a Tailwind text color class based on uptime percentage.
+ *
+ * @param uptime - Uptime percentage (0-100).
+ * @returns Tailwind text color class.
+ */
+export function getUptimeColor(uptime: number): string {
+  if (uptime >= 99) return "text-green-600";
+  if (uptime >= 90) return "text-yellow-600";
+  return "text-red-600";
+}
+
+/**
+ * Returns a Tailwind background color class for uptime status bars.
+ *
+ * @param status - The status of the uptime bar.
+ * @returns Tailwind background color class(es).
+ */
+export function getUptimeBarColor(status: string): string {
+  switch (status) {
+    case "healthy":
+      return "bg-green-500";
+    case "warning":
+      return "bg-yellow-500";
+    case "error":
+      return "bg-red-500";
+    case "future":
+      return "bg-gray-100 border border-gray-300 border-dashed";
+    default:
+      return "bg-gray-300 border border-gray-400 border-dashed";
+  }
+}
+
+/**
  * Map ISO 3166-1 alpha-2 country code (e.g., "US") to English country name (e.g., "United States").
  * Falls back to the input code if not found.
  */

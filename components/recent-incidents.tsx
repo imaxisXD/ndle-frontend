@@ -135,7 +135,7 @@ export function RecentIncidents({
   const currentPage = table.getState().pagination.pageIndex + 1;
 
   return (
-    <div className="border-border bg-card rounded-xl border p-6">
+    <div className="border-border bg-card rounded-md border p-6">
       <div className="mb-6">
         <h3 className="text-base font-medium">Recent Incidents</h3>
         <p className="text-muted-foreground mt-1 text-xs">

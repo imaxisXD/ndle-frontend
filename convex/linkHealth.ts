@@ -426,3 +426,30 @@ export const getDailySummaries = query({
       .collect();
   },
 });
+
+/**
+ * Get all health and incident data for current url with computed uptime % and incident count
+ */
+export const getHealthandIncidentsDataForUrl = query({
+  args: {
+    urlId: v.id("urls"),
+  },
+  handler: async (ctx, { urlId }) => {
+    const healthData = await ctx.db
+      .query("linkHealthChecks")
+      .withIndex("by_url_id", (q) => q.eq("urlId", urlId))
+      .unique();
+
+    const incidentData = await ctx.db
+      .query("linkIncidents")
+      .withIndex("by_url_id", (q) => q.eq("urlId", urlId))
+      .collect();
+
+    const dailySummaries = await ctx.db
+      .query("linkHealthDailySummary")
+      .withIndex("by_url_id", (q) => q.eq("urlId", urlId))
+      .collect();
+
+    return { healthData, incidentData, dailySummaries };
+  },
+});

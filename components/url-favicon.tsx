@@ -19,8 +19,8 @@ const sizeStyles = {
   },
   md: {
     container: "size-8 bg-muted border border-dashed border-black/40",
-    icon: "size-5 text-blue-500",
-    img: "size-5",
+    icon: "size-6 text-blue-500",
+    img: "size-6",
   },
 };
 

@@ -13,7 +13,7 @@ import { UrlPickerTable } from "@/components/collection/UrlPickerTable";
 import { AddUrlsButton } from "@/components/collection/AddUrlsButton";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ShimmeringText } from "@/components/ui/shimmering-text";
-import { BookmarkBook, BookSolid, Table2Columns } from "iconoir-react";
+import { BookmarkBook, Table2Columns } from "iconoir-react";
 
 export default function CollectionDetailRoute() {
   const params = useParams();

@@ -76,7 +76,8 @@ export default defineSchema({
     incidentCount: v.number(),
   })
     .index("by_url_and_date", ["urlId", "date"])
-    .index("by_user_and_date", ["userId", "date"]),
+    .index("by_user_and_date", ["userId", "date"])
+    .index("by_url_id", ["urlId"]),
 
   // Individual incident events for "Recent Incidents" list
   linkIncidents: defineTable({
@@ -90,7 +91,9 @@ export default defineSchema({
     ),
     message: v.string(),
     createdAt: v.number(),
-  }).index("by_user_recent", ["userId", "createdAt"]),
+  })
+    .index("by_user_recent", ["userId", "createdAt"])
+    .index("by_url_id", ["urlId"]),
   collections: defineTable({
     name: v.string(),
     description: v.optional(v.string()),

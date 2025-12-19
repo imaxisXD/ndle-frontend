@@ -34,7 +34,7 @@ const LinkWithFavicon = React.forwardRef<
     ref,
   ) => {
     const TextWrapper = asCode ? "code" : "span";
-    const displayText = children || url;
+    const displayText = children || url.replace(/^https?:\/\//, "");
 
     return (
       <div className="flex items-center gap-0.5">

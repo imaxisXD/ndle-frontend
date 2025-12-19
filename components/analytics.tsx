@@ -10,7 +10,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { CountryChart } from "@/components/charts/country-chart";
 import { ClicksChart } from "@/components/charts/clicks-chart";
 import NumberFlow from "@number-flow/react";
-import { useQuery } from "convex/react";
+import { useQuery } from "convex-helpers/react/cache/hooks";
 import { api } from "@/convex/_generated/api";
 import { TopLinksChart } from "@/components/charts/top-links-chart";
 

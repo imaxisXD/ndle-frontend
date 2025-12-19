@@ -161,7 +161,7 @@ export function Sidebar() {
               >
                 {({ isActive }) => (
                   <SecurityCameraIcon
-                    className="size-5"
+                    className="size-5 -scale-x-100"
                     weight={isActive ? "duotone" : "regular"}
                   />
                 )}

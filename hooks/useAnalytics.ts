@@ -2,8 +2,6 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { AnalyticsRange } from "@/lib/analyticsRanges";
-import { useAction } from "convex/react";
-import { api } from "@/convex/_generated/api";
 
 type Scope = "user" | "link";
 

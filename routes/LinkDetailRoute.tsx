@@ -1,7 +1,8 @@
 import { useParams, useNavigate } from "react-router";
 import { useEffect, useState } from "react";
 import type { AnalyticsRange } from "@/lib/analyticsRanges";
-import { useMutation, useQuery } from "convex/react";
+import { useMutation } from "convex/react";
+import { useQuery } from "convex-helpers/react/cache/hooks";
 import { api } from "@/convex/_generated/api";
 import { useToast } from "@/hooks/use-toast";
 import LinkDetailSkeleton from "@/components/skeleton-routes/link-detail-skeleton";
@@ -189,7 +190,7 @@ export default function LinkDetailRoute() {
 
         {/* Health Tab */}
         <TabsContent value="health">
-          <LinkHealthPanel shortUrl={shortUrl} fullUrl={url?.fullurl || ""} />
+          <LinkHealthPanel urlId={url?._id} />
         </TabsContent>
       </Tabs>
     </div>

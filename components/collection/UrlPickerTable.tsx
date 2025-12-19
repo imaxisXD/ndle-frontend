@@ -1,5 +1,6 @@
-import React, { useMemo, useState } from "react";
-import { useQuery, useMutation } from "convex/react";
+import { useMemo, useState } from "react";
+import { useMutation } from "convex/react";
+import { useQuery } from "convex-helpers/react/cache/hooks";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
 import {
