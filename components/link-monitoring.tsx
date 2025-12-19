@@ -180,10 +180,7 @@ export function LinkMonitoring() {
             color: "text-blue-500",
           },
         ].map((stat, i) => (
-          <Card
-            key={i}
-            className="bg-card rounded-sm border-dashed border-black/20"
-          >
+          <Card key={i} className="rounded-sm bg-white">
             <CardContent className="flex items-center justify-between p-6">
               <div className="space-y-2">
                 <p className="text-muted-foreground text-xs font-medium tracking-wider uppercase">
@@ -229,7 +226,7 @@ export function LinkMonitoring() {
 
       {/* Monitored Links */}
       {links.length === 0 ? (
-        <Card className="bg-card/50 border-dashed p-12 text-center">
+        <Card className="bg-card/50 p-12 text-center">
           <div className="flex flex-col items-center gap-2">
             <div className="bg-muted rounded-full p-4">
               <ShieldCheck className="text-muted-foreground h-8 w-8" />
@@ -320,7 +317,7 @@ export function LinkMonitoring() {
                   </div>
 
                   {/* Actions */}
-                  <div className="flex items-center lg:flex-col lg:gap-2">
+                  {/* <div className="flex items-center lg:flex-col lg:gap-2">
                     <Button
                       variant="ghost"
                       size="sm"
@@ -329,7 +326,7 @@ export function LinkMonitoring() {
                     >
                       <Refresh className="text-muted-foreground h-4 w-4" />
                     </Button>
-                  </div>
+                  </div> */}
                 </div>
               </div>
             </Card>
