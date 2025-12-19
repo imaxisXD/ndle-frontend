@@ -52,7 +52,6 @@ export function Analytics({ userId }: { userId: string }) {
   }, [timeRange]);
 
   // Fetch Data with Polling (10s), passing the user ID
-  console.log("Fetching analytics data for user", userId);
   const { data, isLoading, isError, error } = useAnalyticsV2({
     start,
     end,
@@ -67,7 +66,9 @@ export function Analytics({ userId }: { userId: string }) {
   } = useColdAnalytics(data?.cold || []);
 
   // Fetch URLs with analytics from Convex for Top Links
-  const urlsWithAnalytics = useQuery(api.urlMainFuction.getUserUrlsWithAnalytics);
+  const urlsWithAnalytics = useQuery(
+    api.urlMainFuction.getUserUrlsWithAnalytics,
+  );
   const urlsLoading = urlsWithAnalytics === undefined;
 
   console.log("Analytics data", data);
@@ -150,13 +151,12 @@ export function Analytics({ userId }: { userId: string }) {
     if (!urlsWithAnalytics) return [];
     return urlsWithAnalytics
       .filter(
-        (url) =>
-          url.slugAssigned && (url.analytics?.totalClickCounts ?? 0) > 0
+        (url) => url.slugAssigned && (url.analytics?.totalClickCounts ?? 0) > 0,
       )
       .sort(
         (a, b) =>
           (b.analytics?.totalClickCounts ?? 0) -
-          (a.analytics?.totalClickCounts ?? 0)
+          (a.analytics?.totalClickCounts ?? 0),
       )
       .slice(0, 5)
       .map((url) => ({

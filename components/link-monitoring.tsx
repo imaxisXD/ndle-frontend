@@ -103,20 +103,77 @@ export function LinkMonitoring() {
   if (isLoading) {
     return (
       <div className="space-y-6">
+        {/* Stats skeleton */}
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           {[1, 2, 3, 4].map((i) => (
             <Skeleton key={i} className="h-24 w-full" />
           ))}
         </div>
-        <div className="flex gap-2">
-          {[1, 2, 3, 4].map((i) => (
-            <Skeleton key={i} className="h-10 w-20" />
+
+        {/* Link cards skeleton */}
+        <div className="grid gap-4">
+          {[1, 2, 3].map((i) => (
+            <div
+              key={i}
+              className="border-border rounded-lg border bg-white p-5"
+            >
+              <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                {/* Badge + Link info skeleton */}
+                <div className="flex flex-1 items-start">
+                  <div className="flex items-center gap-10">
+                    <Skeleton className="h-6 w-20 rounded-full" />
+                    <div className="flex flex-col space-y-2">
+                      <Skeleton className="h-4 w-48" />
+                      <Skeleton className="h-3 w-64" />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Metrics skeleton */}
+                <div className="flex gap-2">
+                  {[1, 2, 3, 4].map((j) => (
+                    <div key={j} className="w-24 shrink-0 space-y-2">
+                      <Skeleton className="h-2 w-12" />
+                      <Skeleton className="h-4 w-16" />
+                    </div>
+                  ))}
+                </div>
+
+                {/* Action button skeleton */}
+                <Skeleton className="h-8 w-8 rounded-full" />
+              </div>
+            </div>
           ))}
         </div>
-        <div className="space-y-3">
-          {[1, 2, 3].map((i) => (
-            <Skeleton key={i} className="h-40 w-full" />
-          ))}
+
+        {/* Recent Incidents skeleton */}
+        <div className="border-border rounded-xl border bg-white p-6">
+          <div className="mb-6">
+            <Skeleton className="h-5 w-36" />
+            <Skeleton className="mt-2 h-3 w-56" />
+          </div>
+          <div className="space-y-3">
+            {[1, 2, 3].map((i) => (
+              <div
+                key={i}
+                className="border-border flex items-start gap-4 rounded-lg border bg-white p-4"
+              >
+                <div className="flex-1">
+                  <div className="flex items-center gap-8">
+                    <Skeleton className="h-6 w-20 rounded-full" />
+                    <div className="flex flex-col gap-2">
+                      <Skeleton className="h-4 w-48" />
+                      <Skeleton className="h-4 w-64" />
+                    </div>
+                  </div>
+                </div>
+                <div className="flex flex-col items-end gap-2">
+                  <Skeleton className="h-4 w-16" />
+                  <Skeleton className="h-3 w-12" />
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     );

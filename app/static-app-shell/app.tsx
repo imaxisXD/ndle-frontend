@@ -1,6 +1,7 @@
 import { BrowserRouter, Route, Routes } from "react-router";
 import { Sidebar } from "@/components/sidebar";
 import HomeRoute from "@/routes/HomeRoute";
+import UrlsRoute from "@/routes/UrlsRoute";
 import AnalyticsRoute from "@/routes/AnalyticsRoute";
 import MonitoringRoute from "@/routes/MonitoringRoute";
 import SettingsRoute from "@/routes/SettingsRoute";
@@ -28,6 +29,7 @@ export default function App() {
                 <ScrollToTop />
                 <Routes>
                   <Route path="/" element={<HomeRoute />} />
+                  <Route path="/urls" element={<UrlsRoute />} />
                   <Route
                     path="/analytics"
                     element={

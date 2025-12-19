@@ -14,6 +14,7 @@ import {
   GearIcon,
   HeadsetIcon,
   HouseIcon,
+  LinkIcon,
   SecurityCameraIcon,
 } from "@phosphor-icons/react";
 
@@ -44,6 +45,31 @@ export function Sidebar() {
             }
           ></TooltipTrigger>
           <TooltipContent side="right">Home</TooltipContent>
+        </Tooltip>
+
+        <Tooltip>
+          <TooltipTrigger
+            render={
+              <NavLink
+                to="/urls"
+                className={({ isActive }) =>
+                  `flex h-10 w-10 items-center justify-center rounded-md transition-colors ${
+                    isActive
+                      ? "bg-accent text-accent-foreground"
+                      : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                  }`
+                }
+              >
+                {({ isActive }) => (
+                  <LinkIcon
+                    className="size-5"
+                    weight={isActive ? "duotone" : "regular"}
+                  />
+                )}
+              </NavLink>
+            }
+          ></TooltipTrigger>
+          <TooltipContent side="right">URLs</TooltipContent>
         </Tooltip>
 
         <Tooltip>

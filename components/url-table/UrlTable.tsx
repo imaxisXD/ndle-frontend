@@ -324,7 +324,19 @@ export function UrlTable({
 }: UrlTableProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string | "all">("all");
+  const [collectionFilter, setCollectionFilter] = useState<string | "all">(
+    "all",
+  );
   const [showFiltersPanel, setShowFiltersPanel] = useState(false);
+
+  // Fetch collections for the filter
+  const collections = useQuery(api.collectionMangament.getUserCollections, {});
+
+  // Fetch the selected collection with URLs for filtering
+  const selectedCollectionData = useQuery(
+    api.collectionMangament.getCollectionById,
+    collectionFilter !== "all" ? { collectionId: collectionFilter } : "skip",
+  );
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [urlToDelete, setUrlToDelete] = useState<{
     slug: string;
@@ -356,6 +368,9 @@ export function UrlTable({
   >;
   const isLoading = urls === undefined;
   const isEmpty = urls === null || (Array.isArray(urls) && urls.length === 0);
+
+  // Destructure stable values from the query result to use in dependency arrays
+  const selectedCollectionUrls = selectedCollectionData?.urls;
 
   const filteredUrls = useMemo(() => {
     if (!Array.isArray(urls) || urls.length === 0) {
@@ -401,9 +416,36 @@ export function UrlTable({
       filtered = filtered.filter((url) => url.status === statusFilter);
     }
 
+    // Filter by collection
+    if (collectionFilter !== "all" && selectedCollectionUrls) {
+      // Get URL IDs from the original urls data to match with collection.urls
+      const urlIdMap = new Map<string, string>();
+      (urls as UserUrlsResponse).forEach((doc) => {
+        const slugSource = doc.slugAssigned ?? doc.shortUrl;
+        const formattedShortUrl = slugSource
+          ? slugSource.startsWith("http")
+            ? slugSource
+            : makeShortLink(slugSource.replace(/^\/+/, ""))
+          : "";
+        urlIdMap.set(formattedShortUrl || doc.shortUrl, doc._id);
+      });
+
+      filtered = filtered.filter((url) => {
+        const docId = urlIdMap.get(url.shortUrl);
+        // Check if the URL's _id is in the collection's urls array
+        return docId && selectedCollectionUrls.includes(docId as Id<"urls">);
+      });
+    }
+
     return filtered;
+  }, [
     // eslint-disable-next-line @tanstack/query/no-unstable-deps
-  }, [urls, searchQuery, statusFilter]);
+    urls,
+    searchQuery,
+    statusFilter,
+    collectionFilter,
+    selectedCollectionUrls,
+  ]);
 
   const sortedUrls = useMemo(() => {
     if (!Array.isArray(filteredUrls) || filteredUrls.length === 0) {
@@ -689,7 +731,9 @@ export function UrlTable({
               type="button"
               onClick={() => setShowFiltersPanel(!showFiltersPanel)}
               className={`hover:bg-accent hover:text-foreground flex items-center gap-2 rounded-md px-3 py-2 text-sm transition-colors ${
-                showFiltersPanel || statusFilter !== "all"
+                showFiltersPanel ||
+                statusFilter !== "all" ||
+                collectionFilter !== "all"
                   ? "bg-foreground text-background"
                   : "border-border hover:bg-accent border"
               }`}
@@ -709,7 +753,51 @@ export function UrlTable({
             }`}
             aria-hidden={!showFiltersPanel}
           >
-            <div className="bg-muted/30 border-border mt-4 flex flex-wrap gap-3 rounded-lg border p-4">
+            <div className="bg-muted/30 border-border mt-4 flex flex-col gap-4 rounded-lg border p-4">
+              {/* Collection Filter */}
+              {collections && collections.length > 0 && (
+                <div className="flex flex-col gap-2">
+                  <span className="text-muted-foreground text-xs font-medium">
+                    Collection:
+                  </span>
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setCollectionFilter("all")}
+                      className={`rounded-md px-3 py-1 text-xs transition-colors ${
+                        collectionFilter === "all"
+                          ? "bg-foreground text-background"
+                          : "bg-background border-border hover:bg-accent border"
+                      }`}
+                    >
+                      All
+                    </button>
+                    {collections.map((collection) => (
+                      <button
+                        type="button"
+                        key={collection.id}
+                        onClick={() => setCollectionFilter(collection.id)}
+                        className={`flex items-center gap-1.5 rounded-md px-3 py-1 text-xs transition-colors ${
+                          collectionFilter === collection.id
+                            ? "bg-foreground text-background"
+                            : "bg-background border-border hover:bg-accent border"
+                        }`}
+                      >
+                        <span
+                          className="h-2 w-2 rounded-full"
+                          style={{
+                            backgroundColor:
+                              collection.collectionColor || "#6b7280",
+                          }}
+                        />
+                        {collection.name}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Status Filter */}
               <div className="flex items-center gap-2">
                 <span className="text-muted-foreground text-xs font-medium">
                   Status:
@@ -735,7 +823,9 @@ export function UrlTable({
           </div>
 
           {/* Active Filters */}
-          {!searchQuery && statusFilter === "all" ? null : (
+          {!searchQuery &&
+          statusFilter === "all" &&
+          collectionFilter === "all" ? null : (
             <div className="mt-3 flex flex-wrap items-center gap-2">
               <span className="text-muted-foreground text-xs">
                 Active filters:
@@ -748,6 +838,31 @@ export function UrlTable({
                     variant="link"
                     type="button"
                     onClick={() => setSearchQuery("")}
+                    className="p-1 hover:text-red-500"
+                  >
+                    <XmarkCircle className="size-4" />
+                  </Button>
+                </div>
+              )}
+              {collectionFilter !== "all" && collections && (
+                <div className="inline-flex items-center">
+                  <Badge variant="primary">
+                    <span
+                      className="mr-1.5 h-2 w-2 rounded-full"
+                      style={{
+                        backgroundColor:
+                          collections.find((c) => c.id === collectionFilter)
+                            ?.collectionColor || "#6b7280",
+                      }}
+                    />
+                    {collections.find((c) => c.id === collectionFilter)?.name ||
+                      "Collection"}
+                  </Badge>
+                  <Button
+                    variant="link"
+                    type="button"
+                    size="icon"
+                    onClick={() => setCollectionFilter("all")}
                     className="p-1 hover:text-red-500"
                   >
                     <XmarkCircle className="size-4" />
@@ -773,6 +888,7 @@ export function UrlTable({
                 onClick={() => {
                   setSearchQuery("");
                   setStatusFilter("all");
+                  setCollectionFilter("all");
                 }}
                 className="text-muted-foreground hover:text-foreground text-xs underline"
               >

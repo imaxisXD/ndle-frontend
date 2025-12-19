@@ -7,6 +7,7 @@ import { createAsyncStoragePersister } from "@tanstack/query-async-storage-persi
 import { ConvexReactClient } from "convex/react";
 import { ConvexProviderWithClerk } from "convex/react-clerk";
 import type { ReactNode } from "react";
+import { DuckDBPrefetch } from "./DuckDBPrefetch";
 
 if (!process.env.NEXT_PUBLIC_CONVEX_URL) {
   throw new Error("Missing NEXT_PUBLIC_CONVEX_URL in your .env file");
@@ -62,6 +63,7 @@ export default function ConvexClientProvider({
     >
       <ClerkProvider>
         <ConvexProviderWithClerk client={convex} useAuth={useAuth}>
+          <DuckDBPrefetch />
           {children}
         </ConvexProviderWithClerk>
       </ClerkProvider>

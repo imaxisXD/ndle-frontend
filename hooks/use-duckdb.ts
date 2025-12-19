@@ -4,10 +4,12 @@ import { useEffect, useState } from "react";
 // Singleton promise to prevent multiple initializations
 let dbPromise: Promise<duckdb.AsyncDuckDB> | null = null;
 
-async function initDuckDB() {
+export async function initDuckDB() {
   if (dbPromise) {
+    console.log("[DuckDB] Returning cached instance");
     return dbPromise;
   }
+  console.log("[DuckDB] Starting initialization...");
 
   const JSDELIVR_BUNDLES = duckdb.getJsDelivrBundles();
   const bundle = await duckdb.selectBundle(JSDELIVR_BUNDLES);
@@ -25,6 +27,7 @@ async function initDuckDB() {
   await db.instantiate(bundle.mainModule, bundle.pthreadWorker);
   URL.revokeObjectURL(worker_url);
 
+  console.log("[DuckDB] Initialization complete!");
   dbPromise = Promise.resolve(db);
   return db;
 }
