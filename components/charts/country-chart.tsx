@@ -286,7 +286,7 @@ export function CountryChart({
           <div className="flex w-full items-center justify-between text-xs text-zinc-500">
             <span>Total countries</span>
             <span className="font-medium text-zinc-900">
-              {topCountries.length}
+              [{topCountries.length}]
             </span>
           </div>
         </CardFooter>

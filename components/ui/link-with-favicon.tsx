@@ -13,6 +13,7 @@ export interface LinkWithFaviconProps extends Omit<
   showIcon?: boolean;
   asCode?: boolean;
   children?: React.ReactNode;
+  size?: "sm" | "md";
 }
 
 const LinkWithFavicon = React.forwardRef<
@@ -29,6 +30,7 @@ const LinkWithFavicon = React.forwardRef<
       className,
       iconClassName,
       children,
+      size = "md",
       ...props
     },
     ref,
@@ -38,7 +40,7 @@ const LinkWithFavicon = React.forwardRef<
 
     return (
       <div className="flex items-center gap-0.5">
-        {showFavicon && <UrlFavicon url={originalUrl} />}
+        {showFavicon && <UrlFavicon url={originalUrl} size={size} />}
         <LinkWithIcon
           ref={ref}
           href={url}

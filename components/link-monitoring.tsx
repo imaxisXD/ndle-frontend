@@ -4,14 +4,12 @@ import { api } from "@/convex/_generated/api";
 import { Badge } from "@ui/badge";
 import { Card, CardContent } from "@ui/card";
 import { RecentIncidents } from "./recent-incidents";
-import { Button } from "./ui/button";
 import { Skeleton } from "./ui/skeleton";
 import {
   CheckCircle,
   ShieldCheck,
   WarningCircle,
   XmarkCircle,
-  Refresh,
 } from "iconoir-react";
 import { getShortDomain } from "@/lib/config";
 import {
