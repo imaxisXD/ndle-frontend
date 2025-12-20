@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/base-tooltip";
 import Link from "next/link";
 import {
-  BrainIcon,
+  // BrainIcon,
   ChartBarIcon,
   FolderIcon,
   GearIcon,
@@ -96,7 +96,9 @@ export function Sidebar() {
           ></TooltipTrigger>
           <TooltipContent side="right">Collections</TooltipContent>
         </Tooltip>
-        <Tooltip>
+
+        {/**TODO: WILL ADD BACK IN LATER */}
+        {/* <Tooltip>
           <TooltipTrigger
             render={
               <NavLink
@@ -119,7 +121,7 @@ export function Sidebar() {
             }
           ></TooltipTrigger>
           <TooltipContent side="right">Memory</TooltipContent>
-        </Tooltip>
+        </Tooltip> */}
 
         <Tooltip>
           <TooltipTrigger
