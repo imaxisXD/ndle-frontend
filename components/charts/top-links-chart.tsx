@@ -76,7 +76,7 @@ export function TopLinksChart({
         </CardDescription>
       </CardHeader>
 
-      <CardContent className="flex flex-col gap-4">
+      <CardContent className="flex flex-col gap-4 p-6">
         {isLoading ? (
           <div className="p-6 pt-0">
             <div className="space-y-2">

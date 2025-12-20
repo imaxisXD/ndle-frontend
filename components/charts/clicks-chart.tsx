@@ -116,10 +116,7 @@ export function ClicksChart({
             value={timeRange}
             onValueChange={(value) => onTimeRangeChange(value as TimeRange)}
           >
-            <SelectTrigger
-              size="sm"
-              className="border-zinc-300 bg-zinc-100 text-zinc-900 shadow-sm"
-            >
+            <SelectTrigger size="sm" className="rounded-sm bg-gray-50">
               <SelectValue placeholder="Select range" />
             </SelectTrigger>
             <SelectContent>
