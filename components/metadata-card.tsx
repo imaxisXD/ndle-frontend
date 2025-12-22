@@ -2,13 +2,7 @@
 
 import { formatRelative } from "@/lib/utils";
 import { Card, CardContent } from "./ui/card";
-import {
-  AntennaSignal,
-  Clock,
-  Link,
-  OpenInBrowser,
-  QrCode,
-} from "iconoir-react";
+import { AntennaSignal, Clock, Link, OpenInBrowser } from "iconoir-react";
 import { Skeleton } from "./ui/skeleton";
 import LinkWithIcon from "./ui/link-with-icon";
 import { makeShortLink } from "@/lib/config";
@@ -22,7 +16,7 @@ import {
   DialogBody,
 } from "./ui/base-dialog";
 import { Button } from "./ui/button";
-import { QrCodeIcon } from "lucide-react";
+import { QrCodeIcon } from "@phosphor-icons/react/dist/ssr";
 
 export default function MetadataCard({
   shortslug,

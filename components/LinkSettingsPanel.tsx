@@ -21,7 +21,7 @@ import {
   Check,
   Xmark,
 } from "iconoir-react";
-import { QrCodeIcon } from "lucide-react";
+import { QrCodeIcon } from "@phosphor-icons/react/dist/ssr";
 
 interface LinkSettingsPanelProps {
   fullUrl?: string;

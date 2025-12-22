@@ -9,8 +9,12 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { formatRelative } from "@/lib/utils";
-// import { Clock, SmartphoneIcon, Desktop, Tablet } from "iconoir-react";
-import { Clock, Smartphone, Computer, Tablet } from "lucide-react";
+import {
+  ClockUserIcon,
+  DesktopTowerIcon,
+  DeviceMobileCameraIcon,
+  DeviceTabletCameraIcon,
+} from "@phosphor-icons/react";
 
 // Dummy activity data
 const DUMMY_ACTIVITY_DATA = [
@@ -109,11 +113,11 @@ const DUMMY_ACTIVITY_DATA = [
 function getDeviceIcon(device: string) {
   switch (device) {
     case "mobile":
-      return <Smartphone className="size-4" />;
+      return <DeviceMobileCameraIcon className="size-4" />;
     case "tablet":
-      return <Tablet className="size-4" />;
+      return <DeviceTabletCameraIcon className="size-4" />;
     default:
-      return <Computer className="size-4" />;
+      return <DesktopTowerIcon className="size-4" />;
   }
 }
 
@@ -131,7 +135,7 @@ export function LinkActivityLog() {
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-base">
-          <Clock className="text-muted-foreground size-4" />
+          <ClockUserIcon className="text-muted-foreground size-4" />
           Recent Activity
         </CardTitle>
         <CardDescription>Last 10 clicks on this link</CardDescription>

@@ -2,8 +2,7 @@
 
 import * as React from "react";
 import { addDays, startOfToday } from "date-fns";
-import { CalendarPlus, ChevronDownIcon } from "lucide-react";
-import { Lock, Spark, Star } from "iconoir-react";
+import { Lock, Spark } from "iconoir-react";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import type { Matcher } from "react-day-picker";
@@ -18,6 +17,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/base-tooltip";
 import { cn } from "@/lib/utils";
+import { ArrowCircleDownIcon, CalendarPlusIcon } from "@phosphor-icons/react";
 
 type Calendar19Props = {
   isPro?: boolean;
@@ -90,9 +90,9 @@ export function CalendarPreset({
         }
       >
         <span className="inline-flex w-full items-center justify-between">
-          <CalendarPlus className="size-4" />
+          <CalendarPlusIcon className="size-4" />
           {value ? value.toLocaleDateString() : "Select date"}
-          <ChevronDownIcon className="size-4" />
+          <ArrowCircleDownIcon className="size-4" />
         </span>
       </PopoverTrigger>
       <PopoverContent

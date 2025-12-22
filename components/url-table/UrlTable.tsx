@@ -71,8 +71,8 @@ import { CircleGridLoaderIcon } from "../icons";
 import { Skeleton } from "../ui/skeleton";
 import { makeShortLink } from "@/lib/config";
 import NumberFlow from "@number-flow/react";
-import { ChartLineIcon } from "lucide-react";
-import { CopyIcon, TrashIcon } from "@phosphor-icons/react";
+
+import { ChartBarIcon, CopyIcon, TrashIcon } from "@phosphor-icons/react";
 import { LinkWithFavicon } from "../ui/link-with-favicon";
 interface UrlTableProps {
   showSearch?: boolean;
@@ -227,7 +227,7 @@ function ActionsMenuCell({
             setMenuOpen(false);
           }}
         >
-          <ChartLineIcon />
+          <ChartBarIcon />
           <span>Analytics</span>
           <MenuShortcut>
             <Kbd>A</Kbd>

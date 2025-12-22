@@ -3,8 +3,9 @@
 import * as React from "react";
 import { cn } from "@/lib/utils";
 import { Menu as MenuPrimitive } from "@base-ui-components/react/menu";
-import { Check, ChevronRight, Circle } from "lucide-react";
 import { KbdGroup } from "./kbd";
+import { CircleIcon } from "@phosphor-icons/react/dist/ssr";
+import { ArrowCircleRightIcon, CheckIcon } from "@phosphor-icons/react";
 
 // Root - Groups all parts of the menu
 function Menu({ ...props }: React.ComponentProps<typeof MenuPrimitive.Root>) {
@@ -197,7 +198,7 @@ function MenuRadioItem({
     >
       <span className="absolute start-1.5 flex h-3.5 w-3.5 items-center justify-center">
         <MenuPrimitive.RadioItemIndicator>
-          <Circle className="fill-primary stroke-primary h-1.5 w-1.5" />
+          <CircleIcon className="fill-primary stroke-primary h-1.5 w-1.5" />
         </MenuPrimitive.RadioItemIndicator>
       </span>
       {children}
@@ -236,7 +237,7 @@ function MenuCheckboxItem({
     >
       <span className="text-muted-foreground absolute start-2 flex h-3.5 w-3.5 items-center justify-center">
         <MenuPrimitive.CheckboxItemIndicator>
-          <Check className="text-primary h-4 w-4" />
+          <CheckIcon className="text-primary h-4 w-4" />
         </MenuPrimitive.CheckboxItemIndicator>
       </span>
       {children}
@@ -286,7 +287,7 @@ function MenuSubmenuTrigger({
       )}
     >
       {children}
-      <ChevronRight
+      <ArrowCircleRightIcon
         data-slot="menu-submenu-trigger-indicator"
         className="ms-auto size-3.5! rtl:rotate-180"
       />

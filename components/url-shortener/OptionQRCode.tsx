@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useMemo, useRef } from "react";
 import { QRCodeSVG } from "qrcode.react";
 import { Input } from "@/components/ui/input";
 import {
@@ -16,12 +16,6 @@ import { ColorSelector } from "@/components/collection/ColorSelector";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { cn } from "@/lib/utils";
 import { Palette, Download, CloudDownload } from "iconoir-react";
-import {
-  Collapsible,
-  CollapsiblePanel,
-  CollapsibleTrigger,
-} from "@/components/ui/base-collapsible";
-import { ChevronDown } from "lucide-react";
 import { COLLECTION_COLORS } from "@/components/collection/colors";
 
 type Props = {
@@ -31,7 +25,6 @@ type Props = {
 
 export function OptionQRCode({ form, isPro = false }: Props) {
   const previewRef = useRef<HTMLDivElement>(null);
-  const [colorPanelOpen, setColorPanelOpen] = useState(false);
 
   const [
     urlValue,
@@ -74,7 +67,7 @@ export function OptionQRCode({ form, isPro = false }: Props) {
   });
 
   // Always use the highest error correction level for reliability
-  const ecc: "H" = "H";
+  const ecc = "H" as const;
 
   const logoSrc = useMemo(() => {
     // Only custom logos are embedded via imageSettings; brand uses on-canvas text overlay.
@@ -248,7 +241,7 @@ export function OptionQRCode({ form, isPro = false }: Props) {
               <FormField
                 control={form.control}
                 name="qrBg"
-                render={({ field }) => (
+                render={() => (
                   <FormItem className="space-y-3">
                     <div className="flex items-center justify-between">
                       <FormLabel className="text-xs">Background</FormLabel>

@@ -4,7 +4,7 @@ import * as React from "react";
 import { cn } from "@/lib/utils";
 import { Accordion } from "@base-ui-components/react/accordion";
 import { cva, type VariantProps } from "class-variance-authority";
-import { ChevronDown, Plus } from "lucide-react";
+import { ArrowCircleDownIcon, PlusIcon } from "@phosphor-icons/react";
 
 // Variants
 const accordionRootVariants = cva("", {
@@ -97,7 +97,8 @@ const AccordionContext = React.createContext<AccordionContextType>({
 
 // Base UI Accordion Root
 interface AccordionRootProps
-  extends React.ComponentProps<typeof Accordion.Root>,
+  extends
+    React.ComponentProps<typeof Accordion.Root>,
     VariantProps<typeof accordionRootVariants> {
   indicator?: "arrow" | "plus" | "none";
 }
@@ -176,13 +177,13 @@ function AccordionTrigger(
     >
       {children}
       {indicator === "plus" && (
-        <Plus
+        <PlusIcon
           className="size-4 shrink-0 transition-transform duration-200"
           strokeWidth={1}
         />
       )}
       {indicator === "arrow" && (
-        <ChevronDown
+        <ArrowCircleDownIcon
           className="size-4 shrink-0 transition-transform duration-200"
           strokeWidth={1}
         />

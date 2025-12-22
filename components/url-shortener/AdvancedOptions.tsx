@@ -20,18 +20,18 @@ import { OptionFallback } from "./OptionFallback";
 import { OptionSocial } from "./OptionSocial";
 import { OptionOrganization } from "./OptionOrganization";
 import {
-  Megaphone,
-  Split,
-  Lock,
-  Globe,
-  CalendarClock,
-  AlertTriangle,
-  QrCode,
-  Share2,
-  FolderOpen,
-  ChevronDown,
-  type LucideIcon,
-} from "lucide-react";
+  ArrowCircleDownIcon,
+  ArrowsSplitIcon,
+  CalendarDotsIcon,
+  FolderSimpleStarIcon,
+  GlobeHemisphereEastIcon,
+  Icon,
+  LockKeyIcon,
+  MegaphoneIcon,
+  QrCodeIcon,
+  ShareFatIcon,
+  WarningDiamondIcon,
+} from "@phosphor-icons/react";
 
 // All enable keys for watching form changes
 const ENABLE_KEYS = [
@@ -60,7 +60,7 @@ type OptionItem = {
   component: OptionComponent;
   enableKey?: EnableKey;
   description: string;
-  icon: LucideIcon;
+  icon: Icon;
   isActive?: (values: Partial<UrlFormValues>) => boolean;
 };
 
@@ -87,7 +87,7 @@ const GROUPS: OptionGroup[] = [
         component: OptionUTMBuilder,
         enableKey: "utmEnabled",
         description: "Add campaign parameters to your link",
-        icon: Megaphone,
+        icon: MegaphoneIcon,
       },
       {
         key: "ab",
@@ -95,7 +95,7 @@ const GROUPS: OptionGroup[] = [
         component: OptionABTesting,
         enableKey: "abEnabled",
         description: "Split traffic between multiple destinations",
-        icon: Split,
+        icon: ArrowsSplitIcon,
       },
     ],
   },
@@ -108,7 +108,7 @@ const GROUPS: OptionGroup[] = [
         component: OptionPassword,
         enableKey: "passwordEnabled",
         description: "Require a password to access the link",
-        icon: Lock,
+        icon: LockKeyIcon,
       },
       {
         key: "targeting",
@@ -116,7 +116,7 @@ const GROUPS: OptionGroup[] = [
         component: OptionTargeting,
         enableKey: "targetingEnabled",
         description: "Redirect based on country or device type",
-        icon: Globe,
+        icon: GlobeHemisphereEastIcon,
       },
     ],
   },
@@ -127,10 +127,9 @@ const GROUPS: OptionGroup[] = [
         key: "schedule",
         label: "Scheduling",
         component: OptionScheduling,
-        // No enableKey - managed internally
         isActive: (v) => !!v.activateAtEnabled || !!v.expiresEnabled,
         description: "Set start and end times for link availability",
-        icon: CalendarClock,
+        icon: CalendarDotsIcon,
       },
       {
         key: "fallback",
@@ -138,7 +137,7 @@ const GROUPS: OptionGroup[] = [
         component: OptionFallback,
         enableKey: "fallbackEnabled",
         description: "Redirect if the main link is down",
-        icon: AlertTriangle,
+        icon: WarningDiamondIcon,
       },
       {
         key: "qr",
@@ -146,7 +145,7 @@ const GROUPS: OptionGroup[] = [
         component: OptionQRCode,
         enableKey: "qrEnabled",
         description: "Generate a QR code for your link",
-        icon: QrCode,
+        icon: QrCodeIcon,
       },
     ],
   },
@@ -159,7 +158,7 @@ const GROUPS: OptionGroup[] = [
         component: OptionSocial,
         enableKey: "socialEnabled",
         description: "Customize how your link looks on social media",
-        icon: Share2,
+        icon: ShareFatIcon,
       },
     ],
   },
@@ -177,7 +176,7 @@ const GROUPS: OptionGroup[] = [
           !!v.collectionId ||
           !!v.notes,
         description: "Add tags, notes, and assign to a collection",
-        icon: FolderOpen,
+        icon: FolderSimpleStarIcon,
       },
     ],
   },
@@ -295,7 +294,7 @@ export function AdvancedOptions({
                               />
                             </SwitchWrapper>
                           )}
-                          <ChevronDown
+                          <ArrowCircleDownIcon
                             className={cn(
                               "text-muted-foreground size-4 transition-transform duration-200",
                               isExpanded && "rotate-180",
