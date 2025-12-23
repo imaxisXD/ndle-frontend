@@ -6,7 +6,12 @@ const INTERNAL_API_URL = process.env.INTERNAL_API_URL;
 const API_SECRET = process.env.API_SECRET;
 
 export async function GET(request: NextRequest) {
+  const t0 = performance.now();
+
   const { userId } = await auth();
+  const t1 = performance.now();
+  console.log(`[Perf] Clerk auth(): ${(t1 - t0).toFixed(2)}ms`);
+
   const userIdFromHeader = request.headers.get("x-convex-user-id");
   if (!userId && !userIdFromHeader) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -39,6 +44,8 @@ export async function GET(request: NextRequest) {
     console.log("📡 [AnalyticsV2] Targeting backend", INTERNAL_API_URL);
     const targetUrl = `${INTERNAL_API_URL}?start=${start}&end=${end}`;
     console.log("🛰️ [AnalyticsV2] Final URL", targetUrl);
+
+    const t2 = performance.now();
     const response = await fetch(targetUrl, {
       method: "GET",
       headers: {
@@ -48,6 +55,8 @@ export async function GET(request: NextRequest) {
       },
       cache: "no-store",
     });
+    const t3 = performance.now();
+    console.log(`[Perf] Ingest Service fetch: ${(t3 - t2).toFixed(2)}ms`);
 
     if (!response.ok) {
       // Clone response to read body text without consuming it for other potential uses
