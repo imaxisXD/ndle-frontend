@@ -11,7 +11,8 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
-import { useWatch } from "react-hook-form";
+import { UseFormReturn, useWatch } from "react-hook-form";
+import type { UrlFormValues } from "../url-shortener";
 import { ColorSelector } from "@/components/collection/ColorSelector";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { cn } from "@/lib/utils";
@@ -19,7 +20,7 @@ import { Palette, Download, CloudDownload } from "iconoir-react";
 import { COLLECTION_COLORS } from "@/components/collection/colors";
 
 type Props = {
-  form: any;
+  form: UseFormReturn<UrlFormValues>;
   isPro?: boolean;
 };
 

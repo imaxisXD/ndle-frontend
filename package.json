@@ -13,7 +13,7 @@
   },
   "dependencies": {
     "@base-ui-components/react": "^1.0.0-beta.4",
-    "@clerk/nextjs": "^6.34.0",
+    "@clerk/nextjs": "^6.36.5",
     "@convex-dev/eslint-plugin": "^1.0.0",
     "@convex-dev/sharded-counter": "^0.1.8",
     "@duckdb/duckdb-wasm": "^1.30.0",

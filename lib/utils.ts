@@ -20,8 +20,7 @@ export function getWindowsFolderNameError(name: string): string | null {
   if (trimmed.length === 0)
     return "Collection name cannot be empty or whitespace";
   if (trimmed === "." || trimmed === "..") return "Name cannot be '.' or '..'";
-  if (/[\x00-\x1f]/.test(trimmed))
-    return "Name cannot contain control characters";
+  if (/\p{Cc}/u.test(trimmed)) return "Name cannot contain control characters";
   if (/[<>:"/\\|?*]/.test(trimmed))
     return 'Name cannot contain < > : " / \\ | ? *';
   if (/[ .]$/.test(trimmed)) return "Name cannot end with a space or period";

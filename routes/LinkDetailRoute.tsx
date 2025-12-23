@@ -164,7 +164,7 @@ export default function LinkDetailRoute() {
               trackingEnabled={url?.trackingEnabled}
               expiresAt={url?.expiresAt}
               qrEnabled={url?.qrEnabled}
-              qrStyle={url?.qrStyle as any}
+              qrStyle={url?.qrStyle}
               creationTime={url?._creationTime}
             />
 
