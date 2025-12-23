@@ -11,7 +11,9 @@ const nextConfig: NextConfig = {
       destination: "/static-app-shell",
     },
   ],
-
+  experimental: {
+    optimizePackageImports: ["@phosphor-icons/react"],
+  },
   reactCompiler: true,
 };
 
