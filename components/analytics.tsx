@@ -43,7 +43,7 @@ function TotalClicksCard() {
 
 type TimeRange = "7d" | "30d" | "90d" | "1y";
 
-export function Analytics({ userId }: { userId: string }) {
+export function Analytics() {
   const [timeRange, setTimeRange] = useState<TimeRange>("30d");
 
   // Calculate start/end dates based on selection
@@ -73,11 +73,10 @@ export function Analytics({ userId }: { userId: string }) {
     };
   }, [timeRange]);
 
-  // Fetch Data with Polling (10s), passing the user ID
+  // Fetch Data with Polling - user identity determined server-side from JWT claims
   const { data, isLoading, isError, error } = useAnalyticsV2({
     start,
     end,
-    userId,
     pollingInterval: 10000,
   });
 

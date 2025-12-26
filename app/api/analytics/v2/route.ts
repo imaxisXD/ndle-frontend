@@ -8,13 +8,29 @@ const API_SECRET = process.env.API_SECRET;
 export async function GET(request: NextRequest) {
   const t0 = performance.now();
 
-  const { userId } = await auth();
+  // 1. AUTH: Require Clerk authentication and extract convex_user_id from JWT claims
+  // Security: The convex_user_id comes from signed JWT claims, NOT from a spoofable header
+  // This requires Clerk session template: { "convex_user_id": "{{user.public_metadata.convex_user_id}}" }
+  const { userId: clerkUserId, sessionClaims } = await auth();
   const t1 = performance.now();
   console.log(`[Perf] Clerk auth(): ${(t1 - t0).toFixed(2)}ms`);
 
-  const userIdFromHeader = request.headers.get("x-convex-user-id");
-  if (!userId && !userIdFromHeader) {
+  if (!clerkUserId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  // Extract convex_user_id from JWT session claims (set via Clerk's session template)
+  const convexUserId = (sessionClaims as Record<string, unknown>)
+    ?.convex_user_id as string | undefined;
+
+  if (!convexUserId) {
+    console.warn(
+      "[AnalyticsV2] Missing convex_user_id in session claims - user may need to re-login",
+    );
+    return NextResponse.json(
+      { error: "Session not configured. Please log out and log back in." },
+      { status: 401 },
+    );
   }
 
   // 2. INPUT: Parse Query Parameters (Date Range)
@@ -24,7 +40,8 @@ export async function GET(request: NextRequest) {
   console.log("📈 [AnalyticsV2] Incoming request", {
     start,
     end,
-    userId: userId ?? userIdFromHeader,
+    clerkUserId,
+    convexUserId,
   });
 
   // Validate minimal inputs
@@ -50,7 +67,7 @@ export async function GET(request: NextRequest) {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
-        "x-user-id": userIdFromHeader ?? "",
+        "x-user-id": convexUserId,
         Authorization: `Bearer ${API_SECRET}`,
       },
       cache: "no-store",

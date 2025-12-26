@@ -62,7 +62,6 @@ export interface HotDataRow {
 }
 
 export interface ColdFile {
-  url: string;
   key: string;
   size: number;
 }

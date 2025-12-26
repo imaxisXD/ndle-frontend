@@ -1,6 +1,6 @@
 import { Analytics } from "@/components/analytics";
 
-export default function AnalyticsRoute({ userId }: { userId: string }) {
+export default function AnalyticsRoute() {
   return (
     <>
       <header>
@@ -15,7 +15,7 @@ export default function AnalyticsRoute({ userId }: { userId: string }) {
         <h2 className="sr-only" id="analytics-content-heading">
           Analytics Content
         </h2>
-        <Analytics userId={userId} />
+        <Analytics />
       </section>
       <section aria-labelledby="links-list-heading">
         <h2 className="sr-only" id="links-list-heading">

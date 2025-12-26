@@ -9,9 +9,9 @@ import {
 } from "convex/react";
 import dynamic from "next/dynamic";
 import SignInComponent from "../sign-in/[[...sign-in]]/sign-in";
-import { useEffect } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { api } from "@/convex/_generated/api";
-import { useUser } from "@clerk/nextjs";
+import { useSession, useUser } from "@clerk/nextjs";
 
 const App = dynamic(() => import("@/app/static-app-shell/app"), { ssr: false });
 
@@ -32,16 +32,46 @@ export default function StaticAppShell() {
   );
 }
 
+/**
+ * StoreUser component - creates/updates Convex user and refreshes Clerk session
+ * if metadata was updated (new user).
+ *
+ * This ensures the JWT has the convex_user_id claim for secure file proxy auth.
+ */
 function StoreUser() {
   const { user } = useUser();
+  const { session } = useSession();
   const storeUser = useMutation(api.users.store);
+  const initializedRef = useRef(false);
+
+  const initializeUser = useCallback(async () => {
+    if (!user || initializedRef.current) return;
+
+    try {
+      // 1. Create/get Convex user - returns { id, metadataUpdated }
+      const result = await storeUser();
+
+      // 2. If metadata was updated (new user), refresh the Clerk session
+      //    to get the new JWT with convex_user_id claim
+      if (result.metadataUpdated) {
+        // Force Clerk to fetch fresh user data with updated public_metadata
+        await user.reload();
+        // Force new session token to be issued with the updated claims
+        // skipCache: true ensures we don't use a cached token
+        if (session) {
+          await session.getToken({ skipCache: true });
+        }
+      }
+
+      initializedRef.current = true;
+    } catch (error) {
+      console.error("[StoreUser] Error initializing user:", error);
+    }
+  }, [user, session, storeUser]);
 
   useEffect(() => {
-    async function createUser() {
-      await storeUser();
-    }
-    createUser();
-  }, [storeUser, user?.id]);
+    initializeUser();
+  }, [initializeUser]);
 
   return null;
 }

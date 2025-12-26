@@ -30,14 +30,7 @@ export default function App() {
                 <Routes>
                   <Route path="/" element={<HomeRoute />} />
                   <Route path="/urls" element={<UrlsRoute />} />
-                  <Route
-                    path="/analytics"
-                    element={
-                      <AnalyticsRoute
-                        userId={collections?.[0]?.userTableId ?? ""}
-                      />
-                    }
-                  />
+                  <Route path="/analytics" element={<AnalyticsRoute />} />
                   <Route path="/monitoring" element={<MonitoringRoute />} />
                   <Route path="/settings" element={<SettingsRoute />} />
                   <Route

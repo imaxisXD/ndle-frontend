@@ -4,29 +4,24 @@ import type { AnalyticsResponse } from "@/types/analytics-v2";
 interface UseAnalyticsV2Props {
   start: string;
   end: string;
-  userId?: string;
   pollingInterval?: number;
 }
 
-export function useAnalyticsV2({ start, end, userId }: UseAnalyticsV2Props) {
+/**
+ * Hook to fetch analytics data.
+ * User identity is now determined server-side from JWT claims (not passed from frontend).
+ */
+export function useAnalyticsV2({ start, end }: UseAnalyticsV2Props) {
   return useQuery({
-    queryKey: ["analytics-v2", start, end, userId],
+    queryKey: ["analytics-v2", start, end],
     queryFn: async (): Promise<AnalyticsResponse> => {
-      if (!userId) {
-        console.error("User ID is required");
-        throw new Error("User ID is required");
-      }
-
       const params = new URLSearchParams({
         start,
         end,
       });
 
-      const response = await fetch(`/api/analytics/v2?${params.toString()}`, {
-        headers: {
-          "x-convex-user-id": userId,
-        },
-      });
+      // No need to pass user ID - server reads it from JWT session claims
+      const response = await fetch(`/api/analytics/v2?${params.toString()}`);
 
       if (!response.ok) {
         // Attempt to parse error message from response
@@ -34,7 +29,7 @@ export function useAnalyticsV2({ start, end, userId }: UseAnalyticsV2Props) {
 
         try {
           const errorData = await response.json();
-          console.error("Analytics API Error Response:", errorData); // Log raw error to console
+          console.error("Analytics API Error Response:", errorData);
 
           if (errorData.error) {
             errorMsg = errorData.error;
@@ -48,7 +43,6 @@ export function useAnalyticsV2({ start, end, userId }: UseAnalyticsV2Props) {
 
       return response.json();
     },
-    enabled: !!userId, // Only run when we have a user ID
     refetchInterval: 120000,
   });
 }
