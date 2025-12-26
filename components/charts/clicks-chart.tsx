@@ -7,8 +7,8 @@ import {
   XAxis,
   YAxis,
   LabelList,
-  CartesianGrid,
   Cell,
+  CartesianGrid,
 } from "recharts";
 import {
   Card,
@@ -32,29 +32,9 @@ import {
   SelectContent,
   SelectItem,
 } from "@/components/ui/base-select";
-import { Calendar, RefreshDouble } from "iconoir-react";
+import { RefreshDouble } from "iconoir-react";
 import { cn, expandWeekday } from "@/lib/utils";
-
-// Custom label component to render day name inside the bar
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function DayLabel(props: any) {
-  const { x = 0, y = 0, height = 0, value = "" } = props;
-
-  return (
-    <foreignObject
-      x={Number(x) + 8}
-      y={Number(y)}
-      width={120}
-      height={Number(height)}
-    >
-      <div className="flex h-full items-center">
-        <span className="truncate text-xs font-medium text-black">
-          {expandWeekday(String(value))}
-        </span>
-      </div>
-    </foreignObject>
-  );
-}
+import { CursorClickIcon } from "@phosphor-icons/react/dist/ssr";
 
 const chartConfig = {
   clicks: {
@@ -83,7 +63,10 @@ export function ClicksChart({
 }) {
   const chartData = useMemo(() => {
     if (!data || data.length === 0) return [];
-    return data;
+    return data.map((item) => ({
+      ...item,
+      dayFull: expandWeekday(item.day),
+    }));
   }, [data]);
 
   const averageClicks = useMemo(() => {
@@ -92,23 +75,27 @@ export function ClicksChart({
     return Math.round(total / Math.max(chartData.length, 1));
   }, [chartData]);
 
-  // Calculate max clicks to determine domain and normalize zero values
   const maxClicks = useMemo(() => {
     if (!chartData || chartData.length === 0) return 0;
     return Math.max(...chartData.map((d) => d.clicks));
   }, [chartData]);
 
-  // Create normalized data with a displayClicks value that ensures zero values show minimal bars
-  const normalizedChartData = useMemo(() => {
+  // Prepare data with background bar (always shows full width gray bar)
+  const processedData = useMemo(() => {
     if (!chartData || chartData.length === 0) return [];
-    // If all values are 0, use a baseline of 1 for display
-    const baseline = maxClicks === 0 ? 1 : Math.max(maxClicks * 0.05, 1);
+    const effectiveMax = maxClicks || 1;
+
     return chartData.map((item) => ({
       ...item,
-      displayClicks: item.clicks === 0 ? baseline : item.clicks,
-      isZero: item.clicks === 0,
+      // Background shows the remaining portion (max - clicks)
+      background: effectiveMax - item.clicks,
+      // Actual clicks value
+      clicks: item.clicks,
     }));
   }, [chartData, maxClicks]);
+
+  // Domain max for proper scaling
+  const domainMax = maxClicks || 1;
 
   return (
     <Card
@@ -121,7 +108,7 @@ export function ClicksChart({
         <div className="flex w-full items-center justify-between gap-3">
           <div className="flex min-w-0 flex-col gap-1">
             <CardTitle className="flex items-center gap-2 font-medium text-zinc-900">
-              <Calendar className="size-5" />
+              <CursorClickIcon className="size-4.5" weight="duotone" />
               Weekly Click Count
               {isLoading && (
                 <RefreshDouble className="h-3 w-3 animate-spin text-zinc-400" />
@@ -161,18 +148,19 @@ export function ClicksChart({
         ) : (
           <ChartContainer
             config={chartConfig}
-            className="aspect-auto w-full"
+            className="[&_.recharts-cartesian-axis-tick_text]:fill-primary aspect-auto w-full"
             style={{ height: "280px" }}
           >
             <BarChart
               accessibilityLayer
-              data={normalizedChartData}
+              data={processedData}
               layout="vertical"
               margin={{
-                right: 48,
+                right: 40,
                 left: 8,
               }}
               barCategoryGap="20%"
+              stackOffset="none"
             >
               <defs>
                 <linearGradient
@@ -182,24 +170,25 @@ export function ClicksChart({
                   x2="1"
                   y2="0"
                 >
-                  <stop offset="0%" stopColor="#ffcc00ff" stopOpacity={1} />
+                  <stop offset="0%" stopColor="#ffcc00" stopOpacity={1} />
                   <stop offset="100%" stopColor="#ffc700" stopOpacity={1} />
                 </linearGradient>
               </defs>
-              <CartesianGrid horizontal={false} />
               <YAxis
-                dataKey="day"
+                dataKey="dayFull"
                 type="category"
                 tickLine={false}
-                tickMargin={10}
+                tickMargin={8}
                 axisLine={false}
-                hide
+                width={70}
+                tick={{ fontSize: 12, fill: "#0a0a0a" }}
               />
-              <XAxis
-                dataKey="displayClicks"
-                type="number"
-                hide
-                domain={[0, (dataMax: number) => Math.max(dataMax, 1)]}
+              <XAxis type="number" hide domain={[0, domainMax]} />
+              <CartesianGrid
+                horizontal={false}
+                strokeDasharray="5"
+                stroke="var(--border)"
+                strokeOpacity={1}
               />
               <ChartTooltip
                 cursor={false}
@@ -208,36 +197,56 @@ export function ClicksChart({
                     className="rounded-sm bg-linear-to-br from-black/80 to-black text-white *:text-inherit **:text-inherit"
                     labelClassName="text-white font-medium"
                     indicator="dot"
-                    color="white"
+                    hideIndicator={false}
+                    formatter={(value, name) => {
+                      if (name === "background") return null;
+                      return (
+                        <div className="flex items-center gap-2">
+                          <span className="inline-block size-3 shrink-0 rounded-xs bg-amber-400" />
+                          <span>Clicks</span>
+                          <span className="ml-auto font-medium tabular-nums">
+                            {value}
+                          </span>
+                        </div>
+                      );
+                    }}
                   />
                 }
               />
               <Bar
-                dataKey="displayClicks"
+                dataKey="clicks"
+                stackId="a"
                 layout="vertical"
-                radius={4}
+                radius={[4, 0, 0, 4]}
                 barSize={28}
               >
-                {normalizedChartData.map((entry, index) => (
+                {processedData.map((entry, index) => (
                   <Cell
-                    key={`cell-${index}`}
+                    key={`clicks-${index}`}
                     fill={
-                      entry.isZero
-                        ? "#e5e5e5" // Gray for zero values
+                      entry.clicks === 0
+                        ? "#e5e5e5"
                         : "url(#barGradientHorizontalClicks)"
                     }
                   />
                 ))}
-                <LabelList
-                  dataKey="day"
-                  position="insideLeft"
-                  content={DayLabel}
-                />
+              </Bar>
+              {/* Background bar (gray) - fills remaining space */}
+              <Bar
+                dataKey="background"
+                stackId="a"
+                layout="vertical"
+                fill="var(--color-slate-200)"
+                radius={[0, 4, 4, 0]}
+                barSize={28}
+                className="opacity-70 backdrop-blur-xl"
+              >
+                {/* Label showing click count on the right edge */}
                 <LabelList
                   dataKey="clicks"
                   position="right"
                   offset={8}
-                  className="fill-zinc-600"
+                  className="fill-primary font-medium"
                   fontSize={12}
                 />
               </Bar>

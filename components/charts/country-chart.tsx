@@ -33,25 +33,10 @@ import {
   DialogBody,
 } from "@/components/ui/base-dialog";
 import { Button } from "@/components/ui/button";
-import { Expand, Globe } from "iconoir-react";
-import { ProgressListItem } from "@/components/analytics/ProgressListItem";
+import { Expand } from "iconoir-react";
+
 import { cn, countryCodeToName } from "@/lib/utils";
-
-function getCountryFlag(countryCode: string) {
-  const code = (countryCode || "").slice(0, 2).toLowerCase();
-  const showFlag = /^[a-z]{2}$/.test(code) && code !== "ot" && code !== "un";
-
-  if (!showFlag) return <Globe className="text-muted-foreground size-4" />;
-
-  return (
-    // eslint-disable-next-line @next/next/no-img-element
-    <img
-      alt={countryCode}
-      src={`/api/flag?code=${code}`}
-      className="size-6 shrink-0 rounded-full bg-black p-1"
-    />
-  );
-}
+import { GlobeHemisphereWestIcon } from "@phosphor-icons/react";
 
 function getFlagUrl(countryCode: string): string | null {
   const code = (countryCode || "").slice(0, 2).toLowerCase();
@@ -77,7 +62,7 @@ function CountryLabel(props: any) {
           // eslint-disable-next-line @next/next/no-img-element
           <img src={flagUrl} alt={String(value)} className="size-4 shrink-0" />
         ) : (
-          <Globe className="text-muted-foreground size-4" />
+          <GlobeHemisphereWestIcon className="text-muted-foreground size-4" />
         )}
         <span className="truncate text-xs font-medium text-black">
           {countryCodeToName(String(value))}
@@ -139,7 +124,7 @@ export function CountryChart({
         <div className="flex w-full items-center justify-between gap-3">
           <div className="flex min-w-0 flex-col gap-1">
             <CardTitle className="flex items-center gap-2 font-medium text-zinc-900">
-              <Globe className="size-5" />
+              <GlobeHemisphereWestIcon className="size-5" weight="duotone" />
               Top Countries
             </CardTitle>
             <CardDescription className="text-xs text-zinc-400">
@@ -159,30 +144,106 @@ export function CountryChart({
                   </Button>
                 }
               />
-              <DialogContent className="flex flex-col gap-5 sm:max-w-md">
+              <DialogContent className="flex flex-col gap-5 sm:max-w-2xl">
                 <DialogHeader className="bg-transparent">
                   <DialogTitle>All Countries</DialogTitle>
                 </DialogHeader>
                 <DialogBody className="rounded-sm bg-white p-2">
-                  <div className="max-h-[50vh] space-y-3.5 overflow-y-auto px-2 py-4">
-                    {topCountries.map((country) => (
-                      <ProgressListItem
-                        key={country.country}
-                        label={
-                          <div
-                            className="flex items-center gap-2"
-                            title={countryCodeToName(country.country)}
+                  <div className="max-h-[70vh] overflow-y-auto px-2 py-4">
+                    <ChartContainer
+                      config={chartConfig}
+                      className="aspect-auto w-full"
+                      style={{
+                        height: `${Math.max(topCountries.length * 40, 200)}px`,
+                      }}
+                    >
+                      <BarChart
+                        accessibilityLayer
+                        data={topCountries}
+                        layout="vertical"
+                        margin={{
+                          right: 48,
+                          left: 8,
+                        }}
+                        barCategoryGap="20%"
+                      >
+                        <defs>
+                          <linearGradient
+                            id="barGradientHorizontalCountryDialog"
+                            x1="0"
+                            y1="0"
+                            x2="1"
+                            y2="0"
                           >
-                            {getCountryFlag(country.country)}
-                            <span className="text-muted-foreground text-xs">
-                              {countryCodeToName(country.country)}
-                            </span>
-                          </div>
-                        }
-                        value={country.clicks}
-                        percentage={country.percentage}
-                      />
-                    ))}
+                            <stop
+                              offset="0%"
+                              stopColor="#ffcc00ff"
+                              stopOpacity={0.7}
+                            />
+                            <stop
+                              offset="100%"
+                              stopColor="#ffc700"
+                              stopOpacity={1}
+                            />
+                          </linearGradient>
+                        </defs>
+                        <CartesianGrid
+                          horizontal={false}
+                          strokeDasharray="5"
+                          stroke="var(--border)"
+                          strokeOpacity={1}
+                        />
+                        <YAxis
+                          dataKey="country"
+                          type="category"
+                          tickLine={false}
+                          tickMargin={10}
+                          axisLine={false}
+                          hide
+                        />
+                        <XAxis
+                          dataKey="clicks"
+                          type="number"
+                          hide
+                          domain={[0, "dataMax"]}
+                        />
+                        <ChartTooltip
+                          cursor={false}
+                          content={
+                            <ChartTooltipContent
+                              className="rounded-sm bg-linear-to-br from-black/80 to-black text-white *:text-inherit **:text-inherit"
+                              labelClassName="text-white font-medium"
+                              labelFormatter={(value) =>
+                                countryCodeToName(String(value))
+                              }
+                              indicator="dot"
+                              color="var(--accent)"
+                            />
+                          }
+                        />
+                        <Bar
+                          dataKey="clicks"
+                          layout="vertical"
+                          fill="url(#barGradientHorizontalCountryDialog)"
+                          radius={4}
+                          barSize={28}
+                          minPointSize={160}
+                        >
+                          <LabelList
+                            dataKey="country"
+                            position="insideLeft"
+                            content={CountryLabel}
+                          />
+                          <LabelList
+                            dataKey="clicks"
+                            position="right"
+                            offset={16}
+                            className="fill-primary font-medium"
+                            fontSize={12}
+                          />
+                        </Bar>
+                      </BarChart>
+                    </ChartContainer>
                   </div>
                 </DialogBody>
               </DialogContent>
@@ -225,11 +286,16 @@ export function CountryChart({
                   x2="1"
                   y2="0"
                 >
-                  <stop offset="0%" stopColor="#ffcc00ff" stopOpacity={0.4} />
-                  <stop offset="100%" stopColor="#ffc700" stopOpacity={0.4} />
+                  <stop offset="0%" stopColor="#ffcc00ff" stopOpacity={0.7} />
+                  <stop offset="100%" stopColor="#ffc700" stopOpacity={1} />
                 </linearGradient>
               </defs>
-              <CartesianGrid horizontal={false} />
+              <CartesianGrid
+                horizontal={false}
+                strokeDasharray="5"
+                stroke="var(--border)"
+                strokeOpacity={1}
+              />
               <YAxis
                 dataKey="country"
                 type="category"
@@ -252,7 +318,7 @@ export function CountryChart({
                     labelClassName="text-white font-medium"
                     labelFormatter={(value) => countryCodeToName(String(value))}
                     indicator="dot"
-                    color="white"
+                    color="var(--accent)"
                   />
                 }
               />
@@ -272,8 +338,8 @@ export function CountryChart({
                 <LabelList
                   dataKey="clicks"
                   position="right"
-                  offset={8}
-                  className="fill-zinc-600"
+                  offset={16}
+                  className="fill-primary font-medium"
                   fontSize={12}
                 />
               </Bar>
