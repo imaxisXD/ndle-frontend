@@ -29,6 +29,7 @@ import { useToast } from "@/hooks/use-toast";
 import { getRandomCollectionColor } from "./colors";
 import { ColorSelector } from "./ColorSelector";
 import { getWindowsFolderNameError } from "@/lib/utils";
+import { trackCollectionCreated } from "@/lib/posthog";
 
 const collectionFormSchema = z.object({
   name: z
@@ -95,6 +96,7 @@ export function CreateCollectionButton({
       description: values.description || "",
       collectionColor: colorToSend,
     });
+    trackCollectionCreated();
     addToast.add({
       title: "Collection created",
       description: "Your new collection has been created",

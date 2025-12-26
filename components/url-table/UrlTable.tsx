@@ -74,6 +74,7 @@ import NumberFlow from "@number-flow/react";
 
 import { ChartBarIcon, CopyIcon, TrashIcon } from "@phosphor-icons/react";
 import { LinkWithFavicon } from "../ui/link-with-favicon";
+import { trackUrlCopied, trackUrlDeleted } from "@/lib/posthog";
 interface UrlTableProps {
   showSearch?: boolean;
   showFilters?: boolean;
@@ -478,6 +479,7 @@ export function UrlTable({
         ? shortUrl
         : `https://${shortUrl}`;
       navigator.clipboard.writeText(normalized);
+      trackUrlCopied();
       add({
         type: "success",
         title: "Success",
@@ -506,6 +508,7 @@ export function UrlTable({
 
     try {
       await deleteUrl({ urlSlug: urlToDelete.slug });
+      trackUrlDeleted();
       setDeleteDialogOpen(false);
       setUrlToDelete(null);
       add({

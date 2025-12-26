@@ -12,6 +12,7 @@ import SignInComponent from "../sign-in/[[...sign-in]]/sign-in";
 import { useCallback, useEffect, useRef } from "react";
 import { api } from "@/convex/_generated/api";
 import { useSession, useUser } from "@clerk/nextjs";
+import { identifyUser } from "@/lib/posthog";
 
 const App = dynamic(() => import("@/app/static-app-shell/app"), { ssr: false });
 
@@ -62,6 +63,15 @@ function StoreUser() {
           await session.getToken({ skipCache: true });
         }
       }
+
+      // 3. Identify user in PostHog for analytics tracking
+      identifyUser(user.id, {
+        convex_id: result.id,
+        clerk_user_id: user.id,
+        email: user.primaryEmailAddress?.emailAddress,
+        name: user.fullName ?? undefined,
+        created_at: user.createdAt?.getTime(),
+      });
 
       initializedRef.current = true;
     } catch (error) {

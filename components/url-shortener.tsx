@@ -39,6 +39,7 @@ import { HotkeyButton } from "./ui/hotkey-button";
 import { Badge } from "@/components/ui/badge";
 import { AdvancedOptions } from "./url-shortener/AdvancedOptions";
 import { getRandomCollectionColor } from "@/components/collection/colors";
+import { trackUrlCreated, trackAdvancedOptionsOpened } from "@/lib/posthog";
 
 const urlFormSchema = z
   .object({
@@ -433,6 +434,20 @@ export function UrlShortener() {
 
       const finalShort = makeShortLink(result.slug);
 
+      // Track URL creation with feature flags for analytics
+      trackUrlCreated({
+        slug_type: values.slugMode,
+        has_expiration: values.expiresEnabled,
+        has_utm: values.utmEnabled ?? false,
+        has_ab_test: values.abEnabled ?? false,
+        has_password: values.passwordEnabled ?? false,
+        has_qr_code: values.qrEnabled ?? false,
+        has_fallback: values.fallbackEnabled ?? false,
+        has_collection: !!collectionIdToUse,
+        has_targeting: values.targetingEnabled ?? false,
+        has_social_metadata: values.socialEnabled ?? false,
+      });
+
       add({
         type: "success",
         title: "Short link ready",
@@ -614,7 +629,12 @@ export function UrlShortener() {
                 type="button"
                 hotkey="a"
                 enableOnFormTags={false}
-                onClick={() => setAdvancedOpen(!advancedOpen)}
+                onClick={() => {
+                  if (!advancedOpen) {
+                    trackAdvancedOptionsOpened();
+                  }
+                  setAdvancedOpen(!advancedOpen);
+                }}
                 className="group hover:bg-muted/70 bg-transparent px-1.5 py-0 text-xs text-black outline-1 hover:font-medium hover:shadow-none"
               >
                 <span

@@ -1,6 +1,12 @@
 import { Analytics } from "@/components/analytics";
+import { useEffect } from "react";
+import { trackAnalyticsViewed } from "@/lib/posthog";
 
 export default function AnalyticsRoute() {
+  useEffect(() => {
+    trackAnalyticsViewed();
+  }, []);
+
   return (
     <>
       <header>

@@ -47,6 +47,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Id } from "@/convex/_generated/dataModel";
+import { trackCollectionDeleted } from "@/lib/posthog";
 
 function CollectionMenuCell({
   collection,
@@ -178,6 +179,7 @@ export function Collections({
       await deleteCollection({
         collectionId: collectionToDelete.id as Id<"collections">,
       });
+      trackCollectionDeleted();
       setDeleteDialogOpen(false);
       setCollectionToDelete(null);
       add({

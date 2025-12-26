@@ -16,6 +16,7 @@ import { Button } from "@/components/ui/button";
 import { formatRelative } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { Link as LinkIcon } from "iconoir-react";
+import { trackCollectionUrlAdded } from "@/lib/posthog";
 
 interface UrlPickerTableProps {
   collectionId: Id<"collections">;
@@ -87,6 +88,10 @@ export function UrlPickerTable({ collectionId, onClose }: UrlPickerTableProps) {
         title: "Added",
         description: `${selected.size} Link(s) added to collection`,
       });
+      // Track each URL addition for analytics
+      for (let i = 0; i < selected.size; i++) {
+        trackCollectionUrlAdded();
+      }
       setSelected(new Set());
       onClose?.();
     } catch (e) {
