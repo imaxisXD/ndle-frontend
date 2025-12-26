@@ -74,11 +74,14 @@ export function Analytics() {
   }, [timeRange]);
 
   // Fetch Data with Polling - user identity determined server-side from JWT claims
-  const { data, isLoading, isError, error } = useAnalyticsV2({
+  const { data, isLoading, isPending, isError, error } = useAnalyticsV2({
     start,
     end,
     pollingInterval: 10000,
   });
+
+  // Only show skeleton on FIRST load, not when switching filters (keepPreviousData handles that)
+  const showSkeleton = isPending && !data;
 
   const {
     data: coldData,
@@ -92,6 +95,9 @@ export function Analytics() {
   );
   const urlsLoading = urlsWithAnalytics === undefined;
 
+  console.log(
+    `[Analytics] timeRange=${timeRange} | showSkeleton=${showSkeleton} | isPending=${isPending} | coldLoading=${coldLoading}`,
+  );
   console.log("Analytics data", data);
   console.log("Cold data", coldData);
 
@@ -228,7 +234,7 @@ export function Analytics() {
                 <div className="flex-1">
                   <p className="text-muted-foreground text-xs">{stat.label}</p>
                   <div className="mt-2 text-2xl font-medium">
-                    {isLoading ? (
+                    {showSkeleton ? (
                       <Skeleton className="h-8 w-16" />
                     ) : (
                       <NumberFlow value={Number(stat.value)} />
@@ -253,7 +259,7 @@ export function Analytics() {
       <div className="grid gap-6 lg:grid-cols-2">
         <ClicksChart
           data={clicksData}
-          isLoading={isLoading || coldLoading}
+          isLoading={showSkeleton || (coldLoading && !coldData)}
           timeRange={timeRange}
           onTimeRangeChange={(value) => setTimeRange(value)}
         />
@@ -261,7 +267,7 @@ export function Analytics() {
         {/* Top Countries */}
         <CountryChart
           data={topCountries}
-          isLoading={isLoading || coldLoading}
+          isLoading={showSkeleton || (coldLoading && !coldData)}
         />
       </div>
 

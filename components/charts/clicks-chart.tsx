@@ -8,6 +8,7 @@ import {
   YAxis,
   LabelList,
   CartesianGrid,
+  Cell,
 } from "recharts";
 import {
   Card,
@@ -91,6 +92,24 @@ export function ClicksChart({
     return Math.round(total / Math.max(chartData.length, 1));
   }, [chartData]);
 
+  // Calculate max clicks to determine domain and normalize zero values
+  const maxClicks = useMemo(() => {
+    if (!chartData || chartData.length === 0) return 0;
+    return Math.max(...chartData.map((d) => d.clicks));
+  }, [chartData]);
+
+  // Create normalized data with a displayClicks value that ensures zero values show minimal bars
+  const normalizedChartData = useMemo(() => {
+    if (!chartData || chartData.length === 0) return [];
+    // If all values are 0, use a baseline of 1 for display
+    const baseline = maxClicks === 0 ? 1 : Math.max(maxClicks * 0.05, 1);
+    return chartData.map((item) => ({
+      ...item,
+      displayClicks: item.clicks === 0 ? baseline : item.clicks,
+      isZero: item.clicks === 0,
+    }));
+  }, [chartData, maxClicks]);
+
   return (
     <Card
       className={cn(
@@ -147,7 +166,7 @@ export function ClicksChart({
           >
             <BarChart
               accessibilityLayer
-              data={chartData}
+              data={normalizedChartData}
               layout="vertical"
               margin={{
                 right: 48,
@@ -177,10 +196,10 @@ export function ClicksChart({
                 hide
               />
               <XAxis
-                dataKey="clicks"
+                dataKey="displayClicks"
                 type="number"
                 hide
-                domain={[0, "dataMax"]}
+                domain={[0, (dataMax: number) => Math.max(dataMax, 1)]}
               />
               <ChartTooltip
                 cursor={false}
@@ -194,13 +213,21 @@ export function ClicksChart({
                 }
               />
               <Bar
-                dataKey="clicks"
+                dataKey="displayClicks"
                 layout="vertical"
-                fill="url(#barGradientHorizontalClicks)"
                 radius={4}
                 barSize={28}
-                minPointSize={160}
               >
+                {normalizedChartData.map((entry, index) => (
+                  <Cell
+                    key={`cell-${index}`}
+                    fill={
+                      entry.isZero
+                        ? "#e5e5e5" // Gray for zero values
+                        : "url(#barGradientHorizontalClicks)"
+                    }
+                  />
+                ))}
                 <LabelList
                   dataKey="day"
                   position="insideLeft"

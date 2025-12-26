@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import type { AnalyticsResponse } from "@/types/analytics-v2";
 
 interface UseAnalyticsV2Props {
@@ -43,6 +43,8 @@ export function useAnalyticsV2({ start, end }: UseAnalyticsV2Props) {
 
       return response.json();
     },
+    placeholderData: keepPreviousData, // Show old data while new loads
+    // staleTime: 2 * 60 * 1000, // Data is fresh for 2 minutes
     refetchInterval: 120000,
   });
 }

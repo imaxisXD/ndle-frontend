@@ -1,7 +1,7 @@
 import { useMemo, useRef } from "react";
 import { useDuckDB } from "./use-duckdb";
 import type { ColdFile } from "@/types/analytics-v2";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import { useAuth } from "@clerk/nextjs";
 
 interface ColdAnalyticsData {
@@ -16,6 +16,26 @@ const FILE_PROXY_WORKER_URL =
   process.env.NEXT_PUBLIC_FILE_PROXY_URL ||
   "https://proxy-file-worker.sunny735084.workers.dev";
 
+// Module-level cache for parquet file buffers (persists across renders)
+// Key: file.key, Value: ArrayBuffer
+const parquetFileCache = new Map<string, ArrayBuffer>();
+
+// Module-level registry of files already registered in DuckDB
+// Key: file.key, Value: DuckDB filename
+const registeredInDuckDB = new Map<string, string>();
+
+// Generate stable filename from file key (hash-like)
+function getStableFileName(key: string): string {
+  // Use a simple hash to create stable, unique filenames
+  let hash = 0;
+  for (let i = 0; i < key.length; i++) {
+    const char = key.charCodeAt(i);
+    hash = (hash << 5) - hash + char;
+    hash = hash & hash;
+  }
+  return `parquet_${Math.abs(hash).toString(36)}.parquet`;
+}
+
 export function useColdAnalytics(files: ColdFile[]) {
   const { db, loading: dbLoading, error: dbError } = useDuckDB();
   const { getToken } = useAuth();
@@ -28,9 +48,18 @@ export function useColdAnalytics(files: ColdFile[]) {
   const queryResult = useQuery<ColdAnalyticsData, Error>({
     queryKey: ["cold-analytics", fileKeys],
     enabled: queryEnabled,
+    placeholderData: keepPreviousData, // Keep showing old data while new filter loads
     queryFn: async () => {
       const t0 = performance.now();
+      console.log("[ColdPerf] ═══════════════════════════════════════════");
       console.log("[ColdPerf] Starting cold analytics query...");
+      console.log(`[ColdPerf] Files requested: ${files.length}`);
+      console.log(
+        `[ColdPerf] File keys:`,
+        files.map((f) => f.key.slice(-30)),
+      );
+      console.log(`[ColdPerf] Registry size: ${registeredInDuckDB.size}`);
+      console.log(`[ColdPerf] Cache size: ${parquetFileCache.size}`);
 
       if (!db) {
         throw new Error("DuckDB is not initialized");
@@ -38,7 +67,6 @@ export function useColdAnalytics(files: ColdFile[]) {
 
       // Get Clerk session token for authenticated Worker access
       const t1 = performance.now();
-      console.log("[ColdPerf] Fetching Clerk token...");
       const token = await getToken();
       const t2 = performance.now();
       console.log(`[ColdPerf] Clerk token fetch: ${(t2 - t1).toFixed(2)}ms`);
@@ -52,64 +80,90 @@ export function useColdAnalytics(files: ColdFile[]) {
       console.log(`[ColdPerf] DB connect: ${(t3 - t2).toFixed(2)}ms`);
 
       const fileNamesForQuery: string[] = [];
-      const registeredFiles: string[] = [];
 
       try {
         const currentRunId = ++runIdRef.current;
 
         const t4 = performance.now();
+        let alreadyRegisteredCount = 0;
+        let cachedCount = 0;
+        let fetchedCount = 0;
 
-        // Fetch and register files with authentication
+        // Process files - reuse already registered, cache hits, or fetch new
         for (const [index, f] of files.entries()) {
-          // Construct authenticated Worker URL with file key in path
-          const proxyUrl = `${FILE_PROXY_WORKER_URL}/file/${encodeURIComponent(f.key)}`;
+          const stableFileName = getStableFileName(f.key);
 
-          console.log(
-            `[ColdPerf] [${currentRunId}] Fetching file ${index + 1}/${files.length}: ${f.key}`,
-          );
-
-          // Fetch the parquet file with Bearer token
-          const fetchStart = performance.now();
-          // Fetch with Bearer token - internal user ID is in JWT claims
-          const response = await fetch(proxyUrl, {
-            method: "GET",
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          });
-
-          if (!response.ok) {
-            const errorText = await response.text();
-            console.error(
-              `[ColdPerf] Failed to fetch file ${f.key}: ${response.status} - ${errorText}`,
+          // Check if already registered in DuckDB (best case - no work needed!)
+          if (registeredInDuckDB.has(f.key)) {
+            alreadyRegisteredCount++;
+            fileNamesForQuery.push(`'${registeredInDuckDB.get(f.key)}'`);
+            console.log(
+              `[ColdPerf] [${currentRunId}] Already registered: ${f.key.slice(-30)}`,
             );
-            throw new Error(
-              `Failed to fetch analytics file: ${response.status}`,
+            continue;
+          }
+
+          let arrayBuffer: ArrayBuffer;
+
+          // Check if file is in memory cache (need to register but not fetch)
+          if (parquetFileCache.has(f.key)) {
+            arrayBuffer = parquetFileCache.get(f.key)!;
+            cachedCount++;
+            console.log(
+              `[ColdPerf] [${currentRunId}] Cache HIT for file ${index + 1}/${files.length}`,
+            );
+          } else {
+            // Fetch from network
+            const proxyUrl = `${FILE_PROXY_WORKER_URL}/file/${encodeURIComponent(f.key)}`;
+
+            console.log(
+              `[ColdPerf] [${currentRunId}] Fetching file ${index + 1}/${files.length}: ${f.key.slice(-40)}`,
+            );
+
+            const fetchStart = performance.now();
+            const response = await fetch(proxyUrl, {
+              method: "GET",
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            });
+
+            if (!response.ok) {
+              const errorText = await response.text();
+              console.error(
+                `[ColdPerf] Failed to fetch file ${f.key}: ${response.status} - ${errorText}`,
+              );
+              throw new Error(
+                `Failed to fetch analytics file: ${response.status}`,
+              );
+            }
+
+            arrayBuffer = await response.arrayBuffer();
+
+            // Store a COPY in cache (original gets detached when transferred to Web Worker)
+            parquetFileCache.set(f.key, arrayBuffer.slice(0));
+            fetchedCount++;
+
+            const fetchEnd = performance.now();
+            console.log(
+              `[ColdPerf] File fetch complete: ${(fetchEnd - fetchStart).toFixed(2)}ms (${arrayBuffer.byteLength} bytes)`,
             );
           }
 
-          const fetchEnd = performance.now();
-          console.log(
-            `[ColdPerf] File fetch complete: ${(fetchEnd - fetchStart).toFixed(2)}ms`,
+          // Register with DuckDB using stable filename
+          await db.registerFileBuffer(
+            stableFileName,
+            new Uint8Array(arrayBuffer.slice(0)),
           );
 
-          // Get file as ArrayBuffer and register with DuckDB
-          const arrayBuffer = await response.arrayBuffer();
-          const fileName = `remote_file_${currentRunId}_${index}.parquet`;
-
-          await db.registerFileBuffer(fileName, new Uint8Array(arrayBuffer));
-
-          registeredFiles.push(fileName);
-          fileNamesForQuery.push(`'${fileName}'`);
-
-          console.log(
-            `[ColdPerf] Registered file: ${fileName} (${arrayBuffer.byteLength} bytes)`,
-          );
+          // Track registration so we can reuse next time
+          registeredInDuckDB.set(f.key, stableFileName);
+          fileNamesForQuery.push(`'${stableFileName}'`);
         }
 
         const t5 = performance.now();
         console.log(
-          `[ColdPerf] Fetch & register ${files.length} files: ${(t5 - t4).toFixed(2)}ms`,
+          `[ColdPerf] Processed ${files.length} files: ${alreadyRegisteredCount} reused, ${cachedCount} cache-hit, ${fetchedCount} fetched (${(t5 - t4).toFixed(2)}ms)`,
         );
 
         const tableExpression = `read_parquet([${fileNamesForQuery.join(", ")}])`;
@@ -187,27 +241,30 @@ export function useColdAnalytics(files: ColdFile[]) {
           totalClicks,
         };
       } finally {
-        const t14 = performance.now();
-        const unregisterPromises = registeredFiles.map(async (name) => {
-          try {
-            await db.dropFile(name);
-          } catch {
-            // Ignore unregister failures
-          }
-        });
-        await Promise.all(unregisterPromises);
+        // Only close connection, keep files registered for reuse!
         await conn.close();
-        const t15 = performance.now();
-        console.log(`[ColdPerf] Cleanup: ${(t15 - t14).toFixed(2)}ms`);
+        console.log(`[ColdPerf] Connection closed (files kept registered)`);
       }
     },
     retry: 1,
   });
 
+  // Empty data structure for when there are genuinely no files
+  const emptyData: ColdAnalyticsData = {
+    clicksByDay: {},
+    countryCounts: {},
+    linkCounts: {},
+    totalClicks: 0,
+  };
+
+  // When no files in the request:
+  // - If we're still fetching (isPending), show previous cached data to avoid flash
+  // - If fetch completed (not pending), this filter genuinely has no data - show empty
   if (!hasFiles) {
+    const isStillFetching = queryResult.isPending || queryResult.isFetching;
     return {
-      data: null,
-      loading: false,
+      data: isStillFetching ? (queryResult.data ?? null) : emptyData,
+      loading: isStillFetching,
       error: dbError,
     };
   }
