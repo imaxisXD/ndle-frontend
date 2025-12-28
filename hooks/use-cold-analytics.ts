@@ -70,6 +70,11 @@ export function useColdAnalytics(
     queryKey: ["cold-analytics", fileKeys, filters],
     enabled: queryEnabled,
     placeholderData: keepPreviousData, // Keep showing old data while new filter loads
+    // Override global cache settings - analytics should be real-time
+    staleTime: 0, // Data is immediately stale, always refetch
+    gcTime: 1000 * 60 * 5, // Keep in cache for 5 min (for quick filter switching)
+    refetchOnMount: true, // Always check for fresh data
+    refetchOnWindowFocus: true, // Refresh when user returns to tab
     queryFn: async () => {
       const t0 = performance.now();
       console.log("[ColdPerf] ═══════════════════════════════════════════");

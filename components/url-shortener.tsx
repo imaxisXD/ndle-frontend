@@ -23,7 +23,6 @@ import type { FieldErrors } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import validator from "validator";
-import { useQuery } from "@tanstack/react-query";
 import {
   Form,
   FormControl,
@@ -40,6 +39,7 @@ import { Badge } from "@/components/ui/badge";
 import { AdvancedOptions } from "./url-shortener/AdvancedOptions";
 import { getRandomCollectionColor } from "@/components/collection/colors";
 import { trackUrlCreated, trackAdvancedOptionsOpened } from "@/lib/posthog";
+import { useFavicon } from "@/hooks/use-favicon";
 
 const urlFormSchema = z
   .object({
@@ -294,39 +294,7 @@ export function UrlShortener() {
     api.collectionMangament.createCollection,
   );
 
-  const { data: faviconData } = useQuery({
-    queryKey: ["favicon", currentUrl],
-    queryFn: async () => {
-      if (!currentUrl) return null;
-
-      try {
-        // Use Cloudflare Worker for edge caching, fallback to local API
-        const baseUrl = process.env.NEXT_PUBLIC_FILE_PROXY_URL || "";
-        const apiPath = baseUrl ? `${baseUrl}/favicon` : "/api/getFavicon";
-        const response = await fetch(
-          `${apiPath}?url=${encodeURIComponent(currentUrl)}`,
-        );
-
-        if (!response.ok) {
-          console.log(`Favicon not found for: ${currentUrl}`);
-          return null;
-        }
-
-        const data = await response.json();
-        return data.faviconUrl;
-      } catch (error) {
-        console.log(`Error fetching favicon for: ${currentUrl}`, error);
-        return null;
-      }
-    },
-    enabled: !!currentUrl,
-    staleTime: 1000 * 60 * 60,
-    gcTime: 1000 * 60 * 60 * 24,
-    retry: 1,
-    refetchOnWindowFocus: false,
-  });
-
-  const faviconUrl = faviconData ?? null;
+  const { faviconUrl } = useFavicon(currentUrl);
 
   const [advancedOpen, setAdvancedOpen] = useState(false);
 
