@@ -24,9 +24,15 @@ export function useFavicon(url: string | null) {
     data: faviconUrl,
     isLoading,
     error,
+    isFetching,
+    isStale,
+    dataUpdatedAt,
   } = useQuery({
     queryKey: ["favicon", hostname],
     queryFn: async () => {
+      // DEBUG: This log means cache was NOT used
+      console.log(`[Favicon] 🔥 FETCHING for hostname: ${hostname}`);
+
       if (!url) return null;
 
       try {
@@ -37,18 +43,37 @@ export function useFavicon(url: string | null) {
           `${apiPath}?url=${encodeURIComponent(url)}`,
         );
 
-        if (!response.ok) return null;
+        if (!response.ok) {
+          console.log(
+            `[Favicon] ❌ Failed for ${hostname}: ${response.status}`,
+          );
+          return null;
+        }
 
         const data = await response.json();
+        console.log(`[Favicon] ✅ Got favicon for ${hostname}`);
         return data.faviconUrl as string;
-      } catch {
+      } catch (e) {
+        console.log(`[Favicon] ❌ Error for ${hostname}:`, e);
         return null;
       }
     },
     enabled: !!hostname,
-    // Inherits staleTime (7d) and gcTime (30d) from QueryClient defaults
+    // Explicit cache settings - favicons rarely change
+    staleTime: 1000 * 60 * 60 * 24 * 7, // 7 days - don't refetch if cached
+    gcTime: 1000 * 60 * 60 * 24 * 30, // 30 days - keep in cache
+    refetchOnMount: false, // Don't refetch on mount if we have cached data
+    refetchOnWindowFocus: false, // Don't refetch when tab regains focus
+    refetchOnReconnect: false, // Don't refetch on network reconnect
     retry: 1,
   });
+
+  // DEBUG: Log cache status on every render
+  if (hostname) {
+    console.log(
+      `[Favicon] 📊 ${hostname}: isLoading=${isLoading}, isFetching=${isFetching}, isStale=${isStale}, cached=${!!faviconUrl}, updatedAt=${dataUpdatedAt ? new Date(dataUpdatedAt).toISOString() : "never"}`,
+    );
+  }
 
   return {
     faviconUrl: faviconUrl ?? null,
