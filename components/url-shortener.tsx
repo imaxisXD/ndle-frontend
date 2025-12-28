@@ -300,8 +300,11 @@ export function UrlShortener() {
       if (!currentUrl) return null;
 
       try {
+        // Use Cloudflare Worker for edge caching, fallback to local API
+        const baseUrl = process.env.NEXT_PUBLIC_FILE_PROXY_URL || "";
+        const apiPath = baseUrl ? `${baseUrl}/favicon` : "/api/getFavicon";
         const response = await fetch(
-          `/api/getFavicon?url=${encodeURIComponent(currentUrl)}`,
+          `${apiPath}?url=${encodeURIComponent(currentUrl)}`,
         );
 
         if (!response.ok) {

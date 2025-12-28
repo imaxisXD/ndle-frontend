@@ -41,7 +41,11 @@ import { GlobeHemisphereWestIcon } from "@phosphor-icons/react";
 function getFlagUrl(countryCode: string): string | null {
   const code = (countryCode || "").slice(0, 2).toLowerCase();
   const showFlag = /^[a-z]{2}$/.test(code) && code !== "ot" && code !== "un";
-  return showFlag ? `/api/flag?code=${code}` : null;
+  if (!showFlag) return null;
+  // Use Cloudflare Worker for edge caching, fallback to local API
+  const baseUrl = process.env.NEXT_PUBLIC_FILE_PROXY_URL || "";
+  const apiPath = baseUrl ? `${baseUrl}/flag` : "/api/flag";
+  return `${apiPath}?code=${code}`;
 }
 
 // Custom label component to render flag + country name inside the bar

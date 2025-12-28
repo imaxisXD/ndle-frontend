@@ -39,9 +39,10 @@ export function UrlFavicon({ url, size = "md" }: UrlFaviconProps) {
   const { data: faviconUrl, isLoading } = useQuery({
     queryKey: ["favicon", hostname],
     queryFn: async () => {
-      const response = await fetch(
-        `/api/getFavicon?url=${encodeURIComponent(url)}`,
-      );
+      // Use Cloudflare Worker for edge caching, fallback to local API
+      const baseUrl = process.env.NEXT_PUBLIC_FILE_PROXY_URL || "";
+      const apiPath = baseUrl ? `${baseUrl}/favicon` : "/api/getFavicon";
+      const response = await fetch(`${apiPath}?url=${encodeURIComponent(url)}`);
       if (!response.ok) return null;
       const data = await response.json();
       return data.faviconUrl;
