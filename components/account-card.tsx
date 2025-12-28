@@ -11,7 +11,7 @@ import {
 } from "./ui/card";
 import { Button } from "./ui/button";
 import { SignOutButton, useUser } from "@clerk/nextjs";
-import { FireFlame } from "iconoir-react";
+import { FireIcon } from "@phosphor-icons/react";
 
 export function AccountCard() {
   const { user, isSignedIn } = useUser();
@@ -79,9 +79,7 @@ export function AccountCard() {
                 {user.firstName} {user.lastName}
               </h4>
               <span className={isPro ? "badge-pro" : "badge-basic"}>
-                {isPro ? (
-                  <FireFlame className="size-5 text-orange-500" />
-                ) : null}
+                {isPro ? <FireIcon className="size-5 text-orange-500" /> : null}
                 {isPro ? "PRO" : "BASIC"}
               </span>
             </div>

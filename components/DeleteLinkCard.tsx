@@ -9,7 +9,7 @@ import {
   CardToolbar,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { BinMinusIn } from "iconoir-react";
+import { TrashIcon } from "@phosphor-icons/react/dist/ssr";
 
 export function DeleteLinkCard({
   onDelete,
@@ -22,7 +22,7 @@ export function DeleteLinkCard({
         <CardTitle className="text-red-600">Delete Link</CardTitle>
         <CardToolbar>
           <Button variant="destructive" type="button" onClick={onDelete}>
-            <BinMinusIn className="h-4 w-4" /> Delete Link
+            <TrashIcon className="h-4 w-4" /> Delete Link
           </Button>
         </CardToolbar>
       </CardHeader>

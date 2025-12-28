@@ -1,8 +1,7 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useMemo, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import { CursorPointer, ShieldCheck, StatsDownSquare } from "iconoir-react";
 import { useAnalyticsV2 } from "@/hooks/useAnalyticsV2";
 import { useColdAnalytics } from "@/hooks/use-cold-analytics";
 import { format, subDays, startOfDay, endOfDay } from "date-fns";
@@ -13,8 +12,13 @@ import NumberFlow from "@number-flow/react";
 import { useQuery } from "convex-helpers/react/cache/hooks";
 import { api } from "@/convex/_generated/api";
 import { TopLinksChart } from "@/components/charts/top-links-chart";
+import { FilterBar } from "@/components/filter-bar";
+import {
+  CursorClickIcon,
+  LinkIcon,
+  ShieldCheckIcon,
+} from "@phosphor-icons/react";
 
-// Separate component for Total Clicks with its own Convex data fetching
 function TotalClicksCard() {
   const totalClicksFromConvex = useQuery(api.urlAnalytics.getUsersTotalClicks);
   const totalClicks = totalClicksFromConvex ?? 0;
@@ -33,7 +37,7 @@ function TotalClicksCard() {
             <div className="text-muted-foreground mt-1 text-xs">Real-time</div>
           </div>
           <div className="bg-muted rounded-lg p-3">
-            <CursorPointer className="text-muted-foreground h-5 w-5" />
+            <CursorClickIcon className="text-muted-foreground h-5 w-5" />
           </div>
         </div>
       </CardContent>
@@ -41,29 +45,50 @@ function TotalClicksCard() {
   );
 }
 
-type TimeRange = "7d" | "30d" | "90d" | "1y";
-
 export function Analytics() {
-  const [timeRange, setTimeRange] = useState<TimeRange>("30d");
+  // Filter state
+  const [timeRange, setTimeRange] = useState("30d");
+  const [countryFilter, setCountryFilter] = useState("all");
+  const [deviceFilter, setDeviceFilter] = useState("all");
+  const [browserFilter, setBrowserFilter] = useState("all");
+  const [osFilter, setOSFilter] = useState("all");
+  const [linkFilter, setLinkFilter] = useState("all");
 
-  // Calculate start/end dates based on selection
+  // Calculate start/end dates based on time range selection
   const { start, end } = useMemo(() => {
     const now = new Date();
     const end = endOfDay(now);
     let start = startOfDay(subDays(now, 30)); // Default
 
     switch (timeRange) {
+      case "24h":
+        start = startOfDay(subDays(now, 1));
+        break;
       case "7d":
         start = startOfDay(subDays(now, 7));
         break;
       case "30d":
         start = startOfDay(subDays(now, 30));
         break;
-      case "90d":
+      case "3m":
         start = startOfDay(subDays(now, 90));
         break;
-      case "1y":
+      case "12m":
         start = startOfDay(subDays(now, 365));
+        break;
+      case "mtd":
+        start = startOfDay(new Date(now.getFullYear(), now.getMonth(), 1));
+        break;
+      case "qtd": {
+        const quarter = Math.floor(now.getMonth() / 3);
+        start = startOfDay(new Date(now.getFullYear(), quarter * 3, 1));
+        break;
+      }
+      case "ytd":
+        start = startOfDay(new Date(now.getFullYear(), 0, 1));
+        break;
+      case "all":
+        start = startOfDay(new Date(2020, 0, 1)); // Far back date
         break;
     }
 
@@ -74,7 +99,7 @@ export function Analytics() {
   }, [timeRange]);
 
   // Fetch Data with Polling - user identity determined server-side from JWT claims
-  const { data, isLoading, isPending, isError, error } = useAnalyticsV2({
+  const { data, isPending, isError, error } = useAnalyticsV2({
     start,
     end,
     pollingInterval: 10000,
@@ -87,7 +112,13 @@ export function Analytics() {
     data: coldData,
     loading: coldLoading,
     error: coldError,
-  } = useColdAnalytics(data?.cold || []);
+  } = useColdAnalytics(data?.cold || [], {
+    country: countryFilter,
+    device: deviceFilter,
+    browser: browserFilter,
+    os: osFilter,
+    link: linkFilter,
+  });
 
   // Fetch URLs with analytics from Convex for Top Links
   const urlsWithAnalytics = useQuery(
@@ -96,10 +127,23 @@ export function Analytics() {
   const urlsLoading = urlsWithAnalytics === undefined;
 
   console.log(
-    `[Analytics] timeRange=${timeRange} | showSkeleton=${showSkeleton} | isPending=${isPending} | coldLoading=${coldLoading}`,
+    `[Analytics] showSkeleton=${showSkeleton} | isPending=${isPending} | coldLoading=${coldLoading}`,
   );
   console.log("Analytics data", data);
   console.log("Cold data", coldData);
+
+  // Get filter options directly from coldData (keyed by filter id)
+  const defaultFilterOptions: Record<
+    string,
+    Array<{ value: string; label: string }>
+  > = {
+    country: [{ value: "all", label: "All Countries" }],
+    device: [{ value: "all", label: "All Devices" }],
+    browser: [{ value: "all", label: "All Browsers" }],
+    os: [{ value: "all", label: "All OS" }],
+    link: [{ value: "all", label: "All Links" }],
+  };
+  const filterOptions = coldData?.filterOptions ?? defaultFilterOptions;
 
   // Example: Grouping by Day for the Chart
   const clicksData = useMemo(() => {
@@ -210,14 +254,14 @@ export function Analytics() {
     {
       label: "Total Links",
       value: "24", // Static for now, or fetch from another API
-      icon: StatsDownSquare,
+      icon: LinkIcon,
       change: "[+3] this week",
       trend: "up",
     },
     {
       label: "Auto-Healed",
       value: "8",
-      icon: ShieldCheck,
+      icon: ShieldCheckIcon,
       change: "[3] active",
       trend: "neutral",
     },
@@ -225,6 +269,28 @@ export function Analytics() {
 
   return (
     <div className="space-y-6">
+      {/* Filter Bar */}
+
+      <FilterBar
+        timeRange={timeRange}
+        onTimeRangeChange={setTimeRange}
+        linkFilter={linkFilter}
+        onLinkFilterChange={setLinkFilter}
+        linkOptions={filterOptions["link"]}
+        countryFilter={countryFilter}
+        onCountryFilterChange={setCountryFilter}
+        countryOptions={filterOptions["country"]}
+        deviceFilter={deviceFilter}
+        onDeviceFilterChange={setDeviceFilter}
+        deviceOptions={filterOptions["device"]}
+        browserFilter={browserFilter}
+        onBrowserFilterChange={setBrowserFilter}
+        browserOptions={filterOptions["browser"]}
+        osFilter={osFilter}
+        onOSFilterChange={setOSFilter}
+        osOptions={filterOptions["os"]}
+      />
+
       {/* Stats Grid */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {stats.map((stat) => (
@@ -260,8 +326,6 @@ export function Analytics() {
         <ClicksChart
           data={clicksData}
           isLoading={showSkeleton || (coldLoading && !coldData)}
-          timeRange={timeRange}
-          onTimeRangeChange={(value) => setTimeRange(value)}
         />
 
         {/* Top Countries */}

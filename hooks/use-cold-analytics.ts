@@ -3,12 +3,30 @@ import { useDuckDB } from "./use-duckdb";
 import type { ColdFile } from "@/types/analytics-v2";
 import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import { useAuth } from "@clerk/nextjs";
+import {
+  FILTER_CONFIGS,
+  buildFullWhereClause,
+  processFilterOptions,
+  type FilterOption,
+} from "@/lib/analytics-filters";
 
 interface ColdAnalyticsData {
   clicksByDay: Record<string, number>;
   countryCounts: Record<string, number>;
   linkCounts: Record<string, number>;
   totalClicks: number;
+  // Dynamic filter options derived from the data (keyed by filter id)
+  filterOptions: Record<string, FilterOption[]>;
+}
+
+// Filter parameters for DuckDB queries
+export interface ColdAnalyticsFilters {
+  country?: string; // "all" or country code like "IN", "US"
+  device?: string; // "all" or "desktop", "mobile", "tablet"
+  browser?: string; // "all" or "chrome", "safari", etc.
+  os?: string; // "all" or "macos", "windows", etc.
+  link?: string; // "all" or specific short_url/link_slug
+  excludeBots?: boolean; // true to filter out bots
 }
 
 // Worker URL for authenticated file access
@@ -36,7 +54,10 @@ function getStableFileName(key: string): string {
   return `parquet_${Math.abs(hash).toString(36)}.parquet`;
 }
 
-export function useColdAnalytics(files: ColdFile[]) {
+export function useColdAnalytics(
+  files: ColdFile[],
+  filters: ColdAnalyticsFilters = {},
+) {
   const { db, loading: dbLoading, error: dbError } = useDuckDB();
   const { getToken } = useAuth();
   const runIdRef = useRef(0);
@@ -46,7 +67,7 @@ export function useColdAnalytics(files: ColdFile[]) {
   const queryEnabled = !!db && !dbLoading && !dbError && hasFiles;
 
   const queryResult = useQuery<ColdAnalyticsData, Error>({
-    queryKey: ["cold-analytics", fileKeys],
+    queryKey: ["cold-analytics", fileKeys, filters],
     enabled: queryEnabled,
     placeholderData: keepPreviousData, // Keep showing old data while new filter loads
     queryFn: async () => {
@@ -168,12 +189,28 @@ export function useColdAnalytics(files: ColdFile[]) {
 
         const tableExpression = `read_parquet([${fileNamesForQuery.join(", ")}])`;
 
+        // Build WHERE clause using config-driven function
+        // Convert to Record<string, string> format expected by buildFullWhereClause
+        const filterRecord: Record<string, string> = {
+          country: filters.country || "all",
+          device: filters.device || "all",
+          browser: filters.browser || "all",
+          os: filters.os || "all",
+          link: filters.link || "all",
+        };
+        const whereClause = buildFullWhereClause(
+          filterRecord,
+          filters.excludeBots,
+        );
+        console.log(`[ColdPerf] Filters applied: ${whereClause || "(none)"}`);
+
         const t6 = performance.now();
         const dayQuery = `
           SELECT 
             strftime(cast(occurred_at as TIMESTAMP), '%Y-%m-%d') as day, 
             count(*) as count 
           FROM ${tableExpression} 
+          ${whereClause}
           GROUP BY day
         `;
         const dayResult = await conn.query(dayQuery);
@@ -192,6 +229,7 @@ export function useColdAnalytics(files: ColdFile[]) {
             coalesce(country, 'Unknown') as country, 
             count(*) as count 
           FROM ${tableExpression} 
+          ${whereClause}
           GROUP BY country
         `;
         const countryResult = await conn.query(countryQuery);
@@ -210,6 +248,7 @@ export function useColdAnalytics(files: ColdFile[]) {
             coalesce(short_url, link_slug) as url, 
             count(*) as count 
           FROM ${tableExpression} 
+          ${whereClause}
           GROUP BY url
         `;
         const linkResult = await conn.query(linkQuery);
@@ -223,15 +262,63 @@ export function useColdAnalytics(files: ColdFile[]) {
         }
 
         const t12 = performance.now();
-        const totalQuery = `SELECT count(*) as count FROM ${tableExpression}`;
+        const totalQuery = `SELECT count(*) as count FROM ${tableExpression} ${whereClause}`;
         const totalResult = await conn.query(totalQuery);
         const t13 = performance.now();
         console.log(`[ColdPerf] Total query: ${(t13 - t12).toFixed(2)}ms`);
 
         const totalClicks = Number(totalResult.toArray()[0].toJSON().count);
 
+        // --- Query for filter options using BATCHED UNION ALL ---
+        // Single query instead of 5 sequential queries for better performance
+        const t14 = performance.now();
+
+        // Build UNION ALL query for all filter options at once
+        const unionParts = FILTER_CONFIGS.map((config) => {
+          const baseQuery = config.optionsQuery.replace(
+            "{table}",
+            tableExpression,
+          );
+          // Wrap each query to add a filter_id column for identification
+          return `SELECT '${config.id}' as filter_id, * FROM (${baseQuery}) sub_${config.id}`;
+        });
+        const batchedQuery = unionParts.join(" UNION ALL ");
+
+        const batchedResult = await conn.query(batchedQuery);
+
+        // Group results by filter_id
+        const rawValuesByFilter: Record<string, string[]> = {};
+        for (const config of FILTER_CONFIGS) {
+          rawValuesByFilter[config.id] = [];
+        }
+
+        for (const row of batchedResult.toArray()) {
+          const rowData = row.toJSON();
+          const filterId = rowData.filter_id as string;
+          // Get the value (second column, after filter_id)
+          const values = Object.values(rowData);
+          const value = values.length > 1 ? (values[1] as string) : null;
+          if (filterId && value && rawValuesByFilter[filterId]) {
+            rawValuesByFilter[filterId].push(value);
+          }
+        }
+
+        // Process each filter's values
+        const filterOptionsResult: Record<string, FilterOption[]> = {};
+        for (const config of FILTER_CONFIGS) {
+          filterOptionsResult[config.id] = processFilterOptions(
+            config.id,
+            rawValuesByFilter[config.id],
+          );
+        }
+
+        const t15 = performance.now();
         console.log(
-          `[ColdPerf] ✅ TOTAL processing time: ${(t13 - t0).toFixed(2)}ms`,
+          `[ColdPerf] Filter options query: ${(t15 - t14).toFixed(2)}ms`,
+        );
+
+        console.log(
+          `[ColdPerf] ✅ TOTAL processing time: ${(t15 - t0).toFixed(2)}ms`,
         );
 
         return {
@@ -239,6 +326,7 @@ export function useColdAnalytics(files: ColdFile[]) {
           countryCounts,
           linkCounts,
           totalClicks,
+          filterOptions: filterOptionsResult,
         };
       } finally {
         // Only close connection, keep files registered for reuse!
@@ -250,11 +338,20 @@ export function useColdAnalytics(files: ColdFile[]) {
   });
 
   // Empty data structure for when there are genuinely no files
+  // Generate empty filter options from FILTER_CONFIGS for consistency
+  const emptyFilterOptions: Record<string, FilterOption[]> = {};
+  for (const config of FILTER_CONFIGS) {
+    emptyFilterOptions[config.id] = [
+      { value: "all", label: `All ${config.label}s` },
+    ];
+  }
+
   const emptyData: ColdAnalyticsData = {
     clicksByDay: {},
     countryCounts: {},
     linkCounts: {},
     totalClicks: 0,
+    filterOptions: emptyFilterOptions,
   };
 
   // When no files in the request:

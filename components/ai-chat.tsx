@@ -2,7 +2,10 @@
 
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { MagicWand, Send } from "iconoir-react";
+import {
+  MagicWandIcon,
+  PaperPlaneTiltIcon,
+} from "@phosphor-icons/react/dist/ssr";
 
 interface Message {
   id: string;
@@ -91,7 +94,7 @@ export function AiChat({ linkUrl, existingConversations = [] }: AiChatProps) {
     <div className="space-y-4">
       {messages.length === 0 ? (
         <div className="border-border bg-muted/30 rounded-lg border border-dashed p-8 text-center">
-          <MagicWand className="mx-auto h-8 w-8 text-yellow-600" />
+          <MagicWandIcon className="mx-auto h-8 w-8 text-yellow-600" />
           <p className="text-foreground mt-2 text-sm">Ask AI about this link</p>
           <p className="text-muted-foreground mt-1 text-xs">
             Get instant answers about the content, key points, or specific
@@ -108,7 +111,7 @@ export function AiChat({ linkUrl, existingConversations = [] }: AiChatProps) {
               {message.role === "assistant" ? (
                 <div className="border-border bg-card rounded-lg border p-4">
                   <div className="mb-2 flex items-center gap-2">
-                    <MagicWand className="h-3.5 w-3.5 text-yellow-600" />
+                    <MagicWandIcon className="h-3.5 w-3.5 text-yellow-600" />
                     <span className="text-muted-foreground text-xs font-medium">
                       AI Assistant
                     </span>
@@ -133,7 +136,7 @@ export function AiChat({ linkUrl, existingConversations = [] }: AiChatProps) {
           {isLoading && (
             <div className="border-border bg-card rounded-lg border p-4">
               <div className="mb-2 flex items-center gap-2">
-                <MagicWand className="h-3.5 w-3.5 animate-pulse text-yellow-600" />
+                <MagicWandIcon className="h-3.5 w-3.5 animate-pulse text-yellow-600" />
                 <span className="text-muted-foreground text-xs font-medium">
                   AI is thinking...
                 </span>
@@ -165,7 +168,7 @@ export function AiChat({ linkUrl, existingConversations = [] }: AiChatProps) {
             disabled={!input.trim() || isLoading}
             className="bg-foreground text-background hover:bg-foreground/90 rounded-md p-2 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
           >
-            <Send className="h-4 w-4" />
+            <PaperPlaneTiltIcon className="h-4 w-4" />
           </button>
         </div>
         <div className="mt-3 flex flex-wrap gap-2">

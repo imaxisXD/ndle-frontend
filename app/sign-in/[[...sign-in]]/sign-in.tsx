@@ -7,7 +7,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { ArrowLeft } from "iconoir-react";
+import { ArrowLeftIcon } from "@phosphor-icons/react/dist/ssr";
 
 const highlights = [
   {
@@ -73,7 +73,7 @@ export default function SignInComponent() {
             href="/"
             className="text-muted-foreground hover:text-foreground flex w-fit items-center gap-1 text-sm transition"
           >
-            <ArrowLeft className="h-4 w-4" /> Back to home
+            <ArrowLeftIcon className="h-4 w-4" /> Back to home
           </Link>
 
           <div className="space-y-3">

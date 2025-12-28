@@ -124,6 +124,7 @@ const selectTriggerVariants = cva(
 		group relative flex w-fit items-center justify-between gap-2 rounded-md border whitespace-nowrap select-none
 		shadow-xs transition-[color,box-shadow,border-color] outline-none
 		focus-visible:border-accent focus-visible:ring-accent/50 focus-visible:ring-[3px]
+		data-[popup-open]:border-accent data-[popup-open]:ring-accent/50 data-[popup-open]:ring-[3px]
 		aria-invalid:ring-destructive/50 aria-invalid:border-destructive
 		data-[disabled]:pointer-events-none data-[disabled]:opacity-60
 		*:data-[slot=select-value]:line-clamp-1 *:data-[slot=select-value]:flex *:data-[slot=select-value]:items-center *:data-[slot=select-value]:gap-2
@@ -156,7 +157,8 @@ const selectTriggerVariants = cva(
 );
 
 export interface SelectTriggerProps
-  extends React.ComponentProps<typeof SelectPrimitive.Trigger>,
+  extends
+    React.ComponentProps<typeof SelectPrimitive.Trigger>,
     VariantProps<typeof selectTriggerVariants> {}
 
 function SelectTrigger({
@@ -192,7 +194,7 @@ function SelectContent({
   className,
   children,
   side = "bottom",
-  sideOffset = 2,
+  sideOffset = 6,
   align = "start",
   alignOffset = 0,
   position = "popper",
@@ -244,7 +246,7 @@ function SelectItem({
     <SelectPrimitive.Item
       data-slot="select-item"
       className={cn(
-        `data-highlighted:bg-accent data-highlighted:text-accent-foreground [&_svg:not([class*='text-'])]:text-muted-foreground relative flex w-full cursor-default items-center rounded-sm py-1.5 text-sm outline-hidden select-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 *:[span]:last:flex *:[span]:last:items-center *:[span]:last:gap-2`,
+        `data-highlighted:bg-accent data-highlighted:text-accent-foreground [&_svg:not([class*='text-'])]:text-muted-foreground relative flex w-full cursor-default items-center rounded-sm py-1.5 text-sm outline-hidden select-none data-selected:font-semibold data-[disabled]:pointer-events-none data-[disabled]:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 *:[span]:last:flex *:[span]:last:items-center *:[span]:last:gap-2`,
         indicatorPosition === "left" ? "ps-7 pe-2" : "ps-2 pe-7",
         className,
       )}

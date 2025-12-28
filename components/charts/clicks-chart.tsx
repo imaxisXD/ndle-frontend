@@ -25,13 +25,6 @@ import {
   ChartTooltipContent,
 } from "@/components/ui/chart";
 import { Skeleton } from "@/components/ui/skeleton";
-import {
-  Select,
-  SelectTrigger,
-  SelectValue,
-  SelectContent,
-  SelectItem,
-} from "@/components/ui/base-select";
 import { RefreshDouble } from "iconoir-react";
 import { cn, expandWeekday } from "@/lib/utils";
 import { CursorClickIcon } from "@phosphor-icons/react/dist/ssr";
@@ -46,19 +39,13 @@ const chartConfig = {
   },
 } satisfies ChartConfig;
 
-type TimeRange = "7d" | "30d" | "90d" | "1y";
-
 export function ClicksChart({
   data,
   isLoading,
-  timeRange,
-  onTimeRangeChange,
   className,
 }: {
   data?: Array<{ day: string; clicks: number }>;
   isLoading?: boolean;
-  timeRange: TimeRange;
-  onTimeRangeChange: (value: TimeRange) => void;
   className?: string;
 }) {
   const chartData = useMemo(() => {
@@ -115,23 +102,9 @@ export function ClicksChart({
               )}
             </CardTitle>
             <CardDescription className="text-xs text-zinc-400">
-              Activity in selected range
+              Click activity by day of week
             </CardDescription>
           </div>
-          <Select
-            value={timeRange}
-            onValueChange={(value) => onTimeRangeChange(value as TimeRange)}
-          >
-            <SelectTrigger size="sm" className="rounded-sm bg-gray-50">
-              <SelectValue placeholder="Select range" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="7d">Last 7 days</SelectItem>
-              <SelectItem value="30d">Last 30 days</SelectItem>
-              <SelectItem value="90d">Last 90 days</SelectItem>
-              <SelectItem value="1y">Last year</SelectItem>
-            </SelectContent>
-          </Select>
         </div>
       </CardHeader>
       <CardContent className="grow p-6">
