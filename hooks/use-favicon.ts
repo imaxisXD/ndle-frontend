@@ -1,8 +1,37 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, keepPreviousData } from "@tanstack/react-query";
+
+const CACHE_KEY = "NDLE_QUERY_CACHE";
+
+/**
+ * Get favicon URL from localStorage cache synchronously
+ * This provides instant data before React Query hydration
+ */
+function getFaviconFromCache(hostname: string): string | undefined {
+  if (typeof window === "undefined") return undefined;
+
+  try {
+    const cached = localStorage.getItem(CACHE_KEY);
+    if (!cached) return undefined;
+
+    const parsed = JSON.parse(cached);
+    const queries = parsed?.clientState?.queries;
+    if (!queries) return undefined;
+
+    const query = queries.find(
+      (q: { queryKey: unknown[] }) =>
+        q.queryKey[0] === "favicon" && q.queryKey[1] === hostname,
+    );
+
+    return query?.state?.data as string | undefined;
+  } catch {
+    return undefined;
+  }
+}
 
 /**
  * Hook to fetch favicon URL for a given URL
  * Uses hostname as cache key since favicons are per-domain
+ * Implements aggressive caching with localStorage fallback
  *
  * @param url - The full URL to get favicon for
  * @returns { faviconUrl, isLoading, error }
@@ -19,20 +48,17 @@ export function useFavicon(url: string | null) {
       })()
     : null;
 
+  // Get cached data synchronously for instant display
+  const cachedData = hostname ? getFaviconFromCache(hostname) : undefined;
+
   // eslint-disable-next-line @tanstack/query/exhaustive-deps -- Intentionally cache by hostname, not full URL
   const {
     data: faviconUrl,
     isLoading,
     error,
-    isFetching,
-    isStale,
-    dataUpdatedAt,
   } = useQuery({
     queryKey: ["favicon", hostname],
     queryFn: async () => {
-      // DEBUG: This log means cache was NOT used
-      console.log(`[Favicon] 🔥 FETCHING for hostname: ${hostname}`);
-
       if (!url) return null;
 
       try {
@@ -43,41 +69,33 @@ export function useFavicon(url: string | null) {
           `${apiPath}?url=${encodeURIComponent(url)}`,
         );
 
-        if (!response.ok) {
-          console.log(
-            `[Favicon] ❌ Failed for ${hostname}: ${response.status}`,
-          );
-          return null;
-        }
+        if (!response.ok) return null;
 
         const data = await response.json();
-        console.log(`[Favicon] ✅ Got favicon for ${hostname}`);
         return data.faviconUrl as string;
-      } catch (e) {
-        console.log(`[Favicon] ❌ Error for ${hostname}:`, e);
+      } catch {
         return null;
       }
     },
     enabled: !!hostname,
-    // Explicit cache settings - favicons rarely change
-    staleTime: 1000 * 60 * 60 * 24 * 7, // 7 days - don't refetch if cached
+    // Provide cached data immediately - prevents loading state flash
+    initialData: cachedData,
+    // Keep showing previous data while refetching (if ever needed)
+    placeholderData: keepPreviousData,
+    // Aggressive cache settings - favicons rarely change
+    staleTime: Infinity, // Never consider stale - only fetch if no data
     gcTime: 1000 * 60 * 60 * 24 * 30, // 30 days - keep in cache
-    refetchOnMount: false, // Don't refetch on mount if we have cached data
-    refetchOnWindowFocus: false, // Don't refetch when tab regains focus
-    refetchOnReconnect: false, // Don't refetch on network reconnect
+    refetchOnMount: false, // Don't refetch on mount
+    refetchOnWindowFocus: false, // Don't refetch on focus
+    refetchOnReconnect: false, // Don't refetch on reconnect
+    // Disable structural sharing for simple string data - slight perf boost
+    structuralSharing: false,
     retry: 1,
   });
 
-  // DEBUG: Log cache status on every render
-  if (hostname) {
-    console.log(
-      `[Favicon] 📊 ${hostname}: isLoading=${isLoading}, isFetching=${isFetching}, isStale=${isStale}, cached=${!!faviconUrl}, updatedAt=${dataUpdatedAt ? new Date(dataUpdatedAt).toISOString() : "never"}`,
-    );
-  }
-
   return {
     faviconUrl: faviconUrl ?? null,
-    isLoading,
+    isLoading: isLoading && !cachedData, // Don't show loading if we have cached data
     error,
     hostname,
   };
