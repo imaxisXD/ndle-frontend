@@ -27,7 +27,6 @@ interface LinkActionsBarProps {
 
 export function LinkActionsBar({
   shortUrl,
-  fullUrl,
   qrEnabled = false,
   status = "active",
   onDownloadQR,

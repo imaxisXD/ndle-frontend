@@ -69,7 +69,7 @@ import { type DisplayUrl } from "./types";
 import { formatRelative, cn } from "@/lib/utils";
 import { CircleGridLoaderIcon } from "../icons";
 import { Skeleton } from "../ui/skeleton";
-import { makeShortLink } from "@/lib/config";
+import { makeShortLinkWithDomain } from "@/lib/config";
 import NumberFlow from "@number-flow/react";
 
 import { ChartBarIcon, CopyIcon, TrashIcon } from "@phosphor-icons/react";
@@ -384,7 +384,10 @@ export function UrlTable({
       const formattedShortUrl = slugSource
         ? slugSource.startsWith("http")
           ? slugSource
-          : makeShortLink(slugSource.replace(/^\/+/, ""))
+          : makeShortLinkWithDomain(
+              slugSource.replace(/^\/+/, ""),
+              doc.customDomain,
+            )
         : "";
 
       const message = (doc.analytics?.urlStatusMessage ?? "").toLowerCase();
@@ -426,7 +429,10 @@ export function UrlTable({
         const formattedShortUrl = slugSource
           ? slugSource.startsWith("http")
             ? slugSource
-            : makeShortLink(slugSource.replace(/^\/+/, ""))
+            : makeShortLinkWithDomain(
+                slugSource.replace(/^\/+/, ""),
+                doc.customDomain,
+              )
           : "";
         urlIdMap.set(formattedShortUrl || doc.shortUrl, doc._id);
       });

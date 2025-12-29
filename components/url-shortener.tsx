@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/card";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useToast } from "@/hooks/use-toast";
-import { useMutation } from "convex/react";
+import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { ConvexError } from "convex/values";
 import type { Id } from "@/convex/_generated/dataModel";
@@ -33,13 +33,20 @@ import {
 } from "@/components/ui/form";
 import { cn } from "@/lib/utils";
 import { ShimmeringPhrases } from "./ui/shimmering-phrases";
-import { makeShortLink, getShortDomain } from "@/lib/config";
+import { getShortDomain } from "@/lib/config";
 import { HotkeyButton } from "./ui/hotkey-button";
 import { Badge } from "@/components/ui/badge";
 import { AdvancedOptions } from "./url-shortener/AdvancedOptions";
 import { getRandomCollectionColor } from "@/components/collection/colors";
 import { trackUrlCreated, trackAdvancedOptionsOpened } from "@/lib/posthog";
 import { useFavicon } from "@/hooks/use-favicon";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "./ui/select";
 
 const urlFormSchema = z
   .object({
@@ -218,6 +225,11 @@ export type UrlFormValues = z.infer<typeof urlFormSchema>;
 
 export function UrlShortener() {
   const [currentUrl, setCurrentUrl] = useState<string | null>(null);
+  const [selectedDomain, setSelectedDomain] =
+    useState<string>(getShortDomain());
+
+  // Get active custom domains for domain selector
+  const activeDomains = useQuery(api.customDomains.getActiveDomains);
 
   const form = useForm<UrlFormValues>({
     resolver: zodResolver(urlFormSchema),
@@ -382,6 +394,8 @@ export function UrlShortener() {
         trackingEnabled: values.trackingEnabled,
         expiresAt: expiresAtValue,
         collectionId: collectionIdToUse as Id<"collections"> | undefined,
+        customDomain:
+          selectedDomain !== getShortDomain() ? selectedDomain : undefined,
         qrEnabled: values.qrEnabled ?? false,
         qrStyle: values.qrEnabled
           ? {
@@ -403,7 +417,8 @@ export function UrlShortener() {
           : undefined,
       });
 
-      const finalShort = makeShortLink(result.slug);
+      // Use the selected domain for the final short link
+      const finalShort = `${selectedDomain}/${result.slug}`;
 
       // Track URL creation with feature flags for analytics
       trackUrlCreated({
@@ -545,6 +560,36 @@ export function UrlShortener() {
               render={({ field }) => (
                 <FormItem>
                   <div className="border-border bg-muted/20 rounded-lg border p-4">
+                    {/* Domain Selector */}
+                    {activeDomains && activeDomains.length > 0 && (
+                      <div className="mb-4">
+                        <div className="text-muted-foreground mb-2 text-xs">
+                          Domain
+                        </div>
+                        <Select
+                          value={selectedDomain}
+                          onValueChange={setSelectedDomain}
+                        >
+                          <SelectTrigger className="border-border h-8 w-fit border bg-white text-xs shadow-xs">
+                            <SelectValue placeholder="Select domain" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value={getShortDomain()}>
+                              {getShortDomain()}
+                            </SelectItem>
+                            {activeDomains.map((domain) => (
+                              <SelectItem
+                                key={domain._id}
+                                value={domain.domain}
+                              >
+                                {domain.domain}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    )}
+
                     <div className="text-muted-foreground mb-3 text-xs">
                       Link Style
                     </div>
@@ -564,7 +609,7 @@ export function UrlShortener() {
                           <label htmlFor="slug-random" className="text-sm">
                             Random characters{" "}
                             <span className="text-muted-foreground text-xs">
-                              (e.g. {getShortDomain()}/
+                              (e.g. {selectedDomain}/
                               <span className="text-primary px-1">a1b2c3</span>)
                             </span>
                           </label>
@@ -578,7 +623,7 @@ export function UrlShortener() {
                           <label htmlFor="slug-human" className="text-sm">
                             Readable words{" "}
                             <span className="text-muted-foreground text-xs">
-                              (e.g. {getShortDomain()}/
+                              (e.g. {selectedDomain}/
                               <span className="text-primary px-1">
                                 bunnyhops
                               </span>

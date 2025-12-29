@@ -6,7 +6,7 @@ import { useQuery } from "convex-helpers/react/cache/hooks";
 import { api } from "@/convex/_generated/api";
 import { useToast } from "@/hooks/use-toast";
 import LinkDetailSkeleton from "@/components/skeleton-routes/link-detail-skeleton";
-import { makeShortLink } from "@/lib/config";
+import { makeShortLinkWithDomain } from "@/lib/config";
 import { LinkHeader } from "@/components/LinkHeader";
 import { AnalyticsSection } from "@/components/AnalyticsSection";
 import { DeleteLinkCard } from "@/components/DeleteLinkCard";
@@ -49,7 +49,6 @@ export default function LinkDetailRoute() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dashboardRes?.fresh, range, slug, requestRefresh]);
 
-  const shortUrl = makeShortLink(String(slug));
   const deleteUrl = useMutation(api.urlMainFuction.deleteUrl);
   const queryResult = useQuery(api.urlAnalytics.getUrlAnalytics, {
     urlSlug: slug,
@@ -67,6 +66,9 @@ export default function LinkDetailRoute() {
     isError: false,
     message: "",
   };
+
+  // Build shortUrl using custom domain if available (after url is defined)
+  const shortUrl = makeShortLinkWithDomain(String(slug), url?.customDomain);
 
   if (isError && message !== "") {
     add({

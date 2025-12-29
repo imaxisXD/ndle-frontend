@@ -11,3 +11,16 @@ export function makeShortLink(slugOrPath: string): string {
   const path = String(slugOrPath || "").replace(/^\/+/, "");
   return path ? `${domain}/${path}` : domain;
 }
+
+/**
+ * Create a short link with an optional custom domain.
+ * If customDomain is provided, use it; otherwise use the default domain.
+ */
+export function makeShortLinkWithDomain(
+  slugOrPath: string,
+  customDomain?: string | null,
+): string {
+  const domain = customDomain || getShortDomain();
+  const path = String(slugOrPath || "").replace(/^\/+/, "");
+  return path ? `${domain}/${path}` : domain;
+}

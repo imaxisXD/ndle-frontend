@@ -232,6 +232,7 @@ export function Analytics() {
         clicks: url.analytics?.totalClickCounts ?? 0,
         change: "0%",
         createdAt: url._creationTime,
+        customDomain: url.customDomain ?? null,
       }));
     // eslint-disable-next-line @tanstack/query/no-unstable-deps
   }, [urlsWithAnalytics]);

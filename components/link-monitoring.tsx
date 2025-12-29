@@ -5,12 +5,6 @@ import { Badge } from "@ui/badge";
 import { Card, CardContent } from "@ui/card";
 import { RecentIncidents } from "./recent-incidents";
 import { Skeleton } from "./ui/skeleton";
-import {
-  CheckCircle,
-  ShieldCheck,
-  WarningCircle,
-  XmarkCircle,
-} from "iconoir-react";
 import { getShortDomain } from "@/lib/config";
 import {
   cn,
@@ -19,6 +13,7 @@ import {
   getResponseTimeColor,
 } from "@/lib/utils";
 import { LinkWithFavicon } from "./ui/link-with-favicon";
+import { ShieldPlusIcon } from "@phosphor-icons/react/dist/ssr";
 
 const shortDomain = getShortDomain();
 
@@ -156,25 +151,25 @@ export function LinkMonitoring() {
           {
             label: "Healthy Links",
             value: healthyCount,
-            icon: CheckCircle,
+
             color: "text-green-600",
           },
           {
             label: "Warnings",
             value: warningCount,
-            icon: WarningCircle,
+
             color: "text-amber-500",
           },
           {
             label: "Errors",
             value: errorCount,
-            icon: XmarkCircle,
+
             color: "text-red-500",
           },
           {
             label: "Avg Uptime",
             value: `${avgUptime}%`,
-            icon: ShieldCheck,
+
             color: "text-blue-500",
           },
         ].map((stat, i) => (
@@ -227,7 +222,10 @@ export function LinkMonitoring() {
         <Card className="bg-card/50 p-12 text-center">
           <div className="flex flex-col items-center gap-2">
             <div className="bg-muted rounded-full p-4">
-              <ShieldCheck className="text-muted-foreground h-8 w-8" />
+              <ShieldPlusIcon
+                weight="duotone"
+                className="text-muted-foreground h-8 w-8"
+              />
             </div>
             <h3 className="mt-4 text-lg font-medium">No monitored links yet</h3>
             <p className="text-muted-foreground max-w-sm text-sm">

@@ -28,6 +28,7 @@ export default defineSchema({
         customLogoUrl: v.optional(v.string()),
       }),
     ),
+    customDomain: v.optional(v.string()), // Custom domain for Pro users
     userTableId: v.id("users"),
     slugAssigned: v.optional(v.string()),
     redisStatus: v.optional(v.string()),
@@ -125,4 +126,22 @@ export default defineSchema({
     .index("by_cache_key", ["cache_key"])
     .index("by_user_and_created", ["user_id", "created_at"])
     .index("by_created_at", ["created_at"]),
+  custom_domains: defineTable({
+    userId: v.id("users"),
+    domain: v.string(), // e.g., "links.example.com"
+    status: v.union(
+      v.literal("pending"), // Waiting for DNS verification
+      v.literal("active"), // SSL issued, ready to use
+      v.literal("failed"), // Verification failed
+    ),
+    cloudflareHostnameId: v.optional(v.string()), // Cloudflare custom hostname ID
+    sslStatus: v.optional(v.string()), // pending_validation, active, etc.
+    verificationTxtName: v.optional(v.string()), // TXT record name for verification
+    verificationTxtValue: v.optional(v.string()), // TXT record value
+    createdAt: v.number(),
+    verifiedAt: v.optional(v.number()),
+  })
+    .index("by_user", ["userId"])
+    .index("by_domain", ["domain"])
+    .index("by_status", ["status"]),
 });

@@ -5,7 +5,7 @@ import { Card, CardContent } from "./ui/card";
 import { AntennaSignal, Clock, Link, OpenInBrowser } from "iconoir-react";
 import { Skeleton } from "./ui/skeleton";
 import LinkWithIcon from "./ui/link-with-icon";
-import { makeShortLink } from "@/lib/config";
+import { makeShortLinkWithDomain } from "@/lib/config";
 import { QRCodeSVG } from "qrcode.react";
 import {
   Dialog,
@@ -25,6 +25,7 @@ export default function MetadataCard({
   fullurl,
   qrEnabled,
   qrStyle,
+  customDomain,
 }: {
   shortslug?: string | undefined;
   creationTime?: number | undefined;
@@ -40,8 +41,12 @@ export default function MetadataCard({
     logoScale?: number;
     customLogoUrl?: string;
   };
+  customDomain?: string | null;
 }) {
-  const qrTarget = shortslug ? `https://${makeShortLink(shortslug)}` : "";
+  const shortLink = shortslug
+    ? makeShortLinkWithDomain(shortslug, customDomain)
+    : "";
+  const qrTarget = shortLink ? `https://${shortLink}` : "";
   const size = 200;
   const fg = qrStyle?.fg ?? "#000000";
   const bg = qrStyle?.bg ?? "#ffffff";
@@ -64,10 +69,10 @@ export default function MetadataCard({
             <OpenInBrowser className="size-4" strokeWidth={1.4} /> Short Link:{" "}
             {shortslug ? (
               <LinkWithIcon
-                link={makeShortLink(shortslug)}
+                link={shortLink}
                 className="text-foreground text-sm font-normal"
                 iconClassName="size-3"
-                href={`https://${makeShortLink(shortslug)}`}
+                href={`https://${shortLink}`}
               />
             ) : (
               <Skeleton className="w-sm" />

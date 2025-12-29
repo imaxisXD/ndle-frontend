@@ -34,6 +34,7 @@ export const createUrl = mutation({
         customLogoUrl: v.optional(v.string()),
       }),
     ),
+    customDomain: v.optional(v.string()), // Custom domain for Pro users
     collectionId: v.optional(v.id("collections")),
   },
   returns: v.object({
@@ -89,17 +90,31 @@ export const createUrl = mutation({
       }
     }
 
-    //checking if the url is already shortened by the user
-    const existingUrl = await ctx.db
+    //checking if the url is already shortened by the user (scoped by domain)
+    const existingUrls = await ctx.db
       .query("urls")
       .withIndex("by_user_url", (q) =>
         q.eq("userTableId", user._id).eq("fullurl", args.url),
       )
       .collect();
 
-    if (existingUrl.length > 0) {
+    // Check if URL already exists for this specific domain context
+    const duplicateExists = existingUrls.some((url) => {
+      if (args.customDomain) {
+        // If creating with custom domain, check if same URL exists on that domain
+        return url.customDomain === args.customDomain;
+      } else {
+        // If creating without custom domain, check if same URL exists without custom domain
+        return !url.customDomain;
+      }
+    });
+
+    if (duplicateExists) {
+      const domainContext = args.customDomain
+        ? `on ${args.customDomain}`
+        : "on the default domain";
       throw new ConvexError(
-        "You already have a short link for this destination. Copy it from your links list instead.",
+        `You already have a short link for this destination ${domainContext}. Copy it from your links list instead.`,
       );
     }
 
@@ -120,6 +135,7 @@ export const createUrl = mutation({
       expiresAt: args.expiresAt ?? undefined,
       qrEnabled: args.qrEnabled ?? false,
       qrStyle: args.qrStyle ?? undefined,
+      customDomain: args.customDomain ?? undefined,
       userTableId: user._id,
       slugAssigned: slug,
       urlStatusMessage: "creating",

@@ -1,41 +1,21 @@
 "use client";
 
-import { useState } from "react";
+import { TrashIcon } from "@phosphor-icons/react/dist/ssr";
 import { AccountCard } from "./account-card";
-import {
-  BinMinusIn,
-  Copy,
-  Globe,
-  MagicWand,
-  RefreshDouble,
-  ShieldCheck,
-} from "iconoir-react";
+import { CustomDomainSettings } from "./CustomDomainSettings";
 
 export function Settings() {
-  const [customDomain, setCustomDomain] = useState("short.yourdomain.com");
-  const [defaultExpiration, setDefaultExpiration] = useState("never");
-  const [autoHealing, setAutoHealing] = useState(true);
-  const [healingNotifications, setHealingNotifications] = useState(true);
-  const [aiSummaries, setAiSummaries] = useState(true);
-  const [aiChat, setAiChat] = useState(true);
-  const [apiKey, setApiKey] = useState("sk_live_••••••••••••••••••••••••••••");
-  const [webhookUrl, setWebhookUrl] = useState("");
-
-  const handleGenerateApiKey = () => {
-    const newKey =
-      "sk_live_" +
-      Math.random().toString(36).substring(2, 15) +
-      Math.random().toString(36).substring(2, 15);
-    setApiKey(newKey);
-  };
-
-  const handleCopyApiKey = () => {
-    navigator.clipboard.writeText(apiKey);
-  };
+  // const [autoHealing, setAutoHealing] = useState(true);
+  // const [healingNotifications, setHealingNotifications] = useState(true);
+  // const [aiSummaries, setAiSummaries] = useState(true);
+  // const [aiChat, setAiChat] = useState(true);
 
   return (
     <div className="space-y-6">
       <AccountCard />
+
+      {/* Custom Domains */}
+      <CustomDomainSettings />
 
       {/* General Settings TODO: WILL ADD BACK IN LATER */}
       {/* <div className="border-border bg-card rounded-lg border p-6">
@@ -115,7 +95,7 @@ export function Settings() {
       </div> */}
 
       {/* Self-Healing Settings */}
-      <div className="border-border bg-card rounded-lg border p-6">
+      {/* <div className="border-border bg-card rounded-lg border p-6">
         <div className="mb-6 flex items-center gap-3">
           <div className="rounded-lg bg-green-100 p-2">
             <ShieldCheck className="h-5 w-5 text-green-600" />
@@ -211,10 +191,10 @@ export function Settings() {
             </select>
           </div>
         </div>
-      </div>
+      </div> */}
 
       {/* AI Settings */}
-      <div className="border-border bg-card rounded-lg border p-6">
+      {/* <div className="border-border bg-card rounded-lg border p-6">
         <div className="mb-6 flex items-center gap-3">
           <div className="rounded-lg bg-yellow-100 p-2">
             <MagicWand className="h-5 w-5 text-yellow-600" />
@@ -307,7 +287,7 @@ export function Settings() {
             </select>
           </div>
         </div>
-      </div>
+      </div> */}
 
       {/* API Settings TODO: WILL ADD BACK IN LATER */}
       {/* <div className="border-border bg-card rounded-lg border p-6">
@@ -447,7 +427,7 @@ export function Settings() {
       <div className="rounded-lg border border-red-200 bg-red-50 p-6">
         <div className="mb-6 flex items-center gap-3">
           <div className="rounded-lg bg-red-100 p-2">
-            <BinMinusIn className="h-5 w-5 text-red-600" />
+            <TrashIcon weight="duotone" className="h-5 w-5 text-red-600" />
           </div>
           <div>
             <h3 className="text-base font-medium text-red-900">Danger Zone</h3>

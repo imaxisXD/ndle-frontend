@@ -11,7 +11,7 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import NumberFlow from "@number-flow/react";
-import { makeShortLink } from "@/lib/config";
+import { makeShortLinkWithDomain } from "@/lib/config";
 import { NavLink } from "react-router";
 import { NavArrowRight } from "iconoir-react";
 import {
@@ -31,6 +31,7 @@ export interface TopLink {
   clicks: number;
   change: string;
   createdAt: number;
+  customDomain?: string | null;
 }
 
 interface TopLinksChartProps {
@@ -91,7 +92,10 @@ export function TopLinksChart({
           </div>
         ) : (
           displayData.map((link, index) => {
-            const shortLink = makeShortLink(link.url);
+            const shortLink = makeShortLinkWithDomain(
+              link.url,
+              link.customDomain,
+            );
             const normalizedHref = shortLink.startsWith("http")
               ? shortLink
               : `https://${shortLink}`;
