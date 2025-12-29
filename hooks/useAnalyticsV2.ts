@@ -45,5 +45,10 @@ export function useAnalyticsV2({ start, end }: UseAnalyticsV2Props) {
     },
     placeholderData: keepPreviousData, // Show old data while new loads
     refetchInterval: 12000,
+    // Override global defaults - analytics needs fresh data, not cached
+    staleTime: 0, // Always consider stale
+    gcTime: 0, // Don't cache in memory
+    refetchOnMount: true, // Refetch when component mounts
+    refetchOnWindowFocus: true, // Refetch when window gets focus
   });
 }
