@@ -1,9 +1,7 @@
 "use client";
 
 import { ClerkProvider, useAuth } from "@clerk/nextjs";
-import { QueryClient, hydrate } from "@tanstack/react-query";
-import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
-import { createAsyncStoragePersister } from "@tanstack/query-async-storage-persister";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ConvexReactClient } from "convex/react";
 import { ConvexProviderWithClerk } from "convex/react-clerk";
 import type { ReactNode } from "react";
@@ -17,24 +15,6 @@ const convex = new ConvexReactClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
 
 // Singleton QueryClient - created once and reused
 let browserQueryClient: QueryClient | undefined = undefined;
-
-// Synchronously restore cache from localStorage when creating QueryClient
-// This prevents race condition where queries run before async persister loads
-function hydrateFromLocalStorage(client: QueryClient) {
-  if (typeof window === "undefined") return;
-
-  try {
-    const cached = window.localStorage.getItem("NDLE_QUERY_CACHE");
-    if (cached) {
-      const parsed = JSON.parse(cached);
-      if (parsed?.clientState) {
-        hydrate(client, parsed.clientState);
-      }
-    }
-  } catch {
-    // Silently fail - cache will be rebuilt
-  }
-}
 
 function getQueryClient() {
   if (typeof window === "undefined") {
@@ -52,29 +32,17 @@ function getQueryClient() {
     browserQueryClient = new QueryClient({
       defaultOptions: {
         queries: {
-          gcTime: 1000 * 60 * 60 * 24 * 30, // 30 days
-          staleTime: Infinity, // Never stale - only fetch if no data
+          gcTime: 1000 * 60 * 60, // 1 hour in memory
+          staleTime: 1000 * 60 * 5, // 5 minutes
           refetchOnWindowFocus: false,
-          refetchOnMount: false,
-          refetchOnReconnect: false,
+          refetchOnMount: true,
+          refetchOnReconnect: true,
         },
       },
     });
-    // Immediately hydrate from localStorage to prevent race condition
-    hydrateFromLocalStorage(browserQueryClient);
   }
   return browserQueryClient;
 }
-
-// Create persister - only on client
-const persister =
-  typeof window !== "undefined"
-    ? createAsyncStoragePersister({
-        storage: window.localStorage,
-        key: "NDLE_QUERY_CACHE",
-        throttleTime: 2000,
-      })
-    : null;
 
 export default function ConvexClientProvider({
   children,
@@ -84,24 +52,13 @@ export default function ConvexClientProvider({
   const queryClient = getQueryClient();
 
   return (
-    <PersistQueryClientProvider
-      client={queryClient}
-      persistOptions={{
-        persister: persister!,
-        maxAge: 1000 * 60 * 60 * 24 * 30, // 30 days
-        dehydrateOptions: {
-          shouldDehydrateQuery: (query) => {
-            return query.queryKey[0] === "favicon" && query.queryKey[1] != null;
-          },
-        },
-      }}
-    >
+    <QueryClientProvider client={queryClient}>
       <ClerkProvider>
         <ConvexProviderWithClerk client={convex} useAuth={useAuth}>
           <DuckDBPrefetch />
           {children}
         </ConvexProviderWithClerk>
       </ClerkProvider>
-    </PersistQueryClientProvider>
+    </QueryClientProvider>
   );
 }
