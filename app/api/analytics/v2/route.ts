@@ -89,7 +89,7 @@ export async function GET(request: NextRequest) {
       try {
         const errorJson = JSON.parse(errorText);
         return NextResponse.json(
-          { error: errorJson.error || "Failed to fetch analytics data" },
+          { error: errorJson.error || "Failed to fetch analytics data." },
           { status: response.status },
         );
       } catch {
