@@ -1,5 +1,5 @@
-/* eslint-disable @next/next/no-img-element */
 import { useState } from "react";
+import Image from "next/image";
 import { GlobeSimpleIcon } from "@phosphor-icons/react";
 import { cn } from "@/lib/utils";
 import { useFavicon } from "@/hooks/use-favicon";
@@ -40,11 +40,14 @@ export function UrlFavicon({ url, size = "md" }: UrlFaviconProps) {
       {showPlaceholder ? (
         <GlobeSimpleIcon className={styles.icon} weight="duotone" />
       ) : (
-        <img
+        <Image
           src={faviconUrl}
           alt=""
+          width={24}
+          height={24}
           className={cn("rounded-full object-cover", styles.img)}
           onError={() => setImgError(true)}
+          unoptimized
         />
       )}
     </div>

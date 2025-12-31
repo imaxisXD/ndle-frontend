@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Image from "next/image";
 
 import { CircleGridLoaderIcon } from "./icons";
 import {
@@ -523,11 +524,13 @@ export function UrlShortener() {
                           )}
                         >
                           {faviconUrl && (
-                            // eslint-disable-next-line @next/next/no-img-element
-                            <img
+                            <Image
                               src={faviconUrl}
                               alt={field.value}
+                              width={20}
+                              height={20}
                               className="size-5 rounded-full"
+                              unoptimized
                             />
                           )}
                         </InputGroupAddon>
