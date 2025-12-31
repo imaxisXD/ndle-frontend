@@ -8,4 +8,17 @@
     "directory": ".open-next/assets",
     "binding": "ASSETS",
   },
+  "vars": {
+    "CONVEX_DEPLOYMENT": "dev:tame-sparrow-238",
+    "NEXT_PUBLIC_CONVEX_URL": "https://tame-sparrow-238.convex.cloud",
+    "NEXT_PUBLIC_CLERK_SIGN_UP_URL": "/sign-up",
+    "NEXT_PUBLIC_CLERK_SIGN_IN_URL": "/sign-in",
+    "NEXT_PUBLIC_CLERK_SIGN_IN_FALLBACK_REDIRECT_URL": "/static-app-shell",
+    "NEXT_PUBLIC_CLERK_SIGN_UP_FALLBACK_REDIRECT_URL": "/static-app-shell",
+    "TINYBIRD_API_URL": "https://api.us-west-2.aws.tinybird.co",
+    "UPSTASH_REDIS_REST_URL": "https://credible-osprey-14471.upstash.io",
+    "INTERNAL_API_URL": "https://ndle-ingest-api-production.up.railway.app/analytics",
+    "NEXT_PUBLIC_FILE_PROXY_URL": "https://proxy-file-worker-dev.sunny735084.workers.dev",
+    "NEXT_PUBLIC_POSTHOG_HOST": "https://imp.ndle.app",
+  },
 }
