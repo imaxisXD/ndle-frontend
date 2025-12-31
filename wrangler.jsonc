@@ -4,6 +4,7 @@
   "name": "ndle-frontend",
   "compatibility_date": "2025-12-31",
   "compatibility_flags": ["nodejs_compat"],
+  "observability": { "enabled": true },
   "assets": {
     "directory": ".open-next/assets",
     "binding": "ASSETS",
