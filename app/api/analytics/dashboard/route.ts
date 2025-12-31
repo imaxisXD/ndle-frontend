@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { auth } from "@clerk/nextjs/server";
-import { rateLimit } from "@/lib/rateLimit";
-import { fetchAction } from "convex/nextjs";
-import { api } from "@/convex/_generated/api";
+import { getRateLimit } from "@/lib/rateLimit";
 
 const schema = z.object({
   range: z
@@ -29,6 +27,7 @@ const schema = z.object({
 
 export async function GET(req: NextRequest) {
   try {
+    const rateLimit = getRateLimit();
     const { userId } = await auth();
     const { searchParams } = new URL(req.url);
 
@@ -42,7 +41,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "Invalid params" }, { status: 400 });
     }
 
-    const { range, link_slug, bypass_cache } = parsed.data;
+    const { link_slug } = parsed.data;
 
     // Require authentication for link-specific or user-wide analytics
     const scopeUserId = link_slug ? undefined : (userId ?? undefined);
