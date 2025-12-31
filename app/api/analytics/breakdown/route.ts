@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { auth } from "@clerk/nextjs/server";
-import { rateLimit } from "@/lib/rateLimit";
+import { getRateLimit } from "@/lib/rateLimit";
 import { tinybirdFetch } from "@/lib/tinybird";
 import {
   AnalyticsRange,
@@ -30,6 +30,8 @@ const schema = z.object({
 
 export async function GET(req: NextRequest) {
   try {
+    const rateLimit = getRateLimit();
+
     const { userId } = await auth();
     const { searchParams } = new URL(req.url);
     const parsed = schema.safeParse({

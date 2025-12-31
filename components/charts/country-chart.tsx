@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
+import Image from "next/image";
 import {
   Bar,
   BarChart,
@@ -63,8 +64,14 @@ function CountryLabel(props: any) {
     >
       <div className="flex h-full items-center gap-2">
         {flagUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={flagUrl} alt={String(value)} className="size-4 shrink-0" />
+          <Image
+            src={flagUrl}
+            alt={String(value)}
+            width={16}
+            height={16}
+            className="size-4 shrink-0"
+            unoptimized
+          />
         ) : (
           <GlobeHemisphereWestIcon className="text-muted-foreground size-4" />
         )}

@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { auth } from "@clerk/nextjs/server";
-import { rateLimit } from "@/lib/rateLimit";
 import { tinybirdFetch } from "@/lib/tinybird";
 import {
   AnalyticsRange,
   getUtcRange,
   formatForTinybird,
 } from "@/lib/analyticsRanges";
+import { getRateLimit } from "@/lib/rateLimit";
 
 const schema = z.object({
   range: z
@@ -51,6 +51,7 @@ const getAnalyticsCacheHeaders = (hasAuth: boolean): Record<string, string> => {
 };
 
 export async function GET(req: NextRequest) {
+  const rateLimit = getRateLimit();
   const requestId = crypto.randomUUID().slice(0, 8);
 
   try {

@@ -1,6 +1,7 @@
 "use client";
 
 import { Input } from "@/components/ui/input";
+import Image from "next/image";
 import {
   FormField,
   FormItem,
@@ -63,11 +64,13 @@ export function OptionSocial({ form }: { form: any }) {
         <div className="flex gap-3">
           <div className="bg-muted h-16 w-28 flex-shrink-0 overflow-hidden rounded">
             {image ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
+              <Image
                 src={image}
                 alt="og"
+                width={112}
+                height={64}
                 className="h-full w-full object-cover"
+                unoptimized
               />
             ) : null}
           </div>

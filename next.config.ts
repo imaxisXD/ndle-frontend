@@ -2,7 +2,11 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   images: {
-    remotePatterns: [{ hostname: "img.clerk.com" }],
+    remotePatterns: [
+      { hostname: "img.clerk.com" },
+      { hostname: "proxy-file-worker-dev.sunny735084.workers.dev" },
+      { hostname: "www.google.com" },
+    ],
   },
   rewrites: async () => [
     {
