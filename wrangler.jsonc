@@ -24,6 +24,5 @@
     "INTERNAL_API_URL": "https://ndle-ingest-api-production.up.railway.app/analytics",
     "NEXT_PUBLIC_FILE_PROXY_URL": "https://proxy-file-worker-dev.sunny735084.workers.dev",
     "NEXT_PUBLIC_POSTHOG_HOST": "https://imp.ndle.app",
-    "HIVE_API_URL": "https://api.hive.com",
   },
 }
