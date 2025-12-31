@@ -57,6 +57,8 @@ function getStableFileName(key: string): string {
 export function useColdAnalytics(
   files: ColdFile[],
   filters: ColdAnalyticsFilters = {},
+  start?: string, // YYYY-MM-DD
+  end?: string, // YYYY-MM-DD
 ) {
   const { db, loading: dbLoading, error: dbError } = useDuckDB();
   const { getToken } = useAuth();
@@ -67,7 +69,7 @@ export function useColdAnalytics(
   const queryEnabled = !!db && !dbLoading && !dbError && hasFiles;
 
   const queryResult = useQuery<ColdAnalyticsData, Error>({
-    queryKey: ["cold-analytics", fileKeys, filters],
+    queryKey: ["cold-analytics", fileKeys, filters, start, end],
     enabled: queryEnabled,
     placeholderData: keepPreviousData, // Keep showing old data while new filter loads
     // Override global cache settings - analytics should be real-time
@@ -207,7 +209,21 @@ export function useColdAnalytics(
           filterRecord,
           filters.excludeBots,
         );
-        console.log(`[ColdPerf] Filters applied: ${whereClause || "(none)"}`);
+
+        // Add precise time range filtering
+        let finalWhereClause = whereClause;
+        if (start && end) {
+          const dateFilter = `occurred_at >= '${start} 00:00:00' AND occurred_at <= '${end} 23:59:59.999'`;
+          if (finalWhereClause) {
+            finalWhereClause += ` AND ${dateFilter}`;
+          } else {
+            finalWhereClause = `WHERE ${dateFilter}`;
+          }
+        }
+
+        console.log(
+          `[ColdPerf] Filters applied: ${finalWhereClause || "(none)"}`,
+        );
 
         const t6 = performance.now();
         const dayQuery = `
@@ -215,7 +231,7 @@ export function useColdAnalytics(
             strftime(cast(occurred_at as TIMESTAMP), '%Y-%m-%d') as day, 
             count(*) as count 
           FROM ${tableExpression} 
-          ${whereClause}
+          ${finalWhereClause}
           GROUP BY day
         `;
         const dayResult = await conn.query(dayQuery);
@@ -234,7 +250,7 @@ export function useColdAnalytics(
             coalesce(country, 'Unknown') as country, 
             count(*) as count 
           FROM ${tableExpression} 
-          ${whereClause}
+          ${finalWhereClause}
           GROUP BY country
         `;
         const countryResult = await conn.query(countryQuery);
@@ -253,7 +269,7 @@ export function useColdAnalytics(
             coalesce(short_url, link_slug) as url, 
             count(*) as count 
           FROM ${tableExpression} 
-          ${whereClause}
+          ${finalWhereClause}
           GROUP BY url
         `;
         const linkResult = await conn.query(linkQuery);
@@ -267,7 +283,7 @@ export function useColdAnalytics(
         }
 
         const t12 = performance.now();
-        const totalQuery = `SELECT count(*) as count FROM ${tableExpression} ${whereClause}`;
+        const totalQuery = `SELECT count(*) as count FROM ${tableExpression} ${finalWhereClause}`;
         const totalResult = await conn.query(totalQuery);
         const t13 = performance.now();
         console.log(`[ColdPerf] Total query: ${(t13 - t12).toFixed(2)}ms`);

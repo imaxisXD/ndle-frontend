@@ -112,13 +112,18 @@ export function Analytics() {
     data: coldData,
     loading: coldLoading,
     error: coldError,
-  } = useColdAnalytics(data?.cold || [], {
-    country: countryFilter,
-    device: deviceFilter,
-    browser: browserFilter,
-    os: osFilter,
-    link: linkFilter,
-  });
+  } = useColdAnalytics(
+    data?.cold || [],
+    {
+      country: countryFilter,
+      device: deviceFilter,
+      browser: browserFilter,
+      os: osFilter,
+      link: linkFilter,
+    },
+    start,
+    end,
+  );
 
   // Fetch URLs with analytics from Convex for Top Links
   const urlsWithAnalytics = useQuery(
