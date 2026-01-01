@@ -1,6 +1,6 @@
 import { useMemo, useRef } from "react";
 import { useDuckDB } from "./use-duckdb";
-import type { ColdFile } from "@/types/analytics-v2";
+import type { ColdFile, HotDataRow } from "@/types/analytics-v2";
 import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import { useAuth } from "@clerk/nextjs";
 import {
@@ -15,36 +15,47 @@ interface ColdAnalyticsData {
   countryCounts: Record<string, number>;
   linkCounts: Record<string, number>;
   totalClicks: number;
-  // Dynamic filter options derived from the data (keyed by filter id)
   filterOptions: Record<string, FilterOption[]>;
+  // UTM Analytics
+  utmSourceCounts: Record<string, number>;
+  utmMediumCounts: Record<string, number>;
+  utmCampaignCounts: Record<string, number>;
+  utmTermCounts: Record<string, number>;
+  utmContentCounts: Record<string, number>;
+  utmMatrixCounts: Record<string, number>;
+  utmWithCount: number;
+  utmWithoutCount: number;
+  // Progressive loading state
+  isPartialData: boolean;
 }
 
-// Filter parameters for DuckDB queries
 export interface ColdAnalyticsFilters {
-  country?: string; // "all" or country code like "IN", "US"
-  device?: string; // "all" or "desktop", "mobile", "tablet"
-  browser?: string; // "all" or "chrome", "safari", etc.
-  os?: string; // "all" or "macos", "windows", etc.
-  link?: string; // "all" or specific short_url/link_slug
-  excludeBots?: boolean; // true to filter out bots
+  country?: string;
+  device?: string;
+  browser?: string;
+  os?: string;
+  link?: string;
+  excludeBots?: boolean;
 }
 
-// Worker URL for authenticated file access
 const FILE_PROXY_WORKER_URL =
   process.env.NEXT_PUBLIC_FILE_PROXY_URL ||
   "https://proxy-file-worker.sunny735084.workers.dev";
 
-// Module-level cache for parquet file buffers (persists across renders)
-// Key: file.key, Value: ArrayBuffer
+// LRU Cache for parquet files
+const MAX_CACHED_FILES = 30;
 const parquetFileCache = new Map<string, ArrayBuffer>();
-
-// Module-level registry of files already registered in DuckDB
-// Key: file.key, Value: DuckDB filename
 const registeredInDuckDB = new Map<string, string>();
+const lruOrder: string[] = [];
 
-// Generate stable filename from file key (hash-like)
+// Track DuckDB instance to detect when registrations become stale
+let lastDbInstance: unknown = null;
+
+// Track hot data registration
+let lastHotDataHash = "";
+const HOT_DATA_FILENAME = "hot_events.json";
+
 function getStableFileName(key: string): string {
-  // Use a simple hash to create stable, unique filenames
   let hash = 0;
   for (let i = 0; i < key.length; i++) {
     const char = key.charCodeAt(i);
@@ -54,312 +65,441 @@ function getStableFileName(key: string): string {
   return `parquet_${Math.abs(hash).toString(36)}.parquet`;
 }
 
+function touchLRU(key: string): void {
+  const idx = lruOrder.indexOf(key);
+  if (idx > -1) lruOrder.splice(idx, 1);
+  lruOrder.push(key);
+}
+
+function evictLRUIfNeeded(): string | null {
+  if (parquetFileCache.size >= MAX_CACHED_FILES && lruOrder.length > 0) {
+    const evictKey = lruOrder.shift()!;
+    parquetFileCache.delete(evictKey);
+    registeredInDuckDB.delete(evictKey);
+    console.log(`[LRU] Evicted: ${evictKey.slice(-30)}`);
+    return evictKey;
+  }
+  return null;
+}
+
+function hashHotData(hotData: HotDataRow[]): string {
+  if (!hotData || hotData.length === 0) return "empty";
+  const first = hotData[0]?.idempotency_key || "";
+  const last = hotData[hotData.length - 1]?.idempotency_key || "";
+  return `${hotData.length}:${first}:${last}`;
+}
+
+// Helper to run analytics queries on a unified table
+async function runAnalyticsQueries(
+  conn: {
+    query: (sql: string) => Promise<{
+      toArray: () => ArrayLike<{ toJSON: () => Record<string, unknown> }>;
+    }>;
+  },
+  unifiedTable: string,
+  finalWhereClause: string,
+): Promise<{
+  clicksByDay: Record<string, number>;
+  countryCounts: Record<string, number>;
+  linkCounts: Record<string, number>;
+  totalClicks: number;
+  filterOptions: Record<string, FilterOption[]>;
+  utmSourceCounts: Record<string, number>;
+  utmMediumCounts: Record<string, number>;
+  utmCampaignCounts: Record<string, number>;
+  utmTermCounts: Record<string, number>;
+  utmContentCounts: Record<string, number>;
+  utmMatrixCounts: Record<string, number>;
+  utmWithCount: number;
+  utmWithoutCount: number;
+}> {
+  const [
+    dayResult,
+    countryResult,
+    linkResult,
+    totalResult,
+    filterOptionsResult,
+    utmSourceResult,
+    utmMediumResult,
+    utmCampaignResult,
+    utmTermResult,
+    utmContentResult,
+    utmMatrixResult,
+    utmCoverageResult,
+  ] = await Promise.all([
+    conn.query(
+      `SELECT strftime(cast(occurred_at as TIMESTAMP), '%Y-%m-%d') as day, count(*) as count FROM ${unifiedTable} ${finalWhereClause} GROUP BY day`,
+    ),
+    conn.query(
+      `SELECT coalesce(country, 'Unknown') as country, count(*) as count FROM ${unifiedTable} ${finalWhereClause} GROUP BY country`,
+    ),
+    conn.query(
+      `SELECT coalesce(short_url, link_slug) as url, count(*) as count FROM ${unifiedTable} ${finalWhereClause} GROUP BY url`,
+    ),
+    conn.query(
+      `SELECT count(*) as count FROM ${unifiedTable} ${finalWhereClause}`,
+    ),
+    (async () => {
+      const unionParts = FILTER_CONFIGS.map((config) => {
+        const baseQuery = config.optionsQuery.replace("{table}", unifiedTable);
+        return `SELECT '${config.id}' as filter_id, * FROM (${baseQuery}) sub_${config.id}`;
+      });
+      return conn.query(unionParts.join(" UNION ALL "));
+    })(),
+    conn.query(
+      `SELECT coalesce(utm_source, 'Direct / None') as key, count(*) as cnt FROM ${unifiedTable} ${finalWhereClause} GROUP BY utm_source`,
+    ),
+    conn.query(
+      `SELECT coalesce(utm_medium, 'None') as key, count(*) as cnt FROM ${unifiedTable} ${finalWhereClause} GROUP BY utm_medium`,
+    ),
+    conn.query(
+      `SELECT coalesce(utm_campaign, 'No Campaign') as key, count(*) as cnt FROM ${unifiedTable} ${finalWhereClause} GROUP BY utm_campaign`,
+    ),
+    conn.query(
+      `SELECT utm_term as key, count(*) as cnt FROM ${unifiedTable} ${finalWhereClause} ${finalWhereClause ? "AND" : "WHERE"} utm_term IS NOT NULL AND utm_term != '' GROUP BY utm_term`,
+    ),
+    conn.query(
+      `SELECT utm_content as key, count(*) as cnt FROM ${unifiedTable} ${finalWhereClause} ${finalWhereClause ? "AND" : "WHERE"} utm_content IS NOT NULL AND utm_content != '' GROUP BY utm_content`,
+    ),
+    conn.query(
+      `SELECT coalesce(utm_source, 'Direct') as src, coalesce(utm_medium, 'None') as med, count(*) as cnt FROM ${unifiedTable} ${finalWhereClause} GROUP BY utm_source, utm_medium`,
+    ),
+    conn.query(
+      `SELECT CASE WHEN utm_source IS NOT NULL THEN 'with' ELSE 'without' END as cat, count(*) as cnt FROM ${unifiedTable} ${finalWhereClause} GROUP BY cat`,
+    ),
+  ]);
+
+  // Process results
+  const clicksByDay: Record<string, number> = {};
+  for (const row of Array.from(dayResult.toArray())) {
+    const r = row.toJSON() as { day: string; count: number };
+    if (r.day) clicksByDay[r.day] = Number(r.count);
+  }
+
+  const countryCounts: Record<string, number> = {};
+  for (const row of Array.from(countryResult.toArray())) {
+    const r = row.toJSON() as { country: string; count: number };
+    if (r.country) countryCounts[r.country] = Number(r.count);
+  }
+
+  const linkCounts: Record<string, number> = {};
+  for (const row of Array.from(linkResult.toArray())) {
+    const r = row.toJSON() as { url: string; count: number };
+    if (r.url) linkCounts[r.url] = Number(r.count);
+  }
+
+  const totalClicks = Number(
+    (Array.from(totalResult.toArray())[0]?.toJSON() as { count: number })
+      ?.count ?? 0,
+  );
+
+  // Filter options
+  const rawValuesByFilter: Record<string, string[]> = {};
+  for (const config of FILTER_CONFIGS) {
+    rawValuesByFilter[config.id] = [];
+  }
+  for (const row of Array.from(filterOptionsResult.toArray())) {
+    const rowData = row.toJSON() as Record<string, unknown>;
+    const filterId = rowData.filter_id as string;
+    const values = Object.values(rowData);
+    const value = values.length > 1 ? (values[1] as string) : null;
+    if (filterId && value && rawValuesByFilter[filterId]) {
+      rawValuesByFilter[filterId].push(value);
+    }
+  }
+  const filterOptions: Record<string, FilterOption[]> = {};
+  for (const config of FILTER_CONFIGS) {
+    filterOptions[config.id] = processFilterOptions(
+      config.id,
+      rawValuesByFilter[config.id],
+    );
+  }
+
+  // UTM processing
+  const toUtmRecord = (result: {
+    toArray: () => ArrayLike<{ toJSON: () => { key?: string; cnt?: number } }>;
+  }) => {
+    const rec: Record<string, number> = {};
+    for (const row of Array.from(result.toArray())) {
+      const r = row.toJSON();
+      if (r.key) rec[r.key] = Number(r.cnt);
+    }
+    return rec;
+  };
+
+  const utmSourceCounts = toUtmRecord(utmSourceResult);
+  const utmMediumCounts = toUtmRecord(utmMediumResult);
+  const utmCampaignCounts = toUtmRecord(utmCampaignResult);
+  const utmTermCounts = toUtmRecord(utmTermResult);
+  const utmContentCounts = toUtmRecord(utmContentResult);
+
+  const utmMatrixCounts: Record<string, number> = {};
+  for (const row of Array.from(utmMatrixResult.toArray())) {
+    const r = row.toJSON() as { src: string; med: string; cnt: number };
+    utmMatrixCounts[`${r.src}|${r.med}`] = Number(r.cnt);
+  }
+
+  let utmWithCount = 0,
+    utmWithoutCount = 0;
+  for (const row of Array.from(utmCoverageResult.toArray())) {
+    const r = row.toJSON() as { cat: string; cnt: number };
+    if (r.cat === "with") utmWithCount = Number(r.cnt);
+    else utmWithoutCount = Number(r.cnt);
+  }
+
+  return {
+    clicksByDay,
+    countryCounts,
+    linkCounts,
+    totalClicks,
+    filterOptions,
+    utmSourceCounts,
+    utmMediumCounts,
+    utmCampaignCounts,
+    utmTermCounts,
+    utmContentCounts,
+    utmMatrixCounts,
+    utmWithCount,
+    utmWithoutCount,
+  };
+}
+
 export function useColdAnalytics(
   files: ColdFile[],
   filters: ColdAnalyticsFilters = {},
-  start?: string, // YYYY-MM-DD
-  end?: string, // YYYY-MM-DD
+  start?: string,
+  end?: string,
+  hotData?: HotDataRow[],
 ) {
   const { db, loading: dbLoading, error: dbError } = useDuckDB();
   const { getToken } = useAuth();
-  const runIdRef = useRef(0);
 
   const fileKeys = useMemo(() => files.map((file) => file.key), [files]);
+  const hotDataHash = useMemo(() => hashHotData(hotData || []), [hotData]);
   const hasFiles = fileKeys.length > 0;
-  const queryEnabled = !!db && !dbLoading && !dbError && hasFiles;
+  const hasHotData = hotData && hotData.length > 0;
 
-  const queryResult = useQuery<ColdAnalyticsData, Error>({
-    queryKey: ["cold-analytics", fileKeys, filters, start, end],
-    enabled: queryEnabled,
-    placeholderData: keepPreviousData, // Keep showing old data while new filter loads
-    // Override global cache settings - analytics should be real-time
-    staleTime: 0, // Data is immediately stale, always refetch
-    gcTime: 1000 * 60 * 5, // Keep in cache for 5 min (for quick filter switching)
-    refetchOnMount: true, // Always check for fresh data
-    refetchOnWindowFocus: true, // Refresh when user returns to tab
+  // Build WHERE clause (shared between queries)
+  const finalWhereClause = useMemo(() => {
+    const filterRecord: Record<string, string> = {
+      country: filters.country || "all",
+      device: filters.device || "all",
+      browser: filters.browser || "all",
+      os: filters.os || "all",
+      link: filters.link || "all",
+    };
+    const whereClause = buildFullWhereClause(filterRecord, filters.excludeBots);
+
+    let result = whereClause;
+    if (start && end) {
+      const dateFilter = `occurred_at >= '${start} 00:00:00' AND occurred_at <= '${end} 23:59:59.999'`;
+      result = result ? `${result} AND ${dateFilter}` : `WHERE ${dateFilter}`;
+    }
+    return result;
+  }, [filters, start, end]);
+
+  // --- PHASE 1: Hot Data Only (Fast) ---
+  const hotOnlyQueryEnabled = !!db && !dbLoading && !dbError && hasHotData;
+
+  const hotOnlyResult = useQuery<ColdAnalyticsData, Error>({
+    queryKey: ["analytics-hot-only", hotDataHash, filters, start, end],
+    enabled: hotOnlyQueryEnabled,
+    staleTime: 0,
+    gcTime: 1000 * 60 * 2,
     queryFn: async () => {
+      console.log("[ColdPerf] Phase 1: Hot data only...");
       const t0 = performance.now();
-      console.log("[ColdPerf] ═══════════════════════════════════════════");
-      console.log("[ColdPerf] Starting cold analytics query...");
-      console.log(`[ColdPerf] Files requested: ${files.length}`);
-      console.log(
-        `[ColdPerf] File keys:`,
-        files.map((f) => f.key.slice(-30)),
-      );
-      console.log(`[ColdPerf] Registry size: ${registeredInDuckDB.size}`);
-      console.log(`[ColdPerf] Cache size: ${parquetFileCache.size}`);
 
-      if (!db) {
-        throw new Error("DuckDB is not initialized");
-      }
+      if (!db) throw new Error("DuckDB is not initialized");
 
-      // Get Clerk session token for authenticated Worker access
-      const t1 = performance.now();
-      const token = await getToken();
-      const t2 = performance.now();
-      console.log(`[ColdPerf] Clerk token fetch: ${(t2 - t1).toFixed(2)}ms`);
-
-      if (!token) {
-        throw new Error("Authentication required - no session token");
+      // Clear registeredInDuckDB if DB instance changed
+      if (lastDbInstance !== db) {
+        console.log("[ColdPerf] DB instance changed, clearing file registry");
+        registeredInDuckDB.clear();
+        lastHotDataHash = "";
+        lastDbInstance = db;
       }
 
       const conn = await db.connect();
-      const t3 = performance.now();
-      console.log(`[ColdPerf] DB connect: ${(t3 - t2).toFixed(2)}ms`);
-
-      const fileNamesForQuery: string[] = [];
 
       try {
-        const currentRunId = ++runIdRef.current;
+        // Register hot data with EXCLUDE to drop user_id
+        if (hotDataHash !== lastHotDataHash) {
+          const hotJson = JSON.stringify(hotData);
+          const hotBuffer = new TextEncoder().encode(hotJson);
+          await db.registerFileBuffer(HOT_DATA_FILENAME, hotBuffer);
+          lastHotDataHash = hotDataHash;
+        }
 
-        const t4 = performance.now();
-        let alreadyRegisteredCount = 0;
-        let cachedCount = 0;
-        let fetchedCount = 0;
+        // Query hot data only, using EXCLUDE to drop user_id
+        const hotTable = `(SELECT * EXCLUDE (user_id) FROM read_json('${HOT_DATA_FILENAME}'))`;
 
-        // Process files - reuse already registered, cache hits, or fetch new
-        for (const [index, f] of files.entries()) {
+        const results = await runAnalyticsQueries(
+          conn,
+          hotTable,
+          finalWhereClause,
+        );
+
+        const t1 = performance.now();
+        console.log(
+          `[ColdPerf] Phase 1 complete: ${(t1 - t0).toFixed(2)}ms (hot only)`,
+        );
+
+        return { ...results, isPartialData: true };
+      } finally {
+        await conn.close();
+      }
+    },
+  });
+
+  // --- PHASE 2: Full Unified Query (Hot + Cold) ---
+  const fullQueryEnabled =
+    !!db && !dbLoading && !dbError && (hasFiles || hasHotData);
+
+  const fullResult = useQuery<ColdAnalyticsData, Error>({
+    queryKey: ["analytics-full", fileKeys, hotDataHash, filters, start, end],
+    enabled: fullQueryEnabled,
+    placeholderData: keepPreviousData,
+    staleTime: 0,
+    gcTime: 1000 * 60 * 5,
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
+    queryFn: async () => {
+      console.log("[ColdPerf] Phase 2: Full unified query...");
+      const t0 = performance.now();
+
+      if (!db) throw new Error("DuckDB is not initialized");
+
+      // Clear registeredInDuckDB if DB instance changed (registrations are stale)
+      if (lastDbInstance !== db) {
+        console.log("[ColdPerf] DB instance changed, clearing file registry");
+        registeredInDuckDB.clear();
+        lastHotDataHash = ""; // Also reset hot data registration
+        lastDbInstance = db;
+      }
+
+      const token = await getToken();
+      if (!token) throw new Error("Authentication required");
+
+      const conn = await db.connect();
+      const coldTableParts: string[] = [];
+
+      try {
+        // Register cold parquet files with LRU
+        // IMPORTANT: Always re-register from cache to avoid race conditions between Phase 1 and Phase 2
+        for (const f of files) {
           const stableFileName = getStableFileName(f.key);
 
-          // Check if already registered in DuckDB (best case - no work needed!)
-          if (registeredInDuckDB.has(f.key)) {
-            alreadyRegisteredCount++;
-            fileNamesForQuery.push(`'${registeredInDuckDB.get(f.key)}'`);
-            console.log(
-              `[ColdPerf] [${currentRunId}] Already registered: ${f.key.slice(-30)}`,
-            );
-            continue;
-          }
-
           let arrayBuffer: ArrayBuffer;
-
-          // Check if file is in memory cache (need to register but not fetch)
           if (parquetFileCache.has(f.key)) {
+            // Use cached ArrayBuffer
             arrayBuffer = parquetFileCache.get(f.key)!;
-            cachedCount++;
-            console.log(
-              `[ColdPerf] [${currentRunId}] Cache HIT for file ${index + 1}/${files.length}`,
-            );
+            touchLRU(f.key);
           } else {
-            // Fetch from network
+            // Fetch and cache
+            evictLRUIfNeeded();
             const proxyUrl = `${FILE_PROXY_WORKER_URL}/file/${encodeURIComponent(f.key)}`;
-
-            console.log(
-              `[ColdPerf] [${currentRunId}] Fetching file ${index + 1}/${files.length}: ${f.key.slice(-40)}`,
-            );
-
-            const fetchStart = performance.now();
             const response = await fetch(proxyUrl, {
               method: "GET",
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
+              headers: { Authorization: `Bearer ${token}` },
             });
-
-            if (!response.ok) {
-              const errorText = await response.text();
-              console.error(
-                `[ColdPerf] Failed to fetch file ${f.key}: ${response.status} - ${errorText}`,
-              );
-              throw new Error(
-                `Failed to fetch analytics file: ${response.status}`,
-              );
-            }
-
+            if (!response.ok)
+              throw new Error(`Failed to fetch: ${response.status}`);
             arrayBuffer = await response.arrayBuffer();
-
-            // Store a COPY in cache (original gets detached when transferred to Web Worker)
             parquetFileCache.set(f.key, arrayBuffer.slice(0));
-            fetchedCount++;
-
-            const fetchEnd = performance.now();
-            console.log(
-              `[ColdPerf] File fetch complete: ${(fetchEnd - fetchStart).toFixed(2)}ms (${arrayBuffer.byteLength} bytes)`,
-            );
+            touchLRU(f.key);
           }
 
-          // Register with DuckDB using stable filename
+          // Always register (re-register if already exists - DuckDB handles this)
           await db.registerFileBuffer(
             stableFileName,
             new Uint8Array(arrayBuffer.slice(0)),
           );
-
-          // Track registration so we can reuse next time
           registeredInDuckDB.set(f.key, stableFileName);
-          fileNamesForQuery.push(`'${stableFileName}'`);
+          coldTableParts.push(`'${stableFileName}'`);
         }
 
-        const t5 = performance.now();
+        const t1 = performance.now();
         console.log(
-          `[ColdPerf] Processed ${files.length} files: ${alreadyRegisteredCount} reused, ${cachedCount} cache-hit, ${fetchedCount} fetched (${(t5 - t4).toFixed(2)}ms)`,
+          `[ColdPerf] Cold files registered: ${(t1 - t0).toFixed(2)}ms`,
         );
 
-        const tableExpression = `read_parquet([${fileNamesForQuery.join(", ")}])`;
+        // Register hot data if changed
+        if (hasHotData && hotDataHash !== lastHotDataHash) {
+          const hotJson = JSON.stringify(hotData);
+          const hotBuffer = new TextEncoder().encode(hotJson);
+          await db.registerFileBuffer(HOT_DATA_FILENAME, hotBuffer);
+          lastHotDataHash = hotDataHash;
+        }
 
-        // Build WHERE clause using config-driven function
-        // Convert to Record<string, string> format expected by buildFullWhereClause
-        const filterRecord: Record<string, string> = {
-          country: filters.country || "all",
-          device: filters.device || "all",
-          browser: filters.browser || "all",
-          os: filters.os || "all",
-          link: filters.link || "all",
-        };
-        const whereClause = buildFullWhereClause(
-          filterRecord,
-          filters.excludeBots,
-        );
-
-        // Add precise time range filtering
-        let finalWhereClause = whereClause;
-        if (start && end) {
-          const dateFilter = `occurred_at >= '${start} 00:00:00' AND occurred_at <= '${end} 23:59:59.999'`;
-          if (finalWhereClause) {
-            finalWhereClause += ` AND ${dateFilter}`;
-          } else {
-            finalWhereClause = `WHERE ${dateFilter}`;
+        // Check if parquet has user_id (new files will, old won't)
+        let parquetHasUserId = false;
+        if (coldTableParts.length > 0) {
+          try {
+            const schemaResult = await conn.query(
+              `DESCRIBE SELECT * FROM read_parquet([${coldTableParts[0]}]) LIMIT 1`,
+            );
+            const cols = Array.from(schemaResult.toArray()).map(
+              (r) => (r.toJSON() as { column_name: string }).column_name,
+            );
+            parquetHasUserId = cols.includes("user_id");
+            console.log(`[ColdPerf] Parquet has user_id: ${parquetHasUserId}`);
+          } catch (e) {
+            console.log(`[ColdPerf] Could not check parquet schema:`, e);
           }
         }
 
-        console.log(
-          `[ColdPerf] Filters applied: ${finalWhereClause || "(none)"}`,
-        );
+        // Build unified table with EXCLUDE for backward compat
+        const tableParts: string[] = [];
 
-        const t6 = performance.now();
-        const dayQuery = `
-          SELECT 
-            strftime(cast(occurred_at as TIMESTAMP), '%Y-%m-%d') as day, 
-            count(*) as count 
-          FROM ${tableExpression} 
-          ${finalWhereClause}
-          GROUP BY day
-        `;
-        const dayResult = await conn.query(dayQuery);
-        const t7 = performance.now();
-        console.log(`[ColdPerf] Day query: ${(t7 - t6).toFixed(2)}ms`);
-
-        const clicksByDay: Record<string, number> = {};
-        for (const row of dayResult.toArray()) {
-          const r = row.toJSON();
-          if (r.day) clicksByDay[r.day] = Number(r.count);
+        if (coldTableParts.length > 0) {
+          const coldSelect = parquetHasUserId
+            ? `SELECT * EXCLUDE (user_id) FROM read_parquet([${coldTableParts.join(", ")}])`
+            : `SELECT * FROM read_parquet([${coldTableParts.join(", ")}])`;
+          tableParts.push(coldSelect);
         }
 
-        const t8 = performance.now();
-        const countryQuery = `
-          SELECT 
-            coalesce(country, 'Unknown') as country, 
-            count(*) as count 
-          FROM ${tableExpression} 
-          ${finalWhereClause}
-          GROUP BY country
-        `;
-        const countryResult = await conn.query(countryQuery);
-        const t9 = performance.now();
-        console.log(`[ColdPerf] Country query: ${(t9 - t8).toFixed(2)}ms`);
-
-        const countryCounts: Record<string, number> = {};
-        for (const row of countryResult.toArray()) {
-          const r = row.toJSON();
-          if (r.country) countryCounts[r.country] = Number(r.count);
-        }
-
-        const t10 = performance.now();
-        const linkQuery = `
-          SELECT 
-            coalesce(short_url, link_slug) as url, 
-            count(*) as count 
-          FROM ${tableExpression} 
-          ${finalWhereClause}
-          GROUP BY url
-        `;
-        const linkResult = await conn.query(linkQuery);
-        const t11 = performance.now();
-        console.log(`[ColdPerf] Link query: ${(t11 - t10).toFixed(2)}ms`);
-
-        const linkCounts: Record<string, number> = {};
-        for (const row of linkResult.toArray()) {
-          const r = row.toJSON();
-          if (r.url) linkCounts[r.url] = Number(r.count);
-        }
-
-        const t12 = performance.now();
-        const totalQuery = `SELECT count(*) as count FROM ${tableExpression} ${finalWhereClause}`;
-        const totalResult = await conn.query(totalQuery);
-        const t13 = performance.now();
-        console.log(`[ColdPerf] Total query: ${(t13 - t12).toFixed(2)}ms`);
-
-        const totalClicks = Number(totalResult.toArray()[0].toJSON().count);
-
-        // --- Query for filter options using BATCHED UNION ALL ---
-        // Single query instead of 5 sequential queries for better performance
-        const t14 = performance.now();
-
-        // Build UNION ALL query for all filter options at once
-        const unionParts = FILTER_CONFIGS.map((config) => {
-          const baseQuery = config.optionsQuery.replace(
-            "{table}",
-            tableExpression,
-          );
-          // Wrap each query to add a filter_id column for identification
-          return `SELECT '${config.id}' as filter_id, * FROM (${baseQuery}) sub_${config.id}`;
-        });
-        const batchedQuery = unionParts.join(" UNION ALL ");
-
-        const batchedResult = await conn.query(batchedQuery);
-
-        // Group results by filter_id
-        const rawValuesByFilter: Record<string, string[]> = {};
-        for (const config of FILTER_CONFIGS) {
-          rawValuesByFilter[config.id] = [];
-        }
-
-        for (const row of batchedResult.toArray()) {
-          const rowData = row.toJSON();
-          const filterId = rowData.filter_id as string;
-          // Get the value (second column, after filter_id)
-          const values = Object.values(rowData);
-          const value = values.length > 1 ? (values[1] as string) : null;
-          if (filterId && value && rawValuesByFilter[filterId]) {
-            rawValuesByFilter[filterId].push(value);
-          }
-        }
-
-        // Process each filter's values
-        const filterOptionsResult: Record<string, FilterOption[]> = {};
-        for (const config of FILTER_CONFIGS) {
-          filterOptionsResult[config.id] = processFilterOptions(
-            config.id,
-            rawValuesByFilter[config.id],
+        if (hasHotData) {
+          // Hot always has user_id, so always EXCLUDE it
+          tableParts.push(
+            `SELECT * EXCLUDE (user_id) FROM read_json('${HOT_DATA_FILENAME}')`,
           );
         }
 
-        const t15 = performance.now();
+        if (tableParts.length === 0) {
+          throw new Error("No data sources available");
+        }
+
+        const unifiedTable =
+          tableParts.length === 1
+            ? `(${tableParts[0]})`
+            : `(${tableParts.join(" UNION ALL ")})`;
+
+        const t2 = performance.now();
         console.log(
-          `[ColdPerf] Filter options query: ${(t15 - t14).toFixed(2)}ms`,
+          `[ColdPerf] Unified table built: ${(t2 - t1).toFixed(2)}ms`,
         );
 
-        console.log(
-          `[ColdPerf] ✅ TOTAL processing time: ${(t15 - t0).toFixed(2)}ms`,
+        const results = await runAnalyticsQueries(
+          conn,
+          unifiedTable,
+          finalWhereClause,
         );
 
-        return {
-          clicksByDay,
-          countryCounts,
-          linkCounts,
-          totalClicks,
-          filterOptions: filterOptionsResult,
-        };
+        const t3 = performance.now();
+        console.log(
+          `[ColdPerf] Phase 2 complete: ${(t3 - t0).toFixed(2)}ms (full)`,
+        );
+
+        return { ...results, isPartialData: false };
       } finally {
-        // Only close connection, keep files registered for reuse!
         await conn.close();
-        console.log(`[ColdPerf] Connection closed (files kept registered)`);
       }
     },
     retry: 1,
   });
 
-  // Empty data structure for when there are genuinely no files
-  // Generate empty filter options from FILTER_CONFIGS for consistency
+  // Return: Prefer full data, fall back to hot-only for progressive loading
   const emptyFilterOptions: Record<string, FilterOption[]> = {};
   for (const config of FILTER_CONFIGS) {
     emptyFilterOptions[config.id] = [
@@ -373,25 +513,29 @@ export function useColdAnalytics(
     linkCounts: {},
     totalClicks: 0,
     filterOptions: emptyFilterOptions,
+    utmSourceCounts: {},
+    utmMediumCounts: {},
+    utmCampaignCounts: {},
+    utmTermCounts: {},
+    utmContentCounts: {},
+    utmMatrixCounts: {},
+    utmWithCount: 0,
+    utmWithoutCount: 0,
+    isPartialData: false,
   };
 
-  // When no files in the request:
-  // - If we're still fetching (isPending), show previous cached data to avoid flash
-  // - If fetch completed (not pending), this filter genuinely has no data - show empty
-  if (!hasFiles) {
-    const isStillFetching = queryResult.isPending || queryResult.isFetching;
-    return {
-      data: isStillFetching ? (queryResult.data ?? null) : emptyData,
-      loading: isStillFetching,
-      error: dbError,
-    };
+  // Progressive loading: show hot data first, then full when ready
+  const data = fullResult.data ?? hotOnlyResult.data ?? null;
+  const loading =
+    fullResult.isFetching || fullResult.isPending || hotOnlyResult.isFetching;
+
+  if (!hasFiles && !hasHotData) {
+    return { data: emptyData, loading: false, error: dbError };
   }
 
   return {
-    data: queryResult.data ?? null,
-    loading: queryEnabled
-      ? queryResult.isFetching || queryResult.isPending
-      : false,
-    error: queryResult.error ?? dbError ?? null,
+    data,
+    loading,
+    error: fullResult.error ?? hotOnlyResult.error ?? dbError ?? null,
   };
 }

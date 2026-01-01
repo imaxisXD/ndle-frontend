@@ -416,6 +416,14 @@ export function UrlShortener() {
                   : undefined,
             }
           : undefined,
+        // UTM Parameters - only pass if UTM is enabled
+        ...(values.utmEnabled && {
+          utmSource: values.utmSource?.trim() || undefined,
+          utmMedium: values.utmMedium?.trim() || undefined,
+          utmCampaign: values.utmCampaign?.trim() || undefined,
+          utmTerm: values.utmTerm?.trim() || undefined,
+          utmContent: values.utmContent?.trim() || undefined,
+        }),
       });
 
       // Use the selected domain for the final short link

@@ -36,6 +36,12 @@ export const createUrl = mutation({
     ),
     customDomain: v.optional(v.string()), // Custom domain for Pro users
     collectionId: v.optional(v.id("collections")),
+    // UTM Parameters
+    utmSource: v.optional(v.string()),
+    utmMedium: v.optional(v.string()),
+    utmCampaign: v.optional(v.string()),
+    utmTerm: v.optional(v.string()),
+    utmContent: v.optional(v.string()),
   },
   returns: v.object({
     docId: v.id("urls"),
@@ -139,6 +145,12 @@ export const createUrl = mutation({
       userTableId: user._id,
       slugAssigned: slug,
       urlStatusMessage: "creating",
+      // UTM Parameters
+      utmSource: args.utmSource ?? undefined,
+      utmMedium: args.utmMedium ?? undefined,
+      utmCampaign: args.utmCampaign ?? undefined,
+      utmTerm: args.utmTerm ?? undefined,
+      utmContent: args.utmContent ?? undefined,
     });
 
     await ctx.db.insert("urlAnalytics", {
@@ -153,6 +165,12 @@ export const createUrl = mutation({
       fullUrl: args.url,
       slugAssigned: slug,
       docId: docId,
+      // UTM Parameters
+      utmSource: args.utmSource,
+      utmMedium: args.utmMedium,
+      utmCampaign: args.utmCampaign,
+      utmTerm: args.utmTerm,
+      utmContent: args.utmContent,
     });
 
     if (args.expiresAt !== undefined) {

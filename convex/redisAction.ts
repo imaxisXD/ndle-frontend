@@ -15,8 +15,22 @@ export const insertIntoRedis = internalAction({
     slugAssigned: v.string(),
     docId: v.id("urls"),
     user_id: v.id("users"),
+    // UTM Parameters
+    utmSource: v.optional(v.string()),
+    utmMedium: v.optional(v.string()),
+    utmCampaign: v.optional(v.string()),
+    utmTerm: v.optional(v.string()),
+    utmContent: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
+    // Build utm_params object only with non-empty values
+    const utmParams: Record<string, string> = {};
+    if (args.utmSource) utmParams.utm_source = args.utmSource;
+    if (args.utmMedium) utmParams.utm_medium = args.utmMedium;
+    if (args.utmCampaign) utmParams.utm_campaign = args.utmCampaign;
+    if (args.utmTerm) utmParams.utm_term = args.utmTerm;
+    if (args.utmContent) utmParams.utm_content = args.utmContent;
+
     const redisValueObject: RedisValueObject = {
       destination: args.fullUrl,
       user_id: args.user_id,
@@ -29,7 +43,7 @@ export const insertIntoRedis = internalAction({
       expires_at: null,
       max_clicks: null,
       tags: [],
-      utm_params: {},
+      utm_params: utmParams,
       rules: {},
       features: {
         track_clicks: true,

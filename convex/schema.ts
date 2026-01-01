@@ -33,6 +33,12 @@ export default defineSchema({
     slugAssigned: v.optional(v.string()),
     redisStatus: v.optional(v.string()),
     urlStatusMessage: v.optional(v.string()),
+    // UTM Parameters
+    utmSource: v.optional(v.string()),
+    utmMedium: v.optional(v.string()),
+    utmCampaign: v.optional(v.string()),
+    utmTerm: v.optional(v.string()),
+    utmContent: v.optional(v.string()),
   })
     .index("by_slug", ["slugAssigned"])
     .index("by_user", ["userTableId"])
@@ -144,4 +150,18 @@ export default defineSchema({
     .index("by_user", ["userId"])
     .index("by_domain", ["domain"])
     .index("by_status", ["status"]),
+  // UTM Templates for reusable UTM configurations
+  utm_templates: defineTable({
+    userId: v.id("users"),
+    name: v.string(),
+    utmSource: v.optional(v.string()),
+    utmMedium: v.optional(v.string()),
+    utmCampaign: v.optional(v.string()),
+    utmTerm: v.optional(v.string()),
+    utmContent: v.optional(v.string()),
+    usageCount: v.number(),
+    createdAt: v.number(),
+  })
+    .index("by_user", ["userId"])
+    .index("by_user_and_name", ["userId", "name"]),
 });

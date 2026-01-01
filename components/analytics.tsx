@@ -18,6 +18,8 @@ import {
   LinkIcon,
   ShieldCheckIcon,
 } from "@phosphor-icons/react";
+import { UTMAnalyticsPanel } from "@/components/UTMAnalyticsPanel";
+import type { UTMAnalyticsData } from "@/types/utm-analytics";
 
 function TotalClicksCard() {
   const totalClicksFromConvex = useQuery(api.urlAnalytics.getUsersTotalClicks);
@@ -123,6 +125,7 @@ export function Analytics() {
     },
     start,
     end,
+    data?.hot, // Pass hot data for UTM merging
   );
 
   // Fetch URLs with analytics from Convex for Top Links
@@ -130,6 +133,44 @@ export function Analytics() {
     api.urlMainFuction.getUserUrlsWithAnalytics,
   );
   const urlsLoading = urlsWithAnalytics === undefined;
+
+  // Derive UTM panel data from coldData (which includes merged hot+cold UTM)
+  const utmData: UTMAnalyticsData | null = coldData
+    ? {
+        sourceData: Object.entries(coldData.utmSourceCounts)
+          .sort((a, b) => b[1] - a[1])
+          .slice(0, 20)
+          .map(([source, clicks]) => ({ source, clicks })),
+        mediumData: Object.entries(coldData.utmMediumCounts)
+          .sort((a, b) => b[1] - a[1])
+          .slice(0, 20)
+          .map(([medium, clicks]) => ({ medium, clicks })),
+        campaignData: Object.entries(coldData.utmCampaignCounts)
+          .sort((a, b) => b[1] - a[1])
+          .slice(0, 20)
+          .map(([campaign, clicks]) => ({ campaign, clicks })),
+        termData: Object.entries(coldData.utmTermCounts)
+          .sort((a, b) => b[1] - a[1])
+          .slice(0, 20)
+          .map(([term, clicks]) => ({ term, clicks })),
+        contentData: Object.entries(coldData.utmContentCounts)
+          .sort((a, b) => b[1] - a[1])
+          .slice(0, 20)
+          .map(([content, clicks]) => ({ content, clicks })),
+        sourceMediaMatrix: Object.entries(coldData.utmMatrixCounts)
+          .sort((a, b) => b[1] - a[1])
+          .slice(0, 50)
+          .map(([key, clicks]) => {
+            const [source, medium] = key.split("|");
+            return { source, medium, clicks };
+          }),
+        utmCoverage: {
+          withUtm: coldData.utmWithCount,
+          withoutUtm: coldData.utmWithoutCount,
+        },
+        totalUtmClicks: coldData.utmWithCount,
+      }
+    : null;
 
   console.log(
     `[Analytics] showSkeleton=${showSkeleton} | isPending=${isPending} | coldLoading=${coldLoading}`,
@@ -343,6 +384,15 @@ export function Analytics() {
 
       {/* Top Performing Links */}
       <TopLinksChart data={topLinks} isLoading={urlsLoading} />
+
+      {/* UTM Campaign Analytics */}
+      <div>
+        <h3 className="mb-4 text-lg font-medium">Campaign Analytics</h3>
+        <p className="text-muted-foreground mb-6 text-sm">
+          Track performance of your UTM-tagged marketing campaigns
+        </p>
+        <UTMAnalyticsPanel data={utmData} isLoading={coldLoading && !utmData} />
+      </div>
 
       {/* Healing Activity - STATIC FOR NOW */}
       <div className="grid gap-6 lg:grid-cols-2">

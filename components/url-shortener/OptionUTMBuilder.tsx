@@ -1,7 +1,6 @@
 "use client";
 
 import { useMemo } from "react";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
   FormField,
@@ -9,11 +8,51 @@ import {
   FormLabel,
   FormControl,
   FormMessage,
+  FormDescription,
 } from "@/components/ui/form";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
+// Common UTM source presets
+const SOURCE_PRESETS = [
+  { value: "", label: "Custom..." },
+  { value: "google", label: "Google" },
+  { value: "facebook", label: "Facebook" },
+  { value: "twitter", label: "Twitter / X" },
+  { value: "linkedin", label: "LinkedIn" },
+  { value: "instagram", label: "Instagram" },
+  { value: "tiktok", label: "TikTok" },
+  { value: "youtube", label: "YouTube" },
+  { value: "newsletter", label: "Newsletter" },
+  { value: "email", label: "Email" },
+];
+
+// Common UTM medium presets
+const MEDIUM_PRESETS = [
+  { value: "", label: "Custom..." },
+  { value: "cpc", label: "CPC (Pay-per-click)" },
+  { value: "email", label: "Email" },
+  { value: "social", label: "Social" },
+  { value: "organic", label: "Organic" },
+  { value: "referral", label: "Referral" },
+  { value: "display", label: "Display" },
+  { value: "affiliate", label: "Affiliate" },
+  { value: "banner", label: "Banner" },
+];
 
 function buildUtmUrl(baseUrl: string, params: Record<string, string>) {
   try {
-    const url = new URL(baseUrl);
+    // Add protocol if missing
+    let urlString = baseUrl;
+    if (!/^https?:\/\//i.test(urlString)) {
+      urlString = `https://${urlString}`;
+    }
+    const url = new URL(urlString);
     Object.entries(params).forEach(([k, v]) => {
       if (v && v.trim() !== "") url.searchParams.set(k, v.trim());
     });
@@ -42,53 +81,130 @@ export function OptionUTMBuilder({ form }: { form: any }) {
     });
   }, [currentUrl, utmSource, utmMedium, utmCampaign, utmTerm, utmContent]);
 
-  const applyToUrl = () => {
-    if (!preview) return;
-    form.setValue("url", preview, { shouldDirty: true, shouldValidate: true });
-  };
+  const hasAnyUtm =
+    utmSource || utmMedium || utmCampaign || utmTerm || utmContent;
 
   return (
-    <div>
-      <div className="mt-0 grid grid-cols-1 gap-3 md:grid-cols-2">
+    <div className="space-y-4">
+      <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+        {/* UTM Source with preset dropdown */}
         <FormField
           control={form.control}
           name="utmSource"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>utm_source</FormLabel>
-              <FormControl>
-                <Input placeholder="newsletter" {...field} />
-              </FormControl>
+              <FormLabel>utm_source *</FormLabel>
+              <div className="flex gap-2">
+                <Select
+                  value={
+                    SOURCE_PRESETS.some((p) => p.value === field.value)
+                      ? field.value
+                      : ""
+                  }
+                  onValueChange={(val) => {
+                    if (val) field.onChange(val);
+                  }}
+                >
+                  <SelectTrigger className="w-32">
+                    <SelectValue placeholder="Preset" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {SOURCE_PRESETS.map((preset) => (
+                      <SelectItem
+                        key={preset.value || "custom"}
+                        value={preset.value || "CUSTOM_PLACEHOLDER"}
+                      >
+                        {preset.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormControl>
+                  <Input
+                    placeholder="e.g. google, newsletter"
+                    {...field}
+                    className="flex-1"
+                  />
+                </FormControl>
+              </div>
+              <FormDescription className="text-xs">
+                Where the traffic is coming from
+              </FormDescription>
               <FormMessage />
             </FormItem>
           )}
         />
+
+        {/* UTM Medium with preset dropdown */}
         <FormField
           control={form.control}
           name="utmMedium"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>utm_medium</FormLabel>
-              <FormControl>
-                <Input placeholder="email" {...field} />
-              </FormControl>
+              <FormLabel>utm_medium *</FormLabel>
+              <div className="flex gap-2">
+                <Select
+                  value={
+                    MEDIUM_PRESETS.some((p) => p.value === field.value)
+                      ? field.value
+                      : ""
+                  }
+                  onValueChange={(val) => {
+                    if (val) field.onChange(val);
+                  }}
+                >
+                  <SelectTrigger className="w-32">
+                    <SelectValue placeholder="Preset" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {MEDIUM_PRESETS.map((preset) => (
+                      <SelectItem
+                        key={preset.value || "custom"}
+                        value={preset.value || "CUSTOM_PLACEHOLDER"}
+                      >
+                        {preset.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormControl>
+                  <Input
+                    placeholder="e.g. cpc, email, social"
+                    {...field}
+                    className="flex-1"
+                  />
+                </FormControl>
+              </div>
+              <FormDescription className="text-xs">
+                The marketing medium or channel
+              </FormDescription>
               <FormMessage />
             </FormItem>
           )}
         />
+
+        {/* UTM Campaign */}
         <FormField
           control={form.control}
           name="utmCampaign"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>utm_campaign</FormLabel>
+              <FormLabel>utm_campaign *</FormLabel>
               <FormControl>
-                <Input placeholder="spring_sale" {...field} />
+                <Input
+                  placeholder="e.g. spring_sale, product_launch"
+                  {...field}
+                />
               </FormControl>
+              <FormDescription className="text-xs">
+                The specific campaign name
+              </FormDescription>
               <FormMessage />
             </FormItem>
           )}
         />
+
+        {/* UTM Term */}
         <FormField
           control={form.control}
           name="utmTerm"
@@ -96,43 +212,52 @@ export function OptionUTMBuilder({ form }: { form: any }) {
             <FormItem>
               <FormLabel>utm_term</FormLabel>
               <FormControl>
-                <Input placeholder="shoes" {...field} />
+                <Input placeholder="e.g. running+shoes" {...field} />
               </FormControl>
+              <FormDescription className="text-xs">
+                Paid search keywords (optional)
+              </FormDescription>
               <FormMessage />
             </FormItem>
           )}
         />
+
+        {/* UTM Content */}
         <FormField
           control={form.control}
           name="utmContent"
           render={({ field }) => (
-            <FormItem>
+            <FormItem className="md:col-span-2">
               <FormLabel>utm_content</FormLabel>
               <FormControl>
-                <Input placeholder="cta_button" {...field} />
+                <Input placeholder="e.g. cta_button, hero_banner" {...field} />
               </FormControl>
+              <FormDescription className="text-xs">
+                Differentiate similar content or links (optional)
+              </FormDescription>
               <FormMessage />
             </FormItem>
           )}
         />
       </div>
 
-      <div className="rounded-md bg-white/70 p-3 text-xs">
-        <div className="text-muted-foreground mb-1">Preview</div>
-        <div className="break-all">
-          {preview || "Enter a valid base URL above"}
+      {/* Preview - now shows the redirect destination */}
+      {hasAnyUtm && (
+        <div className="rounded-md border border-green-200 bg-green-50/50 p-3 text-xs">
+          <div className="text-muted-foreground mb-1 flex items-center gap-1">
+            <span className="inline-block h-2 w-2 rounded-full bg-green-500" />
+            Visitors will be redirected to:
+          </div>
+          <div className="font-mono break-all text-green-800">
+            {preview || "Enter a valid base URL above"}
+          </div>
         </div>
-      </div>
+      )}
 
-      <div className="flex justify-end">
-        <Button
-          type="button"
-          size="sm"
-          onClick={applyToUrl}
-          disabled={!preview}
-        >
-          Apply to URL
-        </Button>
+      <div className="rounded-md border border-blue-200 bg-blue-50/50 p-3 text-xs text-blue-800">
+        <strong>How it works:</strong> UTM parameters are automatically appended
+        when someone clicks your short link. Your original destination URL stays
+        clean, and you'll see detailed campaign analytics in your dashboard.
       </div>
     </div>
   );

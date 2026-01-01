@@ -20,6 +20,7 @@ import type * as urlAnalytics from "../urlAnalytics.js";
 import type * as urlMainFuction from "../urlMainFuction.js";
 import type * as users from "../users.js";
 import type * as utils from "../utils.js";
+import type * as utmTemplates from "../utmTemplates.js";
 
 import type {
   ApiFromModules,
@@ -40,6 +41,7 @@ declare const fullApi: ApiFromModules<{
   urlMainFuction: typeof urlMainFuction;
   users: typeof users;
   utils: typeof utils;
+  utmTemplates: typeof utmTemplates;
 }>;
 
 /**
