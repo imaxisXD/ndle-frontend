@@ -41,7 +41,11 @@ export function useAnalyticsV2({ start, end }: UseAnalyticsV2Props) {
         throw new Error(errorMsg);
       }
 
-      return response.json();
+      const data = await response.json();
+      if (process.env.NODE_ENV === "development") {
+        console.log("[Analytics API] Raw Data:", data);
+      }
+      return data;
     },
     placeholderData: keepPreviousData, // Show old data while new loads
     refetchInterval: 12000,

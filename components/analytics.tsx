@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { useAnalyticsV2 } from "@/hooks/useAnalyticsV2";
 import { useColdAnalytics } from "@/hooks/use-cold-analytics";
@@ -126,6 +126,7 @@ export function Analytics() {
     start,
     end,
     data?.hot, // Pass hot data for UTM merging
+    -new Date().getTimezoneOffset(), // Pass local timezone offset in minutes (e.g. -330 for IST)
   );
 
   // Fetch URLs with analytics from Convex for Top Links
@@ -172,11 +173,23 @@ export function Analytics() {
       }
     : null;
 
-  console.log(
-    `[Analytics] showSkeleton=${showSkeleton} | isPending=${isPending} | coldLoading=${coldLoading}`,
-  );
-  console.log("Analytics data", data);
-  console.log("Cold data", coldData);
+  // Log only when data is actively updated for performance tracking
+  useEffect(() => {
+    if (process.env.NODE_ENV !== "development") return;
+
+    if (data) {
+      const isFull = !coldLoading && !!coldData;
+      const hasHotData = (data.hot?.length ?? 0) > 0;
+
+      if (isFull) {
+        console.log(`[Analytics] 🎨 UI Rendered with Full Data`);
+      } else if (hasHotData) {
+        console.log(
+          `[Analytics] 🎨 UI Rendered with Partial (Hot Only) Data (${data.hot?.length} rows)`,
+        );
+      }
+    }
+  }, [data, coldLoading, coldData]);
 
   // Get filter options directly from coldData (keyed by filter id)
   const defaultFilterOptions: Record<
@@ -201,26 +214,29 @@ export function Analytics() {
       grouped[day] = 0;
     });
 
-    // Start with hot data
-    if (data?.hot) {
+    // Unified logic: If we have coldData (which includes hot data via UNION), use it exclusively.
+    // If we only have hot data (progressive load), uses that.
+    if (coldData?.clicksByDay && Object.keys(coldData.clicksByDay).length > 0) {
+      Object.entries(coldData.clicksByDay).forEach(([dayStr, count]) => {
+        // DuckDB now returns the daystring already shifted to local time (e.g., "2026-01-02")
+        // We just need to map it to "Fri"
+        const date = new Date(dayStr).toLocaleDateString("en-US", {
+          weekday: "short",
+          timeZone: "UTC", // Important: dayStr is already local date effectively, treat as UTC midnight to avoid double shifting
+        });
+
+        if (grouped[date] !== undefined) {
+          grouped[date] = (grouped[date] || 0) + count;
+        }
+      });
+    } else if (data?.hot) {
+      // Fallback to JS aggregation for hot data only
       data.hot.forEach((row) => {
         const date = new Date(row.occurred_at).toLocaleDateString("en-US", {
           weekday: "short",
         });
         if (grouped[date] !== undefined) {
           grouped[date] += 1;
-        }
-      });
-    }
-
-    // Merge cold data
-    if (coldData?.clicksByDay) {
-      Object.entries(coldData.clicksByDay).forEach(([dayStr, count]) => {
-        const date = new Date(dayStr).toLocaleDateString("en-US", {
-          weekday: "short",
-        });
-        if (grouped[date] !== undefined) {
-          grouped[date] += count;
         }
       });
     }

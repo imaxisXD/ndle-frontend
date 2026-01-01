@@ -1,4 +1,4 @@
-import { useMemo, useRef } from "react";
+import { useMemo } from "react";
 import { useDuckDB } from "./use-duckdb";
 import type { ColdFile, HotDataRow } from "@/types/analytics-v2";
 import { useQuery, keepPreviousData } from "@tanstack/react-query";
@@ -98,6 +98,7 @@ async function runAnalyticsQueries(
   },
   unifiedTable: string,
   finalWhereClause: string,
+  timezoneOffset?: number,
 ): Promise<{
   clicksByDay: Record<string, number>;
   countryCounts: Record<string, number>;
@@ -113,6 +114,14 @@ async function runAnalyticsQueries(
   utmWithCount: number;
   utmWithoutCount: number;
 }> {
+  const whereConnect = finalWhereClause ? "AND" : "WHERE";
+
+  // Calculate day with timezone adjustment
+  // timezoneOffset is in minutes (e.g. 330 for IST).
+  const offsetString = timezoneOffset
+    ? `INTERVAL '${timezoneOffset} minutes'`
+    : "INTERVAL '0 minutes'";
+
   const [
     dayResult,
     countryResult,
@@ -128,7 +137,7 @@ async function runAnalyticsQueries(
     utmCoverageResult,
   ] = await Promise.all([
     conn.query(
-      `SELECT strftime(cast(occurred_at as TIMESTAMP), '%Y-%m-%d') as day, count(*) as count FROM ${unifiedTable} ${finalWhereClause} GROUP BY day`,
+      `SELECT strftime(cast(occurred_at as TIMESTAMP) + ${offsetString}, '%Y-%m-%d') as day, count(*) as count FROM ${unifiedTable} ${finalWhereClause} GROUP BY day`,
     ),
     conn.query(
       `SELECT coalesce(country, 'Unknown') as country, count(*) as count FROM ${unifiedTable} ${finalWhereClause} GROUP BY country`,
@@ -156,10 +165,10 @@ async function runAnalyticsQueries(
       `SELECT coalesce(utm_campaign, 'No Campaign') as key, count(*) as cnt FROM ${unifiedTable} ${finalWhereClause} GROUP BY utm_campaign`,
     ),
     conn.query(
-      `SELECT utm_term as key, count(*) as cnt FROM ${unifiedTable} ${finalWhereClause} ${finalWhereClause ? "AND" : "WHERE"} utm_term IS NOT NULL AND utm_term != '' GROUP BY utm_term`,
+      `SELECT utm_term as key, count(*) as cnt FROM ${unifiedTable} ${finalWhereClause} ${whereConnect} utm_term IS NOT NULL AND utm_term != '' GROUP BY utm_term`,
     ),
     conn.query(
-      `SELECT utm_content as key, count(*) as cnt FROM ${unifiedTable} ${finalWhereClause} ${finalWhereClause ? "AND" : "WHERE"} utm_content IS NOT NULL AND utm_content != '' GROUP BY utm_content`,
+      `SELECT utm_content as key, count(*) as cnt FROM ${unifiedTable} ${finalWhereClause} ${whereConnect} utm_content IS NOT NULL AND utm_content != '' GROUP BY utm_content`,
     ),
     conn.query(
       `SELECT coalesce(utm_source, 'Direct') as src, coalesce(utm_medium, 'None') as med, count(*) as cnt FROM ${unifiedTable} ${finalWhereClause} GROUP BY utm_source, utm_medium`,
@@ -270,6 +279,7 @@ export function useColdAnalytics(
   start?: string,
   end?: string,
   hotData?: HotDataRow[],
+  timezoneOffset: number = 0,
 ) {
   const { db, loading: dbLoading, error: dbError } = useDuckDB();
   const { getToken } = useAuth();
@@ -302,19 +312,30 @@ export function useColdAnalytics(
   const hotOnlyQueryEnabled = !!db && !dbLoading && !dbError && hasHotData;
 
   const hotOnlyResult = useQuery<ColdAnalyticsData, Error>({
-    queryKey: ["analytics-hot-only", hotDataHash, filters, start, end],
+    queryKey: [
+      "analytics-hot-only",
+      hotDataHash,
+      filters,
+      start,
+      end,
+      timezoneOffset,
+    ],
     enabled: hotOnlyQueryEnabled,
     staleTime: 0,
     gcTime: 1000 * 60 * 2,
     queryFn: async () => {
-      console.log("[ColdPerf] Phase 1: Hot data only...");
+      if (process.env.NODE_ENV === "development") {
+        console.log("[ColdPerf] Phase 1: Hot data only...");
+      }
       const t0 = performance.now();
 
       if (!db) throw new Error("DuckDB is not initialized");
 
       // Clear registeredInDuckDB if DB instance changed
       if (lastDbInstance !== db) {
-        console.log("[ColdPerf] DB instance changed, clearing file registry");
+        if (process.env.NODE_ENV === "development") {
+          console.log("[ColdPerf] DB instance changed, clearing file registry");
+        }
         registeredInDuckDB.clear();
         lastHotDataHash = "";
         lastDbInstance = db;
@@ -338,12 +359,15 @@ export function useColdAnalytics(
           conn,
           hotTable,
           finalWhereClause,
+          timezoneOffset,
         );
 
         const t1 = performance.now();
-        console.log(
-          `[ColdPerf] Phase 1 complete: ${(t1 - t0).toFixed(2)}ms (hot only)`,
-        );
+        if (process.env.NODE_ENV === "development") {
+          console.log(`[Analytics] ⚡️ Hot Data Ready (Phase 1):
+        - Rows: ${hotData?.length || 0}
+        - ⏱️ Time: ${(t1 - t0).toFixed(0)}ms`);
+        }
 
         return { ...results, isPartialData: true };
       } finally {
@@ -357,7 +381,15 @@ export function useColdAnalytics(
     !!db && !dbLoading && !dbError && (hasFiles || hasHotData);
 
   const fullResult = useQuery<ColdAnalyticsData, Error>({
-    queryKey: ["analytics-full", fileKeys, hotDataHash, filters, start, end],
+    queryKey: [
+      "analytics-full",
+      fileKeys,
+      hotDataHash,
+      filters,
+      start,
+      end,
+      timezoneOffset,
+    ],
     enabled: fullQueryEnabled,
     placeholderData: keepPreviousData,
     staleTime: 0,
@@ -365,14 +397,18 @@ export function useColdAnalytics(
     refetchOnMount: true,
     refetchOnWindowFocus: true,
     queryFn: async () => {
-      console.log("[ColdPerf] Phase 2: Full unified query...");
+      if (process.env.NODE_ENV === "development") {
+        console.log("[ColdPerf] Phase 2: Full unified query...");
+      }
       const t0 = performance.now();
 
       if (!db) throw new Error("DuckDB is not initialized");
 
       // Clear registeredInDuckDB if DB instance changed (registrations are stale)
       if (lastDbInstance !== db) {
-        console.log("[ColdPerf] DB instance changed, clearing file registry");
+        if (process.env.NODE_ENV === "development") {
+          console.log("[ColdPerf] DB instance changed, clearing file registry");
+        }
         registeredInDuckDB.clear();
         lastHotDataHash = ""; // Also reset hot data registration
         lastDbInstance = db;
@@ -385,44 +421,62 @@ export function useColdAnalytics(
       const coldTableParts: string[] = [];
 
       try {
-        // Register cold parquet files with LRU
-        // IMPORTANT: Always re-register from cache to avoid race conditions between Phase 1 and Phase 2
-        for (const f of files) {
-          const stableFileName = getStableFileName(f.key);
+        // Register cold parquet files with LRU (Parallel Fetch)
+        // Fetch operations are parallelized to reduce latency (2.6s -> ~0.5s potentially)
+        const fetchFile = async (f: ColdFile) => {
+          try {
+            if (parquetFileCache.has(f.key)) {
+              touchLRU(f.key);
+              return { key: f.key, buffer: parquetFileCache.get(f.key)! };
+            }
 
-          let arrayBuffer: ArrayBuffer;
-          if (parquetFileCache.has(f.key)) {
-            // Use cached ArrayBuffer
-            arrayBuffer = parquetFileCache.get(f.key)!;
-            touchLRU(f.key);
-          } else {
-            // Fetch and cache
             evictLRUIfNeeded();
             const proxyUrl = `${FILE_PROXY_WORKER_URL}/file/${encodeURIComponent(f.key)}`;
+
+            if (process.env.NODE_ENV === "development") {
+              // console.log(`[ColdPerf] 📡 Requesting ${f.key}`);
+            }
+            const t0 = performance.now();
+
             const response = await fetch(proxyUrl, {
               method: "GET",
               headers: { Authorization: `Bearer ${token}` },
             });
-            if (!response.ok)
-              throw new Error(`Failed to fetch: ${response.status}`);
-            arrayBuffer = await response.arrayBuffer();
-            parquetFileCache.set(f.key, arrayBuffer.slice(0));
-            touchLRU(f.key);
-          }
 
-          // Always register (re-register if already exists - DuckDB handles this)
+            if (!response.ok)
+              throw new Error(`Failed to fetch ${f.key}: ${response.status}`);
+
+            const buffer = await response.arrayBuffer();
+            const t1 = performance.now();
+            if (process.env.NODE_ENV === "development") {
+              console.log(
+                `[ColdPerf] ✅ Fetched ${f.key} (${(buffer.byteLength / 1024).toFixed(1)} KB) in ${(t1 - t0).toFixed(0)}ms`,
+              );
+            }
+
+            parquetFileCache.set(f.key, buffer.slice(0));
+            touchLRU(f.key);
+            return { key: f.key, buffer };
+          } catch (e) {
+            console.error(`[ColdPerf] Error fetching file ${f.key}:`, e);
+            throw e;
+          }
+        };
+
+        const fileBuffers = await Promise.all(files.map(fetchFile));
+
+        // Use sequential registration for now to ensure stability with DuckDB WASM
+        for (const { key, buffer } of fileBuffers) {
+          const stableFileName = getStableFileName(key);
           await db.registerFileBuffer(
             stableFileName,
-            new Uint8Array(arrayBuffer.slice(0)),
+            new Uint8Array(buffer.slice(0)),
           );
-          registeredInDuckDB.set(f.key, stableFileName);
+          registeredInDuckDB.set(key, stableFileName);
           coldTableParts.push(`'${stableFileName}'`);
         }
 
-        const t1 = performance.now();
-        console.log(
-          `[ColdPerf] Cold files registered: ${(t1 - t0).toFixed(2)}ms`,
-        );
+        const t1 = performance.now(); // After cold files registered
 
         // Register hot data if changed
         if (hasHotData && hotDataHash !== lastHotDataHash) {
@@ -443,7 +497,11 @@ export function useColdAnalytics(
               (r) => (r.toJSON() as { column_name: string }).column_name,
             );
             parquetHasUserId = cols.includes("user_id");
-            console.log(`[ColdPerf] Parquet has user_id: ${parquetHasUserId}`);
+            if (process.env.NODE_ENV === "development") {
+              console.log(
+                `[ColdPerf] Parquet has user_id: ${parquetHasUserId}`,
+              );
+            }
           } catch (e) {
             console.log(`[ColdPerf] Could not check parquet schema:`, e);
           }
@@ -475,21 +533,26 @@ export function useColdAnalytics(
             ? `(${tableParts[0]})`
             : `(${tableParts.join(" UNION ALL ")})`;
 
-        const t2 = performance.now();
-        console.log(
-          `[ColdPerf] Unified table built: ${(t2 - t1).toFixed(2)}ms`,
-        );
+        const t2 = performance.now(); // After unified table built
 
         const results = await runAnalyticsQueries(
           conn,
           unifiedTable,
           finalWhereClause,
+          timezoneOffset,
         );
 
-        const t3 = performance.now();
-        console.log(
-          `[ColdPerf] Phase 2 complete: ${(t3 - t0).toFixed(2)}ms (full)`,
-        );
+        const t3 = performance.now(); // After query execution
+
+        // Log simplified performance report
+        if (process.env.NODE_ENV === "development") {
+          console.log(`[Analytics] 🚀 Unified Data Ready:
+        - Files: ${files.length} cold, ${hotData?.length || 0} hot rows
+        - 📦 Register (Cold): ${(t1 - t0).toFixed(0)}ms
+        - 🧩 Build Union: ${(t2 - t1).toFixed(0)}ms
+        - 🔍 Query Exec: ${(t3 - t2).toFixed(0)}ms
+        - ✅ Total Query Time: ${(t3 - t0).toFixed(0)}ms`);
+        }
 
         return { ...results, isPartialData: false };
       } finally {
