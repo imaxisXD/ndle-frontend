@@ -464,9 +464,16 @@ export function FilterBar({
               </div>
             </SelectValue>
           </SelectTrigger>
-          <SelectContent className="rounded-xs text-xs" alignOffset={0}>
+          <SelectContent
+            className="rounded-xs border p-1 pb-1 text-xs"
+            alignOffset={0}
+          >
             {timeRangeOptions.map((option) => (
-              <SelectItem key={option.value} value={option.value}>
+              <SelectItem
+                key={option.value}
+                value={option.value}
+                className="text-muted-foreground rounded-none border-x border-b text-xs"
+              >
                 {option.label}
               </SelectItem>
             ))}

@@ -413,8 +413,8 @@ export function Analytics() {
         <UTMAnalyticsPanel data={utmData} isLoading={isLoading} />
       </div>
 
-      {/* Healing Activity - STATIC FOR NOW */}
-      <div className="grid gap-6 lg:grid-cols-2">
+      {/* Healing Activity - STATIC FOR NOW -- TODO */}
+      {/* <div className="grid gap-6 lg:grid-cols-2">
         <Card>
           <CardContent className="p-6">
             <div className="mb-6">
@@ -506,7 +506,7 @@ export function Analytics() {
             </div>
           </CardContent>
         </Card>
-      </div>
+      </div> */}
     </div>
   );
 }
