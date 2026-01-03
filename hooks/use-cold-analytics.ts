@@ -353,7 +353,7 @@ export function useColdAnalytics(
         }
 
         // Query hot data only, using EXCLUDE to drop user_id
-        const hotTable = `(SELECT * EXCLUDE (user_id) FROM read_json('${HOT_DATA_FILENAME}'))`;
+        const hotTable = `(SELECT * EXCLUDE (user_id) FROM read_json('${HOT_DATA_FILENAME}', format = 'array'))`;
 
         const results = await runAnalyticsQueries(
           conn,
@@ -520,7 +520,7 @@ export function useColdAnalytics(
         if (hasHotData) {
           // Hot always has user_id, so always EXCLUDE it
           tableParts.push(
-            `SELECT * EXCLUDE (user_id) FROM read_json('${HOT_DATA_FILENAME}')`,
+            `SELECT * EXCLUDE (user_id) FROM read_json('${HOT_DATA_FILENAME}', format = 'array')`,
           );
         }
 
