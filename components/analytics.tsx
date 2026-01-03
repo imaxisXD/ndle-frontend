@@ -202,27 +202,27 @@ export function Analytics() {
   // Derive UTM panel data
   const utmData: UTMAnalyticsData | null = analyticsData
     ? {
-        sourceData: Object.entries(analyticsData.utmSourceCounts)
+        sourceData: Object.entries(analyticsData.utmSourceCounts || {})
           .sort((a, b) => b[1] - a[1])
           .slice(0, 20)
           .map(([source, clicks]) => ({ source, clicks })),
-        mediumData: Object.entries(analyticsData.utmMediumCounts)
+        mediumData: Object.entries(analyticsData.utmMediumCounts || {})
           .sort((a, b) => b[1] - a[1])
           .slice(0, 20)
           .map(([medium, clicks]) => ({ medium, clicks })),
-        campaignData: Object.entries(analyticsData.utmCampaignCounts)
+        campaignData: Object.entries(analyticsData.utmCampaignCounts || {})
           .sort((a, b) => b[1] - a[1])
           .slice(0, 20)
           .map(([campaign, clicks]) => ({ campaign, clicks })),
-        termData: Object.entries(analyticsData.utmTermCounts)
+        termData: Object.entries(analyticsData.utmTermCounts || {})
           .sort((a, b) => b[1] - a[1])
           .slice(0, 20)
           .map(([term, clicks]) => ({ term, clicks })),
-        contentData: Object.entries(analyticsData.utmContentCounts)
+        contentData: Object.entries(analyticsData.utmContentCounts || {})
           .sort((a, b) => b[1] - a[1])
           .slice(0, 20)
           .map(([content, clicks]) => ({ content, clicks })),
-        sourceMediaMatrix: Object.entries(analyticsData.utmMatrixCounts)
+        sourceMediaMatrix: Object.entries(analyticsData.utmMatrixCounts || {})
           .sort((a, b) => b[1] - a[1])
           .slice(0, 50)
           .map(([key, clicks]) => {
@@ -256,16 +256,18 @@ export function Analytics() {
     });
 
     if (analyticsData?.clicksByDay) {
-      Object.entries(analyticsData.clicksByDay).forEach(([dayStr, count]) => {
-        const date = new Date(dayStr).toLocaleDateString("en-US", {
-          weekday: "short",
-          timeZone: "UTC",
-        });
+      Object.entries(analyticsData.clicksByDay || {}).forEach(
+        ([dayStr, count]) => {
+          const date = new Date(dayStr).toLocaleDateString("en-US", {
+            weekday: "short",
+            timeZone: "UTC",
+          });
 
-        if (grouped[date] !== undefined) {
-          grouped[date] = (grouped[date] || 0) + count;
-        }
-      });
+          if (grouped[date] !== undefined) {
+            grouped[date] = (grouped[date] || 0) + count;
+          }
+        },
+      );
     }
 
     return daysOfWeek.map((day) => ({ day, clicks: grouped[day] }));
@@ -280,7 +282,7 @@ export function Analytics() {
       0,
     );
 
-    return Object.entries(analyticsData.countryCounts)
+    return Object.entries(analyticsData.countryCounts || {})
       .sort(([, a], [, b]) => b - a)
       .map(([country, clicks]) => ({
         country,
