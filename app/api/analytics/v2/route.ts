@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
-import type { AnalyticsResponse } from "@/types/analytics-v2";
+import type { AnalyticsV2Response } from "@/types/analytics-v2";
 
 const INTERNAL_API_URL = process.env.INTERNAL_API_URL;
 const API_SECRET = process.env.API_SECRET;
@@ -101,10 +101,10 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    const data: AnalyticsResponse = await response.json();
+    const data: AnalyticsV2Response = await response.json();
     console.log("✅ [AnalyticsV2] Payload received", {
-      hotCount: data.meta.hot_count,
       coldFiles: data.meta.files_count,
+      totalClicks: data.totalClicks,
     });
     return NextResponse.json(data);
   } catch (error) {

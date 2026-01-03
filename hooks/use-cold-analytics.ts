@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { useDuckDB } from "./use-duckdb";
-import type { ColdFile, HotDataRow } from "@/types/analytics-v2";
+import type { ColdFile } from "@/types/analytics-v2";
 import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import { useAuth } from "@clerk/nextjs";
 import {
@@ -51,10 +51,6 @@ const lruOrder: string[] = [];
 // Track DuckDB instance to detect when registrations become stale
 let lastDbInstance: unknown = null;
 
-// Track hot data registration
-let lastHotDataHash = "";
-const HOT_DATA_FILENAME = "hot_events.json";
-
 function getStableFileName(key: string): string {
   let hash = 0;
   for (let i = 0; i < key.length; i++) {
@@ -76,17 +72,12 @@ function evictLRUIfNeeded(): string | null {
     const evictKey = lruOrder.shift()!;
     parquetFileCache.delete(evictKey);
     registeredInDuckDB.delete(evictKey);
-    console.log(`[LRU] Evicted: ${evictKey.slice(-30)}`);
+    if (process.env.NODE_ENV === "development") {
+      console.log(`[LRU] Evicted: ${evictKey.slice(-30)}`);
+    }
     return evictKey;
   }
   return null;
-}
-
-function hashHotData(hotData: HotDataRow[]): string {
-  if (!hotData || hotData.length === 0) return "empty";
-  const first = hotData[0]?.idempotency_key || "";
-  const last = hotData[hotData.length - 1]?.idempotency_key || "";
-  return `${hotData.length}:${first}:${last}`;
 }
 
 // Helper to run analytics queries on a unified table
@@ -278,16 +269,13 @@ export function useColdAnalytics(
   filters: ColdAnalyticsFilters = {},
   start?: string,
   end?: string,
-  hotData?: HotDataRow[],
   timezoneOffset: number = 0,
 ) {
   const { db, loading: dbLoading, error: dbError } = useDuckDB();
   const { getToken } = useAuth();
 
   const fileKeys = useMemo(() => files.map((file) => file.key), [files]);
-  const hotDataHash = useMemo(() => hashHotData(hotData || []), [hotData]);
   const hasFiles = fileKeys.length > 0;
-  const hasHotData = hotData && hotData.length > 0;
 
   // Build WHERE clause (shared between queries)
   const finalWhereClause = useMemo(() => {
@@ -308,89 +296,12 @@ export function useColdAnalytics(
     return result;
   }, [filters, start, end]);
 
-  // --- PHASE 1: Hot Data Only (Fast) ---
-  const hotOnlyQueryEnabled = !!db && !dbLoading && !dbError && hasHotData;
+  // --- Cold Files Only Query ---
+  const coldQueryEnabled = !!db && !dbLoading && !dbError && hasFiles;
 
-  const hotOnlyResult = useQuery<ColdAnalyticsData, Error>({
-    queryKey: [
-      "analytics-hot-only",
-      hotDataHash,
-      filters,
-      start,
-      end,
-      timezoneOffset,
-    ],
-    enabled: hotOnlyQueryEnabled,
-    staleTime: 0,
-    gcTime: 1000 * 60 * 2,
-    queryFn: async () => {
-      if (process.env.NODE_ENV === "development") {
-        console.log("[ColdPerf] Phase 1: Hot data only...");
-      }
-      const t0 = performance.now();
-
-      if (!db) throw new Error("DuckDB is not initialized");
-
-      // Clear registeredInDuckDB if DB instance changed
-      if (lastDbInstance !== db) {
-        if (process.env.NODE_ENV === "development") {
-          console.log("[ColdPerf] DB instance changed, clearing file registry");
-        }
-        registeredInDuckDB.clear();
-        lastHotDataHash = "";
-        lastDbInstance = db;
-      }
-
-      const conn = await db.connect();
-
-      try {
-        // Register hot data with EXCLUDE to drop user_id
-        if (hotDataHash !== lastHotDataHash) {
-          const hotJson = JSON.stringify(hotData);
-          const hotBuffer = new TextEncoder().encode(hotJson);
-          await db.registerFileBuffer(HOT_DATA_FILENAME, hotBuffer);
-          lastHotDataHash = hotDataHash;
-        }
-
-        // Query hot data only, using EXCLUDE to drop user_id
-        const hotTable = `(SELECT * EXCLUDE (user_id) FROM read_json('${HOT_DATA_FILENAME}', format = 'array'))`;
-
-        const results = await runAnalyticsQueries(
-          conn,
-          hotTable,
-          finalWhereClause,
-          timezoneOffset,
-        );
-
-        const t1 = performance.now();
-        if (process.env.NODE_ENV === "development") {
-          console.log(`[Analytics] ⚡️ Hot Data Ready (Phase 1):
-        - Rows: ${hotData?.length || 0}
-        - ⏱️ Time: ${(t1 - t0).toFixed(0)}ms`);
-        }
-
-        return { ...results, isPartialData: true };
-      } finally {
-        await conn.close();
-      }
-    },
-  });
-
-  // --- PHASE 2: Full Unified Query (Hot + Cold) ---
-  const fullQueryEnabled =
-    !!db && !dbLoading && !dbError && (hasFiles || hasHotData);
-
-  const fullResult = useQuery<ColdAnalyticsData, Error>({
-    queryKey: [
-      "analytics-full",
-      fileKeys,
-      hotDataHash,
-      filters,
-      start,
-      end,
-      timezoneOffset,
-    ],
-    enabled: fullQueryEnabled,
+  const coldResult = useQuery<ColdAnalyticsData, Error>({
+    queryKey: ["analytics-cold", fileKeys, filters, start, end, timezoneOffset],
+    enabled: coldQueryEnabled,
     placeholderData: keepPreviousData,
     staleTime: 0,
     gcTime: 1000 * 60 * 5,
@@ -410,7 +321,6 @@ export function useColdAnalytics(
           console.log("[ColdPerf] DB instance changed, clearing file registry");
         }
         registeredInDuckDB.clear();
-        lastHotDataHash = ""; // Also reset hot data registration
         lastDbInstance = db;
       }
 
@@ -478,49 +388,45 @@ export function useColdAnalytics(
 
         const t1 = performance.now(); // After cold files registered
 
-        // Register hot data if changed
-        if (hasHotData && hotDataHash !== lastHotDataHash) {
-          const hotJson = JSON.stringify(hotData);
-          const hotBuffer = new TextEncoder().encode(hotJson);
-          await db.registerFileBuffer(HOT_DATA_FILENAME, hotBuffer);
-          lastHotDataHash = hotDataHash;
-        }
-
-        // Check if parquet has user_id (new files will, old won't)
+        // Check parquet schema and log it for debugging
         let parquetHasUserId = false;
         if (coldTableParts.length > 0) {
           try {
             const schemaResult = await conn.query(
               `DESCRIBE SELECT * FROM read_parquet([${coldTableParts[0]}]) LIMIT 1`,
             );
-            const cols = Array.from(schemaResult.toArray()).map(
-              (r) => (r.toJSON() as { column_name: string }).column_name,
+            const schemaRows = Array.from(schemaResult.toArray()).map(
+              (r) => r.toJSON() as { column_name: string; column_type: string },
             );
+            const cols = schemaRows.map((r) => r.column_name);
             parquetHasUserId = cols.includes("user_id");
+
+            // Always log schema in development for debugging
             if (process.env.NODE_ENV === "development") {
+              console.log(`[ColdPerf] ====== PARQUET SCHEMA ======`);
+              console.log(`[ColdPerf] File: ${coldTableParts[0]}`);
+              console.log(`[ColdPerf] Columns (${cols.length}):`, cols);
+              console.log(`[ColdPerf] Full schema:`, schemaRows);
+              console.log(`[ColdPerf] has user_id: ${parquetHasUserId}`);
+              console.log(`[ColdPerf] has is_bot: ${cols.includes("is_bot")}`);
               console.log(
-                `[ColdPerf] Parquet has user_id: ${parquetHasUserId}`,
+                `[ColdPerf] has occurred_at: ${cols.includes("occurred_at")}`,
               );
+              console.log(`[ColdPerf] ==============================`);
             }
           } catch (e) {
-            console.log(`[ColdPerf] Could not check parquet schema:`, e);
+            if (process.env.NODE_ENV === "development") {
+              console.log(`[ColdPerf] Could not check parquet schema:`, e);
+            }
           }
         }
 
-        // Build unified table with EXCLUDE for backward compat
+        // Build unified table - just SELECT * from all sources
         const tableParts: string[] = [];
 
         if (coldTableParts.length > 0) {
-          const coldSelect = parquetHasUserId
-            ? `SELECT * EXCLUDE (user_id) FROM read_parquet([${coldTableParts.join(", ")}])`
-            : `SELECT * FROM read_parquet([${coldTableParts.join(", ")}])`;
-          tableParts.push(coldSelect);
-        }
-
-        if (hasHotData) {
-          // Hot always has user_id, so always EXCLUDE it
           tableParts.push(
-            `SELECT * EXCLUDE (user_id) FROM read_json('${HOT_DATA_FILENAME}', format = 'array')`,
+            `SELECT * FROM read_parquet([${coldTableParts.join(", ")}])`,
           );
         }
 
@@ -544,14 +450,13 @@ export function useColdAnalytics(
 
         const t3 = performance.now(); // After query execution
 
-        // Log simplified performance report
         if (process.env.NODE_ENV === "development") {
-          console.log(`[Analytics] 🚀 Unified Data Ready:
-        - Files: ${files.length} cold, ${hotData?.length || 0} hot rows
-        - 📦 Register (Cold): ${(t1 - t0).toFixed(0)}ms
-        - 🧩 Build Union: ${(t2 - t1).toFixed(0)}ms
+          console.log(`[Analytics] 🚀 Cold Data Ready:
+        - Files: ${files.length}
+        - 📦 Register: ${(t1 - t0).toFixed(0)}ms
+        - 🧩 Build Query: ${(t2 - t1).toFixed(0)}ms
         - 🔍 Query Exec: ${(t3 - t2).toFixed(0)}ms
-        - ✅ Total Query Time: ${(t3 - t0).toFixed(0)}ms`);
+        - ✅ Total: ${(t3 - t0).toFixed(0)}ms`);
         }
 
         return { ...results, isPartialData: false };
@@ -587,18 +492,17 @@ export function useColdAnalytics(
     isPartialData: false,
   };
 
-  // Progressive loading: show hot data first, then full when ready
-  const data = fullResult.data ?? hotOnlyResult.data ?? null;
-  const loading =
-    fullResult.isFetching || fullResult.isPending || hotOnlyResult.isFetching;
+  // Return cold data result
+  const data = coldResult.data ?? null;
+  const loading = coldResult.isFetching || coldResult.isPending;
 
-  if (!hasFiles && !hasHotData) {
+  if (!hasFiles) {
     return { data: emptyData, loading: false, error: dbError };
   }
 
   return {
     data,
     loading,
-    error: fullResult.error ?? hotOnlyResult.error ?? dbError ?? null,
+    error: coldResult.error ?? dbError ?? null,
   };
 }

@@ -1,5 +1,5 @@
 import { useQuery, keepPreviousData } from "@tanstack/react-query";
-import type { AnalyticsResponse } from "@/types/analytics-v2";
+import type { AnalyticsV2Response } from "@/types/analytics-v2";
 
 interface UseAnalyticsV2Props {
   start: string;
@@ -8,23 +8,22 @@ interface UseAnalyticsV2Props {
 }
 
 /**
- * Hook to fetch analytics data.
- * User identity is now determined server-side from JWT claims (not passed from frontend).
+ * Hook to fetch analytics data from the V2 API.
+ * Returns pre-aggregated data directly from the server.
+ * User identity is determined server-side from JWT claims.
  */
 export function useAnalyticsV2({ start, end }: UseAnalyticsV2Props) {
   return useQuery({
     queryKey: ["analytics-v2", start, end],
-    queryFn: async (): Promise<AnalyticsResponse> => {
+    queryFn: async (): Promise<AnalyticsV2Response> => {
       const params = new URLSearchParams({
         start,
         end,
       });
 
-      // No need to pass user ID - server reads it from JWT session claims
       const response = await fetch(`/api/analytics/v2?${params.toString()}`);
 
       if (!response.ok) {
-        // Attempt to parse error message from response
         let errorMsg = `Failed to fetch analytics: ${response.status} ${response.statusText}`;
 
         try {
@@ -43,16 +42,20 @@ export function useAnalyticsV2({ start, end }: UseAnalyticsV2Props) {
 
       const data = await response.json();
       if (process.env.NODE_ENV === "development") {
-        console.log("[Analytics API] Raw Data:", data);
+        console.log("[AnalyticsV2] Data received:", {
+          totalClicks: data.totalClicks,
+          days: Object.keys(data.clicksByDay).length,
+          countries: Object.keys(data.countryCounts).length,
+          coldFiles: data.cold?.length ?? 0,
+        });
       }
       return data;
     },
-    placeholderData: keepPreviousData, // Show old data while new loads
+    placeholderData: keepPreviousData,
     refetchInterval: 12000,
-    // Override global defaults - analytics needs fresh data, not cached
-    staleTime: 0, // Always consider stale
-    gcTime: 0, // Don't cache in memory
-    refetchOnMount: true, // Refetch when component mounts
-    refetchOnWindowFocus: true, // Refetch when window gets focus
+    staleTime: 0,
+    gcTime: 0,
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
   });
 }

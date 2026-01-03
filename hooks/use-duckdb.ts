@@ -6,10 +6,14 @@ let dbPromise: Promise<duckdb.AsyncDuckDB> | null = null;
 
 export async function initDuckDB() {
   if (dbPromise) {
-    console.log("[DuckDB] Returning cached instance");
+    if (process.env.NODE_ENV === "development") {
+      console.log("[DuckDB] Returning cached instance");
+    }
     return dbPromise;
   }
-  console.log("[DuckDB] Starting initialization...");
+  if (process.env.NODE_ENV === "development") {
+    console.log("[DuckDB] Starting initialization...");
+  }
 
   const JSDELIVR_BUNDLES = duckdb.getJsDelivrBundles();
   const bundle = await duckdb.selectBundle(JSDELIVR_BUNDLES);
@@ -21,13 +25,20 @@ export async function initDuckDB() {
   );
 
   const worker = new Worker(worker_url);
-  const logger = new duckdb.ConsoleLogger();
-  const db = new duckdb.AsyncDuckDB(logger, worker);
+  // Use ConsoleLogger only in development
+  const logger =
+    process.env.NODE_ENV === "development"
+      ? new duckdb.ConsoleLogger()
+      : { log: () => {} }; // Silent logger for prod
+
+  const db = new duckdb.AsyncDuckDB(logger as any, worker);
 
   await db.instantiate(bundle.mainModule, bundle.pthreadWorker);
   URL.revokeObjectURL(worker_url);
 
-  console.log("[DuckDB] Initialization complete!");
+  if (process.env.NODE_ENV === "development") {
+    console.log("[DuckDB] Initialization complete!");
+  }
   dbPromise = Promise.resolve(db);
   return db;
 }

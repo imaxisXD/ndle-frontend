@@ -248,7 +248,7 @@ export function getFilterById(id: string): FilterConfig | undefined {
  */
 export function buildFullWhereClause(
   filters: Record<string, string>,
-  excludeBots: boolean = true,
+  excludeBots: boolean = false, // Default false - parquet files may not have is_bot column
 ): string {
   const conditions: string[] = [];
 

@@ -56,6 +56,14 @@ export function Analytics() {
   const [osFilter, setOSFilter] = useState("all");
   const [linkFilter, setLinkFilter] = useState("all");
 
+  // Check if any dimension filter is active
+  const hasActiveFilters =
+    countryFilter !== "all" ||
+    deviceFilter !== "all" ||
+    browserFilter !== "all" ||
+    osFilter !== "all" ||
+    linkFilter !== "all";
+
   // Calculate start/end dates based on time range selection
   const { start, end } = useMemo(() => {
     const now = new Date();
@@ -90,7 +98,7 @@ export function Analytics() {
         start = startOfDay(new Date(now.getFullYear(), 0, 1));
         break;
       case "all":
-        start = startOfDay(new Date(2020, 0, 1)); // Far back date
+        start = startOfDay(new Date(2020, 0, 1));
         break;
     }
 
@@ -100,22 +108,26 @@ export function Analytics() {
     };
   }, [timeRange]);
 
-  // Fetch Data with Polling - user identity determined server-side from JWT claims
-  const { data, isPending, isError, error } = useAnalyticsV2({
+  // Fetch V2 API data - pre-aggregated from server
+  const {
+    data: serverData,
+    isPending,
+    isError,
+    error,
+  } = useAnalyticsV2({
     start,
     end,
     pollingInterval: 10000,
   });
 
-  // Only show skeleton on FIRST load, not when switching filters (keepPreviousData handles that)
-  const showSkeleton = isPending && !data;
-
+  // DuckDB-WASM for complex queries when filters are active
+  // Loads cold parquet files for client-side SQL processing
   const {
     data: coldData,
     loading: coldLoading,
     error: coldError,
   } = useColdAnalytics(
-    data?.cold || [],
+    serverData?.cold || [],
     {
       country: countryFilter,
       device: deviceFilter,
@@ -125,9 +137,61 @@ export function Analytics() {
     },
     start,
     end,
-    data?.hot, // Pass hot data for UTM merging
-    -new Date().getTimezoneOffset(), // Pass local timezone offset in minutes (e.g. -330 for IST)
+    -new Date().getTimezoneOffset(),
   );
+
+  // Only show skeleton on FIRST load
+  const showSkeleton = isPending && !serverData;
+
+  // Progressive data loading:
+  // 1. Show server data immediately (pre-aggregated)
+  // 2. If filters active and cold files exist, use WASM-processed data
+  const analyticsData = useMemo(() => {
+    // If filters are active and cold data is complete, use it
+    if (hasActiveFilters && coldData && !coldData.isPartialData) {
+      return coldData;
+    }
+    // Default: use server pre-aggregated data
+    if (serverData) {
+      return {
+        clicksByDay: serverData.clicksByDay,
+        countryCounts: serverData.countryCounts,
+        linkCounts: serverData.linkCounts,
+        totalClicks: serverData.totalClicks,
+        filterOptions: serverData.filterOptions,
+        utmSourceCounts: serverData.utmSourceCounts,
+        utmMediumCounts: serverData.utmMediumCounts,
+        utmCampaignCounts: serverData.utmCampaignCounts,
+        utmTermCounts: serverData.utmTermCounts,
+        utmContentCounts: serverData.utmContentCounts,
+        utmMatrixCounts: serverData.utmMatrixCounts,
+        utmWithCount: serverData.utmWithCount,
+        utmWithoutCount: serverData.utmWithoutCount,
+        isPartialData: false,
+      };
+    }
+    return null;
+  }, [serverData, coldData, hasActiveFilters]);
+
+  // Loading state
+  const isLoading =
+    showSkeleton || (hasActiveFilters && coldLoading && !coldData);
+
+  // Development logging
+  useEffect(() => {
+    if (process.env.NODE_ENV !== "development") return;
+    if (serverData) {
+      console.log(`[Analytics] Server data:`, {
+        totalClicks: serverData.totalClicks,
+        coldFiles: serverData.cold?.length ?? 0,
+      });
+    }
+    if (coldData && hasActiveFilters) {
+      console.log(`[Analytics] WASM data (filtered):`, {
+        totalClicks: coldData.totalClicks,
+      });
+    }
+  }, [serverData, coldData, hasActiveFilters]);
 
   // Fetch URLs with analytics from Convex for Top Links
   const urlsWithAnalytics = useQuery(
@@ -135,30 +199,30 @@ export function Analytics() {
   );
   const urlsLoading = urlsWithAnalytics === undefined;
 
-  // Derive UTM panel data from coldData (which includes merged hot+cold UTM)
-  const utmData: UTMAnalyticsData | null = coldData
+  // Derive UTM panel data
+  const utmData: UTMAnalyticsData | null = analyticsData
     ? {
-        sourceData: Object.entries(coldData.utmSourceCounts)
+        sourceData: Object.entries(analyticsData.utmSourceCounts)
           .sort((a, b) => b[1] - a[1])
           .slice(0, 20)
           .map(([source, clicks]) => ({ source, clicks })),
-        mediumData: Object.entries(coldData.utmMediumCounts)
+        mediumData: Object.entries(analyticsData.utmMediumCounts)
           .sort((a, b) => b[1] - a[1])
           .slice(0, 20)
           .map(([medium, clicks]) => ({ medium, clicks })),
-        campaignData: Object.entries(coldData.utmCampaignCounts)
+        campaignData: Object.entries(analyticsData.utmCampaignCounts)
           .sort((a, b) => b[1] - a[1])
           .slice(0, 20)
           .map(([campaign, clicks]) => ({ campaign, clicks })),
-        termData: Object.entries(coldData.utmTermCounts)
+        termData: Object.entries(analyticsData.utmTermCounts)
           .sort((a, b) => b[1] - a[1])
           .slice(0, 20)
           .map(([term, clicks]) => ({ term, clicks })),
-        contentData: Object.entries(coldData.utmContentCounts)
+        contentData: Object.entries(analyticsData.utmContentCounts)
           .sort((a, b) => b[1] - a[1])
           .slice(0, 20)
           .map(([content, clicks]) => ({ content, clicks })),
-        sourceMediaMatrix: Object.entries(coldData.utmMatrixCounts)
+        sourceMediaMatrix: Object.entries(analyticsData.utmMatrixCounts)
           .sort((a, b) => b[1] - a[1])
           .slice(0, 50)
           .map(([key, clicks]) => {
@@ -166,116 +230,66 @@ export function Analytics() {
             return { source, medium, clicks };
           }),
         utmCoverage: {
-          withUtm: coldData.utmWithCount,
-          withoutUtm: coldData.utmWithoutCount,
+          withUtm: analyticsData.utmWithCount,
+          withoutUtm: analyticsData.utmWithoutCount,
         },
-        totalUtmClicks: coldData.utmWithCount,
+        totalUtmClicks: analyticsData.utmWithCount,
       }
     : null;
 
-  // Log only when data is actively updated for performance tracking
-  useEffect(() => {
-    if (process.env.NODE_ENV !== "development") return;
-
-    if (data) {
-      const isFull = !coldLoading && !!coldData;
-      const hasHotData = (data.hot?.length ?? 0) > 0;
-
-      if (isFull) {
-        console.log(`[Analytics] 🎨 UI Rendered with Full Data`);
-      } else if (hasHotData) {
-        console.log(
-          `[Analytics] 🎨 UI Rendered with Partial (Hot Only) Data (${data.hot?.length} rows)`,
-        );
-      }
-    }
-  }, [data, coldLoading, coldData]);
-
-  // Get filter options directly from coldData (keyed by filter id)
-  const defaultFilterOptions: Record<
-    string,
-    Array<{ value: string; label: string }>
-  > = {
+  // Get filter options from data
+  const filterOptions = analyticsData?.filterOptions ?? {
     country: [{ value: "all", label: "All Countries" }],
     device: [{ value: "all", label: "All Devices" }],
     browser: [{ value: "all", label: "All Browsers" }],
     os: [{ value: "all", label: "All OS" }],
     link: [{ value: "all", label: "All Links" }],
   };
-  const filterOptions = coldData?.filterOptions ?? defaultFilterOptions;
 
-  // Example: Grouping by Day for the Chart
+  // Clicks by day of week for the chart
   const clicksData = useMemo(() => {
     const daysOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
     const grouped: Record<string, number> = {};
 
-    // Initialize all days with 0
     daysOfWeek.forEach((day) => {
       grouped[day] = 0;
     });
 
-    // Unified logic: If we have coldData (which includes hot data via UNION), use it exclusively.
-    // If we only have hot data (progressive load), uses that.
-    if (coldData?.clicksByDay && Object.keys(coldData.clicksByDay).length > 0) {
-      Object.entries(coldData.clicksByDay).forEach(([dayStr, count]) => {
-        // DuckDB now returns the daystring already shifted to local time (e.g., "2026-01-02")
-        // We just need to map it to "Fri"
+    if (analyticsData?.clicksByDay) {
+      Object.entries(analyticsData.clicksByDay).forEach(([dayStr, count]) => {
         const date = new Date(dayStr).toLocaleDateString("en-US", {
           weekday: "short",
-          timeZone: "UTC", // Important: dayStr is already local date effectively, treat as UTC midnight to avoid double shifting
+          timeZone: "UTC",
         });
 
         if (grouped[date] !== undefined) {
           grouped[date] = (grouped[date] || 0) + count;
         }
       });
-    } else if (data?.hot) {
-      // Fallback to JS aggregation for hot data only
-      data.hot.forEach((row) => {
-        const date = new Date(row.occurred_at).toLocaleDateString("en-US", {
-          weekday: "short",
-        });
-        if (grouped[date] !== undefined) {
-          grouped[date] += 1;
-        }
-      });
     }
 
     return daysOfWeek.map((day) => ({ day, clicks: grouped[day] }));
-  }, [data?.hot, coldData?.clicksByDay]);
+  }, [analyticsData?.clicksByDay]);
 
-  // Example: Top Countries (Calculated for stats)
+  // Top Countries
   const topCountries = useMemo(() => {
-    const counts: Record<string, number> = {};
+    if (!analyticsData?.countryCounts) return [];
 
-    // Hot
-    if (data?.hot) {
-      data.hot.forEach((row) => {
-        const country = row.country || "Unknown";
-        counts[country] = (counts[country] || 0) + 1;
-      });
-    }
+    const total = Object.values(analyticsData.countryCounts).reduce(
+      (sum, c) => sum + c,
+      0,
+    );
 
-    // Cold
-    if (coldData?.countryCounts) {
-      Object.entries(coldData.countryCounts).forEach(([country, count]) => {
-        counts[country] = (counts[country] || 0) + count;
-      });
-    }
-
-    // Calculate total from counts for percentage calculation
-    const total = Object.values(counts).reduce((sum, c) => sum + c, 0);
-
-    return Object.entries(counts)
+    return Object.entries(analyticsData.countryCounts)
       .sort(([, a], [, b]) => b - a)
       .map(([country, clicks]) => ({
         country,
         clicks,
         percentage: total > 0 ? Math.round((clicks / total) * 100) : 0,
       }));
-  }, [data?.hot, coldData?.countryCounts]);
+  }, [analyticsData?.countryCounts]);
 
-  // Top Links from Convex (source of truth for click counts)
+  // Top Links from Convex
   const topLinks = useMemo(() => {
     if (!urlsWithAnalytics) return [];
     return urlsWithAnalytics
@@ -296,7 +310,6 @@ export function Analytics() {
         createdAt: url._creationTime,
         customDomain: url.customDomain ?? null,
       }));
-    // eslint-disable-next-line @tanstack/query/no-unstable-deps
   }, [urlsWithAnalytics]);
 
   if (isError) {
@@ -309,14 +322,12 @@ export function Analytics() {
 
   if (coldError) {
     console.error("Cold analytics error:", coldError);
-    // We don't block the whole UI, but we can show a toast or partial error state if needed.
-    // For now, we'll let the user know in the "Archived Files" card or via a subtle alert.
   }
 
   const stats = [
     {
       label: "Total Links",
-      value: "24", // Static for now, or fetch from another API
+      value: "24",
       icon: LinkIcon,
       change: "[+3] this week",
       trend: "up",
@@ -333,25 +344,24 @@ export function Analytics() {
   return (
     <div className="space-y-6">
       {/* Filter Bar */}
-
       <FilterBar
         timeRange={timeRange}
         onTimeRangeChange={setTimeRange}
         linkFilter={linkFilter}
         onLinkFilterChange={setLinkFilter}
-        linkOptions={filterOptions["link"]}
+        linkOptions={filterOptions.link}
         countryFilter={countryFilter}
         onCountryFilterChange={setCountryFilter}
-        countryOptions={filterOptions["country"]}
+        countryOptions={filterOptions.country}
         deviceFilter={deviceFilter}
         onDeviceFilterChange={setDeviceFilter}
-        deviceOptions={filterOptions["device"]}
+        deviceOptions={filterOptions.device}
         browserFilter={browserFilter}
         onBrowserFilterChange={setBrowserFilter}
-        browserOptions={filterOptions["browser"]}
+        browserOptions={filterOptions.browser}
         osFilter={osFilter}
         onOSFilterChange={setOSFilter}
-        osOptions={filterOptions["os"]}
+        osOptions={filterOptions.os}
       />
 
       {/* Stats Grid */}
@@ -380,22 +390,13 @@ export function Analytics() {
             </CardContent>
           </Card>
         ))}
-        {/* Total Clicks - separate component with its own Convex data */}
         <TotalClicksCard />
       </div>
 
       {/* Charts Section */}
       <div className="grid gap-6 lg:grid-cols-2">
-        <ClicksChart
-          data={clicksData}
-          isLoading={showSkeleton || (coldLoading && !coldData)}
-        />
-
-        {/* Top Countries */}
-        <CountryChart
-          data={topCountries}
-          isLoading={showSkeleton || (coldLoading && !coldData)}
-        />
+        <ClicksChart data={clicksData} isLoading={isLoading} />
+        <CountryChart data={topCountries} isLoading={isLoading} />
       </div>
 
       {/* Top Performing Links */}
@@ -407,7 +408,7 @@ export function Analytics() {
         <p className="text-muted-foreground mb-6 text-sm">
           Track performance of your UTM-tagged marketing campaigns
         </p>
-        <UTMAnalyticsPanel data={utmData} isLoading={coldLoading && !utmData} />
+        <UTMAnalyticsPanel data={utmData} isLoading={isLoading} />
       </div>
 
       {/* Healing Activity - STATIC FOR NOW */}
