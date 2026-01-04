@@ -117,21 +117,7 @@ export default defineSchema({
     .index("by_urls", ["urls"])
     .index("by_user", ["userTableId"])
     .index("by_user_and_normalizedName", ["userTableId", "normalizedName"]),
-  analytics_cache: defineTable({
-    cache_key: v.string(),
-    response_data: v.any(),
-    created_at: v.number(),
-    ttl_seconds: v.number(),
-    query_scope: v.string(),
-    user_id: v.string(),
-    refresh_status: v.optional(
-      v.union(v.literal("idle"), v.literal("running")),
-    ),
-    refresh_lease_until: v.optional(v.number()),
-  })
-    .index("by_cache_key", ["cache_key"])
-    .index("by_user_and_created", ["user_id", "created_at"])
-    .index("by_created_at", ["created_at"]),
+
   custom_domains: defineTable({
     userId: v.id("users"),
     domain: v.string(), // e.g., "links.example.com"

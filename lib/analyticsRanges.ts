@@ -75,7 +75,7 @@ export function getUtcRange(range: AnalyticsRange): { start: Date; end: Date } {
   return { start: new Date(0), end };
 }
 
-export function formatForTinybird(dt: Date): string {
+export function formatDateTimeUTC(dt: Date): string {
   const yyyy = dt.getUTCFullYear();
   const mm = String(dt.getUTCMonth() + 1).padStart(2, "0");
   const dd = String(dt.getUTCDate()).padStart(2, "0");

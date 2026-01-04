@@ -380,14 +380,14 @@ export type DashboardBreakdownRow = {
   avg_latency?: number | null;
 };
 
-export type TinybirdResult<T> = {
+export type AnalyticsResult<T> = {
   data: Array<T>;
 };
 
 export type DashboardAnalyticsPayload = {
-  timeseries: TinybirdResult<DashboardTimeseriesRow>;
-  browsers: TinybirdResult<DashboardBreakdownRow>;
-  countries: TinybirdResult<DashboardBreakdownRow>;
-  devices: TinybirdResult<DashboardBreakdownRow>;
-  os: TinybirdResult<DashboardBreakdownRow>;
+  timeseries: AnalyticsResult<DashboardTimeseriesRow>;
+  browsers: AnalyticsResult<DashboardBreakdownRow>;
+  countries: AnalyticsResult<DashboardBreakdownRow>;
+  devices: AnalyticsResult<DashboardBreakdownRow>;
+  os: AnalyticsResult<DashboardBreakdownRow>;
 };

@@ -83,7 +83,6 @@ URL clicked → Cloudflare Worker logs click → convex/urlAnalytics.ts:mutateCl
 - `convex/urlAnalytics.ts` - Click tracking
 - `routes/AnalyticsRoute.tsx` - Analytics dashboard
 - `components/charts/` - Chart components
-- `tinybird/` - Analytics data pipeline
 
 ### **6. URL Management Flow**
 
@@ -122,12 +121,6 @@ User views URLs → routes/HomeRoute.tsx → components/UrlTable.tsx → convex/
 - **Files**: `convex/redisAction.ts`
 - **Purpose**: Fast URL lookups for redirects
 - **Integration**: Cloudflare Worker reads from Redis
-
-### **Analytics: Tinybird**
-
-- **Files**: `tinybird/` directory
-- **Purpose**: Click analytics and reporting
-- **Integration**: Data pipeline for analytics charts
 
 ### **Styling: Tailwind CSS**
 

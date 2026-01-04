@@ -8,13 +8,11 @@
  * @module
  */
 
-import type * as analyticsCache from "../analyticsCache.js";
 import type * as collectionMangament from "../collectionMangament.js";
 import type * as crons from "../crons.js";
 import type * as customDomains from "../customDomains.js";
 import type * as linkHealth from "../linkHealth.js";
 import type * as redisAction from "../redisAction.js";
-import type * as tinyBirdAction from "../tinyBirdAction.js";
 import type * as triggerFuctions from "../triggerFuctions.js";
 import type * as urlAnalytics from "../urlAnalytics.js";
 import type * as urlMainFuction from "../urlMainFuction.js";
@@ -29,13 +27,11 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
-  analyticsCache: typeof analyticsCache;
   collectionMangament: typeof collectionMangament;
   crons: typeof crons;
   customDomains: typeof customDomains;
   linkHealth: typeof linkHealth;
   redisAction: typeof redisAction;
-  tinyBirdAction: typeof tinyBirdAction;
   triggerFuctions: typeof triggerFuctions;
   urlAnalytics: typeof urlAnalytics;
   urlMainFuction: typeof urlMainFuction;
