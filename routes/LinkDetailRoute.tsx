@@ -1,5 +1,5 @@
 import { useParams, useNavigate } from "react-router";
-import { useEffect, useState } from "react";
+import { useState, useMemo } from "react";
 import type { AnalyticsRange } from "@/lib/analyticsRanges";
 import { useMutation } from "convex/react";
 import { useQuery } from "convex-helpers/react/cache/hooks";
@@ -14,7 +14,8 @@ import { LinkSettingsPanel } from "@/components/LinkSettingsPanel";
 import { LinkActivityLog } from "@/components/LinkActivityLog";
 import { LinkAIChatPanel } from "@/components/LinkAIChatPanel";
 import { LinkHealthPanel } from "@/components/LinkHealthPanel";
-import { useDashboardDerived } from "@/hooks/useDashboardDerived";
+import { useTimeseries, useBreakdown } from "@/hooks/useAnalytics";
+import { getUtcRange } from "@/lib/analyticsRanges";
 import {
   Tabs,
   TabsList,
@@ -30,24 +31,173 @@ export default function LinkDetailRoute() {
   const slug = params[":slug"] || params.slug || "unknown";
   const [range, setRange] = useState<AnalyticsRange>("7d");
 
-  const dashboardRes = useQuery(api.analyticsCache.getAnalytics, {
+  // Direct API calls via TanStack Query (bypasses Convex, uses DuckDB backend)
+  const timeseries = useTimeseries({
     range,
     linkSlug: String(slug),
-    scope: "dashboard",
+    scope: "link",
+  });
+  const browsers = useBreakdown({
+    dimension: "browser",
+    range,
+    linkSlug: String(slug),
+    scope: "link",
+  });
+  const devices = useBreakdown({
+    dimension: "device",
+    range,
+    linkSlug: String(slug),
+    scope: "link",
+  });
+  const os = useBreakdown({
+    dimension: "os",
+    range,
+    linkSlug: String(slug),
+    scope: "link",
+  });
+  const countries = useBreakdown({
+    dimension: "country",
+    range,
+    linkSlug: String(slug),
+    scope: "link",
   });
 
-  const requestRefresh = useMutation(api.analyticsCache.requestRefresh);
+  // Derive display data from raw analytics
+  const derived = useMemo(() => {
+    const tsRows = timeseries.data?.data ?? [];
 
-  useEffect(() => {
-    if (dashboardRes && dashboardRes.fresh === false) {
-      void requestRefresh({
-        range,
-        linkSlug: String(slug),
-        scope: "dashboard",
-      });
+    const formatBucket = (s: string) => {
+      const d = new Date(s);
+      const yyyy = d.getUTCFullYear();
+      const mm = String(d.getUTCMonth() + 1).padStart(2, "0");
+      const dd = String(d.getUTCDate()).padStart(2, "0");
+      return `${yyyy}-${mm}-${dd}`;
+    };
+    const formatHour = (s: string) => {
+      const d = new Date(s);
+      return String(d.getUTCHours()).padStart(2, "0") + ":00";
+    };
+
+    // Build day -> clicks map for zero-filling
+    const dayToClicks = new Map<string, number>();
+    for (const r of tsRows) {
+      const key = formatBucket(r.bucket_start);
+      dayToClicks.set(key, (dayToClicks.get(key) ?? 0) + r.clicks);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dashboardRes?.fresh, range, slug, requestRefresh]);
+
+    // Zero-fill clicks timeline
+    const clicksTimelineData: Array<{ time: string; clicks: number }> = [];
+    if (tsRows.length > 0) {
+      const { start, end } = getUtcRange(range);
+      const startDay = new Date(
+        Date.UTC(
+          start.getUTCFullYear(),
+          start.getUTCMonth(),
+          start.getUTCDate(),
+        ),
+      );
+      const endDay = new Date(
+        Date.UTC(end.getUTCFullYear(), end.getUTCMonth(), end.getUTCDate()),
+      );
+      for (
+        let d = startDay;
+        d.getTime() <= endDay.getTime();
+        d = new Date(d.getTime() + 24 * 60 * 60 * 1000)
+      ) {
+        const key = formatBucket(d.toISOString());
+        clicksTimelineData.push({
+          time: key,
+          clicks: dayToClicks.get(key) ?? 0,
+        });
+      }
+    }
+
+    // Hourly activity
+    const hourToClicks = new Map<string, number>();
+    for (const r of tsRows) {
+      const hh = formatHour(r.bucket_start);
+      hourToClicks.set(hh, (hourToClicks.get(hh) ?? 0) + r.clicks);
+    }
+    const hourlyActivityData = Array.from({ length: 24 }, (_, i) => {
+      const hh = String(i).padStart(2, "0") + ":00";
+      return { hour: hh, clicks: hourToClicks.get(hh) ?? 0 };
+    });
+
+    // Bot/human pie
+    let totalHuman = 0;
+    let totalBot = 0;
+    for (const r of tsRows) {
+      totalHuman += r.human_clicks ?? r.clicks;
+      totalBot += r.bot_clicks ?? 0;
+    }
+    const botHumanData = [
+      { name: "Human", value: totalHuman, color: "#22c55e" },
+      { name: "Bot", value: totalBot, color: "#ef4444" },
+    ];
+
+    // Latency buckets (placeholder)
+    const latencyBuckets = [
+      { range: "< 50ms", count: 0 },
+      { range: "50-100ms", count: 0 },
+      { range: "100-200ms", count: 0 },
+      { range: "200-500ms", count: 0 },
+      { range: "> 500ms", count: 0 },
+    ];
+
+    // Breakdown data - transform to match AnalyticsSection prop types
+    const browserData = (browsers.data?.data ?? []).map(
+      (row: { label: string; clicks: number }) => ({
+        month: row.label ?? "Unknown",
+        clicks: row.clicks,
+      }),
+    );
+
+    const countryData = (countries.data?.data ?? []).map(
+      (row: { label: string; clicks: number }) => ({
+        country: row.label ?? "Unknown",
+        clicks: row.clicks,
+      }),
+    );
+
+    const deviceData = (devices.data?.data ?? []).map(
+      (row: { label: string; clicks: number }) => ({
+        device: row.label ?? "Unknown",
+        clicks: row.clicks,
+      }),
+    );
+
+    const osData = (os.data?.data ?? []).map(
+      (row: { label: string; clicks: number }) => ({
+        os: row.label ?? "Unknown",
+        clicks: row.clicks,
+      }),
+    );
+
+    return {
+      clicksTimelineData,
+      browserData,
+      countryData,
+      deviceData,
+      osData,
+      botHumanData,
+      latencyBuckets,
+      hourlyActivityData,
+    };
+  }, [
+    timeseries.data,
+    browsers.data,
+    countries.data,
+    devices.data,
+    os.data,
+    range,
+  ]);
+
+  const isAnalyticsLoading =
+    timeseries.isLoading ||
+    browsers.isLoading ||
+    devices.isLoading ||
+    os.isLoading ||
+    countries.isLoading;
 
   const deleteUrl = useMutation(api.urlMainFuction.deleteUrl);
   const queryResult = useQuery(api.urlAnalytics.getUrlAnalytics, {
@@ -77,9 +227,6 @@ export default function LinkDetailRoute() {
       description: message,
     });
   }
-
-  const payload = dashboardRes?.data ?? null;
-  const derived = useDashboardDerived({ payload, range });
 
   const handleDownloadQR = () => {
     // TODO: Implement QR download functionality
@@ -154,7 +301,7 @@ export default function LinkDetailRoute() {
             botHumanData={derived.botHumanData}
             latencyBuckets={derived.latencyBuckets}
             hourlyActivityData={derived.hourlyActivityData}
-            isLoading={Boolean(!dashboardRes || dashboardRes.fresh === false)}
+            isLoading={isAnalyticsLoading}
           />
         </TabsContent>
 

@@ -2,12 +2,14 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { auth } from "@clerk/nextjs/server";
 import { getRateLimit } from "@/lib/rateLimit";
-import { tinybirdFetch } from "@/lib/tinybird";
-import {
-  AnalyticsRange,
-  getUtcRange,
-  formatForTinybird,
-} from "@/lib/analyticsRanges";
+import { AnalyticsRange, getUtcRange } from "@/lib/analyticsRanges";
+
+// Strip /analytics/v2 suffix to get base URL
+const INTERNAL_API_URL = (process.env.INTERNAL_API_URL || "").replace(
+  /\/analytics\/v2$/,
+  "",
+);
+const API_SECRET = process.env.API_SECRET;
 
 const schema = z.object({
   range: z
@@ -30,7 +32,7 @@ const schema = z.object({
 export async function GET(req: NextRequest) {
   try {
     const rateLimit = getRateLimit();
-    const { userId } = await auth();
+    const { userId: clerkUserId, sessionClaims } = await auth();
     const { searchParams } = new URL(req.url);
     const parsed = schema.safeParse({
       range: searchParams.get("range") ?? undefined,
@@ -42,9 +44,19 @@ export async function GET(req: NextRequest) {
     }
     const { range, link_slug, limit } = parsed.data;
 
-    const scopeUserId = link_slug ? undefined : (userId ?? undefined);
+    const scopeUserId = link_slug ? undefined : (clerkUserId ?? undefined);
     if (!link_slug && !scopeUserId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    // Extract convex_user_id from session claims
+    const convexUserId = (sessionClaims as Record<string, unknown>)
+      ?.convex_user_id as string | undefined;
+    if (!convexUserId && !link_slug) {
+      return NextResponse.json(
+        { error: "Session not configured. Please log out and log back in." },
+        { status: 401 },
+      );
     }
 
     const ip = req.headers.get("x-forwarded-for") || "unknown";
@@ -61,32 +73,42 @@ export async function GET(req: NextRequest) {
       );
     }
 
+    // Convert range to start/end dates
     const { start, end } = getUtcRange(range as AnalyticsRange);
-    const start_date = formatForTinybird(start);
-    const end_date = formatForTinybird(end);
+    const startDate = start.toISOString().split("T")[0];
+    const endDate = end.toISOString().split("T")[0];
 
-    type TrafficRow = {
-      source: string;
-      medium: string;
-      campaign: string;
-      referer_domain: string;
-      clicks: number;
-      unique_sessions: number;
-      new_sessions: number;
-      avg_latency: number | null;
-    };
-    const data = await tinybirdFetch<{ data: TrafficRow[] }>(
-      "traffic_sources",
-      {
-        start_date,
-        end_date,
-        link_slug,
-        limit,
-        user_id: scopeUserId,
+    // Build backend URL
+    const backendUrl = new URL(`${INTERNAL_API_URL}/analytics/unified`);
+    backendUrl.searchParams.set("endpoint", "traffic-sources");
+    backendUrl.searchParams.set("start", startDate);
+    backendUrl.searchParams.set("end", endDate);
+    backendUrl.searchParams.set("limit", String(limit));
+    if (link_slug) {
+      backendUrl.searchParams.set("link_slug", link_slug);
+    }
+
+    const response = await fetch(backendUrl.toString(), {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        "x-user-id": convexUserId || "",
+        Authorization: `Bearer ${API_SECRET}`,
       },
-    );
+      cache: "no-store",
+    });
 
-    const res = NextResponse.json({ data: data.data });
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error("Backend error:", response.status, errorText);
+      return NextResponse.json(
+        { error: "Failed to fetch analytics data" },
+        { status: response.status },
+      );
+    }
+
+    const result = await response.json();
+    const res = NextResponse.json({ data: result.data });
     res.headers.set("Cache-Control", "s-maxage=60, stale-while-revalidate=120");
     return res;
   } catch (e: unknown) {
