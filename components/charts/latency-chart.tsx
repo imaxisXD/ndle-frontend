@@ -83,7 +83,6 @@ export function LatencyChart({
           }
         >
           <BarChart
-            accessibilityLayer
             data={data ?? []}
             margin={{
               top: 20,

@@ -169,7 +169,6 @@ export function CountryChart({
                       }}
                     >
                       <BarChart
-                        accessibilityLayer
                         data={topCountries}
                         layout="vertical"
                         margin={{
@@ -280,7 +279,6 @@ export function CountryChart({
             style={{ height: "280px" }}
           >
             <BarChart
-              accessibilityLayer
               data={chartData}
               layout="vertical"
               margin={{

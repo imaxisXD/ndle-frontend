@@ -119,15 +119,17 @@ export function DeviceOSChart({
                 }
                 emptyStateContent={
                   <div className="text-center">
-                    <p className="text-foreground font-medium">No analytics yet</p>
+                    <p className="text-foreground font-medium">
+                      No analytics yet
+                    </p>
                     <p className="text-muted-foreground mt-1 text-xs">
-                      This link hasn’t received any clicks in the selected range.
+                      This link hasn’t received any clicks in the selected
+                      range.
                     </p>
                   </div>
                 }
               >
                 <BarChart
-                  accessibilityLayer
                   data={deviceData ?? defaultDeviceData}
                   layout="vertical"
                   margin={{ right: 16 }}
@@ -220,15 +222,17 @@ export function DeviceOSChart({
                 }
                 emptyStateContent={
                   <div className="text-center">
-                    <p className="text-foreground font-medium">No analytics yet</p>
+                    <p className="text-foreground font-medium">
+                      No analytics yet
+                    </p>
                     <p className="text-muted-foreground mt-1 text-xs">
-                      This link hasn’t received any clicks in the selected range.
+                      This link hasn’t received any clicks in the selected
+                      range.
                     </p>
                   </div>
                 }
               >
                 <BarChart
-                  accessibilityLayer
                   data={osData ?? defaultOsData}
                   layout="vertical"
                   margin={{ right: 16 }}

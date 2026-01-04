@@ -79,7 +79,6 @@ export function ClicksTimelineChart({
             }
           >
             <AreaChart
-              accessibilityLayer
               data={chartData}
               margin={{
                 top: 20,

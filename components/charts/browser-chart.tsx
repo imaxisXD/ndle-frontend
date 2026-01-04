@@ -78,7 +78,6 @@ export function BrowserChart({
           }
         >
           <BarChart
-            accessibilityLayer
             data={data}
             layout="vertical"
             margin={{
