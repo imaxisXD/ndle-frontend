@@ -54,6 +54,7 @@ export async function GET(req: NextRequest) {
     // Extract convex_user_id from session claims
     const convexUserId = (sessionClaims as Record<string, unknown>)
       ?.convex_user_id as string | undefined;
+    console.log("convexUserId", convexUserId);
     if (!convexUserId && !link_slug) {
       return NextResponse.json(
         { error: "Session not configured. Please log out and log back in." },
@@ -90,7 +91,6 @@ export async function GET(req: NextRequest) {
     if (link_slug) {
       backendUrl.searchParams.set("link_slug", link_slug);
     }
-    console.log(backendUrl);
     const response = await fetch(backendUrl.toString(), {
       method: "GET",
       headers: {
