@@ -35,7 +35,7 @@ export const metadata: Metadata = {
     title: "ndle - Short. Sharp. Smarter.",
     description:
       "The intelligent URL shortener with real-time analytics and custom domains.",
-    creator: "@ndle_io",
+    creator: "@abhishk_084",
   },
 };
 
