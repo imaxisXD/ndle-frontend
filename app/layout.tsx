@@ -16,6 +16,7 @@ const doto = Doto({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://ndle.app"),
   title: "ndle - Short. Sharp. Smarter.",
   description:
     "The intelligent URL shortener with real-time analytics and custom domains.",
@@ -24,7 +25,7 @@ export const metadata: Metadata = {
     title: "ndle - Short. Sharp. Smarter.",
     description:
       "The intelligent URL shortener with real-time analytics and custom domains.",
-    url: "https://ndle.io",
+    url: "https://ndle.app",
     siteName: "ndle",
     locale: "en_US",
     type: "website",
