@@ -18,8 +18,24 @@ const doto = Doto({
 export const metadata: Metadata = {
   title: "ndle - Short. Sharp. Smarter.",
   description:
-    "Create shortened links that heal themselves and remember context",
+    "The intelligent URL shortener with real-time analytics and custom domains.",
   icons: "/favicon.ico",
+  openGraph: {
+    title: "ndle - Short. Sharp. Smarter.",
+    description:
+      "The intelligent URL shortener with real-time analytics and custom domains.",
+    url: "https://ndle.io",
+    siteName: "ndle",
+    locale: "en_US",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "ndle - Short. Sharp. Smarter.",
+    description:
+      "The intelligent URL shortener with real-time analytics and custom domains.",
+    creator: "@ndle_io",
+  },
 };
 
 export default function RootLayout({
