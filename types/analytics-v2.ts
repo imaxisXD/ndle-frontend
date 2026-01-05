@@ -91,6 +91,9 @@ export interface AnalyticsV2Response {
   utmWithCount: number;
   utmWithoutCount: number;
 
+  // Referer Analytics (domain -> clicks)
+  refererCounts: Record<string, number>;
+
   // Additional aggregates (for backward compat)
   devices: DeviceBreakdown[];
   browsers: BrowserBreakdown[];

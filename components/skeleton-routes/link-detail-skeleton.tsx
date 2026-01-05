@@ -26,7 +26,7 @@ export default function LinkDetailSkeleton({ shortUrl }: { shortUrl: string }) {
           <a
             href={`https://${shortUrl}`}
             target="_blank"
-            rel="noopener noreferrer"
+            rel="noopener"
             className="group pointer-events-auto flex items-center justify-center gap-1.5 text-3xl font-medium tracking-tight transition-all duration-150 ease-linear hover:text-blue-600 hover:underline hover:decoration-blue-600 hover:decoration-dashed hover:underline-offset-4"
           >
             {shortUrl}

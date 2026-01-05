@@ -51,6 +51,8 @@ export default [
       // Disable rules that conflict with TypeScript
       "react/prop-types": "off",
       "react/react-in-jsx-scope": "off",
+      // Allow target="_blank" with noopener (without noreferrer) for referrer analytics
+      "react/jsx-no-target-blank": "off",
     },
   },
 ];

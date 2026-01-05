@@ -7,6 +7,7 @@ import { useColdAnalytics } from "@/hooks/use-cold-analytics";
 import { format, subDays, startOfDay, endOfDay } from "date-fns";
 import { Skeleton } from "@/components/ui/skeleton";
 import { CountryChart } from "@/components/charts/country-chart";
+import { ReferrerChart } from "@/components/charts/referrer-chart";
 import { ClicksChart } from "@/components/charts/clicks-chart";
 import NumberFlow from "@number-flow/react";
 import { useQuery } from "convex-helpers/react/cache/hooks";
@@ -167,6 +168,7 @@ export function Analytics() {
         utmMatrixCounts: serverData.utmMatrixCounts,
         utmWithCount: serverData.utmWithCount,
         utmWithoutCount: serverData.utmWithoutCount,
+        refererCounts: serverData.refererCounts,
         isPartialData: false,
       };
     }
@@ -399,6 +401,19 @@ export function Analytics() {
       <div className="grid gap-6 lg:grid-cols-2">
         <ClicksChart data={clicksData} isLoading={isLoading} />
         <CountryChart data={topCountries} isLoading={isLoading} />
+        <ReferrerChart
+          data={
+            analyticsData?.refererCounts
+              ? Object.entries(analyticsData.refererCounts)
+                  .map(([domain, clicks]) => ({
+                    domain,
+                    clicks: Number(clicks),
+                  }))
+                  .sort((a, b) => b.clicks - a.clicks)
+              : []
+          }
+          isLoading={isLoading}
+        />
       </div>
 
       {/* Top Performing Links */}

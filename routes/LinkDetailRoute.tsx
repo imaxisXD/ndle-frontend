@@ -14,7 +14,11 @@ import { LinkSettingsPanel } from "@/components/LinkSettingsPanel";
 import { LinkActivityLog } from "@/components/LinkActivityLog";
 import { LinkAIChatPanel } from "@/components/LinkAIChatPanel";
 import { LinkHealthPanel } from "@/components/LinkHealthPanel";
-import { useTimeseries, useBreakdown } from "@/hooks/useAnalytics";
+import {
+  useTimeseries,
+  useBreakdown,
+  useTrafficSources,
+} from "@/hooks/useAnalytics";
 import { getUtcRange } from "@/lib/analyticsRanges";
 import {
   Tabs,
@@ -57,6 +61,11 @@ export default function LinkDetailRoute() {
   });
   const countries = useBreakdown({
     dimension: "country",
+    range,
+    linkSlug: String(slug),
+    scope: "link",
+  });
+  const referers = useTrafficSources({
     range,
     linkSlug: String(slug),
     scope: "link",
@@ -173,6 +182,16 @@ export default function LinkDetailRoute() {
       }),
     );
 
+    // Referrer data from traffic sources
+    const referrerData = (referers.data?.data ?? []).map(
+      (row: { referer_domain: string; clicks: number }) => {
+        return {
+          domain: row.referer_domain || "Direct / None",
+          clicks: row.clicks,
+        };
+      },
+    );
+
     return {
       clicksTimelineData,
       browserData,
@@ -182,6 +201,7 @@ export default function LinkDetailRoute() {
       botHumanData,
       latencyBuckets,
       hourlyActivityData,
+      referrerData,
     };
   }, [
     timeseries.data,
@@ -189,6 +209,7 @@ export default function LinkDetailRoute() {
     countries.data,
     devices.data,
     os.data,
+    referers.data,
     range,
   ]);
 
@@ -197,7 +218,8 @@ export default function LinkDetailRoute() {
     browsers.isLoading ||
     devices.isLoading ||
     os.isLoading ||
-    countries.isLoading;
+    countries.isLoading ||
+    referers.isLoading;
 
   const deleteUrl = useMutation(api.urlMainFuction.deleteUrl);
   const queryResult = useQuery(api.urlAnalytics.getUrlAnalytics, {
@@ -301,6 +323,7 @@ export default function LinkDetailRoute() {
             botHumanData={derived.botHumanData}
             latencyBuckets={derived.latencyBuckets}
             hourlyActivityData={derived.hourlyActivityData}
+            referrerData={derived.referrerData}
             isLoading={isAnalyticsLoading}
           />
         </TabsContent>

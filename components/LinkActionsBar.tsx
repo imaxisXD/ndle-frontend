@@ -50,7 +50,7 @@ export function LinkActionsBar({
     const normalized = shortUrl.startsWith("http")
       ? shortUrl
       : `https://${shortUrl}`;
-    window.open(normalized, "_blank", "noopener,noreferrer");
+    window.open(normalized, "_blank", "noopener");
   };
 
   const handleShare = async () => {

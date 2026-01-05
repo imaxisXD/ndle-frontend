@@ -25,6 +25,8 @@ interface ColdAnalyticsData {
   utmMatrixCounts: Record<string, number>;
   utmWithCount: number;
   utmWithoutCount: number;
+  // Referer Analytics
+  refererCounts?: Record<string, number>;
   // Progressive loading state
   isPartialData: boolean;
 }
@@ -489,6 +491,7 @@ export function useColdAnalytics(
     utmMatrixCounts: {},
     utmWithCount: 0,
     utmWithoutCount: 0,
+    refererCounts: {},
     isPartialData: false,
   };
 
