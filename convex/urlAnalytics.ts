@@ -14,6 +14,19 @@ export const mutateUrlAnalytics = mutation({
     urlStatusMessage: v.string(),
     urlStatusCode: v.number(),
     requestId: v.string(),
+    // Optional click event data for real-time activity
+    clickEvent: v.optional(
+      v.object({
+        linkSlug: v.string(),
+        occurredAt: v.number(),
+        country: v.string(),
+        city: v.optional(v.string()),
+        deviceType: v.string(),
+        browser: v.string(),
+        os: v.string(),
+        referer: v.optional(v.string()),
+      }),
+    ),
   },
   returns: v.object({
     processed: v.boolean(),
@@ -40,6 +53,23 @@ export const mutateUrlAnalytics = mutation({
       console.error("User not found");
       throw new ConvexError("User not found");
     }
+
+    // Insert click event if provided
+    if (args.clickEvent) {
+      await ctx.db.insert("clickEvents", {
+        linkSlug: args.clickEvent.linkSlug,
+        urlId: normalisedUrlId,
+        userId: normalisedUserId,
+        occurredAt: args.clickEvent.occurredAt,
+        country: args.clickEvent.country,
+        city: args.clickEvent.city,
+        deviceType: args.clickEvent.deviceType,
+        browser: args.clickEvent.browser,
+        os: args.clickEvent.os,
+        referer: args.clickEvent.referer,
+      });
+    }
+
     const urlAnalytics = await ctx.db
       .query("urlAnalytics")
       .withIndex("by_url", (q) => q.eq("urlId", normalisedUrlId))

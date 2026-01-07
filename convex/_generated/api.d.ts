@@ -8,6 +8,7 @@
  * @module
  */
 
+import type * as clickEvents from "../clickEvents.js";
 import type * as collectionMangament from "../collectionMangament.js";
 import type * as crons from "../crons.js";
 import type * as customDomains from "../customDomains.js";
@@ -27,6 +28,7 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
+  clickEvents: typeof clickEvents;
   collectionMangament: typeof collectionMangament;
   crons: typeof crons;
   customDomains: typeof customDomains;

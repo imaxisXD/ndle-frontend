@@ -9,109 +9,18 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { formatRelative } from "@/lib/utils";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   ClockUserIcon,
   DesktopTowerIcon,
   DeviceMobileCameraIcon,
   DeviceTabletCameraIcon,
 } from "@phosphor-icons/react";
-
-// Dummy activity data
-const DUMMY_ACTIVITY_DATA = [
-  {
-    id: "1",
-    timestamp: Date.now() - 1000 * 60 * 5, // 5 minutes ago
-    location: "San Francisco, US",
-    country: "US",
-    device: "desktop",
-    browser: "Chrome",
-    os: "macOS",
-  },
-  {
-    id: "2",
-    timestamp: Date.now() - 1000 * 60 * 23, // 23 minutes ago
-    location: "London, UK",
-    country: "GB",
-    device: "mobile",
-    browser: "Safari",
-    os: "iOS",
-  },
-  {
-    id: "3",
-    timestamp: Date.now() - 1000 * 60 * 45, // 45 minutes ago
-    location: "Berlin, DE",
-    country: "DE",
-    device: "desktop",
-    browser: "Firefox",
-    os: "Windows",
-  },
-  {
-    id: "4",
-    timestamp: Date.now() - 1000 * 60 * 60 * 2, // 2 hours ago
-    location: "Tokyo, JP",
-    country: "JP",
-    device: "mobile",
-    browser: "Chrome",
-    os: "Android",
-  },
-  {
-    id: "5",
-    timestamp: Date.now() - 1000 * 60 * 60 * 3, // 3 hours ago
-    location: "Sydney, AU",
-    country: "AU",
-    device: "tablet",
-    browser: "Safari",
-    os: "iPadOS",
-  },
-  {
-    id: "6",
-    timestamp: Date.now() - 1000 * 60 * 60 * 5, // 5 hours ago
-    location: "New York, US",
-    country: "US",
-    device: "desktop",
-    browser: "Edge",
-    os: "Windows",
-  },
-  {
-    id: "7",
-    timestamp: Date.now() - 1000 * 60 * 60 * 8, // 8 hours ago
-    location: "Paris, FR",
-    country: "FR",
-    device: "mobile",
-    browser: "Chrome",
-    os: "Android",
-  },
-  {
-    id: "8",
-    timestamp: Date.now() - 1000 * 60 * 60 * 12, // 12 hours ago
-    location: "Toronto, CA",
-    country: "CA",
-    device: "desktop",
-    browser: "Chrome",
-    os: "macOS",
-  },
-  {
-    id: "9",
-    timestamp: Date.now() - 1000 * 60 * 60 * 24, // 1 day ago
-    location: "Mumbai, IN",
-    country: "IN",
-    device: "mobile",
-    browser: "Chrome",
-    os: "Android",
-  },
-  {
-    id: "10",
-    timestamp: Date.now() - 1000 * 60 * 60 * 36, // 1.5 days ago
-    location: "Singapore, SG",
-    country: "SG",
-    device: "desktop",
-    browser: "Safari",
-    os: "macOS",
-  },
-];
+import { useQuery } from "convex/react";
+import { api } from "@/convex/_generated/api";
 
 function getDeviceIcon(device: string) {
-  switch (device) {
+  switch (device?.toLowerCase()) {
     case "mobile":
       return <DeviceMobileCameraIcon className="size-4" />;
     case "tablet":
@@ -122,69 +31,122 @@ function getDeviceIcon(device: string) {
 }
 
 function getCountryFlag(countryCode: string) {
+  if (!countryCode || countryCode === "Unknown") return "🌍";
   // Convert country code to flag emoji
   const codePoints = countryCode
     .toUpperCase()
+    .slice(0, 2)
     .split("")
     .map((char) => 127397 + char.charCodeAt(0));
   return String.fromCodePoint(...codePoints);
 }
 
-export function LinkActivityLog() {
+function formatLocation(country: string, city: string | undefined): string {
+  if (city && country && country !== "Unknown") {
+    return `${city}, ${country}`;
+  }
+  if (country && country !== "Unknown") {
+    return country;
+  }
+  return "Unknown location";
+}
+
+interface LinkActivityLogProps {
+  linkSlug: string;
+}
+
+export function LinkActivityLog({ linkSlug }: LinkActivityLogProps) {
+  // Use Convex reactive query - auto-updates when new clicks arrive!
+  const activities = useQuery(api.clickEvents.getRecentByLinkSlug, {
+    linkSlug,
+    limit: 20,
+  });
+
+  const isLoading = activities === undefined;
+
   return (
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-base">
           <ClockUserIcon className="text-muted-foreground size-4" />
           Recent Activity
+          {activities && activities.length > 0 && (
+            <span className="relative ml-auto flex h-2.5 w-2.5">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400 opacity-75"></span>
+              <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-green-500"></span>
+            </span>
+          )}
         </CardTitle>
-        <CardDescription>Last 10 clicks on this link</CardDescription>
+        <CardDescription>Real-time clicks on this link</CardDescription>
       </CardHeader>
       <CardContent className="p-0">
-        <div className="divide-border divide-y">
-          {DUMMY_ACTIVITY_DATA.map((activity) => (
-            <div
-              key={activity.id}
-              className="hover:bg-muted/30 flex items-center justify-between gap-4 px-5 py-3 transition-colors"
-            >
-              {/* Left side: Time and Location */}
-              <div className="flex min-w-0 items-center gap-4">
-                <div className="text-muted-foreground text-xs whitespace-nowrap">
-                  {formatRelative(activity.timestamp)}
+        {isLoading ? (
+          <div className="divide-border divide-y">
+            {[1, 2, 3, 4, 5].map((i) => (
+              <div
+                key={i}
+                className="flex items-center justify-between gap-4 px-5 py-3"
+              >
+                <Skeleton className="h-4 w-24" />
+                <Skeleton className="h-4 w-32" />
+                <Skeleton className="h-4 w-20" />
+              </div>
+            ))}
+          </div>
+        ) : activities.length === 0 ? (
+          <div className="text-muted-foreground px-5 py-8 text-center text-sm">
+            No clicks recorded yet
+          </div>
+        ) : (
+          <div className="divide-border divide-y">
+            {activities.map((activity) => (
+              <div
+                key={activity._id}
+                className="hover:bg-muted/30 flex items-center justify-between gap-4 px-5 py-3 transition-colors"
+              >
+                {/* Left side: Time and Location */}
+                <div className="flex min-w-0 items-center gap-4">
+                  <div className="text-muted-foreground text-xs whitespace-nowrap">
+                    {formatRelative(activity.occurredAt)}
+                  </div>
+                  <div className="flex min-w-0 items-center gap-2">
+                    <span className="text-base" title={activity.country}>
+                      {getCountryFlag(activity.country)}
+                    </span>
+                    <span className="truncate text-sm">
+                      {formatLocation(activity.country, activity.city)}
+                    </span>
+                  </div>
                 </div>
-                <div className="flex min-w-0 items-center gap-2">
-                  <span className="text-base" title={activity.country}>
-                    {getCountryFlag(activity.country)}
+
+                {/* Right side: Device and Browser */}
+                <div className="flex shrink-0 items-center gap-3">
+                  <div className="text-muted-foreground flex items-center gap-1.5">
+                    {getDeviceIcon(activity.deviceType)}
+                    <span className="hidden text-xs capitalize sm:inline">
+                      {activity.deviceType}
+                    </span>
+                  </div>
+                  <Badge variant="default" className="text-xs">
+                    {activity.browser}
+                  </Badge>
+                  <span className="text-muted-foreground hidden text-xs md:inline">
+                    {activity.os}
                   </span>
-                  <span className="truncate text-sm">{activity.location}</span>
                 </div>
               </div>
+            ))}
+          </div>
+        )}
 
-              {/* Right side: Device and Browser */}
-              <div className="flex shrink-0 items-center gap-3">
-                <div className="text-muted-foreground flex items-center gap-1.5">
-                  {getDeviceIcon(activity.device)}
-                  <span className="hidden text-xs capitalize sm:inline">
-                    {activity.device}
-                  </span>
-                </div>
-                <Badge variant="default" className="text-xs">
-                  {activity.browser}
-                </Badge>
-                <span className="text-muted-foreground hidden text-xs md:inline">
-                  {activity.os}
-                </span>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Footer note */}
-        <div className="bg-muted/20 border-border border-t px-5 py-3">
-          <p className="text-muted-foreground text-center text-xs">
-            Showing mock data • Real activity tracking coming soon
-          </p>
-        </div>
+        {/* Footer */}
+        {activities && activities.length > 0 && (
+          <div className="bg-muted/20 border-border border-t px-5 py-3">
+            <p className="text-muted-foreground text-center text-xs">
+              Real-time updates • {activities.length} recent clicks
+            </p>
+          </div>
+        )}
       </CardContent>
     </Card>
   );

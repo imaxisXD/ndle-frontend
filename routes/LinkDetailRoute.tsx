@@ -352,7 +352,7 @@ export default function LinkDetailRoute() {
 
         {/* Activity Tab */}
         <TabsContent value="activity">
-          <LinkActivityLog />
+          <LinkActivityLog linkSlug={String(slug)} />
         </TabsContent>
 
         {/* AI Chat Tab */}

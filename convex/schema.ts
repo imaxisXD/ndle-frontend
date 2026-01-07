@@ -150,4 +150,20 @@ export default defineSchema({
   })
     .index("by_user", ["userId"])
     .index("by_user_and_name", ["userId", "name"]),
+
+  // Click events for real-time activity tracking
+  clickEvents: defineTable({
+    linkSlug: v.string(),
+    urlId: v.optional(v.id("urls")),
+    userId: v.id("users"),
+    occurredAt: v.number(),
+    country: v.string(),
+    city: v.optional(v.string()),
+    deviceType: v.string(),
+    browser: v.string(),
+    os: v.string(),
+    referer: v.optional(v.string()),
+  })
+    .index("by_link_slug", ["linkSlug", "occurredAt"])
+    .index("by_user", ["userId", "occurredAt"]),
 });

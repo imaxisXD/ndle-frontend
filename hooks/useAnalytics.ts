@@ -117,3 +117,35 @@ export function useTrafficSources({
     retry: false,
   });
 }
+
+/**
+ * Hook to fetch live events data (last 60 minutes, minute-by-minute).
+ * Polls every 10 seconds for near real-time updates.
+ */
+export function useLiveEvents({
+  linkSlug,
+  scope,
+  enabled = true,
+}: {
+  linkSlug?: string;
+  scope: Scope;
+  enabled?: boolean;
+}) {
+  return useQuery({
+    queryKey: ["analytics", "live", scope, linkSlug],
+    queryFn: async () => {
+      const params = new URLSearchParams();
+      if (linkSlug) params.set("link_slug", linkSlug);
+      const res = await fetch(`/api/analytics/live?${params.toString()}`);
+      if (!res.ok) throw new Error("Failed to load live events");
+      return res.json() as Promise<{
+        data: Array<{ minute_ts: string; clicks: number }>;
+      }>;
+    },
+    enabled,
+    staleTime: 5_000, // Consider stale after 5 seconds
+    gcTime: 60_000, // Keep in cache for 1 minute
+    refetchInterval: 10_000, // Poll every 10 seconds
+    retry: false,
+  });
+}
