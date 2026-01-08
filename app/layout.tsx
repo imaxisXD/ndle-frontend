@@ -44,7 +44,7 @@ export const metadata: Metadata = {
     description:
       "The simple URL shortener with real-time analytics and custom domains.",
     creator: "@abhishk_084",
-    images: ["/twitter-image.webp"],
+    images: ["/opengraph-image.webp"],
   },
 };
 
