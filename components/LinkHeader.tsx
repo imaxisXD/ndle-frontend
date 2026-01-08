@@ -42,7 +42,11 @@ export function LinkHeader({
         {/* Short URL and Actions */}
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div className="flex flex-col items-start gap-2">
-            <LinkWithIcon link={shortUrl} href={`https://${shortUrl}`} />
+            <LinkWithIcon
+              link={shortUrl}
+              href={`https://${shortUrl}`}
+              iconClassName="size-4"
+            />
 
             {/* Destination URL Preview */}
             {fullUrl && (
