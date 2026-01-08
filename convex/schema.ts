@@ -39,6 +39,20 @@ export default defineSchema({
     utmCampaign: v.optional(v.string()),
     utmTerm: v.optional(v.string()),
     utmContent: v.optional(v.string()),
+
+    // A/B Testing
+    abEnabled: v.optional(v.boolean()),
+    abVariants: v.optional(
+      v.array(
+        v.object({
+          url: v.string(),
+          weight: v.number(),
+        }),
+      ),
+    ),
+
+    // Stable Link ID (for analytics correlation)
+    linkId: v.optional(v.string()),
   })
     .index("by_slug", ["slugAssigned"])
     .index("by_user", ["userTableId"])

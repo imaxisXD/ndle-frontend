@@ -21,6 +21,20 @@ export const insertIntoRedis = internalAction({
     utmCampaign: v.optional(v.string()),
     utmTerm: v.optional(v.string()),
     utmContent: v.optional(v.string()),
+    // A/B Testing
+    abEnabled: v.optional(v.boolean()),
+    abVariants: v.optional(
+      v.array(
+        v.object({
+          id: v.string(),
+          url: v.string(),
+          weight: v.number(),
+        }),
+      ),
+    ),
+    abDistribution: v.optional(
+      v.union(v.literal("weighted_random"), v.literal("deterministic")),
+    ),
   },
   handler: async (ctx, args) => {
     // Build utm_params object only with non-empty values
@@ -30,6 +44,16 @@ export const insertIntoRedis = internalAction({
     if (args.utmCampaign) utmParams.utm_campaign = args.utmCampaign;
     if (args.utmTerm) utmParams.utm_term = args.utmTerm;
     if (args.utmContent) utmParams.utm_content = args.utmContent;
+
+    // Build A/B test config if enabled
+    const abTestConfig =
+      args.abEnabled && args.abVariants?.length
+        ? {
+            enabled: true,
+            variants: args.abVariants,
+            distribution: args.abDistribution ?? ("deterministic" as const),
+          }
+        : undefined;
 
     const redisValueObject: RedisValueObject = {
       destination: args.fullUrl,
@@ -44,7 +68,9 @@ export const insertIntoRedis = internalAction({
       max_clicks: null,
       tags: [],
       utm_params: utmParams,
-      rules: {},
+      rules: {
+        ...(abTestConfig && { ab_test: abTestConfig }),
+      },
       features: {
         track_clicks: true,
         track_conversions: true,

@@ -14,6 +14,7 @@ import {
   ReferrerChart,
   type ReferrerData,
 } from "@/components/charts/referrer-chart";
+import { VariantPerformanceChart } from "@/components/charts/variant-performance-chart";
 
 export function AnalyticsSection({
   clicksTimelineData,
@@ -25,6 +26,8 @@ export function AnalyticsSection({
   latencyBuckets,
   hourlyActivityData,
   referrerData,
+  variantData,
+  variantMap,
   isLoading,
 }: {
   clicksTimelineData: Array<{ time: string; clicks: number }>;
@@ -36,11 +39,24 @@ export function AnalyticsSection({
   latencyBuckets: Array<LatencyBucket>;
   hourlyActivityData: Array<{ hour: string; clicks: number }>;
   referrerData: Array<ReferrerData>;
+  variantData?: Array<{
+    variant_id: string;
+    clicks: number;
+    percentage: string | number;
+  }>;
+  variantMap?: Record<string, string>;
   isLoading: boolean;
 }) {
   return (
     <section data-analytics-section className="grid gap-6 lg:grid-cols-2">
       <ClicksTimelineChart data={clicksTimelineData} isLoading={isLoading} />
+      {variantData && variantData.length > 0 && (
+        <VariantPerformanceChart
+          data={variantData}
+          variantMap={variantMap}
+          isLoading={isLoading}
+        />
+      )}
       <BrowserChart data={browserData} isLoading={isLoading} />
       <ReferrerChart data={referrerData} isLoading={isLoading} />
       <CountryChart data={countryData} isLoading={isLoading} />

@@ -62,6 +62,15 @@ export interface RedisValueObject {
   rules?: {
     geo?: Record<string, string>; // {"US": "url1", "GB": "url2"}
     device?: Record<string, string>; // {"mobile": "url1", "desktop": "url2"}
+    ab_test?: {
+      enabled: boolean;
+      variants: Array<{
+        id: string;
+        url: string;
+        weight: number;
+      }>;
+      distribution: "weighted_random" | "deterministic";
+    };
   };
   // Feature flags
   features: {

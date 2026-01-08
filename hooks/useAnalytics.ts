@@ -149,3 +149,51 @@ export function useLiveEvents({
     retry: false,
   });
 }
+
+export function useVariantPerformance({
+  range,
+  linkId,
+  enabled = true,
+}: {
+  range: AnalyticsRange;
+  linkId?: string;
+  enabled?: boolean;
+}) {
+  return useQuery({
+    queryKey: ["analytics", "variants", "performance", linkId, range],
+    queryFn: async () => {
+      const q = qs({ range, link_id: linkId, endpoint: "performance" });
+      const res = await fetch(`/api/analytics/variants?${q}`);
+      if (!res.ok) throw new Error("Failed to load variant performance");
+      return res.json();
+    },
+    enabled: enabled && !!linkId,
+    staleTime: 60_000,
+    gcTime: 300_000,
+    retry: false,
+  });
+}
+
+export function useVariantTimeseries({
+  range,
+  linkId,
+  enabled = true,
+}: {
+  range: AnalyticsRange;
+  linkId?: string;
+  enabled?: boolean;
+}) {
+  return useQuery({
+    queryKey: ["analytics", "variants", "timeseries", linkId, range],
+    queryFn: async () => {
+      const q = qs({ range, link_id: linkId, endpoint: "timeseries" });
+      const res = await fetch(`/api/analytics/variants?${q}`);
+      if (!res.ok) throw new Error("Failed to load variant timeseries");
+      return res.json();
+    },
+    enabled: enabled && !!linkId,
+    staleTime: 60_000,
+    gcTime: 300_000,
+    retry: false,
+  });
+}

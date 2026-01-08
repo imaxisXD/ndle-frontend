@@ -42,6 +42,16 @@ export const createUrl = mutation({
     utmCampaign: v.optional(v.string()),
     utmTerm: v.optional(v.string()),
     utmContent: v.optional(v.string()),
+    // A/B Testing
+    abEnabled: v.optional(v.boolean()),
+    abVariants: v.optional(
+      v.array(
+        v.object({
+          url: v.string(),
+          weight: v.number(),
+        }),
+      ),
+    ),
   },
   returns: v.object({
     docId: v.id("urls"),
@@ -160,6 +170,16 @@ export const createUrl = mutation({
       urlStatusCode: 0,
     });
 
+    // Prepare A/B variants with IDs
+    const abVariantsWithIds =
+      args.abEnabled && args.abVariants?.length
+        ? args.abVariants.map((v, idx) => ({
+            id: `variant_${idx}`,
+            url: v.url,
+            weight: v.weight,
+          }))
+        : undefined;
+
     ctx.scheduler.runAfter(0, internal.redisAction.insertIntoRedis, {
       user_id: user._id,
       fullUrl: args.url,
@@ -171,6 +191,10 @@ export const createUrl = mutation({
       utmCampaign: args.utmCampaign,
       utmTerm: args.utmTerm,
       utmContent: args.utmContent,
+      // A/B Testing
+      abEnabled: args.abEnabled,
+      abVariants: abVariantsWithIds,
+      abDistribution: "deterministic",
     });
 
     if (args.expiresAt !== undefined) {

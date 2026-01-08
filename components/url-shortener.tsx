@@ -424,6 +424,17 @@ export function UrlShortener() {
           utmTerm: values.utmTerm?.trim() || undefined,
           utmContent: values.utmContent?.trim() || undefined,
         }),
+        // A/B Testing - only pass if A/B is enabled and has valid variants
+        ...(values.abEnabled &&
+          values.abVariants?.some((v) => v.url?.trim()) && {
+            abEnabled: true,
+            abVariants: values.abVariants
+              .filter((v) => v.url?.trim())
+              .map((v) => ({
+                url: v.url!.trim(),
+                weight: v.weight ?? 50,
+              })),
+          }),
       });
 
       // Use the selected domain for the final short link

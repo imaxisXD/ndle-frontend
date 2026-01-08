@@ -18,6 +18,7 @@ import {
   useTimeseries,
   useBreakdown,
   useTrafficSources,
+  useVariantPerformance,
 } from "@/hooks/useAnalytics";
 import { getUtcRange } from "@/lib/analyticsRanges";
 import {
@@ -34,6 +35,29 @@ export default function LinkDetailRoute() {
   const { add } = useToast();
   const slug = params[":slug"] || params.slug || "unknown";
   const [range, setRange] = useState<AnalyticsRange>("7d");
+
+  // Fetch link config to check for A/B testing
+  const deleteUrl = useMutation(api.urlMainFuction.deleteUrl);
+  const queryResult = useQuery(api.urlAnalytics.getUrlAnalytics, {
+    urlSlug: slug,
+  });
+
+  const skeleton = !queryResult;
+  const {
+    analytics: analyticsData,
+    url,
+    isError,
+    message,
+  } = queryResult ?? {
+    analytics: null,
+    url: null,
+    isError: false,
+    message: "",
+  };
+
+  const isABTestEnabled =
+    url && url.abEnabled && url.abVariants && url.abVariants.length > 0;
+  const linkId = url?.linkId || url?._id;
 
   // Direct API calls via TanStack Query (bypasses Convex, uses DuckDB backend)
   const timeseries = useTimeseries({
@@ -69,6 +93,13 @@ export default function LinkDetailRoute() {
     range,
     linkSlug: String(slug),
     scope: "link",
+  });
+
+  // A/B Test Variant Performance
+  const variantPerf = useVariantPerformance({
+    range,
+    linkId: isABTestEnabled && linkId ? linkId : undefined,
+    enabled: !!isABTestEnabled,
   });
 
   // Derive display data from raw analytics
@@ -192,6 +223,18 @@ export default function LinkDetailRoute() {
       },
     );
 
+    // Variant Performance Data
+    const variantData = variantPerf.data?.variants || undefined;
+
+    // Build Variant Map (ID -> Name/URL)
+    const variantMap: Record<string, string> = { control: "Control" };
+    if (url?.abVariants) {
+      url.abVariants.forEach((v: { url: string }, i: number) => {
+        variantMap[`variant_${i}`] =
+          `Variant ${String.fromCharCode(65 + i)} (${v.url})`;
+      });
+    }
+
     return {
       clicksTimelineData,
       browserData,
@@ -202,6 +245,8 @@ export default function LinkDetailRoute() {
       latencyBuckets,
       hourlyActivityData,
       referrerData,
+      variantData,
+      variantMap,
     };
   }, [
     timeseries.data,
@@ -210,7 +255,9 @@ export default function LinkDetailRoute() {
     devices.data,
     os.data,
     referers.data,
+    variantPerf.data,
     range,
+    url,
   ]);
 
   const isAnalyticsLoading =
@@ -219,25 +266,8 @@ export default function LinkDetailRoute() {
     devices.isLoading ||
     os.isLoading ||
     countries.isLoading ||
-    referers.isLoading;
-
-  const deleteUrl = useMutation(api.urlMainFuction.deleteUrl);
-  const queryResult = useQuery(api.urlAnalytics.getUrlAnalytics, {
-    urlSlug: slug,
-  });
-
-  const skeleton = !queryResult;
-  const {
-    analytics: analyticsData,
-    url,
-    isError,
-    message,
-  } = queryResult ?? {
-    analytics: null,
-    url: null,
-    isError: false,
-    message: "",
-  };
+    referers.isLoading ||
+    variantPerf.isLoading;
 
   // Build shortUrl using custom domain if available (after url is defined)
   const shortUrl = makeShortLinkWithDomain(String(slug), url?.customDomain);
@@ -324,6 +354,8 @@ export default function LinkDetailRoute() {
             latencyBuckets={derived.latencyBuckets}
             hourlyActivityData={derived.hourlyActivityData}
             referrerData={derived.referrerData}
+            variantData={derived.variantData}
+            variantMap={derived.variantMap}
             isLoading={isAnalyticsLoading}
           />
         </TabsContent>
