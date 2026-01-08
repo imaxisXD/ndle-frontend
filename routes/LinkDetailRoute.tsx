@@ -227,11 +227,16 @@ export default function LinkDetailRoute() {
     const variantData = variantPerf.data?.variants || undefined;
 
     // Build Variant Map (ID -> Name/URL)
+    // Build Variant Map (ID -> Name/URL)
     const variantMap: Record<string, string> = { control: "Control" };
     if (url?.abVariants) {
       url.abVariants.forEach((v: { url: string }, i: number) => {
-        variantMap[`variant_${i}`] =
-          `Variant ${String.fromCharCode(65 + i)} (${v.url})`;
+        if (i === 0) {
+          variantMap[`variant_${i}`] = `Control (${v.url})`;
+        } else {
+          variantMap[`variant_${i}`] =
+            `Variant ${String.fromCharCode(65 + i)} (${v.url})`;
+        }
       });
     }
 

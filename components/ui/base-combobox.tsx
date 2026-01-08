@@ -19,7 +19,7 @@ const inputVariants = cva(
     [&_[data-slot=combobox-input]]:grow
     disabled:cursor-not-allowed disabled:opacity-60 
     [&[readonly]]:bg-muted/80 [&[readonly]]:cursor-not-allowed
-    aria-invalid:border-destructive/60 aria-invalid:ring-destructive/10 dark:aria-invalid:border-destructive dark:aria-invalid:ring-destructive/20
+    aria-invalid:border-destructive/60 aria-invalid:ring-destructive/10
   `,
   {
     variants: {

@@ -9,11 +9,16 @@ import {
   FormControl,
   FormMessage,
 } from "@/components/ui/form";
+import { useWatch, type UseFormReturn } from "react-hook-form";
+import type { UrlFormValues } from "../url-shortener";
 
-export function OptionSocial({ form }: { form: any }) {
-  const title = form.watch("socialTitle");
-  const description = form.watch("socialDescription");
-  const image = form.watch("socialImageUrl");
+export function OptionSocial({ form }: { form: UseFormReturn<UrlFormValues> }) {
+  const title = useWatch({ control: form.control, name: "socialTitle" });
+  const description = useWatch({
+    control: form.control,
+    name: "socialDescription",
+  });
+  const image = useWatch({ control: form.control, name: "socialImageUrl" });
 
   return (
     <div className="border-border bg-muted/20 space-y-4 rounded-lg border p-4">
@@ -62,7 +67,7 @@ export function OptionSocial({ form }: { form: any }) {
       <div className="rounded-md bg-white p-3">
         <div className="text-muted-foreground mb-2 text-xs">Preview</div>
         <div className="flex gap-3">
-          <div className="bg-muted h-16 w-28 flex-shrink-0 overflow-hidden rounded">
+          <div className="bg-muted h-16 w-28 shrink-0 overflow-hidden rounded">
             {image ? (
               <Image
                 src={image}

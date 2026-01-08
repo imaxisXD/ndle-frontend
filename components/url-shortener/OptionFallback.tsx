@@ -8,8 +8,14 @@ import {
   FormControl,
   FormMessage,
 } from "@/components/ui/form";
+import type { UseFormReturn } from "react-hook-form";
+import type { UrlFormValues } from "../url-shortener";
 
-export function OptionFallback({ form }: { form: any }) {
+export function OptionFallback({
+  form,
+}: {
+  form: UseFormReturn<UrlFormValues>;
+}) {
   return (
     <div className="border-border bg-muted/20 space-y-4 rounded-lg border p-4">
       <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-2">

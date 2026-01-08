@@ -17,6 +17,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useWatch, type UseFormReturn } from "react-hook-form";
+import type { UrlFormValues } from "../url-shortener";
 
 // Common UTM source presets
 const SOURCE_PRESETS = [
@@ -57,18 +59,22 @@ function buildUtmUrl(baseUrl: string, params: Record<string, string>) {
       if (v && v.trim() !== "") url.searchParams.set(k, v.trim());
     });
     return url.toString();
-  } catch (_) {
+  } catch {
     return "";
   }
 }
 
-export function OptionUTMBuilder({ form }: { form: any }) {
-  const currentUrl = form.watch("url");
-  const utmSource = form.watch("utmSource");
-  const utmMedium = form.watch("utmMedium");
-  const utmCampaign = form.watch("utmCampaign");
-  const utmTerm = form.watch("utmTerm");
-  const utmContent = form.watch("utmContent");
+export function OptionUTMBuilder({
+  form,
+}: {
+  form: UseFormReturn<UrlFormValues>;
+}) {
+  const currentUrl = useWatch({ control: form.control, name: "url" });
+  const utmSource = useWatch({ control: form.control, name: "utmSource" });
+  const utmMedium = useWatch({ control: form.control, name: "utmMedium" });
+  const utmCampaign = useWatch({ control: form.control, name: "utmCampaign" });
+  const utmTerm = useWatch({ control: form.control, name: "utmTerm" });
+  const utmContent = useWatch({ control: form.control, name: "utmContent" });
 
   const preview = useMemo(() => {
     if (!currentUrl) return "";
@@ -257,7 +263,8 @@ export function OptionUTMBuilder({ form }: { form: any }) {
       <div className="rounded-md border border-blue-200 bg-blue-50/50 p-3 text-xs text-blue-800">
         <strong>How it works:</strong> UTM parameters are automatically appended
         when someone clicks your short link. Your original destination URL stays
-        clean, and you'll see detailed campaign analytics in your dashboard.
+        clean, and you&apos;ll see detailed campaign analytics in your
+        dashboard.
       </div>
     </div>
   );

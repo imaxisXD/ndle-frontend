@@ -11,7 +11,7 @@ const buttonVariants = cva(
       variant: {
         primary:
           "bg-accent text-accent-foreground hover:bg-accent/90 data-[state=open]:bg-accent/90",
-        mono: "bg-zinc-950 text-white dark:bg-zinc-300 dark:text-black hover:bg-zinc-950/90 dark:hover:bg-zinc-300/90 data-[state=open]:bg-zinc-950/90 dark:data-[state=open]:bg-zinc-300/90",
+        mono: "bg-zinc-950 text-white hover:bg-zinc-950/90 data-[state=open]:bg-zinc-950/90",
         destructive:
           "bg-destructive text-destructive-foreground hover:bg-destructive/90 data-[state=open]:bg-destructive/90",
         secondary:
@@ -62,8 +62,8 @@ const buttonVariants = cva(
             focus-visible:border-accent focus-visible:outline-hidden focus-visible:ring-[3px] focus-visible:ring-accent/30 
             [[data-state=open]>&]:border-accent [[data-state=open]>&]:outline-hidden [[data-state=open]>&]:ring-[3px] 
             [[data-state=open]>&]:ring-accent/30 
-            aria-invalid:border-destructive/60 aria-invalid:ring-destructive/10 dark:aria-invalid:border-destructive dark:aria-invalid:ring-destructive/20
-            in-data-[invalid=true]:border-destructive/60 in-data-[invalid=true]:ring-destructive/10  dark:in-data-[invalid=true]:border-destructive dark:in-data-[invalid=true]:ring-destructive/20
+            aria-invalid:border-destructive/60 aria-invalid:ring-destructive/10
+            in-data-[invalid=true]:border-destructive/60 in-data-[invalid=true]:ring-destructive/10
           `,
       },
       placeholder: {
@@ -370,7 +370,8 @@ const buttonVariants = cva(
 );
 
 export interface ButtonProps
-  extends useRender.ComponentProps<"button">,
+  extends
+    useRender.ComponentProps<"button">,
     VariantProps<typeof buttonVariants> {
   selected?: boolean;
   asChild?: boolean;

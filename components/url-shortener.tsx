@@ -19,7 +19,7 @@ import { api } from "@/convex/_generated/api";
 import { ConvexError } from "convex/values";
 import type { Id } from "@/convex/_generated/dataModel";
 import { InputGroup, InputGroupAddon, InputGroupInput } from "./ui/input-group";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import type { FieldErrors } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -256,10 +256,7 @@ export function UrlShortener() {
       utmTerm: "",
       utmContent: "",
       abEnabled: false,
-      abVariants: [
-        { url: "", weight: 50 },
-        { url: "", weight: 50 },
-      ],
+      abVariants: [{ url: "", weight: 50 }],
       targetingEnabled: false,
       targetingCountryMode: "include",
       targetingCountries: [],
@@ -309,7 +306,50 @@ export function UrlShortener() {
 
   const { faviconUrl } = useFavicon(currentUrl);
 
+  // Note: Original link (A) is now implicit - no sync needed
+  // abVariants only contains test variants (B, C, D, etc.)
+
   const [advancedOpen, setAdvancedOpen] = useState(false);
+
+  // A/B Testing duplicate URL validation
+  const abEnabled = useWatch({ control: form.control, name: "abEnabled" });
+  const abVariantsRaw = useWatch({ control: form.control, name: "abVariants" });
+  const mainUrl = useWatch({ control: form.control, name: "url" });
+
+  const hasAbDuplicateError = useMemo(() => {
+    if (!abEnabled) return false;
+
+    const abVariants = abVariantsRaw || [];
+
+    const normalizeUrl = (url: string) =>
+      url
+        .trim()
+        .toLowerCase()
+        .replace(/^https?:\/\//i, "")
+        .replace(/\/$/, "");
+
+    const normalizedMainUrl = normalizeUrl(mainUrl || "");
+    const variantUrls = abVariants.map((v: { url?: string }) =>
+      normalizeUrl(v.url || ""),
+    );
+
+    // Check if any variant matches the main URL
+    for (const variantUrl of variantUrls) {
+      if (variantUrl && variantUrl === normalizedMainUrl) {
+        return true;
+      }
+    }
+
+    // Check if any variants match each other
+    const seen = new Set<string>();
+    for (const variantUrl of variantUrls) {
+      if (!variantUrl) continue;
+      if (seen.has(variantUrl)) return true;
+      seen.add(variantUrl);
+    }
+
+    return false;
+  }, [abEnabled, abVariantsRaw, mainUrl]);
 
   const summaryChips = useMemo(() => {
     const chips: string[] = [];
@@ -424,16 +464,32 @@ export function UrlShortener() {
           utmTerm: values.utmTerm?.trim() || undefined,
           utmContent: values.utmContent?.trim() || undefined,
         }),
-        // A/B Testing - only pass if A/B is enabled and has valid variants
+        // A/B Testing - prepend main URL as Control (A) with remaining weight
         ...(values.abEnabled &&
           values.abVariants?.some((v) => v.url?.trim()) && {
             abEnabled: true,
-            abVariants: values.abVariants
-              .filter((v) => v.url?.trim())
-              .map((v) => ({
-                url: v.url!.trim(),
-                weight: v.weight ?? 50,
-              })),
+            abVariants: (() => {
+              // Filter valid test variants (B, C, D...)
+              const testVariants = values.abVariants
+                .filter((v) => v.url?.trim())
+                .map((v) => ({
+                  url: v.url!.trim(),
+                  weight: v.weight ?? 50,
+                }));
+
+              // Calculate control weight (remaining from 100%)
+              const testWeight = testVariants.reduce(
+                (sum, v) => sum + v.weight,
+                0,
+              );
+              const controlWeight = Math.max(0, 100 - testWeight);
+
+              // Control (A) = main URL, then test variants
+              return [
+                { url: urlToShorten, weight: controlWeight },
+                ...testVariants,
+              ];
+            })(),
           }),
       });
 
@@ -481,10 +537,7 @@ export function UrlShortener() {
         utmTerm: "",
         utmContent: "",
         abEnabled: false,
-        abVariants: [
-          { url: "", weight: 50 },
-          { url: "", weight: 50 },
-        ],
+        abVariants: [{ url: "", weight: 50 }],
         targetingEnabled: false,
         targetingCountryMode: "include",
         targetingCountries: [],
@@ -748,6 +801,7 @@ export function UrlShortener() {
                 form={form}
                 open={advancedOpen}
                 onOpenChange={setAdvancedOpen}
+                hasAbDuplicateError={hasAbDuplicateError}
               />
             </div>
           </CardContent>
@@ -757,7 +811,7 @@ export function UrlShortener() {
                 hotkey={isSubmitting ? "" : "meta + enter"}
                 type="submit"
                 onClick={() => form.handleSubmit(onSubmit, onInvalid)()}
-                disabled={!form.watch("url") || isSubmitting}
+                disabled={!mainUrl || isSubmitting || hasAbDuplicateError}
                 className="bg-accent hover:bg-accent/90 w-36 rounded-sm text-sm font-medium text-black drop-shadow-none transition-shadow duration-75 ease-out hover:drop-shadow-sm disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {isSubmitting ? (

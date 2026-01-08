@@ -585,7 +585,7 @@ export const Matrix = React.forwardRef<HTMLDivElement, MatrixProps>(
                   className={cn(
                     "matrix-pixel",
                     isActive && "matrix-pixel-active",
-                    !isOn && "opacity-20 dark:opacity-[0.1]",
+                    !isOn && "opacity-20",
                   )}
                   cx={pos.x + size / 2}
                   cy={pos.y + size / 2}

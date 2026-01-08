@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { useMutation } from "convex/react";
 import { useQuery } from "convex-helpers/react/cache/hooks";
-import { UseFormReturn } from "react-hook-form";
+import { UseFormReturn, useWatch } from "react-hook-form";
 import { api } from "@/convex/_generated/api";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -66,7 +66,8 @@ export function OptionOrganization({
 }: {
   form: UseFormReturn<UrlFormValues>;
 }) {
-  const tags: string[] = form.watch("tags") || [];
+  const tagsRaw = useWatch({ control: form.control, name: "tags" });
+  const tags: string[] = tagsRaw || [];
   const [tagEntry, setTagEntry] = useState("");
 
   const collections = useQuery(api.collectionMangament.getUserCollections);
@@ -74,10 +75,12 @@ export function OptionOrganization({
     api.collectionMangament.createCollection,
   );
 
-  const selectedCollectionId: string | undefined =
-    form.watch("collectionId") || undefined;
-  const pendingNewName: string = form.watch("newCollectionName") || "";
-  const pendingNewColor: string = form.watch("newCollectionColor") || "";
+  const selectedCollectionId =
+    useWatch({ control: form.control, name: "collectionId" }) || undefined;
+  const pendingNewName =
+    useWatch({ control: form.control, name: "newCollectionName" }) || "";
+  const pendingNewColor =
+    useWatch({ control: form.control, name: "newCollectionColor" }) || "";
   const [comboboxOpen, setComboboxOpen] = useState(false);
   const [searchValue, setSearchValue] = useState("");
   const [nameError, setNameError] = useState<string | null>(null);

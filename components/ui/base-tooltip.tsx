@@ -50,7 +50,8 @@ const tooltipVariants = cva(
 );
 
 export interface TooltipContentProps
-  extends React.ComponentProps<typeof TooltipPrimitive.Popup>,
+  extends
+    React.ComponentProps<typeof TooltipPrimitive.Popup>,
     VariantProps<typeof tooltipVariants> {
   sideOffset?: TooltipPrimitive.Positioner.Props["sideOffset"];
   side?: TooltipPrimitive.Positioner.Props["side"];
@@ -96,7 +97,7 @@ function TooltipContent({
 const tooltipArrowBackgroundVariants = cva("", {
   variants: {
     variant: {
-      default: "fill-zinc-950 dark:fill-zinc-900",
+      default: "fill-zinc-950",
       light: "fill-background",
     },
   },
@@ -118,7 +119,8 @@ const tooltipArrowStrokeVariants = cva("", {
 });
 
 export interface TooltipArrowProps
-  extends React.ComponentProps<typeof TooltipPrimitive.Arrow>,
+  extends
+    React.ComponentProps<typeof TooltipPrimitive.Arrow>,
     VariantProps<typeof tooltipArrowBackgroundVariants> {}
 
 function TooltipArrow({ className, variant, ...props }: TooltipArrowProps) {

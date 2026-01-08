@@ -20,7 +20,6 @@ import { OptionFallback } from "./OptionFallback";
 import { OptionSocial } from "./OptionSocial";
 import { OptionOrganization } from "./OptionOrganization";
 import {
-  ArrowCircleDownIcon,
   ArrowsSplitIcon,
   CalendarDotsIcon,
   FolderSimpleStarIcon,
@@ -32,6 +31,7 @@ import {
   ShareFatIcon,
   WarningDiamondIcon,
 } from "@phosphor-icons/react";
+import { CaretUpDownIcon } from "@phosphor-icons/react/dist/ssr";
 
 // All enable keys for watching form changes
 const ENABLE_KEYS = [
@@ -75,6 +75,7 @@ type AdvancedOptionsProps = {
   form: UseFormReturn<UrlFormValues>;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  hasAbDuplicateError?: boolean;
 };
 
 const GROUPS: OptionGroup[] = [
@@ -186,6 +187,7 @@ export function AdvancedOptions({
   form,
   open,
   onOpenChange,
+  hasAbDuplicateError,
 }: AdvancedOptionsProps) {
   // State to track which item is currently expanded
   const [expandedKey, setExpandedKey] = useState<string | null>(null);
@@ -242,14 +244,19 @@ export function AdvancedOptions({
                   // Only applies if there is a specific master enableKey
                   const isContentDisabled = item.enableKey && !isEnabled;
 
+                  // Check for A/B testing error state
+                  const hasError = item.key === "ab" && hasAbDuplicateError;
+
                   return (
                     <div
                       key={item.key}
                       className={cn(
                         "group overflow-hidden rounded-lg border transition-all duration-200",
-                        isExpanded || isEnabled
-                          ? "border-border bg-background shadow-sm"
-                          : "bg-muted/30 hover:bg-muted/50 border-transparent",
+                        hasError
+                          ? "border-destructive"
+                          : isExpanded || isEnabled
+                            ? "border-border bg-background shadow-sm"
+                            : "bg-muted/30 hover:bg-muted/50 border-border/40",
                       )}
                     >
                       {/* Header Row */}
@@ -260,13 +267,16 @@ export function AdvancedOptions({
                         <div className="flex items-center gap-3 overflow-hidden">
                           <div
                             className={cn(
-                              "flex size-8 shrink-0 items-center justify-center rounded-md transition-colors",
+                              "border-border flex size-8 shrink-0 items-center justify-center rounded-md border transition-colors",
                               isEnabled
-                                ? "bg-primary/10 text-primary"
-                                : "bg-background text-muted-foreground group-hover:text-foreground",
+                                ? "text-primary bg-accent/90"
+                                : "text-muted-foreground group-hover:text-foreground bg-white",
                             )}
                           >
-                            <Icon className="size-4" />
+                            <Icon
+                              className="size-4"
+                              weight={isEnabled ? "duotone" : "regular"}
+                            />
                           </div>
                           <div className="flex min-w-0 flex-col">
                             <span className="truncate text-sm font-medium">
@@ -294,7 +304,7 @@ export function AdvancedOptions({
                               />
                             </SwitchWrapper>
                           )}
-                          <ArrowCircleDownIcon
+                          <CaretUpDownIcon
                             className={cn(
                               "text-muted-foreground size-4 transition-transform duration-200",
                               isExpanded && "rotate-180",

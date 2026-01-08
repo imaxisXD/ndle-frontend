@@ -26,17 +26,33 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/base-collapsible";
 import { Button } from "@/components/ui/button";
+import { useWatch, type UseFormReturn } from "react-hook-form";
+import type { UrlFormValues } from "../url-shortener";
 
-export function OptionScheduling({ form }: { form: any }) {
-  const expiresEnabled = form.watch("expiresEnabled");
-  const activateAtEnabled = form.watch("activateAtEnabled");
-  const expireMode: string = form.watch("expireMode") || "none";
+export function OptionScheduling({
+  form,
+}: {
+  form: UseFormReturn<UrlFormValues>;
+}) {
+  const expiresEnabled = useWatch({
+    control: form.control,
+    name: "expiresEnabled",
+  });
+  const activateAtEnabled = useWatch({
+    control: form.control,
+    name: "activateAtEnabled",
+  });
+  const expireMode =
+    useWatch({ control: form.control, name: "expireMode" }) || "none";
 
-  const activateAtValue: string | undefined = form.watch("activateAt");
+  const activateAtValue = useWatch({
+    control: form.control,
+    name: "activateAt",
+  });
   const activateAtDate = useMemo(() => {
     return activateAtValue ? new Date(activateAtValue) : undefined;
   }, [activateAtValue]);
-  const expiresAtValue: string | undefined = form.watch("expiresAt");
+  const expiresAtValue = useWatch({ control: form.control, name: "expiresAt" });
   const expiresAtDate = useMemo(() => {
     return expiresAtValue ? new Date(expiresAtValue) : undefined;
   }, [expiresAtValue]);

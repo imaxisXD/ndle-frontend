@@ -81,7 +81,7 @@ export function UptimeStatusBar({
 }
 
 function getBarColor(uptime: number | null): string {
-  if (uptime === null) return "bg-gray-200 dark:bg-gray-700";
+  if (uptime === null) return "bg-gray-200";
   if (uptime >= 99.9) return "bg-green-500";
   if (uptime >= 99) return "bg-green-400";
   if (uptime >= 95) return "bg-yellow-500";

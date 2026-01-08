@@ -10,6 +10,8 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Badge } from "@/components/ui/badge";
+import { useWatch, type UseFormReturn } from "react-hook-form";
+import type { UrlFormValues } from "../url-shortener";
 
 const COUNTRY_CODES = [
   "US",
@@ -27,13 +29,24 @@ const COUNTRY_CODES = [
 const DEVICES = ["mobile", "desktop", "tablet", "bot"];
 const OS_LIST = ["iOS", "Android", "Windows", "macOS", "Linux"];
 
-export function OptionTargeting({ form }: { form: any }) {
-  const countries: string[] = form.watch("targetingCountries") || [];
-  const devices: string[] = form.watch("targetingDevices") || [];
-  const osList: string[] = form.watch("targetingOs") || [];
-  const mode: string = form.watch("targetingCountryMode") || "include";
+export function OptionTargeting({
+  form,
+}: {
+  form: UseFormReturn<UrlFormValues>;
+}) {
+  const countries =
+    useWatch({ control: form.control, name: "targetingCountries" }) || [];
+  const devices =
+    useWatch({ control: form.control, name: "targetingDevices" }) || [];
+  const osList = useWatch({ control: form.control, name: "targetingOs" }) || [];
+  const mode =
+    useWatch({ control: form.control, name: "targetingCountryMode" }) ||
+    "include";
 
-  const toggleArrayValue = (path: string, val: string) => {
+  const toggleArrayValue = (
+    path: "targetingCountries" | "targetingDevices" | "targetingOs",
+    val: string,
+  ) => {
     const curr: string[] = form.getValues(path) || [];
     const next = curr.includes(val)
       ? curr.filter((v) => v !== val)
