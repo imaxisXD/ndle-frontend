@@ -2,7 +2,6 @@ import { v } from "convex/values";
 import {
   mutation,
   query,
-  action,
   internalMutation,
   internalQuery,
   internalAction,
@@ -365,71 +364,71 @@ export const verifyDomain = mutation({
 /**
  * Update domain status (called after Cloudflare API verification)
  */
-export const updateDomainStatus = mutation({
-  args: {
-    domainId: v.id("custom_domains"),
-    status: v.union(
-      v.literal("pending"),
-      v.literal("active"),
-      v.literal("failed"),
-    ),
-    cloudflareHostnameId: v.optional(v.string()),
-    sslStatus: v.optional(v.string()),
-    verificationTxtName: v.optional(v.string()),
-    verificationTxtValue: v.optional(v.string()),
-  },
-  returns: v.object({
-    success: v.boolean(),
-    error: v.optional(v.string()),
-  }),
-  handler: async (ctx, args) => {
-    const user = await getCurrentUser(ctx);
-    if (!user) {
-      return { success: false, error: "Not authenticated" };
-    }
+// export const updateDomainStatus = mutation({
+//   args: {
+//     domainId: v.id("custom_domains"),
+//     status: v.union(
+//       v.literal("pending"),
+//       v.literal("active"),
+//       v.literal("failed"),
+//     ),
+//     cloudflareHostnameId: v.optional(v.string()),
+//     sslStatus: v.optional(v.string()),
+//     verificationTxtName: v.optional(v.string()),
+//     verificationTxtValue: v.optional(v.string()),
+//   },
+//   returns: v.object({
+//     success: v.boolean(),
+//     error: v.optional(v.string()),
+//   }),
+//   handler: async (ctx, args) => {
+//     const user = await getCurrentUser(ctx);
+//     if (!user) {
+//       return { success: false, error: "Not authenticated" };
+//     }
 
-    const domain = await ctx.db.get(args.domainId);
-    if (!domain) {
-      return { success: false, error: "Domain not found" };
-    }
+//     const domain = await ctx.db.get(args.domainId);
+//     if (!domain) {
+//       return { success: false, error: "Domain not found" };
+//     }
 
-    // Verify ownership
-    if (domain.userId !== user._id) {
-      return { success: false, error: "Not authorized" };
-    }
+//     // Verify ownership
+//     if (domain.userId !== user._id) {
+//       return { success: false, error: "Not authorized" };
+//     }
 
-    const updates: {
-      status: "pending" | "active" | "failed";
-      cloudflareHostnameId?: string;
-      sslStatus?: string;
-      verificationTxtName?: string;
-      verificationTxtValue?: string;
-      verifiedAt?: number;
-    } = {
-      status: args.status,
-    };
+//     const updates: {
+//       status: "pending" | "active" | "failed";
+//       cloudflareHostnameId?: string;
+//       sslStatus?: string;
+//       verificationTxtName?: string;
+//       verificationTxtValue?: string;
+//       verifiedAt?: number;
+//     } = {
+//       status: args.status,
+//     };
 
-    if (args.cloudflareHostnameId) {
-      updates.cloudflareHostnameId = args.cloudflareHostnameId;
-    }
-    if (args.sslStatus) {
-      updates.sslStatus = args.sslStatus;
-    }
-    if (args.verificationTxtName) {
-      updates.verificationTxtName = args.verificationTxtName;
-    }
-    if (args.verificationTxtValue) {
-      updates.verificationTxtValue = args.verificationTxtValue;
-    }
-    if (args.status === "active") {
-      updates.verifiedAt = Date.now();
-    }
+//     if (args.cloudflareHostnameId) {
+//       updates.cloudflareHostnameId = args.cloudflareHostnameId;
+//     }
+//     if (args.sslStatus) {
+//       updates.sslStatus = args.sslStatus;
+//     }
+//     if (args.verificationTxtName) {
+//       updates.verificationTxtName = args.verificationTxtName;
+//     }
+//     if (args.verificationTxtValue) {
+//       updates.verificationTxtValue = args.verificationTxtValue;
+//     }
+//     if (args.status === "active") {
+//       updates.verifiedAt = Date.now();
+//     }
 
-    await ctx.db.patch(args.domainId, updates);
+//     await ctx.db.patch(args.domainId, updates);
 
-    return { success: true };
-  },
-});
+//     return { success: true };
+//   },
+// });
 
 // ============================================================================
 // INTERNAL MUTATIONS (for actions to call)
@@ -759,411 +758,411 @@ export const internalVerifyDomainStatus = internalAction({
  * Register a domain with Cloudflare for Platforms.
  * Creates a custom hostname in Cloudflare and updates the domain record.
  */
-export const registerWithCloudflare = action({
-  args: { domainId: v.id("custom_domains") },
-  returns: v.object({
-    success: v.boolean(),
-    error: v.optional(v.string()),
-  }),
-  handler: async (ctx, args): Promise<{ success: boolean; error?: string }> => {
-    // Get environment variables
-    const apiToken = process.env.CLOUDFLARE_API_TOKEN;
-    const zoneId = process.env.CLOUDFLARE_ZONE_ID;
+// export const registerWithCloudflare = action({
+//   args: { domainId: v.id("custom_domains") },
+//   returns: v.object({
+//     success: v.boolean(),
+//     error: v.optional(v.string()),
+//   }),
+//   handler: async (ctx, args): Promise<{ success: boolean; error?: string }> => {
+//     // Get environment variables
+//     const apiToken = process.env.CLOUDFLARE_API_TOKEN;
+//     const zoneId = process.env.CLOUDFLARE_ZONE_ID;
 
-    console.log(
-      "[registerWithCloudflare] Starting registration for domain:",
-      args.domainId,
-    );
-    console.log("[registerWithCloudflare] API Token present:", !!apiToken);
-    console.log("[registerWithCloudflare] Zone ID present:", !!zoneId);
+//     console.log(
+//       "[registerWithCloudflare] Starting registration for domain:",
+//       args.domainId,
+//     );
+//     console.log("[registerWithCloudflare] API Token present:", !!apiToken);
+//     console.log("[registerWithCloudflare] Zone ID present:", !!zoneId);
 
-    if (!apiToken || !zoneId) {
-      console.warn(
-        "[registerWithCloudflare] Missing Cloudflare credentials - operating in manual mode",
-      );
-      return { success: true };
-    }
+//     if (!apiToken || !zoneId) {
+//       console.warn(
+//         "[registerWithCloudflare] Missing Cloudflare credentials - operating in manual mode",
+//       );
+//       return { success: true };
+//     }
 
-    // Get the domain details - using type assertion since we control the query
-    const domainResult = (await ctx.runQuery(
-      internal.customDomains.getDomainById,
-      {
-        domainId: args.domainId,
-      },
-    )) as {
-      _id: string;
-      domain: string;
-      status: string;
-      cloudflareHostnameId?: string;
-    } | null;
+//     // Get the domain details - using type assertion since we control the query
+//     const domainResult = (await ctx.runQuery(
+//       internal.customDomains.getDomainById,
+//       {
+//         domainId: args.domainId,
+//       },
+//     )) as {
+//       _id: string;
+//       domain: string;
+//       status: string;
+//       cloudflareHostnameId?: string;
+//     } | null;
 
-    if (!domainResult) {
-      console.error("[registerWithCloudflare] Domain not found in database");
-      return { success: false, error: "Domain not found" };
-    }
+//     if (!domainResult) {
+//       console.error("[registerWithCloudflare] Domain not found in database");
+//       return { success: false, error: "Domain not found" };
+//     }
 
-    console.log(
-      "[registerWithCloudflare] Registering domain:",
-      domainResult.domain,
-    );
-    console.log("[registerWithCloudflare] Making API call to Cloudflare...");
+//     console.log(
+//       "[registerWithCloudflare] Registering domain:",
+//       domainResult.domain,
+//     );
+//     console.log("[registerWithCloudflare] Making API call to Cloudflare...");
 
-    try {
-      // Create custom hostname in Cloudflare
-      const requestBody = {
-        hostname: domainResult.domain,
-        ssl: {
-          method: "http",
-          type: "dv",
-          settings: {
-            min_tls_version: "1.2",
-          },
-        },
-      };
-      console.log(
-        "[registerWithCloudflare] Request body:",
-        JSON.stringify(requestBody),
-      );
+//     try {
+//       // Create custom hostname in Cloudflare
+//       const requestBody = {
+//         hostname: domainResult.domain,
+//         ssl: {
+//           method: "http",
+//           type: "dv",
+//           settings: {
+//             min_tls_version: "1.2",
+//           },
+//         },
+//       };
+//       console.log(
+//         "[registerWithCloudflare] Request body:",
+//         JSON.stringify(requestBody),
+//       );
 
-      const response: Response = await fetch(
-        `https://api.cloudflare.com/client/v4/zones/${zoneId}/custom_hostnames`,
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${apiToken}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(requestBody),
-        },
-      );
+//       const response: Response = await fetch(
+//         `https://api.cloudflare.com/client/v4/zones/${zoneId}/custom_hostnames`,
+//         {
+//           method: "POST",
+//           headers: {
+//             Authorization: `Bearer ${apiToken}`,
+//             "Content-Type": "application/json",
+//           },
+//           body: JSON.stringify(requestBody),
+//         },
+//       );
 
-      console.log("[registerWithCloudflare] Response status:", response.status);
+//       console.log("[registerWithCloudflare] Response status:", response.status);
 
-      const data = (await response.json()) as {
-        success: boolean;
-        errors?: { message: string; code?: number }[];
-        result?: { id: string; ssl?: { status: string } };
-      };
+//       const data = (await response.json()) as {
+//         success: boolean;
+//         errors?: { message: string; code?: number }[];
+//         result?: { id: string; ssl?: { status: string } };
+//       };
 
-      console.log(
-        "[registerWithCloudflare] Response data:",
-        JSON.stringify(data, null, 2),
-      );
+//       console.log(
+//         "[registerWithCloudflare] Response data:",
+//         JSON.stringify(data, null, 2),
+//       );
 
-      if (!response.ok || !data.success) {
-        const errorMsg: string =
-          data.errors?.[0]?.message || "Failed to create custom hostname";
-        console.error(
-          "[registerWithCloudflare] Cloudflare API error:",
-          errorMsg,
-        );
-        console.error(
-          "[registerWithCloudflare] Full error response:",
-          JSON.stringify(data.errors),
-        );
-        return { success: false, error: errorMsg };
-      }
+//       if (!response.ok || !data.success) {
+//         const errorMsg: string =
+//           data.errors?.[0]?.message || "Failed to create custom hostname";
+//         console.error(
+//           "[registerWithCloudflare] Cloudflare API error:",
+//           errorMsg,
+//         );
+//         console.error(
+//           "[registerWithCloudflare] Full error response:",
+//           JSON.stringify(data.errors),
+//         );
+//         return { success: false, error: errorMsg };
+//       }
 
-      console.log(
-        "[registerWithCloudflare] SUCCESS! Hostname ID:",
-        data.result?.id,
-      );
-      console.log(
-        "[registerWithCloudflare] SSL Status:",
-        data.result?.ssl?.status,
-      );
+//       console.log(
+//         "[registerWithCloudflare] SUCCESS! Hostname ID:",
+//         data.result?.id,
+//       );
+//       console.log(
+//         "[registerWithCloudflare] SSL Status:",
+//         data.result?.ssl?.status,
+//       );
 
-      // Update domain with Cloudflare hostname ID
-      await ctx.runMutation(internal.customDomains.internalUpdateDomain, {
-        domainId: args.domainId,
-        status: "pending" as const,
-        cloudflareHostnameId: data.result?.id,
-        sslStatus: data.result?.ssl?.status || "pending",
-      });
+//       // Update domain with Cloudflare hostname ID
+//       await ctx.runMutation(internal.customDomains.internalUpdateDomain, {
+//         domainId: args.domainId,
+//         status: "pending" as const,
+//         cloudflareHostnameId: data.result?.id,
+//         sslStatus: data.result?.ssl?.status || "pending",
+//       });
 
-      console.log("[registerWithCloudflare] Domain updated in database");
-      return { success: true };
-    } catch (error) {
-      console.error("[registerWithCloudflare] Exception:", error);
-      console.error("[registerWithCloudflare] Error:", error);
-      return { success: false, error: String(error) };
-    }
-  },
-});
+//       console.log("[registerWithCloudflare] Domain updated in database");
+//       return { success: true };
+//     } catch (error) {
+//       console.error("[registerWithCloudflare] Exception:", error);
+//       console.error("[registerWithCloudflare] Error:", error);
+//       return { success: false, error: String(error) };
+//     }
+//   },
+// });
 
 /**
  * Verify domain status with Cloudflare.
  * Checks the custom hostname status and updates the domain record.
  */
-export const verifyDomainStatus = action({
-  args: { domainId: v.id("custom_domains") },
-  returns: v.object({
-    success: v.boolean(),
-    status: v.optional(
-      v.union(v.literal("pending"), v.literal("active"), v.literal("failed")),
-    ),
-    sslStatus: v.optional(v.string()),
-    error: v.optional(v.string()),
-  }),
-  handler: async (
-    ctx,
-    args,
-  ): Promise<{
-    success: boolean;
-    status?: "pending" | "active" | "failed";
-    sslStatus?: string;
-    error?: string;
-  }> => {
-    // Get environment variables
-    const apiToken = process.env.CLOUDFLARE_API_TOKEN;
-    const zoneId = process.env.CLOUDFLARE_ZONE_ID;
+// export const verifyDomainStatus = action({
+//   args: { domainId: v.id("custom_domains") },
+//   returns: v.object({
+//     success: v.boolean(),
+//     status: v.optional(
+//       v.union(v.literal("pending"), v.literal("active"), v.literal("failed")),
+//     ),
+//     sslStatus: v.optional(v.string()),
+//     error: v.optional(v.string()),
+//   }),
+//   handler: async (
+//     ctx,
+//     args,
+//   ): Promise<{
+//     success: boolean;
+//     status?: "pending" | "active" | "failed";
+//     sslStatus?: string;
+//     error?: string;
+//   }> => {
+//     // Get environment variables
+//     const apiToken = process.env.CLOUDFLARE_API_TOKEN;
+//     const zoneId = process.env.CLOUDFLARE_ZONE_ID;
 
-    if (!apiToken || !zoneId) {
-      console.warn("[verifyDomainStatus] Missing Cloudflare credentials");
-      return { success: false, error: "Cloudflare integration not configured" };
-    }
+//     if (!apiToken || !zoneId) {
+//       console.warn("[verifyDomainStatus] Missing Cloudflare credentials");
+//       return { success: false, error: "Cloudflare integration not configured" };
+//     }
 
-    // Get the domain details - using type assertion since we control the query
-    const domainResult = (await ctx.runQuery(
-      internal.customDomains.getDomainById,
-      {
-        domainId: args.domainId,
-      },
-    )) as {
-      _id: string;
-      domain: string;
-      status: string;
-      cloudflareHostnameId?: string;
-    } | null;
+//     // Get the domain details - using type assertion since we control the query
+//     const domainResult = (await ctx.runQuery(
+//       internal.customDomains.getDomainById,
+//       {
+//         domainId: args.domainId,
+//       },
+//     )) as {
+//       _id: string;
+//       domain: string;
+//       status: string;
+//       cloudflareHostnameId?: string;
+//     } | null;
 
-    if (!domainResult) {
-      return { success: false, error: "Domain not found" };
-    }
+//     if (!domainResult) {
+//       return { success: false, error: "Domain not found" };
+//     }
 
-    if (!domainResult.cloudflareHostnameId) {
-      return {
-        success: false,
-        error: "Domain not registered with Cloudflare yet",
-      };
-    }
+//     if (!domainResult.cloudflareHostnameId) {
+//       return {
+//         success: false,
+//         error: "Domain not registered with Cloudflare yet",
+//       };
+//     }
 
-    try {
-      // Get custom hostname status from Cloudflare
-      const response: Response = await fetch(
-        `https://api.cloudflare.com/client/v4/zones/${zoneId}/custom_hostnames/${domainResult.cloudflareHostnameId}`,
-        {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${apiToken}`,
-            "Content-Type": "application/json",
-          },
-        },
-      );
+//     try {
+//       // Get custom hostname status from Cloudflare
+//       const response: Response = await fetch(
+//         `https://api.cloudflare.com/client/v4/zones/${zoneId}/custom_hostnames/${domainResult.cloudflareHostnameId}`,
+//         {
+//           method: "GET",
+//           headers: {
+//             Authorization: `Bearer ${apiToken}`,
+//             "Content-Type": "application/json",
+//           },
+//         },
+//       );
 
-      const data = (await response.json()) as {
-        success: boolean;
-        errors?: { message: string }[];
-        result?: { ssl?: { status: string } };
-      };
+//       const data = (await response.json()) as {
+//         success: boolean;
+//         errors?: { message: string }[];
+//         result?: { ssl?: { status: string } };
+//       };
 
-      if (!response.ok || !data.success) {
-        const errorMsg: string =
-          data.errors?.[0]?.message || "Failed to get status";
-        console.error("[verifyDomainStatus] Cloudflare API error:", data);
-        return { success: false, error: errorMsg };
-      }
+//       if (!response.ok || !data.success) {
+//         const errorMsg: string =
+//           data.errors?.[0]?.message || "Failed to get status";
+//         console.error("[verifyDomainStatus] Cloudflare API error:", data);
+//         return { success: false, error: errorMsg };
+//       }
 
-      // Determine status based on SSL status
-      const sslStatus: string = data.result?.ssl?.status || "unknown";
-      let newStatus: "pending" | "active" | "failed" = "pending";
+//       // Determine status based on SSL status
+//       const sslStatus: string = data.result?.ssl?.status || "unknown";
+//       let newStatus: "pending" | "active" | "failed" = "pending";
 
-      if (sslStatus === "active") {
-        newStatus = "active";
-      } else if (
-        sslStatus === "pending_validation" ||
-        sslStatus === "pending_issuance" ||
-        sslStatus === "initializing"
-      ) {
-        newStatus = "pending";
-      } else if (
-        sslStatus === "deleted" ||
-        sslStatus === "expired" ||
-        sslStatus === "deactivated"
-      ) {
-        newStatus = "failed";
-      }
+//       if (sslStatus === "active") {
+//         newStatus = "active";
+//       } else if (
+//         sslStatus === "pending_validation" ||
+//         sslStatus === "pending_issuance" ||
+//         sslStatus === "initializing"
+//       ) {
+//         newStatus = "pending";
+//       } else if (
+//         sslStatus === "deleted" ||
+//         sslStatus === "expired" ||
+//         sslStatus === "deactivated"
+//       ) {
+//         newStatus = "failed";
+//       }
 
-      // Update domain status
-      await ctx.runMutation(internal.customDomains.internalUpdateDomain, {
-        domainId: args.domainId,
-        status: newStatus,
-        sslStatus: sslStatus,
-      });
+//       // Update domain status
+//       await ctx.runMutation(internal.customDomains.internalUpdateDomain, {
+//         domainId: args.domainId,
+//         status: newStatus,
+//         sslStatus: sslStatus,
+//       });
 
-      return { success: true, status: newStatus, sslStatus };
-    } catch (error) {
-      console.error("[verifyDomainStatus] Error:", error);
-      return { success: false, error: String(error) };
-    }
-  },
-});
+//       return { success: true, status: newStatus, sslStatus };
+//     } catch (error) {
+//       console.error("[verifyDomainStatus] Error:", error);
+//       return { success: false, error: String(error) };
+//     }
+//   },
+// });
 
 /**
  * Delete domain from Cloudflare when user deletes it.
  */
-export const deleteFromCloudflare = action({
-  args: { cloudflareHostnameId: v.string() },
-  returns: v.object({
-    success: v.boolean(),
-    error: v.optional(v.string()),
-  }),
-  handler: async (ctx, args) => {
-    const apiToken = process.env.CLOUDFLARE_API_TOKEN;
-    const zoneId = process.env.CLOUDFLARE_ZONE_ID;
+// export const deleteFromCloudflare = action({
+//   args: { cloudflareHostnameId: v.string() },
+//   returns: v.object({
+//     success: v.boolean(),
+//     error: v.optional(v.string()),
+//   }),
+//   handler: async (ctx, args) => {
+//     const apiToken = process.env.CLOUDFLARE_API_TOKEN;
+//     const zoneId = process.env.CLOUDFLARE_ZONE_ID;
 
-    if (!apiToken || !zoneId) {
-      // No Cloudflare integration, nothing to delete
-      return { success: true };
-    }
+//     if (!apiToken || !zoneId) {
+//       // No Cloudflare integration, nothing to delete
+//       return { success: true };
+//     }
 
-    try {
-      const response = await fetch(
-        `https://api.cloudflare.com/client/v4/zones/${zoneId}/custom_hostnames/${args.cloudflareHostnameId}`,
-        {
-          method: "DELETE",
-          headers: {
-            Authorization: `Bearer ${apiToken}`,
-            "Content-Type": "application/json",
-          },
-        },
-      );
+//     try {
+//       const response = await fetch(
+//         `https://api.cloudflare.com/client/v4/zones/${zoneId}/custom_hostnames/${args.cloudflareHostnameId}`,
+//         {
+//           method: "DELETE",
+//           headers: {
+//             Authorization: `Bearer ${apiToken}`,
+//             "Content-Type": "application/json",
+//           },
+//         },
+//       );
 
-      if (!response.ok) {
-        const data = await response.json();
-        console.error("[deleteFromCloudflare] Error:", data);
-        // Don't fail - domain is already deleted from our DB
-      }
+//       if (!response.ok) {
+//         const data = await response.json();
+//         console.error("[deleteFromCloudflare] Error:", data);
+//         // Don't fail - domain is already deleted from our DB
+//       }
 
-      return { success: true };
-    } catch (error) {
-      console.error("[deleteFromCloudflare] Error:", error);
-      return { success: true }; // Still return success - local delete worked
-    }
-  },
-});
+//       return { success: true };
+//     } catch (error) {
+//       console.error("[deleteFromCloudflare] Error:", error);
+//       return { success: true }; // Still return success - local delete worked
+//     }
+//   },
+// });
 
 /**
  * Delete a custom domain with Cloudflare cleanup.
  * This action orchestrates both Cloudflare hostname deletion and database deletion.
  */
-export const deleteDomainWithCloudflare = action({
-  args: { domainId: v.id("custom_domains") },
-  returns: v.object({
-    success: v.boolean(),
-    error: v.optional(v.string()),
-  }),
-  handler: async (ctx, args): Promise<{ success: boolean; error?: string }> => {
-    console.log(
-      "[deleteDomainWithCloudflare] Starting deletion for domain:",
-      args.domainId,
-    );
+// export const deleteDomainWithCloudflare = action({
+//   args: { domainId: v.id("custom_domains") },
+//   returns: v.object({
+//     success: v.boolean(),
+//     error: v.optional(v.string()),
+//   }),
+//   handler: async (ctx, args): Promise<{ success: boolean; error?: string }> => {
+//     console.log(
+//       "[deleteDomainWithCloudflare] Starting deletion for domain:",
+//       args.domainId,
+//     );
 
-    // Get the domain details to retrieve cloudflareHostnameId
-    const domainResult = (await ctx.runQuery(
-      internal.customDomains.getDomainById,
-      {
-        domainId: args.domainId,
-      },
-    )) as {
-      _id: string;
-      domain: string;
-      status: string;
-      cloudflareHostnameId?: string;
-    } | null;
+//     // Get the domain details to retrieve cloudflareHostnameId
+//     const domainResult = (await ctx.runQuery(
+//       internal.customDomains.getDomainById,
+//       {
+//         domainId: args.domainId,
+//       },
+//     )) as {
+//       _id: string;
+//       domain: string;
+//       status: string;
+//       cloudflareHostnameId?: string;
+//     } | null;
 
-    if (!domainResult) {
-      console.error(
-        "[deleteDomainWithCloudflare] Domain not found in database",
-      );
-      return { success: false, error: "Domain not found" };
-    }
+//     if (!domainResult) {
+//       console.error(
+//         "[deleteDomainWithCloudflare] Domain not found in database",
+//       );
+//       return { success: false, error: "Domain not found" };
+//     }
 
-    console.log(
-      "[deleteDomainWithCloudflare] Found domain:",
-      domainResult.domain,
-    );
+//     console.log(
+//       "[deleteDomainWithCloudflare] Found domain:",
+//       domainResult.domain,
+//     );
 
-    // If we have a Cloudflare hostname ID, delete from Cloudflare first
-    if (domainResult.cloudflareHostnameId) {
-      console.log(
-        "[deleteDomainWithCloudflare] Deleting from Cloudflare, hostname ID:",
-        domainResult.cloudflareHostnameId,
-      );
+//     // If we have a Cloudflare hostname ID, delete from Cloudflare first
+//     if (domainResult.cloudflareHostnameId) {
+//       console.log(
+//         "[deleteDomainWithCloudflare] Deleting from Cloudflare, hostname ID:",
+//         domainResult.cloudflareHostnameId,
+//       );
 
-      const apiToken = process.env.CLOUDFLARE_API_TOKEN;
-      const zoneId = process.env.CLOUDFLARE_ZONE_ID;
+//       const apiToken = process.env.CLOUDFLARE_API_TOKEN;
+//       const zoneId = process.env.CLOUDFLARE_ZONE_ID;
 
-      if (apiToken && zoneId) {
-        try {
-          const response = await fetch(
-            `https://api.cloudflare.com/client/v4/zones/${zoneId}/custom_hostnames/${domainResult.cloudflareHostnameId}`,
-            {
-              method: "DELETE",
-              headers: {
-                Authorization: `Bearer ${apiToken}`,
-                "Content-Type": "application/json",
-              },
-            },
-          );
+//       if (apiToken && zoneId) {
+//         try {
+//           const response = await fetch(
+//             `https://api.cloudflare.com/client/v4/zones/${zoneId}/custom_hostnames/${domainResult.cloudflareHostnameId}`,
+//             {
+//               method: "DELETE",
+//               headers: {
+//                 Authorization: `Bearer ${apiToken}`,
+//                 "Content-Type": "application/json",
+//               },
+//             },
+//           );
 
-          if (!response.ok) {
-            const data = await response.json();
-            console.error(
-              "[deleteDomainWithCloudflare] Cloudflare API error:",
-              data,
-            );
-            // Continue with database deletion even if Cloudflare fails
-          } else {
-            console.log(
-              "[deleteDomainWithCloudflare] Successfully deleted from Cloudflare",
-            );
-          }
-        } catch (error) {
-          console.error(
-            "[deleteDomainWithCloudflare] Error calling Cloudflare API:",
-            error,
-          );
-          // Continue with database deletion even if Cloudflare fails
-        }
-      } else {
-        console.log(
-          "[deleteDomainWithCloudflare] No Cloudflare credentials, skipping CF deletion",
-        );
-      }
-    } else {
-      console.log(
-        "[deleteDomainWithCloudflare] No Cloudflare hostname ID, skipping CF deletion",
-      );
-    }
+//           if (!response.ok) {
+//             const data = await response.json();
+//             console.error(
+//               "[deleteDomainWithCloudflare] Cloudflare API error:",
+//               data,
+//             );
+//             // Continue with database deletion even if Cloudflare fails
+//           } else {
+//             console.log(
+//               "[deleteDomainWithCloudflare] Successfully deleted from Cloudflare",
+//             );
+//           }
+//         } catch (error) {
+//           console.error(
+//             "[deleteDomainWithCloudflare] Error calling Cloudflare API:",
+//             error,
+//           );
+//           // Continue with database deletion even if Cloudflare fails
+//         }
+//       } else {
+//         console.log(
+//           "[deleteDomainWithCloudflare] No Cloudflare credentials, skipping CF deletion",
+//         );
+//       }
+//     } else {
+//       console.log(
+//         "[deleteDomainWithCloudflare] No Cloudflare hostname ID, skipping CF deletion",
+//       );
+//     }
 
-    // Delete from database
-    try {
-      await ctx.runMutation(internal.customDomains.internalDeleteDomain, {
-        domainId: args.domainId,
-      });
-      console.log(
-        "[deleteDomainWithCloudflare] Successfully deleted from database",
-      );
-      return { success: true };
-    } catch (error) {
-      console.error(
-        "[deleteDomainWithCloudflare] Database deletion error:",
-        error,
-      );
-      return { success: false, error: String(error) };
-    }
-  },
-});
+//     // Delete from database
+//     try {
+//       await ctx.runMutation(internal.customDomains.internalDeleteDomain, {
+//         domainId: args.domainId,
+//       });
+//       console.log(
+//         "[deleteDomainWithCloudflare] Successfully deleted from database",
+//       );
+//       return { success: true };
+//     } catch (error) {
+//       console.error(
+//         "[deleteDomainWithCloudflare] Database deletion error:",
+//         error,
+//       );
+//       return { success: false, error: String(error) };
+//     }
+//   },
+// });
 
 // ============================================================================
 // INTERNAL QUERIES (for actions to call)

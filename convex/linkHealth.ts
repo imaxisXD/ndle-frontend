@@ -397,6 +397,7 @@ export const recordHealthCheck = mutation({
 // =============================================================================
 
 import { query } from "./_generated/server";
+import { getCurrentUser } from "./users";
 
 /**
  * Get all health checks for current user with computed uptime % and incident count
@@ -476,24 +477,24 @@ export const getRecentIncidents = query({
 /**
  * Get daily summaries for a specific URL (for 30-day status bar)
  */
-export const getDailySummaries = query({
-  args: {
-    urlId: v.id("urls"),
-    days: v.optional(v.number()),
-  },
-  handler: async (ctx, { urlId, days = 30 }) => {
-    const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000)
-      .toISOString()
-      .split("T")[0];
+// export const getDailySummaries = query({
+//   args: {
+//     urlId: v.id("urls"),
+//     days: v.optional(v.number()),
+//   },
+//   handler: async (ctx, { urlId, days = 30 }) => {
+//     const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000)
+//       .toISOString()
+//       .split("T")[0];
 
-    return ctx.db
-      .query("linkHealthDailySummary")
-      .withIndex("by_url_and_date", (q) =>
-        q.eq("urlId", urlId).gte("date", since),
-      )
-      .collect();
-  },
-});
+//     return ctx.db
+//       .query("linkHealthDailySummary")
+//       .withIndex("by_url_and_date", (q) =>
+//         q.eq("urlId", urlId).gte("date", since),
+//       )
+//       .collect();
+//   },
+// });
 
 /**
  * Get all health and incident data for current url with computed uptime % and incident count
@@ -503,6 +504,18 @@ export const getHealthandIncidentsDataForUrl = query({
     urlId: v.id("urls"),
   },
   handler: async (ctx, { urlId }) => {
+    const user = await getCurrentUser(ctx);
+
+    if (!user) {
+      return null;
+    }
+
+    const url = await ctx.db.get("urls", urlId);
+
+    if (!url || url.userTableId !== user._id) {
+      return null;
+    }
+
     const healthData = await ctx.db
       .query("linkHealthChecks")
       .withIndex("by_url_id", (q) => q.eq("urlId", urlId))

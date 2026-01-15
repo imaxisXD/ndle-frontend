@@ -167,20 +167,6 @@ export const getUrlAnalytics = query({
       };
     }
 
-    if (url.userTableId !== getUser._id) {
-      console.error(
-        getUser._id,
-        url.userTableId,
-        "Error: Trying to access someone else's analytics",
-      );
-      return {
-        analytics: null,
-        url: null,
-        isError: true,
-        message: "Nice Try Nerd!",
-      };
-    }
-
     const analytics = await ctx.db
       .query("urlAnalytics")
       .withIndex("by_url", (q) => q.eq("urlId", url._id))
