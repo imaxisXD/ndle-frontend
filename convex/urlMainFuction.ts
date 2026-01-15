@@ -92,6 +92,9 @@ export const createUrl = mutation({
         USERINFO_NOT_ALLOWED:
           isValidUrl.error ??
           "Links cannot contain embedded usernames or passwords.",
+        SELF_DOMAIN_NOT_ALLOWED:
+          isValidUrl.error ??
+          "You cannot create a redirect to ndle's own domains.",
       };
 
       throw new ConvexError(errorCopy[isValidUrl.errorCode!]);

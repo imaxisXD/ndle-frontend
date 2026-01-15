@@ -1,28 +1,50 @@
 "use client";
 
-import { useCallback } from "react";
-import { Toast } from "@base-ui-components/react/toast";
+import { toast } from "sonner";
 
-// Create a global toast manager that can be passed to Toast.Provider
-export const toastManager = Toast.createToastManager();
+export type ToastType =
+  | "default"
+  | "loading"
+  | "success"
+  | "error"
+  | "info"
+  | "warning";
 
-// Re-export the hook with a deferred add function
-// This prevents the "flushSync was called from inside a lifecycle method" error
-// by deferring toast additions to after React's current render cycle
+export interface ToastOptions {
+  type?: ToastType;
+  title: string;
+  description?: string;
+}
+
+/**
+ * Custom hook that wraps Sonner's toast API to provide a consistent interface.
+ * Preserves the same API as the previous Base UI implementation: add({ type, title, description })
+ */
 export function useToast() {
-  const manager = Toast.useToastManager();
+  const add = (options: ToastOptions) => {
+    const { type = "default", title, description } = options;
 
-  // Wrap add to defer it with setTimeout(0) to escape React's render cycle
-  const add = useCallback(
-    (options: Parameters<typeof manager.add>[0]) => {
-      setTimeout(() => manager.add(options), 0);
-      return "";
-    },
-    [manager],
-  );
-
-  return {
-    ...manager,
-    add,
+    // Map type to corresponding Sonner toast method
+    switch (type) {
+      case "success":
+        toast.success(title, { description });
+        break;
+      case "error":
+        toast.error(title, { description });
+        break;
+      case "info":
+        toast.info(title, { description });
+        break;
+      case "warning":
+        toast.warning(title, { description });
+        break;
+      case "loading":
+        toast.loading(title, { description });
+        break;
+      default:
+        toast(title, { description });
+    }
   };
+
+  return { add };
 }

@@ -1155,12 +1155,14 @@ export function UrlTable({
               [Note : This action is permanent and cannot be undone]
             </span>
             {urlToDelete && (
-              <div className="my-4">
-                <p className="text-sm font-medium">Link to delete:</p>
-                <p className="text-muted-foreground text-xs">
+              <span className="my-4 block">
+                <span className="block text-sm font-medium">
+                  Link to delete:
+                </span>
+                <span className="text-muted-foreground block text-xs">
                   [{urlToDelete.shortUrl}]
-                </p>
-              </div>
+                </span>
+              </span>
             )}
           </DialogDescription>
           <DialogFooter>

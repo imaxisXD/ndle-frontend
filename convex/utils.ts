@@ -12,7 +12,17 @@ export const VALIDATION_ERRORS = {
   INVALID_PORT: "INVALID_PORT",
   BLACKLISTED_DOMAIN: "BLACKLISTED_DOMAIN",
   USERINFO_NOT_ALLOWED: "USERINFO_NOT_ALLOWED",
+  SELF_DOMAIN_NOT_ALLOWED: "SELF_DOMAIN_NOT_ALLOWED",
 } as const;
+
+// ndle's own domains - prevent redirect loops and abuse
+const SELF_DOMAINS = [
+  "ndle.app",
+  "ndle.im",
+  "dev.ndle.app",
+  "dev.ndle.im",
+  "imp.ndle.app",
+];
 
 const CONFIG = {
   maxLength: 2048, // Max URL length
@@ -20,12 +30,38 @@ const CONFIG = {
   allowPrivateIPs: false, // Set true if needed
   allowedProtocols: ["http:", "https:"],
   blacklistedDomains: [
-    // Domains known for phishing or malware distribution. Replace or extend as needed.
+    // Domains known for phishing or malware distribution
     "phishing-login.test",
     "malware-distribution.test",
     "credential-harvest.invalid",
     "verify-account-now.example",
+    // Phishing lookalike domains
     "xn--paypa1-6ve.com",
+    "paypa1.com",
+    "paypai.com",
+    "paypal-verify.com",
+    "paypal-security.com",
+    "apple-id-verify.com",
+    "apple-security.com",
+    "appleid-verify.com",
+    "microsoft-verify.com",
+    "microsoft-security.com",
+    "office365-login.com",
+    "google-verify.com",
+    "google-security.com",
+    "gmail-login.com",
+    "facebook-verify.com",
+    "instagram-verify.com",
+    // Other URL shorteners (prevent redirect chains)
+    "bit.ly",
+    "tinyurl.com",
+    "t.co",
+    "goo.gl",
+    "ow.ly",
+    "is.gd",
+    "buff.ly",
+    "rebrand.ly",
+    "short.io",
   ],
   suspiciousPatterns: [
     /javascript:/i,
@@ -161,6 +197,17 @@ function isBlacklistedDomain(hostname: string) {
 }
 
 /**
+ * Check if domain is ndle's own domain (prevent redirect loops and abuse)
+ */
+function isSelfDomain(hostname: string): boolean {
+  const lowerHostname = hostname.toLowerCase();
+  return SELF_DOMAINS.some(
+    (domain) =>
+      lowerHostname === domain || lowerHostname.endsWith("." + domain),
+  );
+}
+
+/**
  * Validate HTTP/HTTPS URL with comprehensive security checks
  *
  * @param {string} urlString - The URL string to validate
@@ -291,6 +338,16 @@ export function isValidHttpUrl(
       error:
         "For safety, this domain has been blocked. Try a different destination.",
       errorCode: VALIDATION_ERRORS.BLACKLISTED_DOMAIN,
+    };
+  }
+
+  // Check if redirecting to ndle's own domains (prevent loops/abuse)
+  if (isSelfDomain(url.hostname)) {
+    return {
+      valid: false,
+      url: null,
+      error: "You cannot create a redirect to ndle's own domains.",
+      errorCode: VALIDATION_ERRORS.SELF_DOMAIN_NOT_ALLOWED,
     };
   }
 
