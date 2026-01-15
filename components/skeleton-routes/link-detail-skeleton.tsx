@@ -5,7 +5,7 @@ import { BrowserChart } from "../charts/browser-chart";
 import { CountryChart } from "../charts/country-chart";
 import { DeviceOSChart } from "../charts/device-os-chart";
 import { BotTrafficChart } from "../charts/bot-traffic-chart";
-import { LatencyChart } from "../charts/latency-chart";
+// import { LatencyChart } from "../charts/latency-chart";
 import { HourlyActivityChart } from "../charts/hourly-activity-chart";
 import {
   Card,
@@ -46,7 +46,7 @@ export default function LinkDetailSkeleton({ shortUrl }: { shortUrl: string }) {
         <CountryChart />
         <DeviceOSChart />
         <BotTrafficChart />
-        <LatencyChart data={[]} />
+        {/* <LatencyChart data={[]} /> */}
         <HourlyActivityChart />
       </section>
 

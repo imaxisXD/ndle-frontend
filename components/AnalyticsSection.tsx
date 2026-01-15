@@ -5,10 +5,7 @@ import { BrowserChart } from "@/components/charts/browser-chart";
 import { CountryChart } from "@/components/charts/country-chart";
 import { DeviceOSChart } from "@/components/charts/device-os-chart";
 import { BotTrafficChart } from "@/components/charts/bot-traffic-chart";
-import {
-  LatencyChart,
-  type LatencyBucket,
-} from "@/components/charts/latency-chart";
+
 import { HourlyActivityChart } from "@/components/charts/hourly-activity-chart";
 import {
   ReferrerChart,
@@ -23,7 +20,6 @@ export function AnalyticsSection({
   deviceData,
   osData,
   botHumanData,
-  latencyBuckets,
   hourlyActivityData,
   referrerData,
   variantData,
@@ -36,7 +32,6 @@ export function AnalyticsSection({
   deviceData: Array<{ device: string; clicks: number }>;
   osData: Array<{ os: string; clicks: number }>;
   botHumanData: Array<{ name: string; value: number; color: string }>;
-  latencyBuckets: Array<LatencyBucket>;
   hourlyActivityData: Array<{ hour: string; clicks: number }>;
   referrerData: Array<ReferrerData>;
   variantData?: Array<{
@@ -66,7 +61,7 @@ export function AnalyticsSection({
         isLoading={isLoading}
       />
       <BotTrafficChart data={botHumanData} isLoading={isLoading} />
-      <LatencyChart data={latencyBuckets} isLoading={isLoading} />
+      {/* <LatencyChart data={latencyBuckets} isLoading={isLoading} /> */}
       <HourlyActivityChart data={hourlyActivityData} isLoading={isLoading} />
     </section>
   );
