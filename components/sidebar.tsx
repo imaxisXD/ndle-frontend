@@ -39,6 +39,7 @@ export function Sidebar() {
                   <HouseIcon
                     className="size-5"
                     weight={isActive ? "duotone" : "regular"}
+                    aria-hidden="true"
                   />
                 )}
               </NavLink>
@@ -64,6 +65,7 @@ export function Sidebar() {
                   <LinkIcon
                     className="size-5"
                     weight={isActive ? "duotone" : "regular"}
+                    aria-hidden="true"
                   />
                 )}
               </NavLink>
@@ -89,6 +91,7 @@ export function Sidebar() {
                   <FolderIcon
                     className="size-5"
                     weight={isActive ? "duotone" : "regular"}
+                    aria-hidden="true"
                   />
                 )}
               </NavLink>
@@ -140,6 +143,7 @@ export function Sidebar() {
                   <ChartBarIcon
                     className="size-5"
                     weight={isActive ? "duotone" : "regular"}
+                    aria-hidden="true"
                   />
                 )}
               </NavLink>
@@ -165,6 +169,7 @@ export function Sidebar() {
                   <SecurityCameraIcon
                     className="size-5 -scale-x-100"
                     weight={isActive ? "duotone" : "regular"}
+                    aria-hidden="true"
                   />
                 )}
               </NavLink>
@@ -195,6 +200,7 @@ export function Sidebar() {
                   <GearIcon
                     className="size-5"
                     weight={isActive ? "duotone" : "regular"}
+                    aria-hidden="true"
                   />
                 )}
               </NavLink>
@@ -210,11 +216,15 @@ export function Sidebar() {
                 href="https://ndles.userjot.com/?cursor=1&order=top&limit=10"
                 target="_blank"
                 className="text-muted-foreground hover:text-accent-foreground flex h-10 w-10 items-center justify-center rounded-md transition-colors hover:bg-blue-500/20"
-              />
+              >
+                <HeadsetIcon
+                  className="size-5 text-blue-500"
+                  weight="duotone"
+                  aria-hidden="true"
+                />
+              </Link>
             }
-          >
-            <HeadsetIcon className="size-5 text-blue-500" weight="duotone" />
-          </TooltipTrigger>
+          />
           <TooltipContent side="right">Feedback</TooltipContent>
         </Tooltip>
       </div>

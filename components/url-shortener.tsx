@@ -351,28 +351,60 @@ export function UrlShortener() {
     return false;
   }, [abEnabled, abVariantsRaw, mainUrl]);
 
+  // Watch specific form values for summary chips
+  const watchedSummaryValues = useWatch({
+    control: form.control,
+    name: [
+      "utmEnabled",
+      "abEnabled",
+      "activateAtEnabled",
+      "targetingEnabled",
+      "passwordEnabled",
+      "qrEnabled",
+      "fallbackEnabled",
+      "socialEnabled",
+      "tagsEnabled",
+      "tags",
+      "collectionId",
+      "notes",
+    ],
+  });
+
   const summaryChips = useMemo(() => {
     const chips: string[] = [];
-    const values = form.getValues();
+    const [
+      utmEnabled,
+      abEnabledVal,
+      activateAtEnabled,
+      targetingEnabled,
+      passwordEnabled,
+      qrEnabled,
+      fallbackEnabled,
+      socialEnabled,
+      tagsEnabled,
+      tags,
+      collectionId,
+      notes,
+    ] = watchedSummaryValues;
 
-    if (values.utmEnabled) chips.push("UTM");
-    if (values.abEnabled) chips.push("A/B Test");
-    if (values.activateAtEnabled) chips.push("Schedule");
-    if (values.targetingEnabled) chips.push("Geo & Device");
-    if (values.passwordEnabled) chips.push("Password");
-    if (values.qrEnabled) chips.push("QR Code");
-    if (values.fallbackEnabled) chips.push("Fallback");
-    if (values.socialEnabled) chips.push("Social");
+    if (utmEnabled) chips.push("UTM");
+    if (abEnabledVal) chips.push("A/B Test");
+    if (activateAtEnabled) chips.push("Schedule");
+    if (targetingEnabled) chips.push("Geo & Device");
+    if (passwordEnabled) chips.push("Password");
+    if (qrEnabled) chips.push("QR Code");
+    if (fallbackEnabled) chips.push("Fallback");
+    if (socialEnabled) chips.push("Social");
     if (
-      values.tagsEnabled ||
-      (values.tags && values.tags.length > 0) ||
-      values.collectionId ||
-      values.notes
+      tagsEnabled ||
+      (tags && (tags as string[]).length > 0) ||
+      collectionId ||
+      notes
     )
       chips.push("Tags & Notes");
 
     return chips;
-  }, [form]);
+  }, [watchedSummaryValues]);
 
   const handleUrlBlur = async (urlValue: string) => {
     const trimmedValue = urlValue.trim();
@@ -662,7 +694,7 @@ export function UrlShortener() {
                         </InputGroupAddon>
                         <InputGroupInput
                           id="destination-url-input"
-                          placeholder="https://example.com/very/long/url/path"
+                          placeholder="Paste your long URL here…"
                           className="border-border rounded-md rounded-l-none border-y border-l-0 pl-0"
                           aria-invalid={fieldState.invalid}
                           {...field}
@@ -792,8 +824,8 @@ export function UrlShortener() {
                   )}
                 >
                   {advancedOpen
-                    ? "[Hide Advance Options]"
-                    : "[Show Advance Options]"}
+                    ? "[Hide Advanced Options]"
+                    : "[Show Advanced Options]"}
                 </span>
               </HotkeyButton>
 

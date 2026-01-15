@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import {
   Select,
   SelectContent,
@@ -87,8 +87,9 @@ function FilterPill({
         onClick={onRemove}
         variant="ghost"
         className="rounded-xs text-red-400"
+        aria-label={`Remove ${label} filter`}
       >
-        <XIcon className="size-3" />
+        <XIcon className="size-3" aria-hidden="true" />
       </Button>
     </div>
   );
@@ -131,6 +132,28 @@ export function FilterBar({
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
 
+  // Memoized remove handlers to prevent re-renders
+  const handleRemoveLink = useCallback(
+    () => onLinkFilterChange?.("all"),
+    [onLinkFilterChange],
+  );
+  const handleRemoveCountry = useCallback(
+    () => onCountryFilterChange?.("all"),
+    [onCountryFilterChange],
+  );
+  const handleRemoveDevice = useCallback(
+    () => onDeviceFilterChange?.("all"),
+    [onDeviceFilterChange],
+  );
+  const handleRemoveBrowser = useCallback(
+    () => onBrowserFilterChange?.("all"),
+    [onBrowserFilterChange],
+  );
+  const handleRemoveOS = useCallback(
+    () => onOSFilterChange?.("all"),
+    [onOSFilterChange],
+  );
+
   const clearAllFilters = () => {
     onLinkFilterChange?.("all");
     onCountryFilterChange?.("all");
@@ -160,27 +183,27 @@ export function FilterBar({
       link: {
         value: linkFilter,
         options: linkOptions,
-        onRemove: () => onLinkFilterChange?.("all"),
+        onRemove: handleRemoveLink,
       },
       country: {
         value: countryFilter,
         options: countryOptions,
-        onRemove: () => onCountryFilterChange?.("all"),
+        onRemove: handleRemoveCountry,
       },
       device: {
         value: deviceFilter,
         options: deviceOptions,
-        onRemove: () => onDeviceFilterChange?.("all"),
+        onRemove: handleRemoveDevice,
       },
       browser: {
         value: browserFilter,
         options: browserOptions,
-        onRemove: () => onBrowserFilterChange?.("all"),
+        onRemove: handleRemoveBrowser,
       },
       os: {
         value: osFilter,
         options: osOptions,
-        onRemove: () => onOSFilterChange?.("all"),
+        onRemove: handleRemoveOS,
       },
     };
 
@@ -210,11 +233,11 @@ export function FilterBar({
     browserOptions,
     osFilter,
     osOptions,
-    onLinkFilterChange,
-    onCountryFilterChange,
-    onDeviceFilterChange,
-    onBrowserFilterChange,
-    onOSFilterChange,
+    handleRemoveLink,
+    handleRemoveCountry,
+    handleRemoveDevice,
+    handleRemoveBrowser,
+    handleRemoveOS,
   ]);
 
   // Generate filter categories from FILTER_CONFIGS, matching options with props
@@ -392,11 +415,11 @@ export function FilterBar({
                     </div>
                     <div className="border-b border-zinc-100 px-3 py-2">
                       <input
+                        autoComplete="off"
                         className="w-full bg-transparent text-xs text-zinc-700 placeholder:text-zinc-400 focus:outline-none"
-                        placeholder="Search..."
+                        placeholder="Search…"
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        autoFocus
                       />
                     </div>
                     <div className="max-h-[200px] overflow-y-auto py-1">

@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
 
 import { cn } from "@/lib/utils";
 
@@ -442,6 +442,13 @@ export const Matrix = React.forwardRef<HTMLDivElement, MatrixProps>(
     },
     ref,
   ) => {
+    // Generate unique IDs for SVG gradients and filters to prevent collisions
+    // when multiple Matrix components are on the same page
+    const instanceId = useId();
+    const pixelOnId = `matrix-pixel-on-${instanceId}`;
+    const pixelOffId = `matrix-pixel-off-${instanceId}`;
+    const glowId = `matrix-glow-${instanceId}`;
+
     const { frameIndex } = useAnimation(frames, {
       fps,
       autoplay: autoplay && !pattern,
@@ -516,7 +523,7 @@ export const Matrix = React.forwardRef<HTMLDivElement, MatrixProps>(
           style={{ overflow: "visible" }}
         >
           <defs>
-            <radialGradient id="matrix-pixel-on" cx="50%" cy="50%" r="50%">
+            <radialGradient id={pixelOnId} cx="50%" cy="50%" r="50%">
               <stop offset="0%" stopColor="var(--matrix-on)" stopOpacity="1" />
               <stop
                 offset="70%"
@@ -530,7 +537,7 @@ export const Matrix = React.forwardRef<HTMLDivElement, MatrixProps>(
               />
             </radialGradient>
 
-            <radialGradient id="matrix-pixel-off" cx="50%" cy="50%" r="50%">
+            <radialGradient id={pixelOffId} cx="50%" cy="50%" r="50%">
               <stop offset="0%" stopColor="var(--matrix-off)" stopOpacity="1" />
               <stop
                 offset="100%"
@@ -539,13 +546,7 @@ export const Matrix = React.forwardRef<HTMLDivElement, MatrixProps>(
               />
             </radialGradient>
 
-            <filter
-              id="matrix-glow"
-              x="-50%"
-              y="-50%"
-              width="200%"
-              height="200%"
-            >
+            <filter id={glowId} x="-50%" y="-50%" width="200%" height="200%">
               <feGaussianBlur stdDeviation="2" result="blur" />
               <feComposite in="SourceGraphic" in2="blur" operator="over" />
             </filter>
@@ -558,8 +559,8 @@ export const Matrix = React.forwardRef<HTMLDivElement, MatrixProps>(
                 transform-origin: center;
                 transform-box: fill-box;
               }
-              .matrix-pixel-active {
-                filter: url(#matrix-glow);
+              .matrix-pixel-active-${instanceId} {
+                filter: url(#${glowId});
               }
             `}
           </style>
@@ -572,9 +573,7 @@ export const Matrix = React.forwardRef<HTMLDivElement, MatrixProps>(
               const opacity = clamp(brightness * value);
               const isActive = opacity > 0.5;
               const isOn = opacity > 0.05;
-              const fill = isOn
-                ? "url(#matrix-pixel-on)"
-                : "url(#matrix-pixel-off)";
+              const fill = isOn ? `url(#${pixelOnId})` : `url(#${pixelOffId})`;
 
               const scale = isActive ? 1.1 : 1;
               const radius = (size / 2) * 0.9;
@@ -584,7 +583,7 @@ export const Matrix = React.forwardRef<HTMLDivElement, MatrixProps>(
                   key={`${rowIndex}-${colIndex}`}
                   className={cn(
                     "matrix-pixel",
-                    isActive && "matrix-pixel-active",
+                    isActive && `matrix-pixel-active-${instanceId}`,
                     !isOn && "opacity-20",
                   )}
                   cx={pos.x + size / 2}
