@@ -356,7 +356,7 @@ export default function LinkDetailRoute() {
             deviceData={derived.deviceData}
             osData={derived.osData}
             botHumanData={derived.botHumanData}
-            latencyBuckets={derived.latencyBuckets}
+            // latencyBuckets={derived.latencyBuckets}
             hourlyActivityData={derived.hourlyActivityData}
             referrerData={derived.referrerData}
             variantData={derived.variantData}
