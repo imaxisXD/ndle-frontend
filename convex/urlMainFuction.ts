@@ -214,6 +214,18 @@ export const createUrl = mutation({
       });
     }
 
+    // Register URL with link monitoring service
+    ctx.scheduler.runAfter(
+      0,
+      internal.linkHealth.registerUrlWithMonitoringService,
+      {
+        convexUrlId: docId,
+        convexUserId: user._id,
+        longUrl: args.url,
+        shortUrl: slug,
+      },
+    );
+
     return { docId, slug };
   },
 });

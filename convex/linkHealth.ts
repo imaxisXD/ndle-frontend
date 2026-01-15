@@ -137,6 +137,74 @@ export const syncAllUrlsToMonitoringService = internalAction({
   },
 });
 
+/**
+ * Register a single URL with the link monitoring service
+ * This is called via scheduler when a new URL is created
+ */
+export const registerUrlWithMonitoringService = internalAction({
+  args: {
+    convexUrlId: v.string(),
+    convexUserId: v.string(),
+    longUrl: v.string(),
+    shortUrl: v.string(),
+  },
+  handler: async (_ctx, args) => {
+    const monitoringServiceUrl = process.env.MONITOR_SERVICE_URL;
+    const monitoringApiSecret = process.env.MONITORING_API_SECRET;
+    const environment = process.env.ENVIRONMENT ?? "prod";
+
+    if (!monitoringServiceUrl) {
+      console.error(
+        "[Link Monitoring] MONITOR_SERVICE_URL not set, skipping registration",
+      );
+      return { success: false, error: "MONITOR_SERVICE_URL not configured" };
+    }
+
+    if (!monitoringApiSecret) {
+      console.error(
+        "[Link Monitoring] MONITORING_API_SECRET not set, skipping registration",
+      );
+      return { success: false, error: "MONITORING_API_SECRET not configured" };
+    }
+
+    try {
+      const response = await fetch(
+        `${monitoringServiceUrl}/monitors/register`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${monitoringApiSecret}`,
+          },
+          body: JSON.stringify({
+            convexUrlId: args.convexUrlId,
+            convexUserId: args.convexUserId,
+            longUrl: args.longUrl,
+            shortUrl: args.shortUrl,
+            environment,
+            intervalMs: 300000, // 5 minutes default
+          }),
+        },
+      );
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error(
+          `[Link Monitoring] Registration failed: ${response.status} - ${errorText}`,
+        );
+        return { success: false, error: errorText };
+      }
+
+      const result = await response.json();
+      console.log(`[Link Monitoring] URL registered: ${args.shortUrl}`);
+      return { success: true, linkId: result.linkId };
+    } catch (error) {
+      console.error("[Link Monitoring] Registration error:", error);
+      return { success: false, error: String(error) };
+    }
+  },
+});
+
 export const recordHealthCheck = mutation({
   args: {
     sharedSecret: v.string(),
