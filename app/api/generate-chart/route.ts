@@ -6,6 +6,7 @@
 
 import { streamText } from "ai";
 import { createOpenAI } from "@ai-sdk/openai";
+import { auth } from "@clerk/nextjs/server";
 
 export const runtime = "edge";
 
@@ -86,6 +87,24 @@ export async function POST(req: Request) {
   );
 
   try {
+    if (process.env.NODE_ENV !== "development") {
+      return new Response(
+        JSON.stringify({ error: "This feature works only in dev mode." }),
+        {
+          status: 403,
+          headers: { "Content-Type": "application/json" },
+        },
+      );
+    }
+
+    const { userId } = await auth();
+    if (!userId) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
     // Clone request to read body for logging (since body can only be read once)
     const rawBody = await req.text();
     console.log("[generate-chart] Raw request body:", rawBody);

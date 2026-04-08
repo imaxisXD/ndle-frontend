@@ -52,6 +52,8 @@ function TotalClicksCard() {
 export function Analytics() {
   const viewer = useQuery(api.users.getViewerState);
   const isPro = viewer?.membership === "pro";
+  const isDevMode = process.env.NODE_ENV === "development";
+  const canUseAiChartBuilder = isDevMode && isPro;
   // Filter state
   const [timeRange, setTimeRange] = useState("30d");
   const [countryFilter, setCountryFilter] = useState("all");
@@ -374,6 +376,10 @@ export function Analytics() {
     },
   ];
 
+  const chartAiLockMessage = !isDevMode
+    ? "This works only in dev mode right now."
+    : "This is locked for free users. Use a Pro account in dev mode.";
+
   return (
     <div className="space-y-6">
       {/* Filter Bar */}
@@ -555,7 +561,20 @@ export function Analytics() {
 
       {/* AI Chart Generation Chat */}
       <div className="mt-8">
-        <AgenticChartChat />
+        {canUseAiChartBuilder ? (
+          <AgenticChartChat />
+        ) : (
+          <Card>
+            <CardContent className="p-6">
+              <div className="space-y-2">
+                <p className="text-base font-medium">Ask AI to Create Charts</p>
+                <p className="text-muted-foreground text-sm">
+                  {chartAiLockMessage}
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </div>
   );
