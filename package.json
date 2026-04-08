@@ -15,12 +15,17 @@
     "cf-typegen": "wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts"
   },
   "dependencies": {
+    "@ai-sdk/anthropic": "^3.0.15",
+    "@ai-sdk/openai": "^3.0.12",
+    "@ai-sdk/react": "^3.0.41",
     "@base-ui-components/react": "^1.0.0-rc.0",
     "@clerk/nextjs": "^6.36.5",
     "@convex-dev/eslint-plugin": "^1.1.1",
     "@convex-dev/sharded-counter": "^0.1.8",
     "@duckdb/duckdb-wasm": "^1.32.0",
     "@hookform/resolvers": "^3.10.0",
+    "@json-render/core": "^0.2.0",
+    "@json-render/react": "^0.2.0",
     "@number-flow/react": "^0.5.10",
     "@opennextjs/cloudflare": "^1.14.7",
     "@phosphor-icons/react": "^2.1.10",
@@ -58,6 +63,7 @@
     "@upstash/ratelimit": "^2.0.7",
     "@upstash/redis": "^1.36.0",
     "@vercel/analytics": "1.3.1",
+    "ai": "^6.0.39",
     "autoprefixer": "^10.4.23",
     "babel-plugin-react-compiler": "^1.0.0",
     "class-variance-authority": "^0.7.1",
@@ -67,7 +73,7 @@
     "convex-helpers": "^0.1.108",
     "date-fns": "4.1.0",
     "embla-carousel-react": "8.5.1",
-    "geist": "^1.5.1",
+    "geist": "^1.7.0",
     "human-id": "^4.1.3",
     "iconoir-react": "^7.11.0",
     "input-otp": "1.4.1",
@@ -93,7 +99,7 @@
     "tailwindcss-animate": "^1.0.7",
     "validator": "^13.15.26",
     "vaul": "^0.9.9",
-    "zod": "3.25.67"
+    "zod": "^4.0.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.3",

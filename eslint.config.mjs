@@ -5,7 +5,6 @@ import reactPlugin from "eslint-plugin-react";
 import reactHooksPlugin from "eslint-plugin-react-hooks";
 import jsxA11yPlugin from "eslint-plugin-jsx-a11y";
 import convexPlugin from "@convex-dev/eslint-plugin";
-import pluginQuery from "@tanstack/eslint-plugin-query";
 
 export default [
   {
@@ -21,7 +20,7 @@ export default [
   js.configs.recommended,
   ...tseslint.configs.recommended,
   ...convexPlugin.configs.recommended,
-  ...pluginQuery.configs["flat/recommended"],
+
   {
     files: ["**/*.{js,jsx,mjs,cjs,ts,tsx}"],
     plugins: {

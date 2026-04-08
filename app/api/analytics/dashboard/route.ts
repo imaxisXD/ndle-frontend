@@ -22,7 +22,7 @@ const schema = z.object({
     .union([z.literal("true"), z.literal("false")])
     .transform((v) => v === "true")
     .optional()
-    .default("false"),
+    .default(false),
 });
 
 export async function GET(req: NextRequest) {

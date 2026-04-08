@@ -4,7 +4,11 @@ import { NextResponse } from "next/server";
 // Required for Cloudflare Workers deployment
 export const runtime = "experimental-edge";
 
-const isPublicRoute = createRouteMatcher(["/sign-in(.*)", "/sign-up(.*)"]);
+const isPublicRoute = createRouteMatcher([
+  "/",
+  "/sign-in(.*)",
+  "/sign-up(.*)",
+]);
 const isAppRoute = createRouteMatcher(["/static-app-shell(.*)"]);
 
 export default clerkMiddleware(async (auth, req) => {

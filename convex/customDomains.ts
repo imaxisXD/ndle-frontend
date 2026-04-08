@@ -13,7 +13,7 @@ import { internal } from "./_generated/api";
 // CONSTANTS
 // ============================================================================
 
-const MAX_DOMAINS_FREE = 0;
+const MAX_DOMAINS_FREE = 1;
 const MAX_DOMAINS_PRO = 3;
 
 // ============================================================================
@@ -158,11 +158,18 @@ export const getDomainLimits = query({
     limit: v.number(),
     canAddMore: v.boolean(),
     isPro: v.boolean(),
+    membership: v.string(),
   }),
   handler: async (ctx) => {
     const user = await getCurrentUser(ctx);
     if (!user) {
-      return { used: 0, limit: 0, canAddMore: false, isPro: false };
+      return {
+        used: 0,
+        limit: 0,
+        canAddMore: false,
+        isPro: false,
+        membership: "guest",
+      };
     }
 
     const domains = await ctx.db
@@ -178,6 +185,7 @@ export const getDomainLimits = query({
       limit,
       canAddMore: used < limit,
       isPro: user.membership === "pro",
+      membership: user.membership,
     };
   },
 });
@@ -201,14 +209,6 @@ export const addDomain = mutation({
     const user = await getCurrentUser(ctx);
     if (!user) {
       return { success: false, error: "Not authenticated" };
-    }
-
-    // Check if Pro user
-    if (user.membership !== "pro") {
-      return {
-        success: false,
-        error: "Custom domains require a Pro subscription",
-      };
     }
 
     // Normalize and validate domain
@@ -244,7 +244,7 @@ export const addDomain = mutation({
     if (userDomains.length >= limit) {
       return {
         success: false,
-        error: `Pro plan allows up to ${limit} custom domains`,
+        error: `Your plan allows up to ${limit} custom domains`,
       };
     }
 

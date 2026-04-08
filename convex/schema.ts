@@ -8,6 +8,17 @@ export default defineSchema({
     email: v.string(),
     tokenIdentifier: v.string(),
   }).index("by_token", ["tokenIdentifier"]),
+  guest_sessions: defineTable({
+    guestId: v.string(),
+    email: v.optional(v.string()),
+    claimedUserId: v.optional(v.id("users")),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+    claimedAt: v.optional(v.number()),
+  })
+    .index("by_guest_id", ["guestId"])
+    .index("by_email", ["email"])
+    .index("by_claimed_user", ["claimedUserId"]),
   urls: defineTable({
     fullurl: v.string(),
     shortUrl: v.string(),
@@ -29,7 +40,11 @@ export default defineSchema({
       }),
     ),
     customDomain: v.optional(v.string()), // Custom domain for Pro users
-    userTableId: v.id("users"),
+    userTableId: v.optional(v.id("users")),
+    guestId: v.optional(v.string()),
+    ownershipState: v.union(v.literal("guest"), v.literal("user")),
+    analyticsOwnerKey: v.string(),
+    claimedAt: v.optional(v.number()),
     slugAssigned: v.optional(v.string()),
     redisStatus: v.optional(v.string()),
     urlStatusMessage: v.optional(v.string()),
@@ -56,9 +71,13 @@ export default defineSchema({
   })
     .index("by_slug", ["slugAssigned"])
     .index("by_user", ["userTableId"])
+    .index("by_guest", ["guestId"])
     .index("by_fullurl", ["fullurl"])
     .index("by_user_url", ["userTableId", "fullurl"])
-    .index("by_user_slug", ["userTableId", "slugAssigned"]),
+    .index("by_guest_url", ["guestId", "fullurl"])
+    .index("by_user_slug", ["userTableId", "slugAssigned"])
+    .index("by_guest_slug", ["guestId", "slugAssigned"])
+    .index("by_owner_key", ["analyticsOwnerKey"]),
   urlAnalytics: defineTable({
     urlId: v.id("urls"),
     urlStatusCode: v.optional(v.number()),
@@ -68,7 +87,9 @@ export default defineSchema({
   }).index("by_url", ["urlId"]),
   linkHealthChecks: defineTable({
     urlId: v.id("urls"),
-    userId: v.id("users"),
+    userId: v.optional(v.id("users")),
+    guestId: v.optional(v.string()),
+    analyticsOwnerKey: v.string(),
     shortUrl: v.string(),
     longUrl: v.string(),
     statusCode: v.number(),
@@ -84,12 +105,15 @@ export default defineSchema({
   })
     .index("by_url_id", ["urlId"])
     .index("by_user_id", ["userId"])
+    .index("by_guest_id", ["guestId"])
     .index("by_url_and_time", ["urlId", "checkedAt"]),
 
   // Daily rollups for uptime % calculation (1 row per URL per day)
   linkHealthDailySummary: defineTable({
     urlId: v.id("urls"),
-    userId: v.id("users"),
+    userId: v.optional(v.id("users")),
+    guestId: v.optional(v.string()),
+    analyticsOwnerKey: v.string(),
     date: v.string(), // "2024-12-13" format
     totalChecks: v.number(),
     healthyChecks: v.number(),
@@ -98,12 +122,15 @@ export default defineSchema({
   })
     .index("by_url_and_date", ["urlId", "date"])
     .index("by_user_and_date", ["userId", "date"])
+    .index("by_guest_and_date", ["guestId", "date"])
     .index("by_url_id", ["urlId"]),
 
   // Individual incident events for "Recent Incidents" list
   linkIncidents: defineTable({
     urlId: v.id("urls"),
-    userId: v.id("users"),
+    userId: v.optional(v.id("users")),
+    guestId: v.optional(v.string()),
+    analyticsOwnerKey: v.string(),
     shortUrl: v.string(),
     type: v.union(
       v.literal("error"),
@@ -114,6 +141,7 @@ export default defineSchema({
     createdAt: v.number(),
   })
     .index("by_user_recent", ["userId", "createdAt"])
+    .index("by_guest_recent", ["guestId", "createdAt"])
     .index("by_url_id", ["urlId"]),
   collections: defineTable({
     name: v.string(),
@@ -169,7 +197,9 @@ export default defineSchema({
   clickEvents: defineTable({
     linkSlug: v.string(),
     urlId: v.optional(v.id("urls")),
-    userId: v.id("users"),
+    userId: v.optional(v.id("users")),
+    guestId: v.optional(v.string()),
+    analyticsOwnerKey: v.string(),
     occurredAt: v.number(),
     country: v.string(),
     city: v.optional(v.string()),
@@ -179,5 +209,7 @@ export default defineSchema({
     referer: v.optional(v.string()),
   })
     .index("by_link_slug", ["linkSlug", "occurredAt"])
-    .index("by_user", ["userId", "occurredAt"]),
+    .index("by_user", ["userId", "occurredAt"])
+    .index("by_guest", ["guestId", "occurredAt"])
+    .index("by_url", ["urlId", "occurredAt"]),
 });

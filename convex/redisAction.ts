@@ -14,7 +14,8 @@ export const insertIntoRedis = internalAction({
     fullUrl: v.string(),
     slugAssigned: v.string(),
     docId: v.id("urls"),
-    user_id: v.id("users"),
+    analytics_owner_key: v.string(),
+    convex_user_id: v.optional(v.id("users")),
     // UTM Parameters
     utmSource: v.optional(v.string()),
     utmMedium: v.optional(v.string()),
@@ -35,6 +36,7 @@ export const insertIntoRedis = internalAction({
     abDistribution: v.optional(
       v.union(v.literal("weighted_random"), v.literal("deterministic")),
     ),
+    overwrite: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
     // Build utm_params object only with non-empty values
@@ -57,8 +59,10 @@ export const insertIntoRedis = internalAction({
 
     const redisValueObject: RedisValueObject = {
       destination: args.fullUrl,
-      user_id: args.user_id,
-      tenant_id: args.user_id,
+      user_id: args.analytics_owner_key,
+      analytics_owner_key: args.analytics_owner_key,
+      convex_user_id: args.convex_user_id,
+      tenant_id: args.convex_user_id ?? args.analytics_owner_key,
       redirect_type: 302,
       created_at: Date.now(),
       updated_at: Date.now(),
@@ -79,14 +83,20 @@ export const insertIntoRedis = internalAction({
       version: 1,
     };
 
-    const result = await redis.json.set(
-      args.slugAssigned,
-      "$",
-      redisValueObject as unknown as Record<string, unknown>,
-      {
-        nx: true,
-      },
-    );
+    const result = args.overwrite
+      ? await redis.json.set(
+          args.slugAssigned,
+          "$",
+          redisValueObject as unknown as Record<string, unknown>,
+        )
+      : await redis.json.set(
+          args.slugAssigned,
+          "$",
+          redisValueObject as unknown as Record<string, unknown>,
+          {
+            nx: true,
+          },
+        );
 
     await ctx.runMutation(internal.urlMainFuction.updateUrlStatus, {
       docId: args.docId,

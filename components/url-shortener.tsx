@@ -228,6 +228,8 @@ export function UrlShortener() {
   const [currentUrl, setCurrentUrl] = useState<string | null>(null);
   const [selectedDomain, setSelectedDomain] =
     useState<string>(getShortDomain());
+  const viewer = useQuery(api.users.getViewerState);
+  const isPro = viewer?.membership === "pro";
 
   // Get active custom domains for domain selector
   const activeDomains = useQuery(api.customDomains.getActiveDomains);
@@ -775,13 +777,17 @@ export function UrlShortener() {
                             </span>
                           </label>
                         </div>
-                        <div className="flex flex-wrap items-center gap-2">
+                      <div className="flex flex-wrap items-center gap-2">
                           <RadioGroupItem
                             id="slug-human"
                             value="human"
                             size="sm"
+                            disabled={!isPro}
                           />
-                          <label htmlFor="slug-human" className="text-sm">
+                          <label
+                            htmlFor="slug-human"
+                            className={cn("text-sm", !isPro && "text-muted-foreground")}
+                          >
                             Readable words{" "}
                             <span className="text-muted-foreground text-xs">
                               (e.g. {selectedDomain}/
@@ -790,6 +796,11 @@ export function UrlShortener() {
                               </span>
                               )
                             </span>
+                            {!isPro ? (
+                              <span className="ml-2 text-[11px] uppercase tracking-wide">
+                                Pro only
+                              </span>
+                            ) : null}
                           </label>
                         </div>
                       </RadioGroup>
@@ -801,6 +812,12 @@ export function UrlShortener() {
 
             {/* Advanced Options */}
             <div className="space-y-3">
+              {!isPro ? (
+                <p className="text-muted-foreground text-xs">
+                  Free accounts can use simple settings here. Paid-only options
+                  will stay blocked when you save.
+                </p>
+              ) : null}
               <HotkeyButton
                 kbdClassName="no-underline text-xs h-fit py-0.5 shadow-xs from-gray-200 to-gray-100 backdrop-blur-sm text-black/60 rounded-xs border"
                 type="button"

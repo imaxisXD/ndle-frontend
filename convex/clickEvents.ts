@@ -1,6 +1,7 @@
 import { v } from "convex/values";
 import { query, internalMutation, internalQuery } from "./_generated/server";
 import { getCurrentUser } from "./users";
+import { getOwnerSnapshot } from "./ownership";
 
 /**
  * Query to get recent click events for a specific link.
@@ -30,7 +31,7 @@ export const getRecentByLinkSlug = query({
     }
     const events = await ctx.db
       .query("clickEvents")
-      .withIndex("by_link_slug", (q) => q.eq("linkSlug", linkSlug))
+      .withIndex("by_url", (q) => q.eq("urlId", link._id))
       .order("desc")
       .take(limit);
 
@@ -64,8 +65,7 @@ export const getRecentByUser = internalQuery({
 export const insertClickEvent = internalMutation({
   args: {
     linkSlug: v.string(),
-    urlId: v.optional(v.id("urls")),
-    userId: v.id("users"),
+    urlId: v.id("urls"),
     occurredAt: v.number(),
     country: v.string(),
     city: v.optional(v.string()),
@@ -76,7 +76,18 @@ export const insertClickEvent = internalMutation({
   },
   returns: v.id("clickEvents"),
   handler: async (ctx, args) => {
-    const id = await ctx.db.insert("clickEvents", args);
+    const url = await ctx.db.get(args.urlId);
+    if (!url) {
+      throw new Error("URL not found");
+    }
+
+    const owner = getOwnerSnapshot(url);
+    const id = await ctx.db.insert("clickEvents", {
+      ...args,
+      userId: owner.userId,
+      guestId: owner.guestId,
+      analyticsOwnerKey: owner.analyticsOwnerKey,
+    });
     return id;
   },
 });

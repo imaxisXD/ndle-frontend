@@ -14,7 +14,7 @@ import {
   CardDescription,
   CardFooter,
 } from "@/components/ui/card";
-import { DomainItem, AddDomainForm, UpgradePrompt } from "./custom-domain-card";
+import { DomainItem, AddDomainForm } from "./custom-domain-card";
 import { GlobeHemisphereWestIcon } from "@phosphor-icons/react/dist/ssr";
 
 /**
@@ -33,11 +33,6 @@ export function CustomDomainSettings() {
   // Loading state
   if (domains === undefined || limits === undefined) {
     return <CustomDomainLoadingCard />;
-  }
-
-  // Non-pro users see upgrade prompt
-  if (!limits.isPro) {
-    return <CustomDomainUpgradeCard />;
   }
 
   const handleDelete = async (domainId: Id<"custom_domains">) => {
@@ -128,19 +123,6 @@ function CustomDomainLoadingCard() {
       </CardHeader>
       <CardContent>
         <div className="h-24 animate-pulse rounded-lg bg-gray-100" />
-      </CardContent>
-    </Card>
-  );
-}
-
-function CustomDomainUpgradeCard() {
-  return (
-    <Card>
-      <CardHeader>
-        <CustomDomainCardTitle subtitle="Use your own domain for shortened links" />
-      </CardHeader>
-      <CardContent>
-        <UpgradePrompt />
       </CardContent>
     </Card>
   );

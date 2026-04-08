@@ -1,6 +1,7 @@
 import { v } from "convex/values";
 import { internalAction, internalQuery, mutation } from "./_generated/server";
 import { internal } from "./_generated/api";
+import { getOwnerSnapshot } from "./ownership";
 
 const BATCH_SIZE = 100;
 
@@ -41,7 +42,7 @@ export const getAllUrlsQuery = internalQuery({
       userId: url.userTableId,
       shortUrl: url.slugAssigned ?? "",
       longUrl: url.fullurl,
-    }));
+    })).filter((url) => !!url.userId) as UrlData[];
 
     return {
       urls,
@@ -209,7 +210,7 @@ export const recordHealthCheck = mutation({
   args: {
     sharedSecret: v.string(),
     urlId: v.string(),
-    userId: v.string(),
+    userId: v.optional(v.string()),
     shortUrl: v.string(),
     longUrl: v.string(),
     statusCode: v.number(),
@@ -238,18 +239,27 @@ export const recordHealthCheck = mutation({
       checkedAt,
     } = args;
 
-    if (sharedSecret !== process.env.MONITORING_SHARED_SECRET) {
+    const validSecrets = [
+      process.env.MONITORING_SHARED_SECRET,
+      process.env.SHARED_SECRET,
+    ].filter(Boolean);
+
+    if (!validSecrets.includes(sharedSecret)) {
       console.error("[Link Monitoring] | Invalid shared secret");
       throw new Error("[Link Monitoring] | Invalid shared secret");
     }
 
     const normalizedUrl = ctx.db.normalizeId("urls", urlId);
-    const normalizedUser = ctx.db.normalizeId("users", userId);
-
-    if (!normalizedUrl || !normalizedUser) {
-      console.error("[Link Monitoring] | Invalid URL or User ID");
-      throw new Error("[Link Monitoring] | Invalid URL or User ID");
+    if (!normalizedUrl) {
+      console.error("[Link Monitoring] | Invalid URL ID");
+      throw new Error("[Link Monitoring] | Invalid URL ID");
     }
+
+    const urlDoc = await ctx.db.get(normalizedUrl);
+    if (!urlDoc) {
+      throw new Error("[Link Monitoring] | URL not found");
+    }
+    const owner = getOwnerSnapshot(urlDoc);
 
     // 1. Get previous check to detect status changes
     const previousCheck = await ctx.db
@@ -264,6 +274,9 @@ export const recordHealthCheck = mutation({
     // 2. Upsert linkHealthChecks (latest status)
     if (previousCheck) {
       await ctx.db.patch(previousCheck._id, {
+        userId: owner.userId,
+        guestId: owner.guestId,
+        analyticsOwnerKey: owner.analyticsOwnerKey,
         checkedAt,
         statusCode,
         latencyMs,
@@ -274,7 +287,9 @@ export const recordHealthCheck = mutation({
     } else {
       await ctx.db.insert("linkHealthChecks", {
         urlId: normalizedUrl,
-        userId: normalizedUser,
+        userId: owner.userId,
+        guestId: owner.guestId,
+        analyticsOwnerKey: owner.analyticsOwnerKey,
         shortUrl,
         longUrl,
         statusCode,
@@ -300,6 +315,9 @@ export const recordHealthCheck = mutation({
     if (existingSummary) {
       const newTotal = existingSummary.totalChecks + 1;
       await ctx.db.patch(existingSummary._id, {
+        userId: owner.userId,
+        guestId: owner.guestId,
+        analyticsOwnerKey: owner.analyticsOwnerKey,
         totalChecks: newTotal,
         healthyChecks: existingSummary.healthyChecks + (isNowHealthy ? 1 : 0),
         avgLatencyMs: Math.round(
@@ -312,7 +330,9 @@ export const recordHealthCheck = mutation({
     } else {
       await ctx.db.insert("linkHealthDailySummary", {
         urlId: normalizedUrl,
-        userId: normalizedUser,
+        userId: owner.userId,
+        guestId: owner.guestId,
+        analyticsOwnerKey: owner.analyticsOwnerKey,
         date: today,
         totalChecks: 1,
         healthyChecks: isNowHealthy ? 1 : 0,
@@ -370,7 +390,9 @@ export const recordHealthCheck = mutation({
 
       await ctx.db.insert("linkIncidents", {
         urlId: normalizedUrl,
-        userId: normalizedUser,
+        userId: owner.userId,
+        guestId: owner.guestId,
+        analyticsOwnerKey: owner.analyticsOwnerKey,
         shortUrl,
         type: healthStatus === "down" ? "error" : "warning",
         message,
@@ -380,7 +402,9 @@ export const recordHealthCheck = mutation({
       // Status RECOVERED
       await ctx.db.insert("linkIncidents", {
         urlId: normalizedUrl,
-        userId: normalizedUser,
+        userId: owner.userId,
+        guestId: owner.guestId,
+        analyticsOwnerKey: owner.analyticsOwnerKey,
         shortUrl,
         type: "resolved",
         message: "Your link is back online and responding normally.",
@@ -510,7 +534,7 @@ export const getHealthandIncidentsDataForUrl = query({
       return null;
     }
 
-    const url = await ctx.db.get("urls", urlId);
+    const url = await ctx.db.get(urlId);
 
     if (!url || url.userTableId !== user._id) {
       return null;

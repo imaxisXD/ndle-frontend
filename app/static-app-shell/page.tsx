@@ -8,11 +8,13 @@ import {
   useMutation,
 } from "convex/react";
 import dynamic from "next/dynamic";
-import SignInComponent from "../sign-in/[[...sign-in]]/sign-in";
 import { useCallback, useEffect, useRef } from "react";
 import { api } from "@/convex/_generated/api";
 import { useSession, useUser } from "@clerk/nextjs";
 import { identifyUser } from "@/lib/posthog";
+import { PublicHome } from "@/components/PublicHome";
+import { getOrCreateGuestId, setClaimedLinkCount } from "@/lib/guest";
+import { toast } from "sonner";
 
 const App = dynamic(() => import("@/app/static-app-shell/app"), { ssr: false });
 
@@ -27,7 +29,7 @@ export default function StaticAppShell() {
         <App />
       </Authenticated>
       <Unauthenticated>
-        <SignInComponent />
+        <PublicHome />
       </Unauthenticated>
     </>
   );
@@ -50,7 +52,9 @@ function StoreUser() {
 
     try {
       // 1. Create/get Convex user - returns { id, metadataUpdated }
-      const result = await storeUser();
+      const result = await storeUser({
+        guestId: getOrCreateGuestId() || undefined,
+      });
 
       // 2. If metadata was updated (new user), refresh the Clerk session
       //    to get the new JWT with convex_user_id claim
@@ -71,7 +75,13 @@ function StoreUser() {
         email: user.primaryEmailAddress?.emailAddress,
         name: user.fullName ?? undefined,
         created_at: user.createdAt?.getTime(),
+        plan: result.membership,
       });
+
+      if (result.claimedLinkCount > 0) {
+        setClaimedLinkCount(result.claimedLinkCount);
+        toast.success(`Moved ${result.claimedLinkCount} guest links to your account.`);
+      }
 
       initializedRef.current = true;
     } catch (error) {

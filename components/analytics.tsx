@@ -21,6 +21,7 @@ import {
 } from "@phosphor-icons/react";
 import { UTMAnalyticsPanel } from "@/components/UTMAnalyticsPanel";
 import type { UTMAnalyticsData } from "@/types/utm-analytics";
+import { AgenticChartChat } from "@/components/agentic-charts";
 
 function TotalClicksCard() {
   const totalClicksFromConvex = useQuery(api.urlAnalytics.getUsersTotalClicks);
@@ -49,6 +50,8 @@ function TotalClicksCard() {
 }
 
 export function Analytics() {
+  const viewer = useQuery(api.users.getViewerState);
+  const isPro = viewer?.membership === "pro";
   // Filter state
   const [timeRange, setTimeRange] = useState("30d");
   const [countryFilter, setCountryFilter] = useState("all");
@@ -248,6 +251,32 @@ export function Analytics() {
     link: [{ value: "all", label: "All Links" }],
   };
 
+  const timeRangeOptions = isPro
+    ? undefined
+    : [
+        {
+          value: "24h",
+          label: "Last 24 hours",
+          displayValue: "Last 24 hours",
+        },
+        { value: "7d", label: "Last 7 days", displayValue: "Last 7 days" },
+        {
+          value: "30d",
+          label: "Last 30 days",
+          displayValue: "Last 30 days",
+        },
+      ];
+
+  useEffect(() => {
+    if (isPro) {
+      return;
+    }
+
+    if (!["24h", "7d", "30d"].includes(timeRange)) {
+      setTimeRange("30d");
+    }
+  }, [isPro, timeRange]);
+
   // Clicks by day of week for the chart
   const clicksData = useMemo(() => {
     const daysOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
@@ -351,6 +380,7 @@ export function Analytics() {
       <FilterBar
         timeRange={timeRange}
         onTimeRangeChange={setTimeRange}
+        timeRangeOptions={timeRangeOptions}
         linkFilter={linkFilter}
         onLinkFilterChange={setLinkFilter}
         linkOptions={filterOptions.link}
@@ -522,6 +552,11 @@ export function Analytics() {
           </CardContent>
         </Card>
       </div> */}
+
+      {/* AI Chart Generation Chat */}
+      <div className="mt-8">
+        <AgenticChartChat />
+      </div>
     </div>
   );
 }

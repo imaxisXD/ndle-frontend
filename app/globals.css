@@ -55,6 +55,11 @@
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
   --font-doto: var(--font-doto);
+  --font-geist-pixel-square: var(--font-geist-pixel-square);
+  --font-geist-pixel-grid: var(--font-geist-pixel-grid);
+  --font-geist-pixel-circle: var(--font-geist-pixel-circle);
+  --font-geist-pixel-triangle: var(--font-geist-pixel-triangle);
+  --font-geist-pixel-line: var(--font-geist-pixel-line);
   --color-home: var(--home);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -111,7 +116,9 @@
   }
 
   html {
-    width: 100vw;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: clip;
     scrollbar-gutter: auto;
     scrollbar-width: thin;
   }
@@ -120,7 +127,9 @@
     @apply bg-background text-foreground font-mono;
     scrollbar-width: thin;
     scrollbar-color: oklch(0.9 0 0) transparent;
-    width: 100vw;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: clip;
   }
 
   /* Custom scrollbar styling to make it thin and stick to edge

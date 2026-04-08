@@ -1,5 +1,12 @@
 import type { Metadata } from "next";
 import { Doto, Geist_Mono } from "next/font/google";
+import {
+  GeistPixelSquare,
+  GeistPixelGrid,
+  GeistPixelCircle,
+  GeistPixelTriangle,
+  GeistPixelLine,
+} from "geist/font/pixel";
 import type React from "react";
 import "./globals.css";
 import ConvexClientProvider from "@/components/ConvexClientProvider";
@@ -56,7 +63,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistMono.variable} ${doto.variable} antialiased`}
+      className={`${geistMono.variable} ${doto.variable} ${GeistPixelSquare.variable} ${GeistPixelGrid.variable} ${GeistPixelCircle.variable} ${GeistPixelTriangle.variable} ${GeistPixelLine.variable} antialiased`}
     >
       <body>
         <ConvexClientProvider>{children}</ConvexClientProvider>

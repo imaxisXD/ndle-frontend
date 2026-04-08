@@ -9,6 +9,15 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import {
   BarChart,
   Bar,
   XAxis,
@@ -395,54 +404,58 @@ export function UTMAnalyticsPanel({ data, isLoading }: UTMAnalyticsPanelProps) {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b">
-                    <th className="py-2 text-left font-medium">Source</th>
-                    <th className="py-2 text-left font-medium">Medium</th>
-                    <th className="py-2 text-right font-medium">Clicks</th>
-                    <th className="py-2 text-right font-medium">Share</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {data.sourceMediaMatrix.slice(0, 10).map((row, index) => {
-                    const total = data.totalUtmClicks || 1;
-                    const share = Math.round((row.clicks / total) * 100);
-                    return (
-                      <tr key={index} className="border-b last:border-0">
-                        <td className="py-2">
-                          <span className="rounded-full bg-indigo-100 px-2 py-0.5 text-xs text-indigo-700">
-                            {row.source}
-                          </span>
-                        </td>
-                        <td className="py-2">
-                          <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-xs text-emerald-700">
-                            {row.medium}
-                          </span>
-                        </td>
-                        <td className="py-2 text-right tabular-nums">
-                          {row.clicks.toLocaleString()}
-                        </td>
-                        <td className="py-2 text-right">
-                          <div className="flex items-center justify-end gap-2">
-                            <div className="h-2 w-16 overflow-hidden rounded-full bg-gray-100">
-                              <div
-                                className="h-full bg-indigo-500"
-                                style={{ width: `${share}%` }}
-                              />
-                            </div>
-                            <span className="text-muted-foreground w-8 tabular-nums">
-                              {share}%
-                            </span>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Source</TableHead>
+                  <TableHead>Medium</TableHead>
+                  <TableHead className="text-right">Clicks</TableHead>
+                  <TableHead className="text-right">Share</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {data.sourceMediaMatrix.slice(0, 10).map((row, index) => {
+                  const total = data.totalUtmClicks || 1;
+                  const share = Math.round((row.clicks / total) * 100);
+                  return (
+                    <TableRow key={index}>
+                      <TableCell className="font-medium">
+                        <Badge
+                          variant="default"
+                          className="border-indigo-200 bg-indigo-50 text-indigo-700 hover:bg-indigo-50"
+                        >
+                          {row.source}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Badge
+                          variant="default"
+                          className="border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-50"
+                        >
+                          {row.medium}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-right tabular-nums">
+                        {row.clicks.toLocaleString()}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex items-center justify-end gap-2">
+                          <div className="bg-secondary h-2 w-16 overflow-hidden rounded-full">
+                            <div
+                              className="h-full bg-indigo-500"
+                              style={{ width: `${share}%` }}
+                            />
                           </div>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
+                          <span className="text-muted-foreground w-8 tabular-nums">
+                            {share}%
+                          </span>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
           </CardContent>
         </Card>
       )}

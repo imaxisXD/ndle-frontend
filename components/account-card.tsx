@@ -12,15 +12,18 @@ import {
 import { Button } from "./ui/button";
 import { SignOutButton, useUser } from "@clerk/nextjs";
 import { FireIcon } from "@phosphor-icons/react";
+import { useQuery } from "convex/react";
+import { api } from "@/convex/_generated/api";
 
 export function AccountCard() {
   const { user, isSignedIn } = useUser();
+  const viewer = useQuery(api.users.getViewerState);
 
   if (!user || !isSignedIn) {
     return null;
   }
 
-  const isPro = "pro";
+  const isPro = viewer?.membership === "pro";
 
   return (
     <Card variant={"accent"} className="border-border border">
@@ -80,7 +83,7 @@ export function AccountCard() {
               </h4>
               <span className={isPro ? "badge-pro" : "badge-basic"}>
                 {isPro ? <FireIcon className="size-5 text-orange-500" /> : null}
-                {isPro ? "PRO" : "BASIC"}
+                {isPro ? "PRO" : "FREE"}
               </span>
             </div>
           </div>

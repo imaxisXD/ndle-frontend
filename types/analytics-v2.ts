@@ -103,6 +103,9 @@ export interface AnalyticsV2Response {
   // Cold storage files (for client-side DuckDB-WASM)
   cold: ColdFile[];
 
+  // Hot file - recent events from events_raw (not yet archived)
+  hot?: ColdFile | null;
+
   // Whether this is partial data (always false for v2)
   isPartialData: boolean;
 

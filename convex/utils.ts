@@ -76,7 +76,9 @@ export interface RedisValueObject {
   // Essential (always needed)
   destination: string;
   tenant_id: string;
-  user_id: string;
+  user_id?: string;
+  analytics_owner_key: string;
+  convex_user_id?: string;
   redirect_type: 301 | 302 | 307 | 308;
   // Tracking
   created_at: number;

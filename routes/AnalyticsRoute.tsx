@@ -23,18 +23,6 @@ export default function AnalyticsRoute() {
         </h2>
         <Analytics />
       </section>
-      <section aria-labelledby="links-list-heading">
-        <h2 className="sr-only" id="links-list-heading">
-          Links List
-        </h2>
-        {/* <UrlList>
-          <UrlList.Header
-            title="Recent Links"
-            description="Your latest shortened links"
-          />
-          <UrlList.Table />
-        </UrlList> */}
-      </section>
     </>
   );
 }

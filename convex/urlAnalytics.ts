@@ -9,7 +9,6 @@ export const counter = new ShardedCounter(components.shardedCounter);
 export const mutateUrlAnalytics = mutation({
   args: {
     urlId: v.string(),
-    userId: v.string(),
     sharedSecret: v.string(),
     urlStatusMessage: v.string(),
     urlStatusCode: v.number(),
@@ -38,20 +37,14 @@ export const mutateUrlAnalytics = mutation({
       throw new ConvexError("Invalid shared secret");
     }
     const normalisedUrlId = ctx.db.normalizeId("urls", args.urlId);
-    const normalisedUserId = ctx.db.normalizeId("users", args.userId);
-    if (!normalisedUrlId || !normalisedUserId) {
-      console.error("Invalid URL or user ID");
-      throw new ConvexError("Invalid URL or user ID");
+    if (!normalisedUrlId) {
+      console.error("Invalid URL ID");
+      throw new ConvexError("Invalid URL ID");
     }
     const url = await ctx.db.get(normalisedUrlId);
     if (!url) {
       console.error("URL not found");
       throw new ConvexError("URL not found");
-    }
-    const user = await ctx.db.get(normalisedUserId);
-    if (!user) {
-      console.error("User not found");
-      throw new ConvexError("User not found");
     }
 
     // Insert click event if provided
@@ -59,7 +52,9 @@ export const mutateUrlAnalytics = mutation({
       await ctx.db.insert("clickEvents", {
         linkSlug: args.clickEvent.linkSlug,
         urlId: normalisedUrlId,
-        userId: normalisedUserId,
+        userId: url.userTableId,
+        guestId: url.guestId,
+        analyticsOwnerKey: url.analyticsOwnerKey,
         occurredAt: args.clickEvent.occurredAt,
         country: args.clickEvent.country,
         city: args.clickEvent.city,
@@ -86,8 +81,10 @@ export const mutateUrlAnalytics = mutation({
     const key = `url:${normalisedUrlId}`;
     await counter.inc(ctx, key);
 
-    // Incremnt user total clicks
-    await counter.inc(ctx, `user:${user._id}`);
+    // Increment user total clicks only for signed-in owners.
+    if (url.userTableId) {
+      await counter.inc(ctx, `user:${url.userTableId}`);
+    }
 
     // Incremnt collection total clicks
     const collections = await ctx.db
@@ -194,6 +191,15 @@ export const getUsersTotalClicks = query({
     if (!user) {
       return 0;
     }
-    return await counter.count(ctx, `user:${user._id}`);
+    const urls = await ctx.db
+      .query("urls")
+      .withIndex("by_user", (q) => q.eq("userTableId", user._id))
+      .collect();
+
+    let total = 0;
+    for (const url of urls) {
+      total += await counter.count(ctx, `url:${url._id}`);
+    }
+    return total;
   },
 });
