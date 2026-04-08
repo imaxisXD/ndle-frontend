@@ -28,14 +28,28 @@ export function makeUserOwnerKey(userId: string) {
   return `user:${userId}`;
 }
 
-export function getCurrentOwnerKey(url: Pick<Doc<"urls">, "ownershipState" | "guestId" | "userTableId" | "analyticsOwnerKey">) {
+export function getCurrentOwnerKey(
+  url: Pick<
+    Doc<"urls">,
+    "ownershipState" | "guestId" | "userTableId" | "analyticsOwnerKey"
+  >,
+) {
   if (url.ownershipState === "user" && url.userTableId) {
     return makeUserOwnerKey(url.userTableId);
   }
   if (url.ownershipState === "guest" && url.guestId) {
     return makeGuestOwnerKey(url.guestId);
   }
-  return url.analyticsOwnerKey;
+  if (url.analyticsOwnerKey) {
+    return url.analyticsOwnerKey;
+  }
+  if (url.userTableId) {
+    return makeUserOwnerKey(url.userTableId);
+  }
+  if (url.guestId) {
+    return makeGuestOwnerKey(url.guestId);
+  }
+  throw new ConvexError("Link owner data is missing");
 }
 
 export function getOwnerSnapshot(
@@ -45,10 +59,14 @@ export function getOwnerSnapshot(
   >,
 ) {
   const analyticsOwnerKey = getCurrentOwnerKey(url);
+  const userId =
+    url.ownershipState === "guest" ? undefined : url.userTableId ?? undefined;
+  const guestId =
+    url.ownershipState === "guest" ? url.guestId : undefined;
   return {
     analyticsOwnerKey,
-    userId: url.ownershipState === "user" ? url.userTableId : undefined,
-    guestId: url.ownershipState === "guest" ? url.guestId : undefined,
+    userId,
+    guestId,
   };
 }
 
@@ -100,4 +118,3 @@ export function getPlanLimits(plan: ViewerPlan) {
     canUseCustomLogoQr: false,
   };
 }
-

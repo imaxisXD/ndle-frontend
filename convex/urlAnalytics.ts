@@ -3,6 +3,7 @@ import { mutation, query } from "./_generated/server";
 import { getCurrentUser } from "./users";
 import { ShardedCounter } from "@convex-dev/sharded-counter";
 import { components } from "./_generated/api";
+import { getOwnerSnapshot } from "./ownership";
 
 export const counter = new ShardedCounter(components.shardedCounter);
 
@@ -49,12 +50,13 @@ export const mutateUrlAnalytics = mutation({
 
     // Insert click event if provided
     if (args.clickEvent) {
+      const owner = getOwnerSnapshot(url);
       await ctx.db.insert("clickEvents", {
         linkSlug: args.clickEvent.linkSlug,
         urlId: normalisedUrlId,
-        userId: url.userTableId,
-        guestId: url.guestId,
-        analyticsOwnerKey: url.analyticsOwnerKey,
+        userId: owner.userId,
+        guestId: owner.guestId,
+        analyticsOwnerKey: owner.analyticsOwnerKey,
         occurredAt: args.clickEvent.occurredAt,
         country: args.clickEvent.country,
         city: args.clickEvent.city,

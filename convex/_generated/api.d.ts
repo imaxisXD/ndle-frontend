@@ -8,6 +8,7 @@
  * @module
  */
 
+import type * as backfill from "../backfill.js";
 import type * as clickEvents from "../clickEvents.js";
 import type * as collectionMangament from "../collectionMangament.js";
 import type * as crons from "../crons.js";
@@ -30,6 +31,7 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
+  backfill: typeof backfill;
   clickEvents: typeof clickEvents;
   collectionMangament: typeof collectionMangament;
   crons: typeof crons;

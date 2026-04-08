@@ -42,8 +42,10 @@ export default defineSchema({
     customDomain: v.optional(v.string()), // Custom domain for Pro users
     userTableId: v.optional(v.id("users")),
     guestId: v.optional(v.string()),
-    ownershipState: v.union(v.literal("guest"), v.literal("user")),
-    analyticsOwnerKey: v.string(),
+    ownershipState: v.optional(
+      v.union(v.literal("guest"), v.literal("user")),
+    ),
+    analyticsOwnerKey: v.optional(v.string()),
     claimedAt: v.optional(v.number()),
     slugAssigned: v.optional(v.string()),
     redisStatus: v.optional(v.string()),
@@ -89,7 +91,7 @@ export default defineSchema({
     urlId: v.id("urls"),
     userId: v.optional(v.id("users")),
     guestId: v.optional(v.string()),
-    analyticsOwnerKey: v.string(),
+    analyticsOwnerKey: v.optional(v.string()),
     shortUrl: v.string(),
     longUrl: v.string(),
     statusCode: v.number(),
@@ -113,7 +115,7 @@ export default defineSchema({
     urlId: v.id("urls"),
     userId: v.optional(v.id("users")),
     guestId: v.optional(v.string()),
-    analyticsOwnerKey: v.string(),
+    analyticsOwnerKey: v.optional(v.string()),
     date: v.string(), // "2024-12-13" format
     totalChecks: v.number(),
     healthyChecks: v.number(),
@@ -130,7 +132,7 @@ export default defineSchema({
     urlId: v.id("urls"),
     userId: v.optional(v.id("users")),
     guestId: v.optional(v.string()),
-    analyticsOwnerKey: v.string(),
+    analyticsOwnerKey: v.optional(v.string()),
     shortUrl: v.string(),
     type: v.union(
       v.literal("error"),
@@ -199,7 +201,7 @@ export default defineSchema({
     urlId: v.optional(v.id("urls")),
     userId: v.optional(v.id("users")),
     guestId: v.optional(v.string()),
-    analyticsOwnerKey: v.string(),
+    analyticsOwnerKey: v.optional(v.string()),
     occurredAt: v.number(),
     country: v.string(),
     city: v.optional(v.string()),
