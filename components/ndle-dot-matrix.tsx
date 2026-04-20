@@ -1,4 +1,4 @@
-import { digits, Matrix } from "./ui/matrix";
+import { Matrix } from "./ui/matrix";
 
 type Frame = number[][];
 
@@ -171,11 +171,15 @@ export function NdleDotMatrix({
   rows = 7,
   cols = 21,
   letterSpacing = 1,
+  size = 4.5,
+  gap = 1.5,
   palette,
 }: {
   rows?: number;
   cols?: number;
   letterSpacing?: number;
+  size?: number;
+  gap?: number;
   palette?: { on: string; off: string };
 }) {
   const base = composeTextFrame("ndle", letterSpacing);
@@ -186,8 +190,9 @@ export function NdleDotMatrix({
       rows={rows}
       cols={cols}
       pattern={pattern}
-      size={4.5}
-      gap={1.5}
+      size={size}
+      gap={gap}
+      palette={palette}
     />
   );
 }

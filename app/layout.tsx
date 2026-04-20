@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Doto, Geist_Mono } from "next/font/google";
+import { Doto, Geist_Mono, Sigmar } from "next/font/google";
 import {
   GeistPixelSquare,
   GeistPixelGrid,
@@ -20,6 +20,12 @@ const doto = Doto({
   variable: "--font-doto",
   subsets: ["latin"],
   axes: ["ROND"],
+});
+
+const sigmar = Sigmar({
+  variable: "--font-sigmar",
+  subsets: ["latin"],
+  weight: "400",
 });
 
 export const metadata: Metadata = {
@@ -63,7 +69,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistMono.variable} ${doto.variable} ${GeistPixelSquare.variable} ${GeistPixelGrid.variable} ${GeistPixelCircle.variable} ${GeistPixelTriangle.variable} ${GeistPixelLine.variable} antialiased`}
+      className={`${geistMono.variable} ${doto.variable} ${sigmar.variable} ${GeistPixelSquare.variable} ${GeistPixelGrid.variable} ${GeistPixelCircle.variable} ${GeistPixelTriangle.variable} ${GeistPixelLine.variable} antialiased`}
     >
       <body>
         <ConvexClientProvider>{children}</ConvexClientProvider>
