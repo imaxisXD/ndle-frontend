@@ -349,32 +349,6 @@ const watchedLinks: WatchedLink[] = [
   },
 ];
 
-function statusChip(status: MonitorStatus) {
-  switch (status) {
-    case "OK":
-      return {
-        label: "UP",
-        bg: "bg-[oklch(0.9_0.06_145)]",
-        text: "text-[oklch(0.35_0.15_145)]",
-        dot: "bg-[oklch(0.6_0.18_145)]",
-      };
-    case "WARN":
-      return {
-        label: "SLOW",
-        bg: "bg-[oklch(0.93_0.07_75)]",
-        text: "text-[oklch(0.42_0.15_60)]",
-        dot: "bg-[color:var(--pulp-orange)]",
-      };
-    case "DOWN":
-      return {
-        label: "DOWN",
-        bg: "bg-[oklch(0.92_0.04_25)]",
-        text: "text-[oklch(0.42_0.2_25)]",
-        dot: "bg-[oklch(0.55_0.22_25)]",
-      };
-  }
-}
-
 /* ───── 3-step flow chips (shorten → watch → alert) ───── */
 
 function FlowChips({ inView }: { inView: boolean }) {
@@ -410,7 +384,83 @@ function FlowChips({ inView }: { inView: boolean }) {
   );
 }
 
-/* ───── Pulp watch-list ledger (ruled case book) ───── */
+/* ───── Watch-list rendered on a self-healing cutting mat (rulers + two-level grid) ───── */
+
+// Ruler along the top edge — numbered markings every 5 units + tick marks between
+function RulerTop() {
+  // 8 major marks across the top (0, 5, 10, ... 35)
+  const majors = [0, 5, 10, 15, 20, 25, 30, 35];
+  // Ticks — 36 total, longer at every 5th
+  const ticks = Array.from({ length: 36 });
+  return (
+    <>
+      {/* Numbers */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute left-12 right-12 top-2 flex justify-between font-mono text-[9px] font-semibold text-white/55 tabular-nums"
+      >
+        {majors.map((n) => (
+          <span key={n}>{n}</span>
+        ))}
+      </div>
+      {/* Tick marks */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute left-12 right-12 top-[22px] flex justify-between"
+      >
+        {ticks.map((_, i) => (
+          <span
+            key={i}
+            className={`${i % 5 === 0 ? "h-2 w-px bg-white/50" : "h-1 w-px bg-white/30"}`}
+          />
+        ))}
+      </div>
+    </>
+  );
+}
+
+// Ruler along the left edge — numbered markings + tick marks down the side
+function RulerLeft() {
+  const majors = [0, 5, 10, 15, 20, 25, 30, 35];
+  const ticks = Array.from({ length: 36 });
+  return (
+    <>
+      <div
+        aria-hidden
+        className="pointer-events-none absolute left-2 top-12 bottom-12 flex flex-col justify-between font-mono text-[9px] font-semibold text-white/55 tabular-nums"
+      >
+        {majors.map((n) => (
+          <span key={n}>{n}</span>
+        ))}
+      </div>
+      <div
+        aria-hidden
+        className="pointer-events-none absolute left-[22px] top-12 bottom-12 flex flex-col justify-between"
+      >
+        {ticks.map((_, i) => (
+          <span
+            key={i}
+            className={`${i % 5 === 0 ? "h-px w-2 bg-white/50" : "h-px w-1 bg-white/30"}`}
+          />
+        ))}
+      </div>
+    </>
+  );
+}
+
+// Formatted slug — domain dimmed, slug-path bright.
+// "ndle.im/launch" → <span class="dim">ndle.im/</span><span>launch</span>
+function SlugText({ slug, className = "" }: { slug: string; className?: string }) {
+  const slashIdx = slug.indexOf("/");
+  const domain = slashIdx > -1 ? slug.slice(0, slashIdx + 1) : slug;
+  const path   = slashIdx > -1 ? slug.slice(slashIdx + 1) : "";
+  return (
+    <span className={`truncate ${className}`}>
+      <span className="opacity-55">{domain}</span>
+      <span className="font-bold">{path}</span>
+    </span>
+  );
+}
 
 function WatchListLedger({
   yourLink,
@@ -421,139 +471,171 @@ function WatchListLedger({
   inView: boolean;
   caseNo: string;
 }) {
-  const paperInk = "oklch(0.22 0.03 55)";
+  const mat = "var(--poster)";
+
+  // Status pill tuned for a warm-white paper card (dark ink on light pastel bg)
+  function whiteStatus(status: MonitorStatus) {
+    switch (status) {
+      case "OK":
+        return { label: "UP",   bg: "bg-[oklch(0.9_0.06_145)]", text: "text-[oklch(0.35_0.15_145)]", dot: "bg-[oklch(0.6_0.18_145)]" };
+      case "WARN":
+        return { label: "SLOW", bg: "bg-[oklch(0.93_0.07_75)]", text: "text-[oklch(0.42_0.15_60)]",  dot: "bg-[color:var(--pulp-orange)]" };
+      case "DOWN":
+        return { label: "DOWN", bg: "bg-[oklch(0.92_0.04_25)]", text: "text-[oklch(0.42_0.2_25)]",   dot: "bg-[oklch(0.55_0.22_25)]" };
+    }
+  }
+
+  // Shared column grid — declared once, reused by header + rows for perfect alignment
+  const COLS = "grid grid-cols-[3rem_minmax(0,1.1fr)_minmax(0,1.3fr)_4.5rem_3.5rem_4.5rem] items-center gap-4";
+
   return (
     <motion.div
       className="relative"
       initial={{ opacity: 0, y: 20, scale: 0.98 }}
-      animate={
-        inView
-          ? { opacity: 1, y: 0, scale: 1 }
-          : { opacity: 0, y: 20, scale: 0.98 }
-      }
+      animate={inView ? { opacity: 1, y: 0, scale: 1 } : { opacity: 0, y: 20, scale: 0.98 }}
       transition={{ type: "spring", stiffness: 260, damping: 24 }}
     >
+      {/* ─── Layer 1: Blue self-healing cutting mat (bg + rulers + grid) ─── */}
       <div
-        className="relative overflow-hidden rounded-sm border border-[oklch(0.82_0.02_85)] shadow-[0_10px_24px_rgba(0,0,0,0.3),0_24px_50px_rgba(0,0,0,0.18)]"
+        className="relative overflow-hidden rounded-2xl shadow-[0_10px_24px_rgba(0,0,0,0.35),0_24px_50px_rgba(0,0,0,0.2)]"
         style={{
-          color: paperInk,
-          backgroundColor: "oklch(0.96 0.015 85)",
-          // Ruled paper — horizontal lines every 34px
-          backgroundImage:
-            "repeating-linear-gradient(to bottom, transparent 0, transparent 33px, oklch(0.75 0.05 230 / 0.25) 33px, oklch(0.75 0.05 230 / 0.25) 34px)",
+          backgroundColor: mat,
+          backgroundImage: `
+            /* Subtle 45° diagonal reference lines — classic cutting-mat detail */
+            linear-gradient( 45deg, transparent 49.7%, rgba(255,255,255,0.06) 49.7%, rgba(255,255,255,0.06) 50.3%, transparent 50.3%),
+            linear-gradient(-45deg, transparent 49.7%, rgba(255,255,255,0.06) 49.7%, rgba(255,255,255,0.06) 50.3%, transparent 50.3%),
+            /* Bold 5-unit grid */
+            linear-gradient(to right,  rgba(255,255,255,0.3) 1px, transparent 1px),
+            linear-gradient(to bottom, rgba(255,255,255,0.3) 1px, transparent 1px),
+            /* Fine 1-unit grid */
+            linear-gradient(to right,  rgba(255,255,255,0.12) 1px, transparent 1px),
+            linear-gradient(to bottom, rgba(255,255,255,0.12) 1px, transparent 1px)
+          `,
+          backgroundSize: "100% 100%, 100% 100%, 100px 100px, 100px 100px, 20px 20px, 20px 20px",
         }}
       >
-        {/* Ledger header */}
+        {/* Rulers along top & left edges of the mat */}
+        <RulerTop />
+        <RulerLeft />
+
+        {/* ─── Layer 2: White paper card floating on the mat ─── */}
         <div
-          className="border-b-[3px] border-double px-7 py-5"
-          style={{
-            borderColor: paperInk,
-            backgroundColor: "oklch(0.96 0.015 85)",
-          }}
+          className="relative ml-14 mr-8 mb-8 mt-12 overflow-hidden rounded-xl text-[color:var(--pulp-ink)] ring-1 ring-black/5 shadow-[0_6px_18px_rgba(0,0,0,0.18),0_2px_6px_rgba(0,0,0,0.08)]"
+          style={{ backgroundColor: "var(--pulp-cream)" }}
         >
-          <div className="flex items-center justify-between">
+          {/* Title block */}
+          <header className="grid grid-cols-[1fr_auto] items-end gap-6 px-8 pt-6 pb-5">
             <div>
-              <p className="text-[9px] font-bold tracking-[0.32em] uppercase">
-                ndle monitoring dept.
+              <p className="font-mono text-[9px] font-bold tracking-[0.3em] uppercase opacity-55">
+                ndle monitoring dept. <span className="opacity-60">·</span> drawing
               </p>
-              <h3 className="font-sigmar mt-1 text-3xl leading-none italic">
+              <h3 className="mt-1.5 font-sigmar text-4xl leading-[1] italic tracking-tight">
                 The Watch List
               </h3>
             </div>
-            <div className="text-right">
-              <p className="text-[9px] font-bold tracking-[0.22em] uppercase">
-                case book
+            <div className="text-right leading-tight">
+              <p className="font-mono text-[9px] font-bold tracking-[0.2em] uppercase opacity-55">
+                sheet
               </p>
-              <p className="font-sigmar mt-0.5 text-xl leading-none italic">
+              <p className="mt-0.5 font-sigmar text-2xl italic leading-none text-[color:var(--pulp-orange)]">
                 № {caseNo}
               </p>
+              <p className="mt-1 font-mono text-[9px] tracking-[0.18em] uppercase opacity-45">
+                scale 1:1 · rev. a
+              </p>
             </div>
+          </header>
+
+          {/* Double-rule divider — header → body */}
+          <div className="mx-8 border-t border-black/20" />
+          <div className="mx-8 border-t border-black/10" style={{ marginTop: "2px" }} />
+
+          {/* Column headers */}
+          <div
+            className={`${COLS} px-8 py-2.5 font-mono text-[9px] font-bold tracking-[0.18em] uppercase opacity-55`}
+          >
+            <span>№</span>
+            <span>slug</span>
+            <span>destination</span>
+            <span>status</span>
+            <span className="text-right">last</span>
+            <span className="text-right">uptime 30d</span>
           </div>
-        </div>
 
-        {/* Column headers */}
-        <div
-          className="grid grid-cols-[2.5rem_1fr_1.2fr_5rem_4rem_4rem] items-center gap-3 border-b-2 px-7 py-2 font-mono text-[9px] font-bold tracking-[0.16em] uppercase opacity-70"
-          style={{
-            borderColor: `${paperInk}40`,
-            backgroundColor: "oklch(0.96 0.015 85)",
-          }}
-        >
-          <span>№</span>
-          <span>slug</span>
-          <span>destination</span>
-          <span>status</span>
-          <span>last</span>
-          <span className="text-right">uptime 30d</span>
-        </div>
-
-        {/* Rows */}
-        <ul className="divide-y" style={{ borderColor: `${paperInk}20` }}>
-          {watchedLinks.map((d, i) => {
-            const s = statusChip(d.status);
-            return (
-              <motion.li
-                key={d.slug}
-                className="grid grid-cols-[2.5rem_1fr_1.2fr_5rem_4rem_4rem] items-center gap-3 px-7 py-2 font-mono text-[11.5px] leading-none"
-                initial={{ opacity: 0, x: -6 }}
-                animate={inView ? { opacity: 1, x: 0 } : { opacity: 0, x: -6 }}
-                transition={{ duration: 0.22, delay: 0.3 + i * 0.07 }}
-                style={{ borderColor: `${paperInk}18` }}
-              >
-                <span className="font-bold tabular-nums opacity-70">
-                  {(i + 1).toString().padStart(3, "0")}
-                </span>
-                <span className="truncate font-bold">{d.slug}</span>
-                <span className="truncate opacity-75">{d.destination}</span>
-                <span
-                  className={`inline-flex items-center gap-1.5 rounded-sm ${s.bg} px-1.5 py-0.5 text-[10px] font-bold tracking-[0.1em] uppercase ${s.text}`}
+          {/* Rows */}
+          <ul className="divide-y divide-black/10">
+            {watchedLinks.map((d, i) => {
+              const s = whiteStatus(d.status);
+              return (
+                <motion.li
+                  key={d.slug}
+                  className={`${COLS} px-8 py-2.5 font-mono text-[12px] leading-none`}
+                  initial={{ opacity: 0, x: -6 }}
+                  animate={inView ? { opacity: 1, x: 0 } : { opacity: 0, x: -6 }}
+                  transition={{ duration: 0.22, delay: 0.3 + i * 0.07 }}
                 >
-                  <span className={`size-1.5 rounded-full ${s.dot}`} />
-                  {s.label}
+                  <span className="font-bold tabular-nums opacity-45">
+                    {(i + 1).toString().padStart(3, "0")}
+                  </span>
+                  <SlugText slug={d.slug} />
+                  <span className="truncate opacity-65">{d.destination}</span>
+                  <span
+                    className={`inline-flex min-w-[3.75rem] items-center justify-center gap-1.5 rounded-sm ${s.bg} px-1.5 py-0.5 text-[9.5px] font-bold tracking-[0.14em] uppercase ${s.text}`}
+                  >
+                    <span className={`size-1.5 rounded-full ${s.dot}`} />
+                    {s.label}
+                  </span>
+                  <span className="text-right tabular-nums opacity-65">
+                    {d.lastCheckSec}s
+                  </span>
+                  <span className="text-right font-bold tabular-nums">
+                    {d.uptime30d.toFixed(2)}
+                    <span className="opacity-50">%</span>
+                  </span>
+                </motion.li>
+              );
+            })}
+
+            {yourLink && (
+              <motion.li
+                className={`${COLS} bg-[color:var(--pulp-yellow)]/35 px-8 py-3 font-mono text-[12px] leading-none ring-1 ring-[color:var(--pulp-orange)]/50 ring-inset`}
+                initial={{ opacity: 0, x: -20, scale: 0.98 }}
+                animate={{ opacity: 1, x: 0, scale: 1 }}
+                transition={{ type: "spring", stiffness: 360, damping: 20 }}
+              >
+                <span className="font-bold tabular-nums text-[color:var(--pulp-orange)]">
+                  007
                 </span>
-                <span className="tabular-nums opacity-70">
-                  {d.lastCheckSec}s
+                <SlugText slug={yourLink.slug} />
+                <span className="truncate opacity-70">← your link</span>
+                <span className="inline-flex min-w-[3.75rem] items-center justify-center gap-1.5 rounded-sm bg-[color:var(--pulp-orange)]/20 px-1.5 py-0.5 text-[9.5px] font-bold tracking-[0.14em] uppercase text-[color:var(--pulp-orange)]">
+                  <span className="animate-live-blip size-1.5 rounded-full bg-[color:var(--pulp-orange)]" />
+                  NEW
                 </span>
-                <span className="text-right font-bold tabular-nums">
-                  {d.uptime30d.toFixed(2)}%
-                </span>
+                <span className="text-right tabular-nums opacity-65">0s</span>
+                <span className="text-right font-bold tabular-nums">—</span>
               </motion.li>
-            );
-          })}
+            )}
+          </ul>
 
-          {yourLink && (
-            <motion.li
-              className="grid grid-cols-[2.5rem_1fr_1.2fr_5rem_4rem_4rem] items-center gap-3 bg-[color:var(--pulp-yellow)]/40 px-7 py-2.5 font-mono text-[11.5px] leading-none ring-1 ring-[color:var(--pulp-orange)]/50 ring-inset"
-              initial={{ opacity: 0, x: -20, scale: 0.98 }}
-              animate={{ opacity: 1, x: 0, scale: 1 }}
-              transition={{ type: "spring", stiffness: 360, damping: 20 }}
-              style={{ borderColor: `${paperInk}18` }}
-            >
-              <span className="font-bold text-[color:var(--pulp-orange)] tabular-nums">
-                007
+          {/* Footer — info strip */}
+          <div className="mx-8 border-t border-black/20" />
+          <div className="mx-8 border-t border-black/10" style={{ marginTop: "2px" }} />
+          <div className="flex items-center justify-between gap-4 px-8 py-3 font-mono text-[9px] font-bold tracking-[0.2em] uppercase opacity-55">
+            <span>
+              checking every 60s <span className="opacity-70">·</span> 4 regions
+            </span>
+            <span className="flex items-center gap-3">
+              <span aria-hidden className="inline-flex items-center gap-0 opacity-75">
+                <span className="h-2 w-4 border border-black/35 bg-black/10" />
+                <span className="h-2 w-4 border border-black/35" />
+                <span className="h-2 w-4 border border-black/35 bg-black/10" />
               </span>
-              <span className="truncate font-bold">{yourLink.slug}</span>
-              <span className="truncate opacity-75">← your link</span>
-              <span className="inline-flex items-center gap-1.5 rounded-sm bg-[color:var(--pulp-orange)]/20 px-1.5 py-0.5 text-[10px] font-bold tracking-[0.1em] text-[color:var(--pulp-orange)] uppercase">
-                <span className="animate-live-blip size-1.5 rounded-full bg-[color:var(--pulp-orange)]" />
-                NEW
-              </span>
-              <span className="tabular-nums opacity-70">0s</span>
-              <span className="text-right font-bold tabular-nums">—</span>
-            </motion.li>
-          )}
-        </ul>
-
-        {/* Footer */}
-        <div
-          className="flex items-center justify-between border-t-2 px-7 py-3 font-mono text-[9px] font-bold tracking-[0.22em] uppercase opacity-65"
-          style={{
-            borderColor: `${paperInk}40`,
-            backgroundColor: "oklch(0.96 0.015 85)",
-          }}
-        >
-          <span>checking every 60s from 4 regions</span>
-          <span>us-east-1 · eu-west-2 · ap-south-1 · us-west-2</span>
+              us-east-1 <span className="opacity-60">·</span> eu-west-2{" "}
+              <span className="opacity-60">·</span> ap-south-1{" "}
+              <span className="opacity-60">·</span> us-west-2
+            </span>
+          </div>
         </div>
       </div>
     </motion.div>
