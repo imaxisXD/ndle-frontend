@@ -42,6 +42,11 @@ import { getRandomCollectionColor } from "@/components/collection/colors";
 import { trackUrlCreated, trackAdvancedOptionsOpened } from "@/lib/posthog";
 import { useFavicon } from "@/hooks/use-favicon";
 import {
+  clampQrLogoScale,
+  clampQrMargin,
+  clampQrSize,
+} from "@/lib/qr";
+import {
   Select,
   SelectTrigger,
   SelectValue,
@@ -114,7 +119,7 @@ const urlFormSchema = z
     passwordEnabled: z.boolean().optional(),
     password: z.string().optional(),
     passwordHint: z.string().optional(),
-    // QR Code (UI-only)
+    // QR Code
     qrEnabled: z.boolean().optional(),
     qrSize: z.number().optional(),
     qrMargin: z.number().optional(),
@@ -474,16 +479,19 @@ export function UrlShortener() {
         qrEnabled: values.qrEnabled ?? false,
         qrStyle: values.qrEnabled
           ? {
+              size: clampQrSize(values.qrSize ?? 200),
               fg: (values.qrFg ?? "#000000").trim(),
               bg: values.qrTransparentBg
                 ? "transparent"
                 : (values.qrBg ?? "#ffffff").trim(),
-              margin: Number(values.qrMargin ?? 2),
+              margin: clampQrMargin(values.qrMargin ?? 2),
+              includeMargin: values.qrIncludeMargin ?? true,
+              ecc: values.qrEcc ?? "H",
               logoMode: (values.qrLogoMode ?? "brand") as
                 | "brand"
                 | "custom"
                 | "none",
-              logoScale: Number(values.qrLogoScale ?? 0.18),
+              logoScale: clampQrLogoScale(values.qrLogoScale ?? 0.18),
               customLogoUrl:
                 values.qrLogoMode === "custom" && values.qrCustomLogoUrl
                   ? String(values.qrCustomLogoUrl).trim()

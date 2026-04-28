@@ -17,6 +17,13 @@ import {
 } from "./ui/base-dialog";
 import { Button } from "./ui/button";
 import { QrCodeIcon } from "@phosphor-icons/react/dist/ssr";
+import {
+  type QrStyle,
+  getQrMarginSize,
+  getQrOverlaySize,
+  getQrOverlaySrc,
+  normalizeQrStyle,
+} from "@/lib/qr";
 
 export default function MetadataCard({
   shortslug,
@@ -32,33 +39,18 @@ export default function MetadataCard({
   trackingEnabled?: boolean | undefined;
   fullurl?: string | undefined;
   qrEnabled?: boolean | undefined;
-  qrStyle?: {
-    fg?: string;
-    bg?: string;
-    margin?: number;
-    ecc?: "L" | "M" | "Q" | "H";
-    logoMode?: "brand" | "custom" | "none";
-    logoScale?: number;
-    customLogoUrl?: string;
-  };
+  qrStyle?: Partial<QrStyle>;
   customDomain?: string | null;
 }) {
   const shortLink = shortslug
     ? makeShortLinkWithDomain(shortslug, customDomain)
     : "";
   const qrTarget = shortLink ? `https://${shortLink}` : "";
-  const size = 200;
-  const fg = qrStyle?.fg ?? "#000000";
-  const bg = qrStyle?.bg ?? "#ffffff";
-  const ecc = (qrStyle?.ecc ?? "H") as "L" | "M" | "Q" | "H";
-  const includeMargin = (qrStyle?.margin ?? 2) > 0;
-  const logoMode = (qrStyle?.logoMode ?? "brand") as
-    | "brand"
-    | "custom"
-    | "none";
-  const logoScale =
-    typeof qrStyle?.logoScale === "number" ? qrStyle.logoScale : 0.18;
-  const customLogoUrl = qrStyle?.customLogoUrl ?? "";
+  const displayStyle = {
+    ...normalizeQrStyle(qrStyle),
+    size: 200,
+  };
+  const overlaySrc = getQrOverlaySrc(displayStyle);
 
   return (
     <Card>
@@ -100,53 +92,26 @@ export default function MetadataCard({
                     <div className="relative rounded-lg border bg-white p-4">
                       <QRCodeSVG
                         value={qrTarget}
-                        size={size}
-                        level={ecc}
-                        fgColor={fg}
-                        bgColor={bg === "transparent" ? "transparent" : bg}
-                        marginSize={includeMargin ? 2 : 0}
+                        size={displayStyle.size}
+                        level={displayStyle.ecc}
+                        fgColor={displayStyle.fg}
+                        bgColor={displayStyle.bg}
+                        marginSize={getQrMarginSize(displayStyle)}
                         imageSettings={
-                          logoMode === "custom" && customLogoUrl
+                          overlaySrc
                             ? {
-                                src: customLogoUrl,
-                                height: Math.max(
-                                  8,
-                                  Math.round(size * logoScale),
-                                ),
-                                width: Math.max(
-                                  8,
-                                  Math.round(size * logoScale),
-                                ),
+                                src: overlaySrc,
+                                height: getQrOverlaySize(displayStyle),
+                                width: getQrOverlaySize(displayStyle),
                                 excavate: true,
-                                crossOrigin: "anonymous",
+                                crossOrigin: overlaySrc.startsWith("data:")
+                                  ? undefined
+                                  : "anonymous",
                               }
                             : undefined
                         }
                         className="rounded-sm"
                       />
-                      {logoMode === "brand" ? (
-                        <div
-                          aria-hidden
-                          className="pointer-events-none absolute top-1/2 left-1/2 z-10 flex -translate-x-1/2 -translate-y-1/2 items-center justify-center bg-white"
-                          style={{
-                            width: Math.max(8, Math.round(size * logoScale)),
-                            height: Math.max(8, Math.round(size * logoScale)),
-                          }}
-                        >
-                          <span
-                            className="font-doto font-black"
-                            style={{
-                              fontSize: Math.round(
-                                Math.max(8, Math.round(size * logoScale)) * 0.7,
-                              ),
-                              color: fg,
-                              lineHeight: 1,
-                            }}
-                          >
-                            N
-                          </span>
-                        </div>
-                      ) : null}
                     </div>
                     <p className="text-muted-foreground text-center text-sm break-all">
                       {qrTarget}

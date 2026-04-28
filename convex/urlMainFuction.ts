@@ -1,7 +1,7 @@
 import { ShardedCounter } from "@convex-dev/sharded-counter";
 import { ConvexError, v } from "convex/values";
 import type { Doc, Id } from "./_generated/dataModel";
-import { api, components, internal } from "./_generated/api";
+import { components, internal } from "./_generated/api";
 import {
   internalMutation,
   mutation,
@@ -53,9 +53,12 @@ type SignedInCreateArgs = {
   expiresAt?: number;
   qrEnabled?: boolean;
   qrStyle?: {
+    size: number;
     fg: string;
     bg: string;
     margin: number;
+    includeMargin: boolean;
+    ecc: "L" | "M" | "Q" | "H";
     logoMode: "brand" | "custom" | "none";
     logoScale: number;
     customLogoUrl?: string;
@@ -274,9 +277,17 @@ export const createUrl = mutation({
     qrEnabled: v.optional(v.boolean()),
     qrStyle: v.optional(
       v.object({
+        size: v.number(),
         fg: v.string(),
         bg: v.string(),
         margin: v.number(),
+        includeMargin: v.boolean(),
+        ecc: v.union(
+          v.literal("L"),
+          v.literal("M"),
+          v.literal("Q"),
+          v.literal("H"),
+        ),
         logoMode: v.union(
           v.literal("brand"),
           v.literal("custom"),

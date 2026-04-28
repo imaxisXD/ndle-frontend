@@ -18,6 +18,12 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { cn } from "@/lib/utils";
 import { Palette, Download, CloudDownload } from "iconoir-react";
 import { COLLECTION_COLORS } from "@/components/collection/colors";
+import {
+  getQrMarginSize,
+  getQrOverlaySize,
+  getQrOverlaySrc,
+  normalizeQrStyle,
+} from "@/lib/qr";
 
 type Props = {
   form: UseFormReturn<UrlFormValues>;
@@ -30,10 +36,12 @@ export function OptionQRCode({ form, isPro = false }: Props) {
   const [
     urlValue,
     size,
+    margin,
     fg,
     bg,
     transparentBg,
     includeMargin,
+    ecc,
     logoMode,
     logoScale,
     customLogoUrl,
@@ -43,10 +51,12 @@ export function OptionQRCode({ form, isPro = false }: Props) {
     name: [
       "url",
       "qrSize",
+      "qrMargin",
       "qrFg",
       "qrBg",
       "qrTransparentBg",
       "qrIncludeMargin",
+      "qrEcc",
       "qrLogoMode",
       "qrLogoScale",
       "qrCustomLogoUrl",
@@ -54,10 +64,12 @@ export function OptionQRCode({ form, isPro = false }: Props) {
   }) as [
     string,
     number,
+    number,
     string,
     string,
     boolean,
     boolean,
+    "L" | "M" | "Q" | "H",
     "brand" | "custom" | "none",
     number,
     string,
@@ -67,43 +79,65 @@ export function OptionQRCode({ form, isPro = false }: Props) {
     name: "shortUrl",
   });
 
-  // Always use the highest error correction level for reliability
-  const ecc = "H" as const;
+  const qrStyle = useMemo(
+    () =>
+      normalizeQrStyle({
+        size,
+        margin,
+        fg,
+        bg: transparentBg ? "transparent" : bg,
+        includeMargin,
+        ecc,
+        logoMode,
+        logoScale,
+        customLogoUrl,
+      }),
+    [
+      size,
+      margin,
+      fg,
+      bg,
+      transparentBg,
+      includeMargin,
+      ecc,
+      logoMode,
+      logoScale,
+      customLogoUrl,
+    ],
+  );
 
-  const logoSrc = useMemo(() => {
-    // Only custom logos are embedded via imageSettings; brand uses on-canvas text overlay.
-    if (logoMode === "custom" && isPro && customLogoUrl.trim()) {
-      return customLogoUrl.trim();
-    }
-    return null;
-  }, [logoMode, isPro, customLogoUrl]);
+  const overlaySrc = useMemo(() => getQrOverlaySrc(qrStyle), [qrStyle]);
 
   const imageSettings = useMemo(() => {
-    if (!logoSrc) return undefined;
-    const px = Math.max(8, Math.round(size * logoScale));
+    if (!overlaySrc) return undefined;
+    const px = getQrOverlaySize(qrStyle);
     return {
-      src: logoSrc,
+      src: overlaySrc,
       height: px,
       width: px,
       excavate: true,
-      crossOrigin: "anonymous" as const,
+      crossOrigin: overlaySrc.startsWith("data:")
+        ? undefined
+        : ("anonymous" as const),
     };
-  }, [logoSrc, size, logoScale]);
+  }, [overlaySrc, qrStyle]);
 
   // ensure QRCodeSVG fully re-renders on any visual change
   const qrKey = useMemo(
     () =>
       [
         urlValue || "",
-        size,
-        includeMargin ? 1 : 0,
-        "H",
-        fg,
-        transparentBg ? "transparent" : bg,
-        logoSrc || "none",
-        Number.isFinite(logoScale) ? logoScale.toFixed(3) : "0.18",
+        qrStyle.size,
+        getQrMarginSize(qrStyle),
+        qrStyle.ecc,
+        qrStyle.fg,
+        qrStyle.bg,
+        overlaySrc || "none",
+        Number.isFinite(qrStyle.logoScale)
+          ? qrStyle.logoScale.toFixed(3)
+          : "0.18",
       ].join("|"),
-    [urlValue, size, includeMargin, fg, bg, transparentBg, logoSrc, logoScale],
+    [urlValue, qrStyle, overlaySrc],
   );
 
   const svgElement = () => {
@@ -112,46 +146,13 @@ export function OptionQRCode({ form, isPro = false }: Props) {
     return container.querySelector("svg") as SVGSVGElement | null;
   };
 
-  function addBrandOverlayToSvg(svg: SVGSVGElement) {
-    if (!svg) return;
-    if (logoMode !== "brand") return;
-    const ns = "http://www.w3.org/2000/svg";
-    const S = Number(svg.getAttribute("width") || size) || size;
-    const g = document.createElementNS(ns, "g");
-    g.setAttribute("pointer-events", "none");
-    g.setAttribute("aria-label", "ndle brand mark");
-    const diameter = Math.max(8, Math.round(S * (logoScale || 0.18)));
-    const rect = document.createElementNS(ns, "rect");
-    rect.setAttribute("x", String(S / 2 - diameter / 2));
-    rect.setAttribute("y", String(S / 2 - diameter / 2));
-    rect.setAttribute("width", String(diameter));
-    rect.setAttribute("height", String(diameter));
-    rect.setAttribute("rx", String(diameter / 5));
-    rect.setAttribute("fill", "white");
-    rect.setAttribute("opacity", "0.95");
-    const text = document.createElementNS(ns, "text");
-    text.setAttribute("x", String(S / 2));
-    text.setAttribute("y", String(S / 2));
-    text.setAttribute("text-anchor", "middle");
-    text.setAttribute("dominant-baseline", "central");
-    text.setAttribute("font-size", String(Math.round(diameter * 0.7)));
-    text.setAttribute("font-weight", "700");
-    text.setAttribute("font-family", "var(--font-doto), system-ui, sans-serif");
-    text.setAttribute("fill", fg || "#000000");
-    text.textContent = "N";
-    g.appendChild(rect);
-    g.appendChild(text);
-    svg.appendChild(g);
-  }
-
   const downloadSvg = () => {
     const svg = svgElement();
     if (!svg) return;
     const clone = svg.cloneNode(true) as SVGSVGElement;
     clone.setAttribute("xmlns", "http://www.w3.org/2000/svg");
-    clone.setAttribute("width", String(size));
-    clone.setAttribute("height", String(size));
-    addBrandOverlayToSvg(clone);
+    clone.setAttribute("width", String(qrStyle.size));
+    clone.setAttribute("height", String(qrStyle.size));
     const xml = new XMLSerializer().serializeToString(clone);
     const blob = new Blob([xml], { type: "image/svg+xml;charset=utf-8" });
     const url = URL.createObjectURL(blob);
@@ -167,9 +168,8 @@ export function OptionQRCode({ form, isPro = false }: Props) {
     if (!svg) return;
     const clone = svg.cloneNode(true) as SVGSVGElement;
     clone.setAttribute("xmlns", "http://www.w3.org/2000/svg");
-    clone.setAttribute("width", String(size));
-    clone.setAttribute("height", String(size));
-    addBrandOverlayToSvg(clone);
+    clone.setAttribute("width", String(qrStyle.size));
+    clone.setAttribute("height", String(qrStyle.size));
     const xml = new XMLSerializer().serializeToString(clone);
     const svgBlob = new Blob([xml], { type: "image/svg+xml;charset=utf-8" });
     const url = URL.createObjectURL(svgBlob);
@@ -182,8 +182,8 @@ export function OptionQRCode({ form, isPro = false }: Props) {
     });
     const scale = 2;
     const canvas = document.createElement("canvas");
-    canvas.width = size * scale;
-    canvas.height = size * scale;
+    canvas.width = qrStyle.size * scale;
+    canvas.height = qrStyle.size * scale;
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
     ctx.imageSmoothingEnabled = true;
@@ -425,25 +425,14 @@ export function OptionQRCode({ form, isPro = false }: Props) {
               <QRCodeSVG
                 key={qrKey}
                 value={urlValue || "https://ndle.link/preview"}
-                size={size}
-                level={ecc}
-                fgColor={fg}
-                bgColor={transparentBg ? "transparent" : bg}
+                size={qrStyle.size}
+                level={qrStyle.ecc}
+                fgColor={qrStyle.fg}
+                bgColor={qrStyle.bg}
                 imageSettings={imageSettings}
-                // Always maintain margin if included to keep QR size consistent
-                marginSize={includeMargin ? 2 : 0}
+                marginSize={getQrMarginSize(qrStyle)}
               />
             </div>
-            {logoMode === "brand" ? (
-              <div
-                aria-hidden
-                className="pointer-events-none absolute top-1/2 left-1/2 z-10 flex -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-white shadow-sm ring-2 ring-white select-none"
-              >
-                <span className="font-doto flex h-10 w-10 items-center justify-center rounded-full text-2xl font-black text-black">
-                  n
-                </span>
-              </div>
-            ) : null}
           </div>
 
           <div className="grid w-full grid-cols-2 gap-2 px-4 lg:px-0">
@@ -480,21 +469,25 @@ export function OptionQRCode({ form, isPro = false }: Props) {
                 const parts = String(shortUrl).split("/");
                 const slug = parts[parts.length - 1] || "";
                 const params = new URLSearchParams();
+                const hostedLogoMode =
+                  !isPro && qrStyle.logoMode !== "brand"
+                    ? "brand"
+                    : qrStyle.logoMode;
                 params.set("format", "png");
-                params.set("size", String(size ?? 512));
-                params.set("fg", fg ?? "#000000");
-                params.set(
-                  "bg",
-                  transparentBg ? "transparent" : (bg ?? "#ffffff"),
-                );
-                params.set("margin", includeMargin ? "2" : "0");
-                params.set("ecc", "H");
-                params.set("logoMode", isPro ? logoMode : "brand");
-                if (isPro && logoMode === "custom" && customLogoUrl) {
-                  params.set("logoUrl", customLogoUrl);
+                params.set("size", String(qrStyle.size));
+                params.set("fg", qrStyle.fg);
+                params.set("bg", qrStyle.bg);
+                params.set("margin", String(getQrMarginSize(qrStyle)));
+                params.set("ecc", qrStyle.ecc);
+                params.set("logoMode", hostedLogoMode);
+                if (
+                  hostedLogoMode === "custom" &&
+                  qrStyle.customLogoUrl
+                ) {
+                  params.set("logoUrl", qrStyle.customLogoUrl);
                 }
-                if (Number.isFinite(logoScale)) {
-                  params.set("logoScale", String(logoScale));
+                if (Number.isFinite(qrStyle.logoScale)) {
+                  params.set("logoScale", String(qrStyle.logoScale));
                 }
                 return `/api/qr/${slug}?${params.toString()}`;
               })()}

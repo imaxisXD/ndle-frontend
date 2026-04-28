@@ -3,6 +3,7 @@ import QRCode from "qrcode";
 import sharp from "sharp";
 import { getCacheHeadersPreset } from "@/lib/cacheHeaders";
 import { makeShortLink } from "@/lib/config";
+import { getBrandBadgeDataUrl } from "@/lib/qr";
 
 export const runtime = "nodejs";
 
@@ -77,36 +78,23 @@ function maybeMakeBackgroundTransparent(svg: string, bg: string): string {
   return out;
 }
 
-function addBrandOverlay(svg: string, size: number, fg: string, scale: number) {
-  const diameter = clamp(Math.round(size * scale), 8, Math.round(size * 0.5));
-  const x = size / 2 - diameter / 2;
-  const y = size / 2 - diameter / 2;
-  const fontSize = Math.round(diameter * 0.7);
-  const overlay = [
-    `<g pointer-events="none" aria-label="ndle brand mark">`,
-    `<rect x="${x}" y="${y}" width="${diameter}" height="${diameter}" rx="${Math.round(
-      diameter / 5,
-    )}" fill="white" opacity="0.95"/>`,
-    `<text x="${size / 2}" y="${size / 2}" text-anchor="middle" dominant-baseline="central" font-size="${fontSize}" font-weight="700" font-family="system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, sans-serif" fill="${fg}">N</text>`,
-    `</g>`,
-  ].join("");
-  return svg.replace(/<\/svg>\s*$/i, `${overlay}</svg>`);
-}
-
-function addCustomImageOverlay(
+function addImageOverlay(
   svg: string,
   size: number,
   dataUrl: string,
   scale: number,
+  addBackdrop = false,
 ) {
   const diameter = clamp(Math.round(size * scale), 8, Math.round(size * 0.5));
   const x = size / 2 - diameter / 2;
   const y = size / 2 - diameter / 2;
   const overlay = [
     `<g pointer-events="none" aria-label="custom logo">`,
-    `<rect x="${x}" y="${y}" width="${diameter}" height="${diameter}" rx="${Math.round(
-      diameter / 5,
-    )}" fill="white" opacity="0.95"/>`,
+    addBackdrop
+      ? `<rect x="${x}" y="${y}" width="${diameter}" height="${diameter}" rx="${Math.round(
+          diameter / 5,
+        )}" fill="white" opacity="0.95"/>`
+      : "",
     `<image href="${dataUrl}" x="${x}" y="${y}" width="${diameter}" height="${diameter}" preserveAspectRatio="xMidYMid slice" crossOrigin="anonymous"/>`,
     `</g>`,
   ].join("");
@@ -122,12 +110,10 @@ export async function GET(
     const debug = requestUrl.searchParams.get("debug") === "1";
     const log = (...args: unknown[]) => {
       if (debug || process.env.NODE_ENV !== "production") {
-        // eslint-disable-next-line no-console
         console.log("[qr-api]", ...args);
       }
     };
     const logError = (...args: unknown[]) => {
-      // eslint-disable-next-line no-console
       console.error("[qr-api]", ...args);
     };
 
@@ -215,16 +201,16 @@ export async function GET(
     // Add overlays
     if (logoMode === "brand") {
       log("overlay", "brand");
-      svg = addBrandOverlay(svg, size, fg, logoScale);
+      svg = addImageOverlay(svg, size, getBrandBadgeDataUrl(fg), logoScale);
     } else if (logoMode === "custom" && logoUrl) {
       log("overlay", "custom", logoUrl);
       const dataUrl = await fetchImageAsDataUrl(logoUrl);
       if (dataUrl) {
-        svg = addCustomImageOverlay(svg, size, dataUrl, logoScale);
+        svg = addImageOverlay(svg, size, dataUrl, logoScale, true);
       } else {
         // Fallback to brand overlay if custom logo fails
         log("custom logo fetch failed, fallback brand");
-        svg = addBrandOverlay(svg, size, fg, logoScale);
+        svg = addImageOverlay(svg, size, getBrandBadgeDataUrl(fg), logoScale);
       }
     }
 
@@ -262,7 +248,6 @@ export async function GET(
       );
     }
   } catch (err) {
-    // eslint-disable-next-line no-console
     console.error("[qr-api] unhandled error", err);
     return NextResponse.json(
       { error: "Failed to generate QR" },

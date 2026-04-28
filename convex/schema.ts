@@ -27,9 +27,17 @@ export default defineSchema({
     qrEnabled: v.optional(v.boolean()),
     qrStyle: v.optional(
       v.object({
+        size: v.number(),
         fg: v.string(),
         bg: v.string(), // allow 'transparent' or hex
         margin: v.number(),
+        includeMargin: v.boolean(),
+        ecc: v.union(
+          v.literal("L"),
+          v.literal("M"),
+          v.literal("Q"),
+          v.literal("H"),
+        ),
         logoMode: v.union(
           v.literal("brand"),
           v.literal("custom"),
