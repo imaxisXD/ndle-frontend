@@ -78,20 +78,7 @@ const urlFormSchema = z
     // Scheduling / Expiration
     expiresEnabled: z.boolean(),
     expiresAt: z.string().optional(),
-    expireMode: z
-      .enum(["none", "datetime", "totalClicks", "duration", "inactivity"])
-      .optional(),
-    expireTotalClicks: z.number().optional(),
-    expireDurationAmount: z.number().optional(),
-    expireDurationUnit: z
-      .enum(["minutes", "hours", "days", "weeks"])
-      .optional(),
-    expireInactivityAmount: z.number().optional(),
-    expireInactivityUnit: z
-      .enum(["minutes", "hours", "days", "weeks"])
-      .optional(),
-    activateAtEnabled: z.boolean().optional(),
-    activateAt: z.string().optional(),
+    expireMode: z.enum(["none", "datetime"]).optional(),
     // UTM Builder
     utmEnabled: z.boolean().optional(),
     utmSource: z.string().optional(),
@@ -109,16 +96,6 @@ const urlFormSchema = z
         }),
       )
       .optional(),
-    // Targeting
-    targetingEnabled: z.boolean().optional(),
-    targetingCountryMode: z.enum(["include", "exclude"]).optional(),
-    targetingCountries: z.array(z.string()).optional(),
-    targetingDevices: z.array(z.string()).optional(),
-    targetingOs: z.array(z.string()).optional(),
-    // Password protection
-    passwordEnabled: z.boolean().optional(),
-    password: z.string().optional(),
-    passwordHint: z.string().optional(),
     // QR Code
     qrEnabled: z.boolean().optional(),
     qrSize: z.number().optional(),
@@ -131,24 +108,9 @@ const urlFormSchema = z
     qrLogoMode: z.enum(["brand", "custom", "none"]).optional(),
     qrLogoScale: z.number().optional(),
     qrCustomLogoUrl: z.string().optional(),
-    // Fallback / Health
-    fallbackEnabled: z.boolean().optional(),
-    healthCheckUrl: z.string().optional(),
-    fallbackUrl: z.string().optional(),
-    retryCount: z.number().optional(),
-    retryIntervalMs: z.number().optional(),
-    // Social Metadata
-    socialEnabled: z.boolean().optional(),
-    socialTitle: z.string().optional(),
-    socialDescription: z.string().optional(),
-    socialImageUrl: z.string().optional(),
-    // Tags / Notes
     collectionId: z.string().optional(),
     newCollectionName: z.string().optional(),
     newCollectionColor: z.string().optional(),
-    tagsEnabled: z.boolean().optional(),
-    tags: z.array(z.string()).optional(),
-    notes: z.string().optional(),
     trackingEnabled: z.boolean(),
   })
   .superRefine((data, ctx) => {
@@ -181,50 +143,6 @@ const urlFormSchema = z
         });
       }
     }
-    if (data.expireMode === "totalClicks") {
-      const clicks = Number(data.expireTotalClicks ?? 0);
-      if (!Number.isFinite(clicks) || clicks <= 0) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          path: ["expireTotalClicks"],
-          message: "Total clicks must be greater than 0.",
-        });
-      }
-    }
-    if (data.expireMode === "duration") {
-      const amount = Number(data.expireDurationAmount ?? 0);
-      if (!Number.isFinite(amount) || amount <= 0) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          path: ["expireDurationAmount"],
-          message: "Duration must be greater than 0.",
-        });
-      }
-      if (!data.expireDurationUnit) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          path: ["expireDurationUnit"],
-          message: "Select a duration unit.",
-        });
-      }
-    }
-    if (data.expireMode === "inactivity") {
-      const amount = Number(data.expireInactivityAmount ?? 0);
-      if (!Number.isFinite(amount) || amount <= 0) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          path: ["expireInactivityAmount"],
-          message: "Inactivity duration must be greater than 0.",
-        });
-      }
-      if (!data.expireInactivityUnit) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          path: ["expireInactivityUnit"],
-          message: "Select an inactivity unit.",
-        });
-      }
-    }
   });
 
 export type UrlFormValues = z.infer<typeof urlFormSchema>;
@@ -249,13 +167,6 @@ export function UrlShortener() {
       expiresEnabled: false,
       expiresAt: "",
       expireMode: "none",
-      expireTotalClicks: 0,
-      expireDurationAmount: 0,
-      expireDurationUnit: "days",
-      expireInactivityAmount: 0,
-      expireInactivityUnit: "days",
-      activateAtEnabled: false,
-      activateAt: "",
       utmEnabled: false,
       utmSource: "",
       utmMedium: "",
@@ -264,14 +175,6 @@ export function UrlShortener() {
       utmContent: "",
       abEnabled: false,
       abVariants: [{ url: "", weight: 50 }],
-      targetingEnabled: false,
-      targetingCountryMode: "include",
-      targetingCountries: [],
-      targetingDevices: [],
-      targetingOs: [],
-      passwordEnabled: false,
-      password: "",
-      passwordHint: "",
       qrEnabled: false,
       qrSize: 200,
       qrMargin: 2,
@@ -283,21 +186,9 @@ export function UrlShortener() {
       qrLogoMode: "brand",
       qrLogoScale: 0.18,
       qrCustomLogoUrl: "",
-      fallbackEnabled: false,
-      healthCheckUrl: "",
-      fallbackUrl: "",
-      retryCount: 1,
-      retryIntervalMs: 1000,
-      socialEnabled: false,
-      socialTitle: "",
-      socialDescription: "",
-      socialImageUrl: "",
       collectionId: "",
       newCollectionName: "",
       newCollectionColor: "",
-      tagsEnabled: false,
-      tags: [],
-      notes: "",
       trackingEnabled: true,
     },
   });
@@ -364,51 +255,20 @@ export function UrlShortener() {
     name: [
       "utmEnabled",
       "abEnabled",
-      "activateAtEnabled",
-      "targetingEnabled",
-      "passwordEnabled",
       "qrEnabled",
-      "fallbackEnabled",
-      "socialEnabled",
-      "tagsEnabled",
-      "tags",
       "collectionId",
-      "notes",
     ],
   });
 
   const summaryChips = useMemo(() => {
     const chips: string[] = [];
-    const [
-      utmEnabled,
-      abEnabledVal,
-      activateAtEnabled,
-      targetingEnabled,
-      passwordEnabled,
-      qrEnabled,
-      fallbackEnabled,
-      socialEnabled,
-      tagsEnabled,
-      tags,
-      collectionId,
-      notes,
-    ] = watchedSummaryValues;
+    const [utmEnabled, abEnabledVal, qrEnabled, collectionId] =
+      watchedSummaryValues;
 
     if (utmEnabled) chips.push("UTM");
     if (abEnabledVal) chips.push("A/B Test");
-    if (activateAtEnabled) chips.push("Schedule");
-    if (targetingEnabled) chips.push("Geo & Device");
-    if (passwordEnabled) chips.push("Password");
     if (qrEnabled) chips.push("QR Code");
-    if (fallbackEnabled) chips.push("Fallback");
-    if (socialEnabled) chips.push("Social");
-    if (
-      tagsEnabled ||
-      (tags && (tags as string[]).length > 0) ||
-      collectionId ||
-      notes
-    )
-      chips.push("Tags & Notes");
+    if (collectionId) chips.push("Collection");
 
     return chips;
   }, [watchedSummaryValues]);
@@ -506,32 +366,16 @@ export function UrlShortener() {
           utmTerm: values.utmTerm?.trim() || undefined,
           utmContent: values.utmContent?.trim() || undefined,
         }),
-        // A/B Testing - prepend main URL as Control (A) with remaining weight
+        // A/B Testing - destination URL remains Control (A); only send test variants.
         ...(values.abEnabled &&
           values.abVariants?.some((v) => v.url?.trim()) && {
             abEnabled: true,
-            abVariants: (() => {
-              // Filter valid test variants (B, C, D...)
-              const testVariants = values.abVariants
-                .filter((v) => v.url?.trim())
-                .map((v) => ({
-                  url: v.url!.trim(),
-                  weight: v.weight ?? 50,
-                }));
-
-              // Calculate control weight (remaining from 100%)
-              const testWeight = testVariants.reduce(
-                (sum, v) => sum + v.weight,
-                0,
-              );
-              const controlWeight = Math.max(0, 100 - testWeight);
-
-              // Control (A) = main URL, then test variants
-              return [
-                { url: urlToShorten, weight: controlWeight },
-                ...testVariants,
-              ];
-            })(),
+            abVariants: values.abVariants
+              .filter((v) => v.url?.trim())
+              .map((v) => ({
+                url: v.url!.trim(),
+                weight: v.weight ?? 50,
+              })),
           }),
       });
 
@@ -544,12 +388,8 @@ export function UrlShortener() {
         has_expiration: values.expiresEnabled,
         has_utm: values.utmEnabled ?? false,
         has_ab_test: values.abEnabled ?? false,
-        has_password: values.passwordEnabled ?? false,
         has_qr_code: values.qrEnabled ?? false,
-        has_fallback: values.fallbackEnabled ?? false,
         has_collection: !!collectionIdToUse,
-        has_targeting: values.targetingEnabled ?? false,
-        has_social_metadata: values.socialEnabled ?? false,
       });
 
       add({
@@ -565,13 +405,6 @@ export function UrlShortener() {
         expiresEnabled: false,
         expiresAt: "",
         expireMode: "none",
-        expireTotalClicks: 0,
-        expireDurationAmount: 0,
-        expireDurationUnit: "days",
-        expireInactivityAmount: 0,
-        expireInactivityUnit: "days",
-        activateAtEnabled: false,
-        activateAt: "",
         utmEnabled: false,
         utmSource: "",
         utmMedium: "",
@@ -580,14 +413,6 @@ export function UrlShortener() {
         utmContent: "",
         abEnabled: false,
         abVariants: [{ url: "", weight: 50 }],
-        targetingEnabled: false,
-        targetingCountryMode: "include",
-        targetingCountries: [],
-        targetingDevices: [],
-        targetingOs: [],
-        passwordEnabled: false,
-        password: "",
-        passwordHint: "",
         qrEnabled: false,
         qrSize: 200,
         qrMargin: 2,
@@ -599,21 +424,9 @@ export function UrlShortener() {
         qrLogoMode: "brand",
         qrLogoScale: 0.18,
         qrCustomLogoUrl: "",
-        fallbackEnabled: false,
-        healthCheckUrl: "",
-        fallbackUrl: "",
-        retryCount: 1,
-        retryIntervalMs: 1000,
-        socialEnabled: false,
-        socialTitle: "",
-        socialDescription: "",
-        socialImageUrl: "",
         collectionId: "",
         newCollectionName: "",
         newCollectionColor: "",
-        tagsEnabled: false,
-        tags: [],
-        notes: "",
         trackingEnabled: true,
         shortUrl: finalShort,
       });

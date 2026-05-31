@@ -35,7 +35,7 @@ export function LinkActionsBar({
 
   const handleCopy = async () => {
     try {
-      const normalized = shortUrl.startsWith("http")
+      const normalized = /^https?:\/\//i.test(shortUrl)
         ? shortUrl
         : `https://${shortUrl}`;
       await navigator.clipboard.writeText(normalized);
@@ -47,14 +47,14 @@ export function LinkActionsBar({
   };
 
   const handleOpenInNewTab = () => {
-    const normalized = shortUrl.startsWith("http")
+    const normalized = /^https?:\/\//i.test(shortUrl)
       ? shortUrl
       : `https://${shortUrl}`;
     window.open(normalized, "_blank", "noopener");
   };
 
   const handleShare = async () => {
-    const normalized = shortUrl.startsWith("http")
+    const normalized = /^https?:\/\//i.test(shortUrl)
       ? shortUrl
       : `https://${shortUrl}`;
 

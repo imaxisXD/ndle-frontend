@@ -3,6 +3,7 @@ import { z } from "zod";
 import { auth } from "@clerk/nextjs/server";
 import { getRateLimit } from "@/lib/rateLimit";
 import { AnalyticsRange, getUtcRange } from "@/lib/analyticsRanges";
+import { getRangeAccessError } from "@/lib/analytics-access";
 
 // Strip /analytics/v2 suffix to get base URL if present, but we specifically need /analytics/v2 here
 // process.env.INTERNAL_API_URL is typically http://host:port/api or http://host:port/api/analytics/v2
@@ -27,7 +28,7 @@ const schema = z.object({
       z.literal("all"),
     ])
     .default("7d"),
-  link_id: z.string().min(1),
+  link_id: z.string().min(1).max(128).regex(/^[A-Za-z0-9_-]+$/),
   endpoint: z.enum(["performance", "timeseries"]).default("performance"),
 });
 
@@ -64,8 +65,12 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    const ip = req.headers.get("x-forwarded-for") || "unknown";
-    const identifier = `variants:${clerkUserId}:${link_id}:${ip}`;
+    const rangeError = getRangeAccessError(range, sessionClaims);
+    if (rangeError) {
+      return NextResponse.json({ error: rangeError }, { status: 403 });
+    }
+
+    const identifier = `variants:${clerkUserId}:${link_id}`;
     const {
       success,
       limit: rlLimit,
@@ -90,7 +95,7 @@ export async function GET(req: NextRequest) {
     // analyticsV2 router: router.get('/variants/:linkId', ...)
     // So full path is BASE/analytics/v2/variants/:linkId
 
-    let backendPath = `/analytics/v2/variants/${link_id}`;
+    let backendPath = `/analytics/v2/variants/${encodeURIComponent(link_id)}`;
     if (endpoint === "timeseries") {
       backendPath += "/timeseries";
     }
@@ -120,8 +125,7 @@ export async function GET(req: NextRequest) {
 
     const result = await response.json();
     const res = NextResponse.json(result);
-    // Cache for 60s
-    res.headers.set("Cache-Control", "s-maxage=60, stale-while-revalidate=120");
+    res.headers.set("Cache-Control", "private, no-store");
     return res;
   } catch (e: unknown) {
     console.error("Variant analytics error:", e);

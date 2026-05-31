@@ -21,6 +21,8 @@ import { useWatch, type UseFormReturn } from "react-hook-form";
 import type { UrlFormValues } from "../url-shortener";
 
 // Common UTM source presets
+const CUSTOM_PRESET_VALUE = "__custom__";
+
 const SOURCE_PRESETS = [
   { value: "", label: "Custom..." },
   { value: "google", label: "Google" },
@@ -108,7 +110,9 @@ export function OptionUTMBuilder({
                       : ""
                   }
                   onValueChange={(val) => {
-                    if (val) field.onChange(val);
+                    field.onChange(
+                      val === CUSTOM_PRESET_VALUE ? "" : val,
+                    );
                   }}
                 >
                   <SelectTrigger className="w-32">
@@ -118,7 +122,7 @@ export function OptionUTMBuilder({
                     {SOURCE_PRESETS.map((preset) => (
                       <SelectItem
                         key={preset.value || "custom"}
-                        value={preset.value || "CUSTOM_PLACEHOLDER"}
+                        value={preset.value || CUSTOM_PRESET_VALUE}
                       >
                         {preset.label}
                       </SelectItem>
@@ -156,7 +160,9 @@ export function OptionUTMBuilder({
                       : ""
                   }
                   onValueChange={(val) => {
-                    if (val) field.onChange(val);
+                    field.onChange(
+                      val === CUSTOM_PRESET_VALUE ? "" : val,
+                    );
                   }}
                 >
                   <SelectTrigger className="w-32">
@@ -166,7 +172,7 @@ export function OptionUTMBuilder({
                     {MEDIUM_PRESETS.map((preset) => (
                       <SelectItem
                         key={preset.value || "custom"}
-                        value={preset.value || "CUSTOM_PLACEHOLDER"}
+                        value={preset.value || CUSTOM_PRESET_VALUE}
                       >
                         {preset.label}
                       </SelectItem>

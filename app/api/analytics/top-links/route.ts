@@ -3,6 +3,7 @@ import { z } from "zod";
 import { auth } from "@clerk/nextjs/server";
 import { getRateLimit } from "@/lib/rateLimit";
 import { AnalyticsRange, getUtcRange } from "@/lib/analyticsRanges";
+import { getRangeAccessError } from "@/lib/analytics-access";
 
 // Strip /analytics/v2 suffix to get base URL
 const INTERNAL_API_URL = (process.env.INTERNAL_API_URL || "").replace(
@@ -55,8 +56,12 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    const ip = req.headers.get("x-forwarded-for") || "unknown";
-    const identifier = `toplinks:${clerkUserId}:${ip}`;
+    const rangeError = getRangeAccessError(range, sessionClaims);
+    if (rangeError) {
+      return NextResponse.json({ error: rangeError }, { status: 403 });
+    }
+
+    const identifier = `toplinks:${clerkUserId}`;
     const {
       success,
       limit: rlLimit,
@@ -102,7 +107,7 @@ export async function GET(req: NextRequest) {
 
     const result = await response.json();
     const res = NextResponse.json({ data: result.data });
-    res.headers.set("Cache-Control", "s-maxage=60, stale-while-revalidate=120");
+    res.headers.set("Cache-Control", "private, no-store");
     return res;
   } catch (e: unknown) {
     return NextResponse.json(

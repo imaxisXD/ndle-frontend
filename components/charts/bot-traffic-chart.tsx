@@ -22,11 +22,6 @@ import { CircleGridLoaderIcon } from "@/components/icons";
 export const description =
   "A donut chart showing bot vs human traffic with active sector";
 
-const defaultData = [
-  { name: "Human Traffic", value: 18, color: "var(--color-green-500)" },
-  { name: "Bot Traffic", value: 5, color: "var(--color-red-500)" },
-];
-
 const chartConfig = {
   value: {
     label: "Traffic",
@@ -41,8 +36,8 @@ export function BotTrafficChart({
   data?: Array<{ name: string; value: number; color?: string }>;
   isLoading?: boolean;
 }) {
-  const showEmptyState =
-    !isLoading && Array.isArray(data) && data.length === 0;
+  const chartData = data ?? [];
+  const showEmptyState = !isLoading && chartData.length === 0;
   return (
     <Card>
       <CardHeader className="flex flex-col items-start justify-between gap-1.5">
@@ -77,7 +72,7 @@ export function BotTrafficChart({
         >
           <PieChart>
             <Pie
-              data={data ?? defaultData}
+              data={chartData}
               cx="50%"
               cy="50%"
               innerRadius={60}
@@ -92,7 +87,7 @@ export function BotTrafficChart({
                 <Sector {...props} outerRadius={outerRadius + 10} />
               )}
             >
-              {(data ?? defaultData).map((entry, index) => (
+              {chartData.map((entry, index) => (
                 <Cell key={`cell-${index}`} fill={entry.color} />
               ))}
             </Pie>
@@ -105,8 +100,7 @@ export function BotTrafficChart({
                     const row = payload?.[0]?.payload as
                       | { name: string; value: number }
                       | undefined;
-                    const dataset = data ?? defaultData;
-                    const total = dataset.reduce(
+                    const total = chartData.reduce(
                       (sum: number, item: { name: string; value: number }) =>
                         sum + item.value,
                       0,
@@ -124,7 +118,7 @@ export function BotTrafficChart({
           </PieChart>
         </ChartContainer>
         <div className="mt-4 flex justify-center gap-6">
-          {(data ?? defaultData).map((item) => (
+          {chartData.map((item) => (
             <div key={item.name} className="flex items-center gap-2">
               <div
                 className="h-3 w-3 rounded-full"

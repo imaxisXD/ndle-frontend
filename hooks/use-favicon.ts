@@ -51,7 +51,6 @@ export function useFavicon(url: string | null) {
   // Get cached data synchronously for instant display
   const cachedData = hostname ? getFaviconFromCache(hostname) : undefined;
 
-  // eslint-disable-next-line @tanstack/query/exhaustive-deps -- Intentionally cache by hostname, not full URL
   const {
     data: faviconUrl,
     isLoading,

@@ -228,7 +228,6 @@ export const recordHealthCheck = mutation({
     const {
       sharedSecret,
       urlId,
-      userId,
       shortUrl,
       longUrl,
       statusCode,

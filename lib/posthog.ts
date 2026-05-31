@@ -41,12 +41,8 @@ export type UrlCreatedProps = {
   has_expiration: boolean;
   has_utm: boolean;
   has_ab_test: boolean;
-  has_password: boolean;
   has_qr_code: boolean;
-  has_fallback: boolean;
   has_collection: boolean;
-  has_targeting: boolean;
-  has_social_metadata: boolean;
 };
 
 export type UserIdentifyProps = {

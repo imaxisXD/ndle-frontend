@@ -3,6 +3,7 @@ import { z } from "zod";
 import { auth } from "@clerk/nextjs/server";
 import { getRateLimit } from "@/lib/rateLimit";
 import { AnalyticsRange, getUtcRange } from "@/lib/analyticsRanges";
+import { getRangeAccessError } from "@/lib/analytics-access";
 
 // Strip /analytics/v2 suffix to get base URL
 const INTERNAL_API_URL = (process.env.INTERNAL_API_URL || "").replace(
@@ -46,24 +47,26 @@ export async function GET(req: NextRequest) {
     }
     const { range, dimension, link_slug, limit } = parsed.data;
 
-    const scopeUserId = link_slug ? undefined : (clerkUserId ?? undefined);
-    if (!link_slug && !scopeUserId) {
+    if (!clerkUserId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     // Extract convex_user_id from session claims
     const convexUserId = (sessionClaims as Record<string, unknown>)
       ?.convex_user_id as string | undefined;
-    console.log("convexUserId", convexUserId);
-    if (!convexUserId && !link_slug) {
+    if (!convexUserId) {
       return NextResponse.json(
         { error: "Session not configured. Please log out and log back in." },
         { status: 401 },
       );
     }
 
-    const ip = req.headers.get("x-forwarded-for") || "unknown";
-    const identifier = `breakdown:${dimension}:${scopeUserId || "anon"}:${link_slug || "all"}:${ip}`;
+    const rangeError = getRangeAccessError(range, sessionClaims);
+    if (rangeError) {
+      return NextResponse.json({ error: rangeError }, { status: 403 });
+    }
+
+    const identifier = `breakdown:${dimension}:${clerkUserId}:${link_slug || "all"}`;
     const {
       success,
       limit: rlLimit,
@@ -112,7 +115,7 @@ export async function GET(req: NextRequest) {
 
     const result = await response.json();
     const res = NextResponse.json({ data: result.data });
-    res.headers.set("Cache-Control", "s-maxage=60, stale-while-revalidate=120");
+    res.headers.set("Cache-Control", "private, no-store");
     return res;
   } catch (e: unknown) {
     console.error("Breakdown error:", e);

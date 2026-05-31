@@ -74,23 +74,23 @@ export function Analytics() {
   const { start, end } = useMemo(() => {
     const now = new Date();
     const end = endOfDay(now);
-    let start = startOfDay(subDays(now, 30)); // Default
+    let start = startOfDay(subDays(now, 29)); // Default: inclusive 30-day window
 
     switch (timeRange) {
       case "24h":
-        start = startOfDay(subDays(now, 1));
+        start = startOfDay(now);
         break;
       case "7d":
-        start = startOfDay(subDays(now, 7));
+        start = startOfDay(subDays(now, 6));
         break;
       case "30d":
-        start = startOfDay(subDays(now, 30));
+        start = startOfDay(subDays(now, 29));
         break;
       case "3m":
-        start = startOfDay(subDays(now, 90));
+        start = startOfDay(subDays(now, 89));
         break;
       case "12m":
-        start = startOfDay(subDays(now, 365));
+        start = startOfDay(subDays(now, 364));
         break;
       case "mtd":
         start = startOfDay(new Date(now.getFullYear(), now.getMonth(), 1));

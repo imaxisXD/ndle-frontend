@@ -27,6 +27,10 @@ function startOfUtcYear(d: Date) {
   return toUtcDate(d.getUTCFullYear(), 0, 1);
 }
 
+function startOfUtcDayOffset(d: Date, offsetDays: number) {
+  return toUtcDate(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate() - offsetDays);
+}
+
 export function getUtcRange(range: AnalyticsRange): { start: Date; end: Date } {
   const now = new Date();
   const end = new Date(
@@ -42,13 +46,13 @@ export function getUtcRange(range: AnalyticsRange): { start: Date; end: Date } {
   );
 
   if (range === "24h") {
-    return { start: new Date(end.getTime() - 24 * 60 * 60 * 1000), end };
+    return { start: startOfUtcDayOffset(now, 0), end };
   }
   if (range === "7d") {
-    return { start: new Date(end.getTime() - 7 * 24 * 60 * 60 * 1000), end };
+    return { start: startOfUtcDayOffset(now, 6), end };
   }
   if (range === "30d") {
-    return { start: new Date(end.getTime() - 30 * 24 * 60 * 60 * 1000), end };
+    return { start: startOfUtcDayOffset(now, 29), end };
   }
   if (range === "3mo") {
     const threeMonthsAgo = new Date(

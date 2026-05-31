@@ -26,17 +26,17 @@ function isQrLogoMode(value: unknown): value is QrLogoMode {
 }
 
 export function clampQrSize(value: number | undefined, fallback = 200) {
-  if (!Number.isFinite(value)) return fallback;
+  if (typeof value !== "number" || !Number.isFinite(value)) return fallback;
   return clamp(Math.round(value), 64, 2048);
 }
 
 export function clampQrMargin(value: number | undefined, fallback = 2) {
-  if (!Number.isFinite(value)) return fallback;
+  if (typeof value !== "number" || !Number.isFinite(value)) return fallback;
   return clamp(Math.round(value), 0, 8);
 }
 
 export function clampQrLogoScale(value: number | undefined, fallback = 0.18) {
-  if (!Number.isFinite(value)) return fallback;
+  if (typeof value !== "number" || !Number.isFinite(value)) return fallback;
   return clamp(value, 0.08, 0.35);
 }
 

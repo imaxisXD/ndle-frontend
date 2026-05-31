@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Card,
   CardContent,
@@ -26,20 +26,11 @@ interface LinkAIChatPanelProps {
   fullUrl: string;
 }
 
-// Dummy saved notes for demonstration
-const DUMMY_NOTES = [
-  {
-    id: "1",
-    content:
-      "Important resource for product development strategies. Contains MVP approach insights.",
-    createdAt: Date.now() - 1000 * 60 * 60 * 24 * 2, // 2 days ago
-  },
-  {
-    id: "2",
-    content: "Good examples of data visualization patterns to reference later.",
-    createdAt: Date.now() - 1000 * 60 * 60 * 24 * 5, // 5 days ago
-  },
-];
+interface SavedNote {
+  id: string;
+  content: string;
+  createdAt: number;
+}
 
 // Dummy existing conversations
 const DUMMY_CONVERSATIONS: Message[] = [
@@ -60,10 +51,35 @@ const DUMMY_CONVERSATIONS: Message[] = [
 
 export function LinkAIChatPanel({ shortUrl, fullUrl }: LinkAIChatPanelProps) {
   const [messages, setMessages] = useState<Message[]>(DUMMY_CONVERSATIONS);
+  const storageKey = useMemo(
+    () => `ndle_link_notes:${shortUrl || fullUrl}`,
+    [shortUrl, fullUrl],
+  );
+  const [notes, setNotes] = useState<SavedNote[]>([]);
+  const [loadedNotesKey, setLoadedNotesKey] = useState("");
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [noteInput, setNoteInput] = useState("");
   const [isAddingNote, setIsAddingNote] = useState(false);
+
+  useEffect(() => {
+    try {
+      const stored = window.localStorage.getItem(storageKey);
+      setNotes(stored ? (JSON.parse(stored) as SavedNote[]) : []);
+    } catch {
+      setNotes([]);
+    }
+    setLoadedNotesKey(storageKey);
+  }, [storageKey]);
+
+  useEffect(() => {
+    if (loadedNotesKey !== storageKey) return;
+    try {
+      window.localStorage.setItem(storageKey, JSON.stringify(notes));
+    } catch {
+      // Local notes are best-effort when storage is unavailable.
+    }
+  }, [notes, loadedNotesKey, storageKey]);
 
   const handleSend = async () => {
     if (!input.trim()) return;
@@ -150,7 +166,17 @@ export function LinkAIChatPanel({ shortUrl, fullUrl }: LinkAIChatPanelProps) {
               <Button
                 size="sm"
                 onClick={() => {
-                  // Would save note here
+                  const trimmed = noteInput.trim();
+                  if (trimmed) {
+                    setNotes((prev) => [
+                      {
+                        id: crypto.randomUUID(),
+                        content: trimmed,
+                        createdAt: Date.now(),
+                      },
+                      ...prev,
+                    ]);
+                  }
                   setNoteInput("");
                   setIsAddingNote(false);
                 }}
@@ -161,9 +187,9 @@ export function LinkAIChatPanel({ shortUrl, fullUrl }: LinkAIChatPanelProps) {
             </div>
           )}
 
-          {DUMMY_NOTES.length > 0 ? (
+          {notes.length > 0 ? (
             <div className="space-y-2">
-              {DUMMY_NOTES.map((note) => (
+              {notes.map((note) => (
                 <div
                   key={note.id}
                   className="bg-muted/30 border-border rounded-lg border p-3"

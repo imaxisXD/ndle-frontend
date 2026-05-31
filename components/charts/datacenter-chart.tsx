@@ -27,11 +27,6 @@ import { CircleGridLoaderIcon } from "@/components/icons";
 
 export const description = "A bar chart showing datacenter performance";
 
-const defaultData = [
-  { datacenter: "BOM (Bombay)", clicks: 11 },
-  { datacenter: "MRS (Marseille)", clicks: 12 },
-];
-
 const chartConfig = {
   clicks: {
     label: "Clicks",
@@ -49,8 +44,8 @@ export function DatacenterChart({
   data?: Array<{ datacenter: string; clicks: number }>;
   isLoading?: boolean;
 }) {
-  const showEmptyState =
-    !isLoading && Array.isArray(data) && data.length === 0;
+  const chartData = data ?? [];
+  const showEmptyState = !isLoading && chartData.length === 0;
   return (
     <Card>
       <CardHeader className="flex flex-col items-start justify-between gap-1.5">
@@ -85,7 +80,7 @@ export function DatacenterChart({
         >
           <BarChart
             accessibilityLayer
-            data={data ?? defaultData}
+            data={chartData}
             layout="vertical"
             margin={{
               right: 16,
@@ -125,8 +120,7 @@ export function DatacenterChart({
                     const row = payload?.[0]?.payload as
                       | { datacenter: string; clicks: number }
                       | undefined;
-                    const dataset = data ?? defaultData;
-                    const totalClicks = dataset.reduce(
+                    const totalClicks = chartData.reduce(
                       (sum, item) => sum + item.clicks,
                       0,
                     );

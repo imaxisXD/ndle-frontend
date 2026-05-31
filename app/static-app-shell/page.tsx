@@ -1,4 +1,3 @@
-/* eslint-disable @tanstack/query/no-unstable-deps */
 "use client";
 
 import {
@@ -13,7 +12,7 @@ import { api } from "@/convex/_generated/api";
 import { useSession, useUser } from "@clerk/nextjs";
 import { identifyUser } from "@/lib/posthog";
 import { PublicHome } from "@/components/PublicHome";
-import { getOrCreateGuestId, setClaimedLinkCount } from "@/lib/guest";
+import { ensureGuestSession, setClaimedLinkCount } from "@/lib/guest";
 import { toast } from "sonner";
 
 const App = dynamic(() => import("@/app/static-app-shell/app"), { ssr: false });
@@ -52,8 +51,10 @@ function StoreUser() {
 
     try {
       // 1. Create/get Convex user - returns { id, metadataUpdated }
+      const guestSession = await ensureGuestSession().catch(() => null);
       const result = await storeUser({
-        guestId: getOrCreateGuestId() || undefined,
+        guestId: guestSession?.guestId,
+        guestToken: guestSession?.guestToken,
       });
 
       // 2. If metadata was updated (new user), refresh the Clerk session

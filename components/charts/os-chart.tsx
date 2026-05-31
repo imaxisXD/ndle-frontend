@@ -27,8 +27,6 @@ import { CircleGridLoaderIcon } from "@/components/icons";
 
 export const description = "A bar chart showing operating system distribution";
 
-const defaultData = [{ os: "macOS", clicks: 23 }];
-
 const chartConfig = {
   clicks: {
     label: "Clicks",
@@ -46,8 +44,8 @@ export function OperatingSystemChart({
   data?: Array<{ os: string; clicks: number }>;
   isLoading?: boolean;
 }) {
-  const showEmptyState =
-    !isLoading && Array.isArray(data) && data.length === 0;
+  const chartData = data ?? [];
+  const showEmptyState = !isLoading && chartData.length === 0;
   return (
     <Card>
       <CardHeader className="flex flex-col items-start justify-between gap-1.5">
@@ -82,7 +80,7 @@ export function OperatingSystemChart({
         >
           <BarChart
             accessibilityLayer
-            data={data ?? defaultData}
+            data={chartData}
             layout="vertical"
             margin={{
               right: 16,
@@ -121,8 +119,7 @@ export function OperatingSystemChart({
                     const row = payload?.[0]?.payload as
                       | { os: string; clicks: number }
                       | undefined;
-                    const dataset = data ?? defaultData;
-                    const totalClicks = dataset.reduce(
+                    const totalClicks = chartData.reduce(
                       (sum: number, item: { os: string; clicks: number }) =>
                         sum + item.clicks,
                       0,

@@ -48,6 +48,24 @@ export const mutateUrlAnalytics = mutation({
       throw new ConvexError("URL not found");
     }
 
+    const existingRequest = await ctx.db
+      .query("processedClickRequests")
+      .withIndex("by_request_id", (q) => q.eq("requestId", args.requestId))
+      .first();
+
+    if (existingRequest) {
+      console.log(
+        `Duplicate request detected for requestId: ${args.requestId}, urlId: ${normalisedUrlId}`,
+      );
+      return { processed: false, message: "Request already processed" };
+    }
+
+    await ctx.db.insert("processedClickRequests", {
+      requestId: args.requestId,
+      urlId: normalisedUrlId,
+      createdAt: Date.now(),
+    });
+
     // Insert click event if provided
     if (args.clickEvent) {
       const owner = getOwnerSnapshot(url);
@@ -72,14 +90,6 @@ export const mutateUrlAnalytics = mutation({
       .withIndex("by_url", (q) => q.eq("urlId", normalisedUrlId))
       .unique();
 
-    // Idempotency check: if this requestId was already processed, return early
-    if (urlAnalytics?.lastProcessedRequestId === args.requestId) {
-      console.log(
-        `Duplicate request detected for requestId: ${args.requestId}, urlId: ${normalisedUrlId}`,
-      );
-      return { processed: false, message: "Request already processed" };
-    }
-
     const key = `url:${normalisedUrlId}`;
     await counter.inc(ctx, key);
 
@@ -88,11 +98,15 @@ export const mutateUrlAnalytics = mutation({
       await counter.inc(ctx, `user:${url.userTableId}`);
     }
 
-    // Incremnt collection total clicks
-    const collections = await ctx.db
-      .query("collections")
-      .withIndex("by_urls", (q) => q.eq("urls", [normalisedUrlId]))
-      .collect();
+    // Increment collection total clicks for every owned collection that contains the link.
+    const collections = url.userTableId
+      ? (
+          await ctx.db
+            .query("collections")
+            .withIndex("by_user", (q) => q.eq("userTableId", url.userTableId!))
+            .collect()
+        ).filter((collection) => collection.urls.includes(normalisedUrlId))
+      : [];
 
     for (const collection of collections) {
       await counter.inc(ctx, `collection:${collection._id}`);

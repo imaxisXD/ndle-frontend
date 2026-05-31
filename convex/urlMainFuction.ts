@@ -9,6 +9,7 @@ import {
   type MutationCtx,
 } from "./_generated/server";
 import { upsertGuestSession } from "./guestSessions";
+import { verifyGuestSessionToken } from "./guestTokens";
 import {
   ensureGuestId,
   FREE_ACTIVE_LINK_LIMIT,
@@ -88,6 +89,111 @@ function normalizeDestination(url: string) {
     );
   }
   return normalized;
+}
+
+function normalizeCustomDomain(domain: string | undefined): string | undefined {
+  if (!domain) return undefined;
+  const normalized = domain
+    .toLowerCase()
+    .trim()
+    .replace(/^https?:\/\//, "")
+    .replace(/^www\./, "")
+    .split("/")[0]
+    .replace(/\.$/, "");
+  if (!/^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,}$/.test(normalized)) {
+    throw new ConvexError("Invalid custom domain.");
+  }
+  return normalized;
+}
+
+async function ensureCustomDomainAllowed(
+  ctx: MutationCtx,
+  user: Doc<"users">,
+  domain: string | undefined,
+): Promise<string | undefined> {
+  const normalizedDomain = normalizeCustomDomain(domain);
+  if (!normalizedDomain) return undefined;
+
+  const domainRecord = await ctx.db
+    .query("custom_domains")
+    .withIndex("by_domain", (q) => q.eq("domain", normalizedDomain))
+    .unique();
+
+  if (
+    !domainRecord ||
+    domainRecord.userId !== user._id ||
+    domainRecord.status !== "active"
+  ) {
+    throw new ConvexError("Custom domain is not active for this account.");
+  }
+
+  return normalizedDomain;
+}
+
+function normalizeQrStyle(args: SignedInCreateArgs): SignedInCreateArgs["qrStyle"] {
+  if (!args.qrStyle) return undefined;
+  if (args.qrStyle.logoMode !== "custom" || !args.qrStyle.customLogoUrl) {
+    return args.qrStyle;
+  }
+
+  return {
+    ...args.qrStyle,
+    customLogoUrl: normalizeDestination(args.qrStyle.customLogoUrl),
+  };
+}
+
+function normalizeAbVariants(
+  destinationUrl: string,
+  args: SignedInCreateArgs,
+): Array<{ id: string; url: string; weight: number }> | undefined {
+  if (!args.abEnabled) return undefined;
+  if (!args.abVariants?.length) {
+    throw new ConvexError("Add at least one A/B test variant.");
+  }
+  if (args.abVariants.length > 4) {
+    throw new ConvexError("A/B testing supports up to four variants.");
+  }
+
+  const seen = new Set([destinationUrl]);
+  let totalWeight = 0;
+  return args.abVariants.map((variant, index) => {
+    if (!Number.isFinite(variant.weight) || variant.weight <= 0 || variant.weight > 100) {
+      throw new ConvexError("A/B variant weights must be between 1 and 100.");
+    }
+    totalWeight += variant.weight;
+    if (totalWeight > 100) {
+      throw new ConvexError("A/B variant weights cannot exceed 100%.");
+    }
+
+    const normalizedVariantUrl = normalizeDestination(variant.url);
+    if (seen.has(normalizedVariantUrl)) {
+      throw new ConvexError("A/B variants must use unique destination URLs.");
+    }
+    seen.add(normalizedVariantUrl);
+
+    return {
+      id: `variant_${index}`,
+      url: normalizedVariantUrl,
+      weight: variant.weight,
+    };
+  });
+}
+
+function buildRedisAbVariants(
+  destinationUrl: string,
+  variants: Array<{ id: string; url: string; weight: number }> | undefined,
+): Array<{ id: string; url: string; weight: number }> | undefined {
+  if (!variants?.length) return undefined;
+
+  const testWeight = variants.reduce((sum, variant) => sum + variant.weight, 0);
+  return [
+    {
+      id: "control",
+      url: destinationUrl,
+      weight: Math.max(0, 100 - testWeight),
+    },
+    ...variants,
+  ];
 }
 
 function validateExpiration(expiresAt: number | undefined) {
@@ -329,22 +435,22 @@ export const createUrl = mutation({
     await ensureBelowUserLimit(ctx, user);
 
     const normalizedUrl = normalizeDestination(args.url);
+    const normalizedQrStyle = normalizeQrStyle(args);
+    const normalizedCustomDomain = await ensureCustomDomainAllowed(
+      ctx,
+      user,
+      args.customDomain,
+    );
+    const abVariantsWithIds = normalizeAbVariants(normalizedUrl, args);
+
     await ensureNoDuplicateForOwner(ctx, {
       userId: user._id,
       url: normalizedUrl,
-      customDomain: args.customDomain,
+      customDomain: normalizedCustomDomain,
     });
 
     const slug = await createUniqueSlug(ctx, args.slugType);
     const ownerKey = makeUserOwnerKey(user._id);
-    const abVariantsWithIds =
-      args.abEnabled && args.abVariants?.length
-        ? args.abVariants.map((variant, index) => ({
-            id: `variant_${index}`,
-            url: variant.url,
-            weight: variant.weight,
-          }))
-        : undefined;
 
     const docId = await ctx.db.insert("urls", {
       fullurl: normalizedUrl,
@@ -352,8 +458,8 @@ export const createUrl = mutation({
       trackingEnabled: args.trackingEnabled,
       expiresAt: args.expiresAt,
       qrEnabled: args.qrEnabled ?? false,
-      qrStyle: args.qrStyle,
-      customDomain: args.customDomain,
+      qrStyle: normalizedQrStyle,
+      customDomain: normalizedCustomDomain,
       userTableId: user._id,
       guestId: undefined,
       ownershipState: "user",
@@ -368,7 +474,7 @@ export const createUrl = mutation({
       utmTerm: args.utmTerm,
       utmContent: args.utmContent,
       abEnabled: args.abEnabled,
-      abVariants: args.abVariants,
+      abVariants: abVariantsWithIds?.map(({ url, weight }) => ({ url, weight })),
     });
 
     await ctx.db.insert("urlAnalytics", {
@@ -390,7 +496,7 @@ export const createUrl = mutation({
       utmTerm: args.utmTerm,
       utmContent: args.utmContent,
       abEnabled: args.abEnabled,
-      abVariants: abVariantsWithIds,
+      abVariants: buildRedisAbVariants(normalizedUrl, abVariantsWithIds),
     });
 
     if (args.expiresAt !== undefined) {
@@ -428,6 +534,7 @@ export const createGuestUrl = mutation({
   args: {
     url: v.string(),
     guestId: v.string(),
+    guestToken: v.string(),
     guestEmail: v.optional(v.string()),
   },
   returns: v.object({
@@ -437,6 +544,7 @@ export const createGuestUrl = mutation({
   }),
   async handler(ctx, args) {
     const guestId = ensureGuestId(args.guestId);
+    await verifyGuestSessionToken(guestId, args.guestToken);
     const normalizedUrl = normalizeDestination(args.url);
     await ensureBelowGuestLimit(ctx, guestId);
     await ensureNoDuplicateForOwner(ctx, {

@@ -44,12 +44,26 @@ export function LinkHealthPanel({ urlId }: LinkHealthPanelProps) {
   // Loading when urlId exists but query hasn't returned yet
   const isLoading = urlId && healthData === undefined;
 
-  // Calculate uptime from dailySummaries
+  const getLast30DateStrings = () => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    return Array.from({ length: 30 }, (_, index) => {
+      const date = new Date(today);
+      date.setDate(today.getDate() - (29 - index));
+      return date.toISOString().split("T")[0];
+    });
+  };
+
+  // Calculate uptime from the visible last-30-day window.
   const calculateUptime = () => {
     if (!healthData?.dailySummaries || healthData.dailySummaries.length === 0) {
       return 100; // Default to 100% if no data
     }
-    const summaries = healthData.dailySummaries;
+    const visibleDates = new Set(getLast30DateStrings());
+    const summaries = healthData.dailySummaries.filter((summary) =>
+      visibleDates.has(summary.date),
+    );
     const total = summaries.reduce((s, r) => s + r.totalChecks, 0);
     const healthy = summaries.reduce((s, r) => s + r.healthyChecks, 0);
     return total > 0 ? Math.round((healthy / total) * 1000) / 10 : 100;
@@ -57,52 +71,28 @@ export function LinkHealthPanel({ urlId }: LinkHealthPanelProps) {
 
   const uptime = calculateUptime();
 
-  // Get the monitoring start date (when first health check was recorded)
-  const getMonitoringStartDate = () => {
-    if (!healthData?.healthData?._creationTime) return new Date();
-    return new Date(healthData.healthData._creationTime);
-  };
-
   const getUptimeBars = () => {
-    const startDate = getMonitoringStartDate();
     const summaries = healthData?.dailySummaries || [];
-    const bars: string[] = [];
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    const summaryByDate = new Map(summaries.map((s) => [s.date, s]));
 
-    // Generate 30 days starting from monitoring start date
-    for (let i = 0; i < 30; i++) {
-      const date = new Date(startDate);
-      date.setDate(startDate.getDate() + i);
-      date.setHours(0, 0, 0, 0);
-
-      const dateStr = date.toISOString().split("T")[0];
-
-      // If this day is in the future, mark as unknown
-      if (date > today) {
-        bars.push("future");
-      } else {
-        const summary = summaries.find((s) => s.date === dateStr);
-
-        if (!summary) {
-          bars.push("unknown");
-        } else {
-          const uptimePercent =
-            summary.totalChecks > 0
-              ? (summary.healthyChecks / summary.totalChecks) * 100
-              : 100;
-          if (uptimePercent >= 99) {
-            bars.push("healthy");
-          } else if (uptimePercent >= 90) {
-            bars.push("warning");
-          } else {
-            bars.push("error");
-          }
-        }
+    return getLast30DateStrings().map((dateStr) => {
+      const summary = summaryByDate.get(dateStr);
+      if (!summary) {
+        return "unknown";
       }
-    }
 
-    return bars;
+      const uptimePercent =
+        summary.totalChecks > 0
+          ? (summary.healthyChecks / summary.totalChecks) * 100
+          : 100;
+      if (uptimePercent >= 99) {
+        return "healthy";
+      }
+      if (uptimePercent >= 90) {
+        return "warning";
+      }
+      return "error";
+    });
   };
 
   const getStatusIcon = (status: UIStatus) => {

@@ -1,9 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
+import { z } from "zod";
 import type { AnalyticsV2Response } from "@/types/analytics-v2";
+import { getDateWindowAccessError } from "@/lib/analytics-access";
+import { getRateLimit } from "@/lib/rateLimit";
 
 const INTERNAL_API_URL = process.env.INTERNAL_API_URL;
 const API_SECRET = process.env.API_SECRET;
+const dateSchema = z
+  .string()
+  .regex(/^\d{4}-\d{2}-\d{2}$/)
+  .refine((value) => {
+    const date = new Date(`${value}T00:00:00.000Z`);
+    return !Number.isNaN(date.getTime()) && date.toISOString().slice(0, 10) === value;
+  });
 
 export async function GET(request: NextRequest) {
   const t0 = performance.now();
@@ -35,8 +45,35 @@ export async function GET(request: NextRequest) {
 
   // 2. INPUT: Parse Query Parameters (Date Range)
   const { searchParams } = new URL(request.url);
-  const start = searchParams.get("start"); // e.g. "2025-11-20"
-  const end = searchParams.get("end"); // e.g. "2025-11-22"
+  const parsedDates = z
+    .object({ start: dateSchema, end: dateSchema })
+    .refine((value) => value.start <= value.end, {
+      message: "Invalid date range",
+    })
+    .safeParse({
+      start: searchParams.get("start"),
+      end: searchParams.get("end"),
+    });
+  if (!parsedDates.success) {
+    return NextResponse.json({ error: "Invalid date range" }, { status: 400 });
+  }
+  const { start, end } = parsedDates.data;
+  const rangeError = getDateWindowAccessError(start, end, sessionClaims);
+  if (rangeError) {
+    return NextResponse.json({ error: rangeError }, { status: 403 });
+  }
+  const rateLimit = getRateLimit();
+  const {
+    success,
+    limit: rlLimit,
+    remaining,
+  } = await rateLimit.limit(`analytics-v2:${clerkUserId}`);
+  if (!success) {
+    return NextResponse.json(
+      { error: "Too many requests", limit: rlLimit, remaining },
+      { status: 429 },
+    );
+  }
   console.log("📈 [AnalyticsV2] Incoming request", {
     start,
     end,
@@ -44,26 +81,20 @@ export async function GET(request: NextRequest) {
     convexUserId,
   });
 
-  // Validate minimal inputs
-  if (!start || !end) {
-    return NextResponse.json(
-      { error: "Missing date range parameters" },
-      { status: 400 },
-    );
-  }
-
   // 3. PROXY: Call the Backend Service (Private Network)
   try {
-    if (!INTERNAL_API_URL) {
+    if (!INTERNAL_API_URL || !API_SECRET) {
       console.error("❌ [AnalyticsV2] Missing INTERNAL_API_URL env var");
       throw new Error("Configuration Error");
     }
     console.log("📡 [AnalyticsV2] Targeting backend", INTERNAL_API_URL);
-    const targetUrl = `${INTERNAL_API_URL}?start=${start}&end=${end}`;
-    console.log("🛰️ [AnalyticsV2] Final URL", targetUrl);
+    const targetUrl = new URL(INTERNAL_API_URL);
+    targetUrl.searchParams.set("start", start);
+    targetUrl.searchParams.set("end", end);
+    console.log("🛰️ [AnalyticsV2] Final URL", targetUrl.toString());
 
     const t2 = performance.now();
-    const response = await fetch(targetUrl, {
+    const response = await fetch(targetUrl.toString(), {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -106,7 +137,9 @@ export async function GET(request: NextRequest) {
       coldFiles: data.meta.files_count,
       totalClicks: data.totalClicks,
     });
-    return NextResponse.json(data);
+    const res = NextResponse.json(data);
+    res.headers.set("Cache-Control", "private, no-store");
+    return res;
   } catch (error) {
     console.error("🔥 [AnalyticsV2] Proxy Failed", error);
     return NextResponse.json(

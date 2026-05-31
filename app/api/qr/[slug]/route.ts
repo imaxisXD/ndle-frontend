@@ -4,11 +4,14 @@ import sharp from "sharp";
 import { getCacheHeadersPreset } from "@/lib/cacheHeaders";
 import { makeShortLink } from "@/lib/config";
 import { getBrandBadgeDataUrl } from "@/lib/qr";
+import { lookup } from "node:dns/promises";
+import net from "node:net";
 
 export const runtime = "nodejs";
 
 type EccLevel = "L" | "M" | "Q" | "H";
 type LogoMode = "brand" | "custom" | "none";
+const MAX_LOGO_BYTES = 1_000_000;
 
 function clamp(n: number, min: number, max: number): number {
   return Math.max(min, Math.min(max, n));
@@ -29,20 +32,97 @@ function parseNumber(value: string | null, fallback: number): number {
   return Number.isFinite(n) ? n : fallback;
 }
 
+function isPrivateIpv4(ip: string): boolean {
+  const parts = ip.split(".").map((part) => Number(part));
+  if (parts.length !== 4 || parts.some((part) => !Number.isInteger(part) || part < 0 || part > 255)) {
+    return true;
+  }
+  const [a, b] = parts;
+  return (
+    a === 0 ||
+    a === 10 ||
+    a === 127 ||
+    (a === 100 && b >= 64 && b <= 127) ||
+    (a === 169 && b === 254) ||
+    (a === 172 && b >= 16 && b <= 31) ||
+    (a === 192 && (b === 0 || b === 168)) ||
+    (a === 198 && (b === 18 || b === 19)) ||
+    a >= 224
+  );
+}
+
+function isPrivateIpv6(ip: string): boolean {
+  const normalized = ip.toLowerCase();
+  return (
+    normalized === "::" ||
+    normalized === "::1" ||
+    normalized.startsWith("fc") ||
+    normalized.startsWith("fd") ||
+    normalized.startsWith("fe80:") ||
+    normalized.startsWith("::ffff:10.") ||
+    normalized.startsWith("::ffff:127.") ||
+    normalized.startsWith("::ffff:169.254.") ||
+    normalized.startsWith("::ffff:172.") ||
+    normalized.startsWith("::ffff:192.168.") ||
+    normalized.startsWith("2001:db8:")
+  );
+}
+
+async function assertPublicHttpUrl(url: URL): Promise<void> {
+  if (url.protocol !== "https:" && url.protocol !== "http:") {
+    throw new Error("Unsupported logo protocol");
+  }
+  if (url.username || url.password) {
+    throw new Error("Logo URL must not include credentials");
+  }
+  const hostname = url.hostname.toLowerCase();
+  if (hostname === "localhost" || hostname.endsWith(".localhost")) {
+    throw new Error("Local logo hosts are not allowed");
+  }
+
+  const records = await lookup(hostname, { all: true, verbatim: true });
+  if (records.length === 0) {
+    throw new Error("Logo host did not resolve");
+  }
+  for (const record of records) {
+    const family = net.isIP(record.address);
+    if (family === 4 && isPrivateIpv4(record.address)) {
+      throw new Error("Logo host resolves to a private address");
+    }
+    if (family === 6 && isPrivateIpv6(record.address)) {
+      throw new Error("Logo host resolves to a private address");
+    }
+  }
+}
+
 async function fetchImageAsDataUrl(url: string): Promise<string | null> {
   try {
-    const res = await fetch(url, {
-      // 4s timeout to protect server
-      signal: AbortSignal.timeout(4000),
-      headers: { "User-Agent": "ndle-qr/1.0" },
-      cache: "no-store",
-    });
+    let currentUrl = new URL(url);
+    let res: Response | null = null;
+    for (let redirectCount = 0; redirectCount <= 3; redirectCount++) {
+      await assertPublicHttpUrl(currentUrl);
+      res = await fetch(currentUrl.toString(), {
+        // 4s timeout to protect server
+        signal: AbortSignal.timeout(4000),
+        headers: { "User-Agent": "ndle-qr/1.0" },
+        cache: "no-store",
+        redirect: "manual",
+      });
+      if (![301, 302, 303, 307, 308].includes(res.status)) break;
+      const location = res.headers.get("location");
+      if (!location) return null;
+      currentUrl = new URL(location, currentUrl);
+    }
+    if (!res) return null;
     if (!res.ok) return null;
     const contentType = res.headers.get("content-type") || "";
     const isPng = contentType.startsWith("image/png");
     const isJpeg = contentType.startsWith("image/jpeg");
     if (!isPng && !isJpeg) return null;
+    const contentLength = Number(res.headers.get("content-length") || 0);
+    if (contentLength > MAX_LOGO_BYTES) return null;
     const buf = Buffer.from(await res.arrayBuffer());
+    if (buf.byteLength > MAX_LOGO_BYTES) return null;
     const base64 = buf.toString("base64");
     return `data:${isPng ? "image/png" : "image/jpeg"};base64,${base64}`;
   } catch {

@@ -1,13 +1,15 @@
 import { ConvexError, v } from "convex/values";
 import type { Doc } from "./_generated/dataModel";
 import { mutation, type MutationCtx } from "./_generated/server";
+import { ensureGuestId } from "./ownership";
+import { verifyGuestSessionToken } from "./guestTokens";
 
 export async function upsertGuestSession(
   ctx: MutationCtx,
   guestId: string,
   email?: string,
 ) {
-  const normalizedGuestId = guestId.trim();
+  const normalizedGuestId = ensureGuestId(guestId);
   const normalizedEmail = email?.trim().toLowerCase() || undefined;
   const existing = await ctx.db
     .query("guest_sessions")
@@ -33,30 +35,22 @@ export async function upsertGuestSession(
 export async function getClaimableGuestSessions(
   ctx: MutationCtx,
   guestId: string | undefined,
-  email: string | undefined,
 ): Promise<Array<Doc<"guest_sessions">>> {
   const sessionMap = new Map<string, Doc<"guest_sessions">>();
 
   if (guestId?.trim()) {
+    let normalizedGuestId: string;
+    try {
+      normalizedGuestId = ensureGuestId(guestId);
+    } catch {
+      return [];
+    }
     const directMatch = await ctx.db
       .query("guest_sessions")
-      .withIndex("by_guest_id", (q) => q.eq("guestId", guestId.trim()))
+      .withIndex("by_guest_id", (q) => q.eq("guestId", normalizedGuestId))
       .collect();
 
     for (const session of directMatch) {
-      if (!session.claimedAt) {
-        sessionMap.set(session._id, session);
-      }
-    }
-  }
-
-  if (email?.trim()) {
-    const emailMatches = await ctx.db
-      .query("guest_sessions")
-      .withIndex("by_email", (q) => q.eq("email", email.trim().toLowerCase()))
-      .collect();
-
-    for (const session of emailMatches) {
       if (!session.claimedAt) {
         sessionMap.set(session._id, session);
       }
@@ -69,6 +63,7 @@ export async function getClaimableGuestSessions(
 export const saveGuestEmail = mutation({
   args: {
     guestId: v.string(),
+    guestToken: v.string(),
     email: v.string(),
   },
   returns: v.object({
@@ -79,8 +74,9 @@ export const saveGuestEmail = mutation({
     if (!email) {
       throw new ConvexError("Email is required");
     }
-    await upsertGuestSession(ctx, args.guestId, email);
+    const guestId = ensureGuestId(args.guestId);
+    await verifyGuestSessionToken(guestId, args.guestToken);
+    await upsertGuestSession(ctx, guestId, email);
     return { success: true };
   },
 });
-

@@ -14,6 +14,8 @@ import {
 } from "ai";
 import { createOpenAI } from "@ai-sdk/openai";
 import { z } from "zod";
+import { auth } from "@clerk/nextjs/server";
+import { getRateLimit } from "@/lib/rateLimit";
 
 export const runtime = "edge";
 export const maxDuration = 30;
@@ -81,6 +83,9 @@ const DashboardSpecSchema = z.object({
     .default(2)
     .describe("Number of grid columns"),
 });
+const RequestSchema = z.object({
+  messages: z.array(z.custom<UIMessage>()).min(1).max(20),
+});
 
 const SYSTEM_PROMPT = `You are a data visualization assistant that helps users create charts from their analytics data.
 
@@ -116,18 +121,40 @@ export async function POST(req: Request) {
   console.log("[chart-chat] ======== NEW REQUEST ========");
 
   try {
-    const { messages }: { messages: UIMessage[] } = await req.json();
-    console.log("[chart-chat] Messages count:", messages?.length);
-
-    if (!messages || !Array.isArray(messages)) {
-      return new Response(
-        JSON.stringify({ error: "Messages array is required" }),
-        {
-          status: 400,
-          headers: { "Content-Type": "application/json" },
-        },
-      );
+    const { userId } = await auth();
+    if (!userId) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { "Content-Type": "application/json" },
+      });
     }
+
+    const contentLength = Number(req.headers.get("content-length") || 0);
+    if (contentLength > 64 * 1024) {
+      return new Response(JSON.stringify({ error: "Request body too large" }), {
+        status: 413,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    const rateLimit = getRateLimit();
+    const { success, limit, remaining } = await rateLimit.limit(`chart-chat:${userId}`);
+    if (!success) {
+      return new Response(JSON.stringify({ error: "Too many requests", limit, remaining }), {
+        status: 429,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    const parsed = RequestSchema.safeParse(await req.json());
+    if (!parsed.success) {
+      return new Response(JSON.stringify({ error: "Messages array is required" }), {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+    const { messages } = parsed.data;
+    console.log("[chart-chat] Messages count:", messages?.length);
 
     console.log("[chart-chat] Starting streamText with tools...");
 

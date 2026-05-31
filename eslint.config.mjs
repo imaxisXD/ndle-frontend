@@ -5,12 +5,14 @@ import reactPlugin from "eslint-plugin-react";
 import reactHooksPlugin from "eslint-plugin-react-hooks";
 import jsxA11yPlugin from "eslint-plugin-jsx-a11y";
 import convexPlugin from "@convex-dev/eslint-plugin";
+import tanstackQueryPlugin from "@tanstack/eslint-plugin-query";
 
 export default [
   {
     ignores: [
       "node_modules/**",
       ".next/**",
+      ".open-next/**",
       "out/**",
       "build/**",
       "next-env.d.ts",
@@ -28,6 +30,7 @@ export default [
       "react-hooks": reactHooksPlugin,
       "jsx-a11y": jsxA11yPlugin,
       "@next/next": nextPlugin,
+      "@tanstack/query": tanstackQueryPlugin,
     },
     languageOptions: {
       parserOptions: {

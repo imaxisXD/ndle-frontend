@@ -56,7 +56,12 @@ function CopyButton({ value }: { value: string }) {
 
 export function DomainItem({ domain, onDelete }: DomainItemProps) {
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
-  const subdomain = domain.domain.split(".")[0];
+  const domainLabels = domain.domain.split(".");
+  const isLikelyApexDomain = domainLabels.length === 2;
+  const recordType = isLikelyApexDomain ? "ALIAS / ANAME" : "CNAME";
+  const recordName = isLikelyApexDomain
+    ? "@"
+    : domainLabels.slice(0, -2).join(".");
 
   return (
     <div className="space-y-2 rounded-sm border border-dashed border-gray-300 p-2">
@@ -85,7 +90,7 @@ export function DomainItem({ domain, onDelete }: DomainItemProps) {
           <div className="rounded-lg border border-gray-200">
             <div className="border-b border-gray-200 bg-gray-50/50 px-4 py-3">
               <h4 className="text-sm font-medium text-gray-900">
-                Add this CNAME record to your DNS provider
+                Add this DNS record to your DNS provider
               </h4>
             </div>
 
@@ -100,13 +105,15 @@ export function DomainItem({ domain, onDelete }: DomainItemProps) {
                 </thead>
                 <tbody>
                   <tr>
-                    <td className="px-4 py-3 font-mono text-gray-600">CNAME</td>
+                    <td className="px-4 py-3 font-mono text-gray-600">
+                      {recordType}
+                    </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2">
                         <code className="font-mono text-gray-900">
-                          {subdomain}
+                          {recordName}
                         </code>
-                        <CopyButton value={subdomain} />
+                        <CopyButton value={recordName} />
                       </div>
                     </td>
                     <td className="px-4 py-3">

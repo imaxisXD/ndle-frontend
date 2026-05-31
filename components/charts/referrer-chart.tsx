@@ -58,52 +58,78 @@ import {
   YoutubeLogoIcon,
 } from "@phosphor-icons/react/dist/ssr";
 
+function normalizeReferrerHost(domain: string): string {
+  const trimmed = domain.trim().toLowerCase();
+  if (trimmed === "direct / none" || trimmed === "direct") return "direct";
+  if (trimmed === "other") return "other";
+
+  try {
+    const parsed = new URL(
+      /^[a-z][a-z0-9+.-]*:\/\//i.test(trimmed)
+        ? trimmed
+        : `https://${trimmed}`,
+    );
+    return parsed.hostname.replace(/^www\./, "");
+  } catch {
+    return trimmed.split("/")[0].replace(/^www\./, "");
+  }
+}
+
+function matchesDomain(host: string, domain: string): boolean {
+  return host === domain || host.endsWith(`.${domain}`);
+}
+
 /** Map domain patterns to Phosphor icons */
 function getReferrerIcon(domain: string) {
-  const d = domain.toLowerCase();
+  const d = normalizeReferrerHost(domain);
 
-  if (d.includes("google")) return GoogleLogoIcon;
-  if (d.includes("twitter") || d === "t.co" || d.includes("x.com"))
+  if (matchesDomain(d, "google.com")) return GoogleLogoIcon;
+  if (matchesDomain(d, "twitter.com") || d === "t.co" || d === "x.com")
     return XLogoIcon;
-  if (d.includes("linkedin")) return LinkedinLogoIcon;
-  if (d.includes("facebook") || d.includes("fb.com")) return FacebookLogoIcon;
-  if (d.includes("instagram")) return InstagramLogoIcon;
-  if (d.includes("youtube") || d.includes("youtu.be")) return YoutubeLogoIcon;
-  if (d.includes("reddit")) return RedditLogoIcon;
-  if (d.includes("github")) return GithubLogoIcon;
-  if (d.includes("tiktok")) return TiktokLogoIcon;
-  if (d.includes("pinterest")) return PinterestLogoIcon;
-  if (d.includes("medium.com")) return MediumLogoIcon;
-  if (d.includes("discord")) return DiscordLogoIcon;
-  if (d.includes("telegram") || d === "t.me") return TelegramLogoIcon;
-  if (d.includes("whatsapp") || d === "wa.me") return WhatsappLogoIcon;
-  if (d.includes("slack")) return SlackLogoIcon;
-  if (d === "direct / none" || d === "direct") return ArrowSquareOutIcon;
+  if (matchesDomain(d, "linkedin.com")) return LinkedinLogoIcon;
+  if (matchesDomain(d, "facebook.com") || d === "fb.com")
+    return FacebookLogoIcon;
+  if (matchesDomain(d, "instagram.com")) return InstagramLogoIcon;
+  if (matchesDomain(d, "youtube.com") || d === "youtu.be")
+    return YoutubeLogoIcon;
+  if (matchesDomain(d, "reddit.com")) return RedditLogoIcon;
+  if (matchesDomain(d, "github.com")) return GithubLogoIcon;
+  if (matchesDomain(d, "tiktok.com")) return TiktokLogoIcon;
+  if (matchesDomain(d, "pinterest.com")) return PinterestLogoIcon;
+  if (matchesDomain(d, "medium.com")) return MediumLogoIcon;
+  if (matchesDomain(d, "discord.com") || matchesDomain(d, "discord.gg"))
+    return DiscordLogoIcon;
+  if (matchesDomain(d, "telegram.org") || d === "t.me") return TelegramLogoIcon;
+  if (matchesDomain(d, "whatsapp.com") || d === "wa.me")
+    return WhatsappLogoIcon;
+  if (matchesDomain(d, "slack.com")) return SlackLogoIcon;
+  if (d === "direct") return ArrowSquareOutIcon;
 
   return GlobeIcon;
 }
 
 /** Convert domain to friendly display name */
 function getFriendlyName(domain: string): string {
-  const d = domain.toLowerCase();
+  const d = normalizeReferrerHost(domain);
 
-  if (d.includes("google")) return "Google";
-  if (d.includes("twitter") || d === "t.co") return "Twitter";
-  if (d.includes("x.com")) return "X";
-  if (d.includes("linkedin")) return "LinkedIn";
-  if (d.includes("facebook") || d.includes("fb.com")) return "Facebook";
-  if (d.includes("instagram")) return "Instagram";
-  if (d.includes("youtube") || d.includes("youtu.be")) return "YouTube";
-  if (d.includes("reddit")) return "Reddit";
-  if (d.includes("github")) return "GitHub";
-  if (d.includes("tiktok")) return "TikTok";
-  if (d.includes("pinterest")) return "Pinterest";
-  if (d.includes("medium.com")) return "Medium";
-  if (d.includes("discord")) return "Discord";
-  if (d.includes("telegram") || d === "t.me") return "Telegram";
-  if (d.includes("whatsapp") || d === "wa.me") return "WhatsApp";
-  if (d.includes("slack")) return "Slack";
-  if (d === "direct / none") return "Direct";
+  if (matchesDomain(d, "google.com")) return "Google";
+  if (matchesDomain(d, "twitter.com") || d === "t.co") return "Twitter";
+  if (d === "x.com") return "X";
+  if (matchesDomain(d, "linkedin.com")) return "LinkedIn";
+  if (matchesDomain(d, "facebook.com") || d === "fb.com") return "Facebook";
+  if (matchesDomain(d, "instagram.com")) return "Instagram";
+  if (matchesDomain(d, "youtube.com") || d === "youtu.be") return "YouTube";
+  if (matchesDomain(d, "reddit.com")) return "Reddit";
+  if (matchesDomain(d, "github.com")) return "GitHub";
+  if (matchesDomain(d, "tiktok.com")) return "TikTok";
+  if (matchesDomain(d, "pinterest.com")) return "Pinterest";
+  if (matchesDomain(d, "medium.com")) return "Medium";
+  if (matchesDomain(d, "discord.com") || matchesDomain(d, "discord.gg"))
+    return "Discord";
+  if (matchesDomain(d, "telegram.org") || d === "t.me") return "Telegram";
+  if (matchesDomain(d, "whatsapp.com") || d === "wa.me") return "WhatsApp";
+  if (matchesDomain(d, "slack.com")) return "Slack";
+  if (d === "direct") return "Direct";
   if (d === "other") return "Other";
 
   // Return domain as-is for unknown sources

@@ -9,6 +9,7 @@ import {
 } from "./_generated/server";
 import { internal } from "./_generated/api";
 import { getClaimableGuestSessions } from "./guestSessions";
+import { verifyGuestSessionToken } from "./guestTokens";
 import {
   FREE_ACTIVE_LINK_LIMIT,
   FREE_ANALYTICS_RANGE_DAYS,
@@ -25,6 +26,7 @@ import {
 export const store = mutation({
   args: {
     guestId: v.optional(v.string()),
+    guestToken: v.optional(v.string()),
   },
   returns: v.object({
     id: v.id("users"),
@@ -54,7 +56,7 @@ export const store = mutation({
         ctx,
         existingUser,
         args.guestId,
-        identity.email ?? "",
+        args.guestToken,
       );
 
       await ctx.scheduler.runAfter(0, internal.users.syncOwnerAliasesToIngest, {
@@ -99,7 +101,7 @@ export const store = mutation({
       ctx,
       newUser,
       args.guestId,
-      identity.email ?? "",
+      args.guestToken,
     );
 
     await ctx.scheduler.runAfter(0, internal.users.syncOwnerAliasesToIngest, {
@@ -283,9 +285,14 @@ async function claimGuestLinksForUser(
   ctx: MutationCtx,
   user: Doc<"users">,
   guestId: string | undefined,
-  email: string,
+  guestToken: string | undefined,
 ) {
-  const sessions = await getClaimableGuestSessions(ctx, guestId, email);
+  let verifiedGuestId: string | undefined;
+  if (guestId && guestToken) {
+    verifiedGuestId = await verifyGuestSessionToken(guestId, guestToken);
+  }
+
+  const sessions = await getClaimableGuestSessions(ctx, verifiedGuestId);
   if (sessions.length === 0) {
     return 0;
   }

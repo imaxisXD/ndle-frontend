@@ -11,36 +11,46 @@ export async function initDuckDB() {
     }
     return dbPromise;
   }
-  if (process.env.NODE_ENV === "development") {
-    console.log("[DuckDB] Starting initialization...");
+  dbPromise = (async () => {
+    if (process.env.NODE_ENV === "development") {
+      console.log("[DuckDB] Starting initialization...");
+    }
+
+    const JSDELIVR_BUNDLES = duckdb.getJsDelivrBundles();
+    const bundle = await duckdb.selectBundle(JSDELIVR_BUNDLES);
+
+    const worker_url = URL.createObjectURL(
+      new Blob([`importScripts("${bundle.mainWorker}");`], {
+        type: "text/javascript",
+      }),
+    );
+
+    try {
+      const worker = new Worker(worker_url);
+      // Use ConsoleLogger only in development
+      const logger =
+        process.env.NODE_ENV === "development"
+          ? new duckdb.ConsoleLogger()
+          : new duckdb.VoidLogger();
+
+      const db = new duckdb.AsyncDuckDB(logger, worker);
+      await db.instantiate(bundle.mainModule, bundle.pthreadWorker);
+
+      if (process.env.NODE_ENV === "development") {
+        console.log("[DuckDB] Initialization complete!");
+      }
+      return db;
+    } finally {
+      URL.revokeObjectURL(worker_url);
+    }
+  })();
+
+  try {
+    return await dbPromise;
+  } catch (error) {
+    dbPromise = null;
+    throw error;
   }
-
-  const JSDELIVR_BUNDLES = duckdb.getJsDelivrBundles();
-  const bundle = await duckdb.selectBundle(JSDELIVR_BUNDLES);
-
-  const worker_url = URL.createObjectURL(
-    new Blob([`importScripts("${bundle.mainWorker}");`], {
-      type: "text/javascript",
-    }),
-  );
-
-  const worker = new Worker(worker_url);
-  // Use ConsoleLogger only in development
-  const logger =
-    process.env.NODE_ENV === "development"
-      ? new duckdb.ConsoleLogger()
-      : { log: () => {} }; // Silent logger for prod
-
-  const db = new duckdb.AsyncDuckDB(logger as any, worker);
-
-  await db.instantiate(bundle.mainModule, bundle.pthreadWorker);
-  URL.revokeObjectURL(worker_url);
-
-  if (process.env.NODE_ENV === "development") {
-    console.log("[DuckDB] Initialization complete!");
-  }
-  dbPromise = Promise.resolve(db);
-  return db;
 }
 
 export function useDuckDB() {

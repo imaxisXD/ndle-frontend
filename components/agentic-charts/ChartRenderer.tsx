@@ -14,9 +14,10 @@ import {
   ActionProvider,
   type ComponentRegistry,
 } from "@json-render/react";
+import type { UITree } from "@json-render/core";
 
 interface ChartRendererProps {
-  tree: unknown;
+  tree: UITree | null;
   registry: ComponentRegistry;
   execute: (query: string) => Promise<Array<Record<string, unknown>>>;
   onAction?: (actionName: string, params: Record<string, unknown>) => void;
@@ -114,7 +115,7 @@ export function ChartRenderer({
   return (
     <DataProvider initialData={{ charts: chartData, isLoading }}>
       <ActionProvider handlers={actionHandlers}>
-        <Renderer tree={tree as any} registry={registry} />
+        <Renderer tree={tree} registry={registry} />
       </ActionProvider>
     </DataProvider>
   );

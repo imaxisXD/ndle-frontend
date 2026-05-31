@@ -20,19 +20,6 @@ import { CircleGridLoaderIcon } from "@/components/icons";
 
 export const description = "An area chart showing hourly click activity";
 
-const defaultData = [
-  { hour: "00:00", clicks: 0 },
-  { hour: "04:00", clicks: 2 },
-  { hour: "08:00", clicks: 0 },
-  { hour: "11:00", clicks: 3 },
-  { hour: "12:00", clicks: 3 },
-  { hour: "16:00", clicks: 0 },
-  { hour: "19:00", clicks: 1 },
-  { hour: "20:00", clicks: 1 },
-  { hour: "21:00", clicks: 4 },
-  { hour: "22:00", clicks: 2 },
-];
-
 const chartConfig = {
   clicks: {
     label: "Clicks",
@@ -50,7 +37,8 @@ export function HourlyActivityChart({
   data?: Array<{ hour: string; clicks: number }>;
   isLoading?: boolean;
 }) {
-  const showEmptyState = !isLoading && Array.isArray(data) && data.length === 0;
+  const chartData = data ?? [];
+  const showEmptyState = !isLoading && chartData.length === 0;
   return (
     <Card>
       <CardHeader className="flex flex-col items-start justify-between gap-1.5">
@@ -84,7 +72,7 @@ export function HourlyActivityChart({
           }
         >
           <AreaChart
-            data={data ?? defaultData}
+            data={chartData}
             margin={{
               top: 20,
               right: 20,

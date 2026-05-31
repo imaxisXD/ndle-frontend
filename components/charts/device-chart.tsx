@@ -27,11 +27,6 @@ import { CircleGridLoaderIcon } from "@/components/icons";
 
 export const description = "A bar chart showing device type distribution";
 
-const defaultData = [
-  { device: "Desktop", clicks: 18 },
-  { device: "Mobile", clicks: 5 },
-];
-
 const chartConfig = {
   clicks: {
     label: "Clicks",
@@ -49,8 +44,8 @@ export function DeviceChart({
   data?: Array<{ device: string; clicks: number }>;
   isLoading?: boolean;
 }) {
-  const showEmptyState =
-    !isLoading && Array.isArray(data) && data.length === 0;
+  const chartData = data ?? [];
+  const showEmptyState = !isLoading && chartData.length === 0;
   return (
     <Card>
       <CardHeader className="flex flex-col items-start justify-between gap-1.5">
@@ -85,7 +80,7 @@ export function DeviceChart({
         >
           <BarChart
             accessibilityLayer
-            data={data ?? defaultData}
+            data={chartData}
             layout="vertical"
             margin={{
               right: 16,
@@ -124,8 +119,7 @@ export function DeviceChart({
                     const row = payload?.[0]?.payload as
                       | { device: string; clicks: number }
                       | undefined;
-                    const dataset = data ?? defaultData;
-                    const totalClicks = dataset.reduce(
+                    const totalClicks = chartData.reduce(
                       (sum, item) => sum + item.clicks,
                       0,
                     );

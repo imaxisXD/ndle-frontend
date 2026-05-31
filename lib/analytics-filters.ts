@@ -294,7 +294,7 @@ export function processFilterOptions(
   const sorted = Array.from(normalizedSet).sort();
   for (const value of sorted) {
     options.push({
-      value: value.toLowerCase(),
+      value,
       label: config.getLabel(value),
     });
   }

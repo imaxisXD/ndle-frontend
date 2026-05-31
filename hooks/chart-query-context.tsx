@@ -47,6 +47,7 @@ const ChartQueryContext = createContext<ChartQueryContextValue | null>(null);
 const FILE_PROXY_WORKER_URL =
   process.env.NEXT_PUBLIC_FILE_PROXY_URL ||
   "https://proxy-file-worker.sunny735084.workers.dev";
+const EMPTY_SCOPE_FILTERS: ChartScopeFilters = {};
 
 // Cache for registered files (global to avoid re-registering)
 const registeredFiles = new Map<string, string>();
@@ -147,7 +148,7 @@ export function ChartQueryProvider({
   children,
   coldFiles = [],
   hotFile,
-  scopeFilters = {},
+  scopeFilters = EMPTY_SCOPE_FILTERS,
   scopeDateRange,
 }: ChartQueryProviderProps) {
   const { db, loading: dbLoading, error: dbError } = useDuckDB();
@@ -165,6 +166,7 @@ export function ChartQueryProvider({
       }),
     [scopeFilters, scopeDateRange],
   );
+  const queryEpoch = `${filesVersion}:${scopeSignature}`;
 
   const applyFiles = useCallback((files: ColdFile[]) => {
     allFilesRef.current = files;
@@ -198,6 +200,8 @@ export function ChartQueryProvider({
 
   const execute = useCallback(
     async (query: string): Promise<Array<Record<string, unknown>>> => {
+      // Keep the interface reactive when the file set or dashboard scope changes.
+      void queryEpoch;
       if (!db) {
         throw new Error("DuckDB is not initialized");
       }
@@ -401,7 +405,7 @@ export function ChartQueryProvider({
         setIsLoading(false);
       }
     },
-    [applyFiles, db, getToken, filesVersion, scopeSignature, scopeDateRange],
+    [applyFiles, db, getToken, queryEpoch, scopeDateRange, scopeFilters],
   );
 
   const isReady = !!db && !dbLoading;

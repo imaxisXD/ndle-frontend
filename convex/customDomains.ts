@@ -15,6 +15,7 @@ import { internal } from "./_generated/api";
 
 const MAX_DOMAINS_FREE = 1;
 const MAX_DOMAINS_PRO = 3;
+const STALE_PENDING_DOMAIN_MS = 24 * 60 * 60 * 1000;
 
 // ============================================================================
 // HELPER FUNCTIONS
@@ -227,7 +228,23 @@ export const addDomain = mutation({
       .withIndex("by_domain", (q) => q.eq("domain", domain))
       .unique();
 
-    if (existingDomain) {
+    if (existingDomain?.userId === user._id) {
+      return { success: true, domainId: existingDomain._id };
+    }
+
+    if (
+      existingDomain?.status === "pending" &&
+      existingDomain.createdAt < Date.now() - STALE_PENDING_DOMAIN_MS
+    ) {
+      if (existingDomain.cloudflareHostnameId) {
+        await ctx.scheduler.runAfter(
+          0,
+          internal.customDomains.internalDeleteFromCloudflare,
+          { cloudflareHostnameId: existingDomain.cloudflareHostnameId },
+        );
+      }
+      await ctx.db.delete(existingDomain._id);
+    } else if (existingDomain) {
       return {
         success: false,
         error: "This domain is already registered",

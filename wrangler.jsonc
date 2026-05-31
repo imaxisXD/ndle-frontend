@@ -13,8 +13,8 @@
     "binding": "ASSETS",
   },
   "vars": {
-    "CONVEX_DEPLOYMENT": "dev:tame-sparrow-238",
-    "NEXT_PUBLIC_CONVEX_URL": "https://tame-sparrow-238.convex.cloud",
+    "CONVEX_DEPLOYMENT": "prod:cheery-starling-175",
+    "NEXT_PUBLIC_CONVEX_URL": "https://cheery-starling-175.convex.cloud",
     "NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY": "pk_live_Y2xlcmsubmRsZS5hcHAk",
     "NEXT_PUBLIC_CLERK_SIGN_UP_URL": "/sign-up",
     "NEXT_PUBLIC_CLERK_SIGN_IN_URL": "/sign-in",

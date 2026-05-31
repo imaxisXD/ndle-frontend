@@ -95,6 +95,13 @@ export default defineSchema({
     updatedAt: v.number(),
     lastProcessedRequestId: v.optional(v.string()),
   }).index("by_url", ["urlId"]),
+  processedClickRequests: defineTable({
+    requestId: v.string(),
+    urlId: v.id("urls"),
+    createdAt: v.number(),
+  })
+    .index("by_request_id", ["requestId"])
+    .index("by_url", ["urlId"]),
   linkHealthChecks: defineTable({
     urlId: v.id("urls"),
     userId: v.optional(v.id("users")),

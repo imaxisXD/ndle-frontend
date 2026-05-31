@@ -13,23 +13,15 @@ import { AnimatePresence, motion } from "motion/react";
 import { OptionScheduling } from "./OptionScheduling";
 import { OptionUTMBuilder } from "./OptionUTMBuilder";
 import { OptionABTesting } from "./OptionABTesting";
-import { OptionTargeting } from "./OptionTargeting";
-import { OptionPassword } from "./OptionPassword";
 import { OptionQRCode } from "./OptionQRCode";
-import { OptionFallback } from "./OptionFallback";
-import { OptionSocial } from "./OptionSocial";
 import { OptionOrganization } from "./OptionOrganization";
 import {
   ArrowsSplitIcon,
   CalendarDotsIcon,
   FolderSimpleStarIcon,
-  GlobeHemisphereEastIcon,
   Icon,
-  LockKeyIcon,
   MegaphoneIcon,
   QrCodeIcon,
-  ShareFatIcon,
-  WarningDiamondIcon,
 } from "@phosphor-icons/react";
 import { CaretUpDownIcon } from "@phosphor-icons/react/dist/ssr";
 
@@ -37,17 +29,9 @@ import { CaretUpDownIcon } from "@phosphor-icons/react/dist/ssr";
 const ENABLE_KEYS = [
   "utmEnabled",
   "abEnabled",
-  "passwordEnabled",
-  "targetingEnabled",
-  "activateAtEnabled",
   "expiresEnabled", // Added to watch expiresEnabled
-  "fallbackEnabled",
   "qrEnabled",
-  "socialEnabled",
-  "tagsEnabled",
   "collectionId", // Added to watch collection
-  "notes", // Added to watch notes
-  "tags", // Added to watch tags
 ] as const satisfies readonly (keyof UrlFormValues)[];
 
 type EnableKey = (typeof ENABLE_KEYS)[number];
@@ -101,44 +85,15 @@ const GROUPS: OptionGroup[] = [
     ],
   },
   {
-    title: "Access & Expiration",
-    items: [
-      {
-        key: "password",
-        label: "Password Protection",
-        component: OptionPassword,
-        enableKey: "passwordEnabled",
-        description: "Require a password to access the link",
-        icon: LockKeyIcon,
-      },
-      {
-        key: "targeting",
-        label: "Geo & Device Targeting",
-        component: OptionTargeting,
-        enableKey: "targetingEnabled",
-        description: "Redirect based on country or device type",
-        icon: GlobeHemisphereEastIcon,
-      },
-    ],
-  },
-  {
     title: "Reliability",
     items: [
       {
         key: "schedule",
         label: "Scheduling",
         component: OptionScheduling,
-        isActive: (v) => !!v.activateAtEnabled || !!v.expiresEnabled,
-        description: "Set start and end times for link availability",
+        isActive: (v) => !!v.expiresEnabled,
+        description: "Set an expiration time for link availability",
         icon: CalendarDotsIcon,
-      },
-      {
-        key: "fallback",
-        label: "Fallback URL",
-        component: OptionFallback,
-        enableKey: "fallbackEnabled",
-        description: "Redirect if the main link is down",
-        icon: WarningDiamondIcon,
       },
       {
         key: "qr",
@@ -151,32 +106,15 @@ const GROUPS: OptionGroup[] = [
     ],
   },
   {
-    title: "Presentation",
-    items: [
-      {
-        key: "social",
-        label: "Social Previews",
-        component: OptionSocial,
-        enableKey: "socialEnabled",
-        description: "Customize how your link looks on social media",
-        icon: ShareFatIcon,
-      },
-    ],
-  },
-  {
     title: "Organization",
     items: [
       {
-        key: "tags",
-        label: "Tags, Notes & Collection",
+        key: "collection",
+        label: "Collection",
         component: OptionOrganization,
         // No enableKey - managed internally
-        isActive: (v) =>
-          !!v.tagsEnabled ||
-          (Array.isArray(v.tags) && v.tags.length > 0) ||
-          !!v.collectionId ||
-          !!v.notes,
-        description: "Add tags, notes, and assign to a collection",
+        isActive: (v) => !!v.collectionId,
+        description: "Assign this link to a collection",
         icon: FolderSimpleStarIcon,
       },
     ],

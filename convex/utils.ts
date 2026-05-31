@@ -141,18 +141,23 @@ function isPrivateIP(hostname: string) {
   const ipv4Regex = /^(\d{1,3}\.){3}\d{1,3}$/;
   if (ipv4Regex.test(hostname)) {
     const parts = hostname.split(".").map(Number);
+    if (
+      parts.length !== 4 ||
+      parts.some((part) => !Number.isInteger(part) || part < 0 || part > 255)
+    ) {
+      return true;
+    }
 
-    // 10.0.0.0 - 10.255.255.255
-    if (parts[0] === 10) return true;
-
-    // 172.16.0.0 - 172.31.255.255
-    if (parts[0] === 172 && parts[1] >= 16 && parts[1] <= 31) return true;
-
-    // 192.168.0.0 - 192.168.255.255
-    if (parts[0] === 192 && parts[1] === 168) return true;
-
-    // 169.254.0.0 - 169.254.255.255 (link-local)
-    if (parts[0] === 169 && parts[1] === 254) return true;
+    const [a, b] = parts;
+    if (a === 0) return true;
+    if (a === 10) return true;
+    if (a === 100 && b >= 64 && b <= 127) return true;
+    if (a === 127) return true;
+    if (a === 169 && b === 254) return true;
+    if (a === 172 && b >= 16 && b <= 31) return true;
+    if (a === 192 && (b === 0 || b === 168)) return true;
+    if (a === 198 && (b === 18 || b === 19)) return true;
+    if (a >= 224) return true;
   }
 
   // IPv6 private ranges

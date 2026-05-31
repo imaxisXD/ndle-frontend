@@ -3,6 +3,7 @@ import { z } from "zod";
 import { auth } from "@clerk/nextjs/server";
 import { getRateLimit } from "@/lib/rateLimit";
 import { AnalyticsRange, getUtcRange } from "@/lib/analyticsRanges";
+import { getRangeAccessError } from "@/lib/analytics-access";
 
 const INTERNAL_API_URL = process.env.INTERNAL_API_URL;
 const API_SECRET = process.env.API_SECRET;
@@ -39,9 +40,8 @@ const getAnalyticsCacheHeaders = (hasAuth: boolean): Record<string, string> => {
   }
 
   return {
-    "Cache-Control": "private, max-age=60, stale-while-revalidate=120",
-    "Cloudflare-CDN-Cache-Control":
-      "private, max-age=300, stale-while-revalidate=600",
+    "Cache-Control": "private, no-store",
+    "Cloudflare-CDN-Cache-Control": "no-store",
     Vary: "Authorization, Cookie",
   };
 };
@@ -63,8 +63,7 @@ export async function GET(req: NextRequest) {
       );
     }
     const { range, link_slug } = parsed.data;
-    const scopeUserId = link_slug ? undefined : (clerkUserId ?? undefined);
-    if (!link_slug && !scopeUserId) {
+    if (!clerkUserId) {
       return NextResponse.json(
         { error: "Unauthorized" },
         { status: 401, headers: getAnalyticsCacheHeaders(false) },
@@ -74,15 +73,22 @@ export async function GET(req: NextRequest) {
     // Extract convex_user_id from session claims
     const convexUserId = (sessionClaims as Record<string, unknown>)
       ?.convex_user_id as string | undefined;
-    if (!convexUserId && !link_slug) {
+    if (!convexUserId) {
       return NextResponse.json(
         { error: "Session not configured. Please log out and log back in." },
         { status: 401, headers: getAnalyticsCacheHeaders(false) },
       );
     }
 
-    const ip = req.headers.get("x-forwarded-for") || "unknown";
-    const identifier = `overview:${scopeUserId || "anon"}:${link_slug || "all"}:${ip}`;
+    const rangeError = getRangeAccessError(range, sessionClaims);
+    if (rangeError) {
+      return NextResponse.json(
+        { error: rangeError },
+        { status: 403, headers: getAnalyticsCacheHeaders(false) },
+      );
+    }
+
+    const identifier = `overview:${clerkUserId}:${link_slug || "all"}`;
     const {
       success,
       limit: rlLimit,
@@ -101,7 +107,13 @@ export async function GET(req: NextRequest) {
     const endDate = end.toISOString().split("T")[0];
 
     // Build backend URL - use timeseries and aggregate
-    const backendUrl = new URL(`${INTERNAL_API_URL}/analytics/unified`);
+    if (!INTERNAL_API_URL || !API_SECRET) {
+      return NextResponse.json(
+        { error: "Configuration error" },
+        { status: 500, headers: getAnalyticsCacheHeaders(false) },
+      );
+    }
+    const backendUrl = new URL(`${INTERNAL_API_URL.replace(/\/analytics\/v2$/, "")}/analytics/unified`);
     backendUrl.searchParams.set("endpoint", "timeseries");
     backendUrl.searchParams.set("start", startDate);
     backendUrl.searchParams.set("end", endDate);
@@ -131,21 +143,31 @@ export async function GET(req: NextRequest) {
     const result = await response.json();
     const tsData = result.data as Array<{
       clicks: number;
+      unique_sessions?: number;
+      new_sessions?: number;
+      human_clicks?: number;
+      bot_clicks?: number;
+      avg_latency?: number | null;
+    }>;
+
+    // Aggregate totals from timeseries
+    type Totals = {
+      clicks: number;
       unique_sessions: number;
       new_sessions: number;
       human_clicks: number;
       bot_clicks: number;
-      avg_latency: number | null;
-    }>;
+      _latencySum: number;
+      _latencyCount: number;
+    };
 
-    // Aggregate totals from timeseries
-    const totals = tsData.reduce(
+    const totals = tsData.reduce<Totals>(
       (acc, row) => {
-        acc.clicks += row.clicks;
-        acc.unique_sessions += row.unique_sessions;
-        acc.new_sessions += row.new_sessions;
-        acc.human_clicks += row.human_clicks;
-        acc.bot_clicks += row.bot_clicks;
+        acc.clicks += row.clicks ?? 0;
+        acc.unique_sessions += row.unique_sessions ?? 0;
+        acc.new_sessions += row.new_sessions ?? 0;
+        acc.human_clicks += row.human_clicks ?? row.clicks ?? 0;
+        acc.bot_clicks += row.bot_clicks ?? 0;
         if (row.avg_latency != null) {
           acc._latencySum += row.avg_latency;
           acc._latencyCount += 1;
@@ -179,7 +201,7 @@ export async function GET(req: NextRequest) {
     });
 
     // Apply optimized cache headers
-    const cacheHeaders = getAnalyticsCacheHeaders(!!scopeUserId);
+    const cacheHeaders = getAnalyticsCacheHeaders(true);
     Object.entries(cacheHeaders).forEach(([key, value]) => {
       res.headers.set(key, value);
     });

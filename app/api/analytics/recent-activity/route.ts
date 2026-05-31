@@ -33,6 +33,9 @@ export async function GET(req: NextRequest) {
     }
 
     const { link_slug, limit } = parsed.data;
+    if (!clerkUserId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
 
     // Extract convex_user_id from session claims
     const convexUserId = (sessionClaims as Record<string, unknown>)
@@ -44,8 +47,7 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    const ip = req.headers.get("x-forwarded-for") || "unknown";
-    const identifier = `recent-activity:${clerkUserId || "anon"}:${link_slug}:${ip}`;
+    const identifier = `recent-activity:${clerkUserId}:${link_slug}`;
     const {
       success,
       limit: rlLimit,
@@ -85,8 +87,7 @@ export async function GET(req: NextRequest) {
 
     const result = await response.json();
     const res = NextResponse.json({ data: result.data });
-    // Short cache - 10 seconds
-    res.headers.set("Cache-Control", "s-maxage=10, stale-while-revalidate=30");
+    res.headers.set("Cache-Control", "private, no-store");
     return res;
   } catch (e: unknown) {
     return NextResponse.json(

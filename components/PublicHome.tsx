@@ -5,7 +5,7 @@ import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import { motion, useInView } from "motion/react";
 import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
-import { getOrCreateGuestId } from "@/lib/guest";
+import { ensureGuestSession, type GuestSession } from "@/lib/guest";
 import { makeShortLink } from "@/lib/config";
 import { Button } from "@/components/ui/button";
 import { CountingNumber } from "@/components/ui/counting-number";
@@ -1599,7 +1599,7 @@ export function PublicHome() {
   const [url, setUrl] = useState("");
   const [stage, setStage] = useState(0);
   const [yourLink, setYourLink] = useState<YourLink>(null);
-  const [guestId, setGuestId] = useState("");
+  const [guestSession, setGuestSession] = useState<GuestSession | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
@@ -1620,7 +1620,25 @@ export function PublicHome() {
   }, [url]);
 
   useEffect(() => {
-    setGuestId(getOrCreateGuestId());
+    let cancelled = false;
+    ensureGuestSession()
+      .then((session) => {
+        if (!cancelled) {
+          setGuestSession(session);
+        }
+      })
+      .catch((error) => {
+        if (!cancelled) {
+          setFormError(
+            error instanceof Error
+              ? error.message
+              : "guest mode is unavailable right now.",
+          );
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   /* ─── delight: pick a random case no. per session (client-only, avoids SSR mismatch) ─── */
@@ -1703,14 +1721,18 @@ export function PublicHome() {
       setFormError("that doesn't look like a valid URL.");
       return;
     }
-    if (!guestId) {
+    if (!guestSession) {
       setFormError("something's not ready — try again in a moment.");
       return;
     }
 
     setSubmitting(true);
     try {
-      const result = await createGuestUrl({ url: normalized, guestId });
+      const result = await createGuestUrl({
+        url: normalized,
+        guestId: guestSession.guestId,
+        guestToken: guestSession.guestToken,
+      });
       const fakeLatency = Math.floor(Math.random() * 16) + 4;
       setYourLink({ slug: makeShortLink(result.slug), latencyMs: fakeLatency });
       setUrl("");

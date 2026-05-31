@@ -28,13 +28,13 @@ export function ColorSelector({
       <button
         type="button"
         aria-label="Select random color"
-        aria-pressed={!value || (value !== "transparent" && !colors.includes(value as any))}
+        aria-pressed={!value || (value !== "transparent" && !colors.includes(value))}
         onClick={() => onChange("")}
         className={cn(
           "inline-flex items-center justify-center rounded-full outline-hidden transition-transform hover:scale-110 active:scale-95",
           "aspect-square size-7 p-0",
           "focus-visible:ring-accent focus-visible:ring-2 focus-visible:ring-offset-2",
-          (!value || (value !== "transparent" && !colors.includes(value as any))) && 
+          (!value || (value !== "transparent" && !colors.includes(value))) &&
             "ring-accent ring-offset-background ring-2 ring-offset-2",
         )}
       >

@@ -1,4 +1,3 @@
-/* eslint-disable @next/next/no-img-element */
 import React, { useCallback, useMemo, useState, Fragment } from "react";
 import {
   ColumnDef,
@@ -264,7 +263,7 @@ function ShortUrlCell({
   url: DisplayUrl;
   onCopy: (shortUrl: string) => void;
 }) {
-  const normalizedHref = url.shortUrl.startsWith("http")
+  const normalizedHref = /^https?:\/\//i.test(url.shortUrl)
     ? url.shortUrl
     : `https://${url.shortUrl}`;
   return (
@@ -382,7 +381,7 @@ export function UrlTable({
     const displayUrls = typedUrls.map((doc) => {
       const slugSource = doc.slugAssigned ?? doc.shortUrl;
       const formattedShortUrl = slugSource
-        ? slugSource.startsWith("http")
+        ? /^https?:\/\//i.test(slugSource)
           ? slugSource
           : makeShortLinkWithDomain(
               slugSource.replace(/^\/+/, ""),
@@ -427,7 +426,7 @@ export function UrlTable({
       (urls as UserUrlsResponse).forEach((doc) => {
         const slugSource = doc.slugAssigned ?? doc.shortUrl;
         const formattedShortUrl = slugSource
-          ? slugSource.startsWith("http")
+          ? /^https?:\/\//i.test(slugSource)
             ? slugSource
             : makeShortLinkWithDomain(
                 slugSource.replace(/^\/+/, ""),
@@ -446,7 +445,6 @@ export function UrlTable({
 
     return filtered;
   }, [
-    // eslint-disable-next-line @tanstack/query/no-unstable-deps
     urls,
     searchQuery,
     statusFilter,
@@ -481,7 +479,7 @@ export function UrlTable({
 
   const handleCopy = useCallback(
     (shortUrl: string) => {
-      const normalized = shortUrl.startsWith("http")
+      const normalized = /^https?:\/\//i.test(shortUrl)
         ? shortUrl
         : `https://${shortUrl}`;
       navigator.clipboard.writeText(normalized);
@@ -530,7 +528,6 @@ export function UrlTable({
           error instanceof Error ? error.message : "Failed to delete link",
       });
     }
-    // eslint-disable-next-line @tanstack/query/no-unstable-deps
   }, [urlToDelete, deleteUrl, add]);
 
   const columns = useMemo<ColumnDef<DisplayUrl>[]>(

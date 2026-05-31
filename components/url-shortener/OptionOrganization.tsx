@@ -5,14 +5,7 @@ import { UseFormReturn, useWatch } from "react-hook-form";
 import { api } from "@/convex/_generated/api";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import {
-  FormField,
-  FormItem,
-  FormLabel,
-  FormControl,
-  FormMessage,
-} from "@/components/ui/form";
+import { FormLabel } from "@/components/ui/form";
 import {
   Tooltip,
   TooltipContent,
@@ -66,10 +59,6 @@ export function OptionOrganization({
 }: {
   form: UseFormReturn<UrlFormValues>;
 }) {
-  const tagsRaw = useWatch({ control: form.control, name: "tags" });
-  const tags: string[] = tagsRaw || [];
-  const [tagEntry, setTagEntry] = useState("");
-
   const collections = useQuery(api.collectionMangament.getUserCollections);
   const createCollection = useMutation(
     api.collectionMangament.createCollection,
@@ -114,22 +103,6 @@ export function OptionOrganization({
     }
     return null;
   }, [selectedCollectionId, collectionOptions]);
-
-  const addTag = () => {
-    const t = tagEntry.trim();
-    if (!t) return;
-    if (tags.includes(t)) return;
-    form.setValue("tags", [...tags, t], { shouldDirty: true });
-    setTagEntry("");
-  };
-
-  const removeTag = (val: string) => {
-    form.setValue(
-      "tags",
-      tags.filter((t) => t !== val),
-      { shouldDirty: true },
-    );
-  };
 
   const resetNewCollectionFields = () => {
     form.setValue("newCollectionName", "", { shouldDirty: true });
@@ -485,59 +458,6 @@ export function OptionOrganization({
         )}
       </div>
 
-      {/* Tags */}
-      <div className="space-y-3">
-        <div>
-          <div className="text-muted-foreground mb-2 text-xs">Tags</div>
-          <div className="flex items-center gap-2">
-            <Input
-              id="add-tag-input"
-              name="tagEntry"
-              placeholder="Add a tag and press Enter"
-              value={tagEntry}
-              onChange={(e) => setTagEntry(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  e.preventDefault();
-                  addTag();
-                }
-              }}
-            />
-            <Button type="button" size="sm" onClick={addTag}>
-              Add
-            </Button>
-          </div>
-          {tags.length > 0 && (
-            <div className="mt-2 flex flex-wrap gap-2">
-              {tags.map((t) => (
-                <Badge
-                  key={t}
-                  variant="default"
-                  className="cursor-pointer"
-                  onClick={() => removeTag(t)}
-                >
-                  {t}
-                </Badge>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Notes */}
-      <FormField
-        control={form.control}
-        name="notes"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>Notes</FormLabel>
-            <FormControl>
-              <Textarea rows={3} placeholder="Internal notes&" {...field} />
-            </FormControl>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
     </div>
   );
 }

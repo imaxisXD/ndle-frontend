@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { getShortDomain } from "@/lib/config";
-import { getOrCreateGuestId } from "@/lib/guest";
+import { ensureGuestSession, type GuestSession } from "@/lib/guest";
 import { QrCodeIcon } from "@phosphor-icons/react/dist/ssr";
 import { QRCodeSVG } from "qrcode.react";
 
@@ -17,15 +17,36 @@ export function GuestShortenerCard() {
   const { add } = useToast();
   const createGuestUrl = useMutation(api.urlMainFuction.createGuestUrl);
 
-  const [guestId, setGuestId] = useState("");
+  const [guestSession, setGuestSession] = useState<GuestSession | null>(null);
   const [destination, setDestination] = useState("");
   const [email, setEmail] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [shortLink, setShortLink] = useState("");
 
   useEffect(() => {
-    setGuestId(getOrCreateGuestId());
-  }, []);
+    let cancelled = false;
+    ensureGuestSession()
+      .then((session) => {
+        if (!cancelled) {
+          setGuestSession(session);
+        }
+      })
+      .catch((error) => {
+        if (!cancelled) {
+          add({
+            type: "error",
+            title: "Guest mode unavailable",
+            description:
+              error instanceof Error
+                ? error.message
+                : "We could not prepare a guest session.",
+          });
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [add]);
 
   const normalizedDestination = useMemo(() => {
     const trimmed = destination.trim();
@@ -37,7 +58,7 @@ export function GuestShortenerCard() {
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (!normalizedDestination || !guestId) {
+    if (!normalizedDestination || !guestSession) {
       return;
     }
 
@@ -45,7 +66,8 @@ export function GuestShortenerCard() {
     try {
       const result = await createGuestUrl({
         url: normalizedDestination,
-        guestId,
+        guestId: guestSession.guestId,
+        guestToken: guestSession.guestToken,
         guestEmail: email.trim() || undefined,
       });
       const nextShortLink = `https://${getShortDomain()}/${result.slug}`;
@@ -103,15 +125,15 @@ export function GuestShortenerCard() {
               onChange={(event) => setEmail(event.target.value)}
             />
             <p className="text-muted-foreground text-xs">
-              Add your email if you want us to match these guest links after you
-              sign in.
+              Sign in from this browser later if you want to move these guest
+              links into your account.
             </p>
           </div>
 
           <Button
             type="submit"
             className="w-full"
-            disabled={!normalizedDestination || !guestId || isSubmitting}
+            disabled={!normalizedDestination || !guestSession || isSubmitting}
           >
             {isSubmitting ? "Creating..." : "Shorten link"}
           </Button>
@@ -159,4 +181,3 @@ export function GuestShortenerCard() {
     </Card>
   );
 }
-

@@ -52,7 +52,7 @@ export function TopLinksChart({
 
   const handleCopy = useCallback(
     (shortUrl: string) => {
-      const normalized = shortUrl.startsWith("http")
+      const normalized = /^https?:\/\//i.test(shortUrl)
         ? shortUrl
         : `https://${shortUrl}`;
       navigator.clipboard.writeText(normalized);
@@ -96,7 +96,7 @@ export function TopLinksChart({
               link.url,
               link.customDomain,
             );
-            const normalizedHref = shortLink.startsWith("http")
+            const normalizedHref = /^https?:\/\//i.test(shortLink)
               ? shortLink
               : `https://${shortLink}`;
             const slug = link.url;

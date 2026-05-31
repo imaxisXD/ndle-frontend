@@ -27,12 +27,6 @@ import { CircleGridLoaderIcon } from "@/components/icons";
 
 export const description = "A bar chart showing link performance";
 
-const defaultData = [
-  { link: "majorforksstrive", clicks: 9 },
-  { link: "fancypansbrake", clicks: 6 },
-  { link: "busyfactsdoubt", clicks: 8 },
-];
-
 const chartConfig = {
   clicks: {
     label: "Clicks",
@@ -50,8 +44,8 @@ export function LinkPerformanceChart({
   data?: Array<{ link: string; clicks: number }>;
   isLoading?: boolean;
 }) {
-  const showEmptyState =
-    !isLoading && Array.isArray(data) && data.length === 0;
+  const chartData = data ?? [];
+  const showEmptyState = !isLoading && chartData.length === 0;
   return (
     <Card>
       <CardHeader className="flex flex-col items-start justify-between gap-1.5">
@@ -86,7 +80,7 @@ export function LinkPerformanceChart({
         >
           <BarChart
             accessibilityLayer
-            data={data ?? defaultData}
+            data={chartData}
             layout="vertical"
             margin={{
               right: 16,
@@ -126,8 +120,7 @@ export function LinkPerformanceChart({
                     const row = payload?.[0]?.payload as
                       | { link: string; clicks: number }
                       | undefined;
-                    const dataset = data ?? defaultData;
-                    const totalClicks = dataset.reduce(
+                    const totalClicks = chartData.reduce(
                       (sum, item) => sum + item.clicks,
                       0,
                     );
