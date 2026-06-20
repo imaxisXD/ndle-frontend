@@ -9,13 +9,6 @@ const nextConfig: NextConfig = {
       { hostname: "www.google.com" },
     ],
   },
-  rewrites: async () => [
-    {
-      source:
-        "/((?!api/|_next/|favicon\\.ico|robots\\.txt|sitemap\\.xml|sign-in|sign-up).*)",
-      destination: "/static-app-shell",
-    },
-  ],
   experimental: {
     optimizePackageImports: ["@phosphor-icons/react"],
   },
