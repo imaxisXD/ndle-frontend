@@ -5,7 +5,7 @@ const nextConfig: NextConfig = {
   images: {
     remotePatterns: [
       { hostname: "img.clerk.com" },
-      { hostname: "proxy-file-worker-dev.sunny735084.workers.dev" },
+      { hostname: "proxy-file-worker-prod.sunny735084.workers.dev" },
       { hostname: "www.google.com" },
     ],
   },
