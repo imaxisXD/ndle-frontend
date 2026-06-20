@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
+import { Resvg } from "@cf-wasm/resvg";
 import QRCode from "qrcode";
-import sharp from "sharp";
 import { getCacheHeadersPreset } from "@/lib/cacheHeaders";
 import { makeShortLink } from "@/lib/config";
 import { getBrandBadgeDataUrl } from "@/lib/qr";
@@ -305,21 +305,32 @@ export async function GET(
       });
     }
 
-    // PNG: rasterize SVG using sharp
+    // PNG: convert the SVG with a renderer that works in Cloudflare Workers.
     try {
-      const pngBuffer = await sharp(Buffer.from(svg)).png().toBuffer();
-      const arrayBuffer = pngBuffer.buffer.slice(
-        pngBuffer.byteOffset,
-        pngBuffer.byteOffset + pngBuffer.byteLength,
-      ) as ArrayBuffer;
-      const pngBlob = new Blob([arrayBuffer], { type: "image/png" });
-      return new NextResponse(pngBlob, {
-        status: 200,
-        headers: {
-          "Content-Type": "image/png",
-          ...getCacheHeadersPreset("STATIC"),
-        },
+      const renderer = await Resvg.async(svg, {
+        fitTo: { mode: "width", value: size },
       });
+      try {
+        const renderedImage = renderer.render();
+        try {
+          const pngBytes = renderedImage.asPng();
+          const pngBody = pngBytes.buffer.slice(
+            pngBytes.byteOffset,
+            pngBytes.byteOffset + pngBytes.byteLength,
+          ) as ArrayBuffer;
+          return new NextResponse(pngBody, {
+            status: 200,
+            headers: {
+              "Content-Type": "image/png",
+              ...getCacheHeadersPreset("STATIC"),
+            },
+          });
+        } finally {
+          renderedImage.free();
+        }
+      } finally {
+        renderer.free();
+      }
     } catch (e) {
       logError("png conversion failed", e);
       return NextResponse.json(

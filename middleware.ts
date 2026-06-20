@@ -1,9 +1,6 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 
-// Required for Cloudflare Workers deployment
-export const runtime = "experimental-edge";
-
 const isPublicRoute = createRouteMatcher([
   "/",
   "/sign-in(.*)",

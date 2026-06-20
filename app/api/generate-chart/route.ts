@@ -8,8 +8,6 @@ import { streamText } from "ai";
 import { createOpenAI } from "@ai-sdk/openai";
 import { auth } from "@clerk/nextjs/server";
 
-export const runtime = "edge";
-
 // Create OpenRouter client (OpenAI-compatible API)
 const openrouter = createOpenAI({
   baseURL: "https://openrouter.ai/api/v1",

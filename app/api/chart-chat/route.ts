@@ -17,7 +17,6 @@ import { z } from "zod";
 import { auth } from "@clerk/nextjs/server";
 import { getRateLimit } from "@/lib/rateLimit";
 
-export const runtime = "edge";
 export const maxDuration = 30;
 
 // Create OpenRouter client (OpenAI-compatible API)

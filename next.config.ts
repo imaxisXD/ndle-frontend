@@ -1,6 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  serverExternalPackages: ["@cf-wasm/resvg"],
   images: {
     remotePatterns: [
       { hostname: "img.clerk.com" },
