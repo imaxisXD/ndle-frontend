@@ -16,7 +16,7 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
+} from "@/components/ui/base-select";
 import { useWatch, type UseFormReturn } from "react-hook-form";
 import type { UrlFormValues } from "../url-shortener";
 

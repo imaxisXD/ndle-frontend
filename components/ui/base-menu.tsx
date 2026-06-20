@@ -8,8 +8,11 @@ import { CircleIcon } from "@phosphor-icons/react/dist/ssr";
 import { ArrowCircleRightIcon, CheckIcon } from "@phosphor-icons/react";
 
 // Root - Groups all parts of the menu
-function Menu({ ...props }: React.ComponentProps<typeof MenuPrimitive.Root>) {
-  return <MenuPrimitive.Root data-slot="menu" {...props} />;
+function Menu({
+  modal = false,
+  ...props
+}: React.ComponentProps<typeof MenuPrimitive.Root>) {
+  return <MenuPrimitive.Root data-slot="menu" modal={modal} {...props} />;
 }
 
 // Trigger - A button that opens the menu

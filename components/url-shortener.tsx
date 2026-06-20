@@ -52,7 +52,7 @@ import {
   SelectValue,
   SelectContent,
   SelectItem,
-} from "./ui/select";
+} from "./ui/base-select";
 
 const urlFormSchema = z
   .object({
@@ -552,7 +552,11 @@ export function UrlShortener() {
                         </div>
                         <Select
                           value={selectedDomain}
-                          onValueChange={setSelectedDomain}
+                          onValueChange={(newDomain) => {
+                            if (typeof newDomain === "string") {
+                              setSelectedDomain(newDomain);
+                            }
+                          }}
                         >
                           <SelectTrigger className="border-border h-8 w-fit border bg-white text-xs shadow-xs">
                             <SelectValue placeholder="Select domain" />

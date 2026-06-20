@@ -24,6 +24,7 @@ const Select = ({
   indicatorVisibility = true,
   indicator,
   icon,
+  modal = false,
   ...props
 }: {
   indicatorPosition?: "left" | "right";
@@ -35,7 +36,7 @@ const Select = ({
     <SelectContext.Provider
       value={{ indicatorPosition, indicatorVisibility, indicator, icon }}
     >
-      <SelectPrimitive.Root data-slot="select" {...props} />
+      <SelectPrimitive.Root data-slot="select" modal={modal} {...props} />
     </SelectContext.Provider>
   );
 };
@@ -219,7 +220,7 @@ function SelectContent({
         <SelectPrimitive.Popup
           data-slot="select-content"
           className={cn(
-            `bg-popover text-popover-foreground data-[open]:animate-in data-[closed]:animate-out data-[closed]:fade-out-0 data-[open]:fade-in-0 data-[closed]:zoom-out-95 data-[open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 relative z-50 max-h-(--available-height) min-w-(--anchor-width) origin-[var(--transform-origin)] overflow-x-hidden overflow-y-auto rounded-md border p-1 shadow-md`,
+            `bg-popover text-popover-foreground data-[open]:animate-in data-[closed]:animate-out data-[closed]:fade-out-0 data-[open]:fade-in-0 data-[closed]:zoom-out-95 data-[open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 relative z-50 max-h-(--available-height) min-w-(--anchor-width) w-max max-w-(--available-width) origin-[var(--transform-origin)] overflow-x-hidden overflow-y-auto rounded-md border p-1 shadow-md`,
             position === "item-aligned" &&
               "[&_*[data-slot=select-item]]:min-w-[var(--anchor-width)]",
             className,
@@ -246,7 +247,7 @@ function SelectItem({
     <SelectPrimitive.Item
       data-slot="select-item"
       className={cn(
-        `data-highlighted:bg-accent data-highlighted:text-accent-foreground [&_svg:not([class*='text-'])]:text-muted-foreground relative flex w-full cursor-default items-center rounded-sm py-1.5 text-sm outline-hidden select-none data-selected:font-semibold data-[disabled]:pointer-events-none data-[disabled]:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 *:[span]:last:flex *:[span]:last:items-center *:[span]:last:gap-2`,
+        `data-highlighted:bg-accent data-highlighted:text-accent-foreground [&_svg:not([class*='text-'])]:text-muted-foreground relative flex w-full min-w-0 cursor-default items-center rounded-sm py-1.5 text-sm outline-hidden select-none data-selected:font-semibold data-[disabled]:pointer-events-none data-[disabled]:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 *:[span]:last:flex *:[span]:last:min-w-0 *:[span]:last:items-center *:[span]:last:gap-2`,
         indicatorPosition === "left" ? "ps-7 pe-2" : "ps-2 pe-7",
         className,
       )}
@@ -267,7 +268,10 @@ function SelectItem({
             </SelectPrimitive.ItemIndicator>
           </span>
         ))}
-      <SelectPrimitive.ItemText data-slot="select-item-text">
+      <SelectPrimitive.ItemText
+        data-slot="select-item-text"
+        className="min-w-0 truncate"
+      >
         {children}
       </SelectPrimitive.ItemText>
     </SelectPrimitive.Item>
