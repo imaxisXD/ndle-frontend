@@ -20,7 +20,7 @@
     "@ai-sdk/react": "^3.0.41",
     "@base-ui-components/react": "^1.0.0-rc.0",
     "@cf-wasm/resvg": "0.3.4",
-    "@clerk/nextjs": "^6.36.5",
+    "@clerk/nextjs": "6.39.5",
     "@convex-dev/eslint-plugin": "^1.1.1",
     "@convex-dev/sharded-counter": "^0.1.8",
     "@duckdb/duckdb-wasm": "^1.32.0",
@@ -92,7 +92,7 @@
     "react-hook-form": "^7.69.0",
     "react-hotkeys-hook": "^5.2.1",
     "react-resizable-panels": "^2.1.9",
-    "react-router": "^7.11.0",
+    "react-router": "7.18.0",
     "recharts": "2.15.4",
     "sonner": "^1.7.4",
     "tailwind-merge": "^3.4.0",
@@ -105,7 +105,7 @@
     "@eslint/eslintrc": "^3.3.3",
     "@next/eslint-plugin-next": "16.2.9",
     "@rushstack/eslint-patch": "^1.15.0",
-    "@tailwindcss/postcss": "^4.1.18",
+    "@tailwindcss/postcss": "4.3.1",
     "@tanstack/eslint-plugin-query": "^5.91.2",
     "@types/node": "^22.19.3",
     "@types/react": "19.2.2",
@@ -120,10 +120,10 @@
     "eslint-plugin-jsx-a11y": "^6.10.2",
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^5.2.0",
-    "postcss": "^8.5.6",
+    "postcss": "8.5.15",
     "prettier": "^3.7.4",
     "prettier-plugin-tailwindcss": "^0.6.14",
-    "tailwindcss": "^4.1.18",
+    "tailwindcss": "4.3.1",
     "tw-animate-css": "1.3.3",
     "typescript": "^5.9.3",
     "wrangler": "4.103.0"
@@ -131,6 +131,7 @@
   "overrides": {
     "react-is": "^19",
     "@types/react": "19.2.2",
-    "@types/react-dom": "19.2.2"
+    "@types/react-dom": "19.2.2",
+    "postcss": "8.5.15"
   }
 }
