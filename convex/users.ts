@@ -368,6 +368,8 @@ async function claimGuestLinksForUser(
         docId: url._id,
         analytics_owner_key: makeUserOwnerKey(user._id),
         convex_user_id: user._id,
+        trackingEnabled: url.trackingEnabled,
+        expiresAt: url.expiresAt,
         utmSource: url.utmSource,
         utmMedium: url.utmMedium,
         utmCampaign: url.utmCampaign,

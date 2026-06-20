@@ -1,7 +1,6 @@
 "use client";
 
 import { useMemo } from "react";
-import { Area, AreaChart, XAxis, YAxis, CartesianGrid } from "recharts";
 import {
   Card,
   CardContent,
@@ -9,22 +8,9 @@ import {
   CardDescription,
   CardHeader,
 } from "@/components/ui/card";
-import {
-  ChartConfig,
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-} from "@/components/ui/chart";
-import { Skeleton } from "@/components/ui/skeleton";
+import { BklitLiveClickLineChart } from "@/components/charts/bklit-chart-kit";
 import { cn } from "@/lib/utils";
 import { format, parseISO, subMinutes } from "date-fns";
-
-const chartConfig = {
-  clicks: {
-    label: "Clicks",
-    color: "hsl(var(--chart-1))",
-  },
-} satisfies ChartConfig;
 
 export interface LiveEventData {
   minute_ts: string;
@@ -45,7 +31,7 @@ export function LiveEventsChart({
     if (!data) return [];
 
     const now = new Date();
-    const minutes: Array<{ time: string; clicks: number; label: string }> = [];
+    const minutes: Array<{ time: number; value: number }> = [];
 
     // Create map of existing data
     const dataMap = new Map<string, number>();
@@ -61,9 +47,8 @@ export function LiveEventsChart({
       const minuteTime = subMinutes(now, i);
       const key = format(minuteTime, "HH:mm");
       minutes.push({
-        time: key,
-        clicks: dataMap.get(key) || 0,
-        label: format(minuteTime, "h:mm a"),
+        time: minuteTime.getTime() / 1000,
+        value: dataMap.get(key) || 0,
       });
     }
 
@@ -71,8 +56,9 @@ export function LiveEventsChart({
   }, [data]);
 
   const totalClicks = useMemo(() => {
-    return chartData.reduce((sum, d) => sum + d.clicks, 0);
+    return chartData.reduce((sum, d) => sum + d.value, 0);
   }, [chartData]);
+  const currentValue = chartData.at(-1)?.value ?? 0;
 
   return (
     <Card
@@ -106,83 +92,15 @@ export function LiveEventsChart({
         </div>
       </CardHeader>
       <CardContent className="grow p-4">
-        {isLoading ? (
-          <div className="flex h-[120px] items-center justify-center">
-            <Skeleton className="h-full w-full rounded" />
-          </div>
-        ) : chartData.length === 0 ? (
-          <div className="text-muted-foreground flex h-[120px] items-center justify-center text-sm">
-            No activity in the last hour.
-          </div>
-        ) : (
-          <ChartContainer
-            config={chartConfig}
-            className="aspect-auto h-[120px] w-full"
-          >
-            <AreaChart
-              data={chartData}
-              margin={{ top: 4, right: 4, left: 4, bottom: 0 }}
-            >
-              <defs>
-                <linearGradient id="liveGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#10b981" stopOpacity={0.4} />
-                  <stop offset="100%" stopColor="#10b981" stopOpacity={0.05} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid
-                vertical={false}
-                strokeDasharray="3"
-                stroke="var(--border)"
-                strokeOpacity={0.5}
-              />
-              <XAxis
-                dataKey="time"
-                tickLine={false}
-                axisLine={false}
-                tickMargin={8}
-                tick={{ fontSize: 10, fill: "var(--muted-foreground)" }}
-                tickFormatter={(value, index) => {
-                  // Show fewer labels
-                  if (index % 15 === 0) return value;
-                  return "";
-                }}
-              />
-              <YAxis
-                tickLine={false}
-                axisLine={false}
-                tick={{ fontSize: 10, fill: "var(--muted-foreground)" }}
-                width={24}
-                allowDecimals={false}
-              />
-              <ChartTooltip
-                cursor={{ stroke: "#10b981", strokeWidth: 1 }}
-                content={
-                  <ChartTooltipContent
-                    className="rounded-sm bg-zinc-900 text-white"
-                    labelClassName="text-white font-medium"
-                    labelFormatter={(_, payload) => {
-                      if (payload?.[0]?.payload?.label) {
-                        return payload[0].payload.label;
-                      }
-                      return "";
-                    }}
-                    indicator="dot"
-                    color="#10b981"
-                  />
-                }
-              />
-              <Area
-                type="monotone"
-                dataKey="clicks"
-                stroke="#10b981"
-                strokeWidth={2}
-                fill="url(#liveGradient)"
-                dot={false}
-                activeDot={{ r: 4, fill: "#10b981" }}
-              />
-            </AreaChart>
-          </ChartContainer>
-        )}
+        <BklitLiveClickLineChart
+          data={chartData}
+          emptyDescription="No activity in the last hour."
+          emptyTitle="No live activity"
+          heightClassName="h-[120px]"
+          isLoading={isLoading}
+          value={currentValue}
+          windowSeconds={3600}
+        />
       </CardContent>
     </Card>
   );

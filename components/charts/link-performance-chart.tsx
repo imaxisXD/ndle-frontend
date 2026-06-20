@@ -1,41 +1,16 @@
 "use client";
 
 import {
-  Bar,
-  BarChart,
-  CartesianGrid,
-  LabelList,
-  XAxis,
-  YAxis,
-} from "recharts";
-
-import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import {
-  ChartConfig,
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-} from "@/components/ui/chart";
+import { BklitHorizontalBarChart } from "@/components/charts/bklit-chart-kit";
 import { Link } from "iconoir-react";
-import { CircleGridLoaderIcon } from "@/components/icons";
 
 export const description = "A bar chart showing link performance";
-
-const chartConfig = {
-  clicks: {
-    label: "Clicks",
-    color: "var(--chart-5)",
-  },
-  label: {
-    color: "var(--primary)",
-  },
-} satisfies ChartConfig;
 
 export function LinkPerformanceChart({
   data,
@@ -45,7 +20,6 @@ export function LinkPerformanceChart({
   isLoading?: boolean;
 }) {
   const chartData = data ?? [];
-  const showEmptyState = !isLoading && chartData.length === 0;
   return (
     <Card>
       <CardHeader className="flex flex-col items-start justify-between gap-1.5">
@@ -58,106 +32,15 @@ export function LinkPerformanceChart({
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <ChartContainer
-          config={chartConfig}
-          className="aspect-auto h-[250px] w-full"
+        <BklitHorizontalBarChart
+          data={chartData}
+          heightClassName="h-[250px]"
           isLoading={isLoading}
-          showEmptyState={showEmptyState}
-          loadingContent={
-            <CircleGridLoaderIcon
-              title="Loading analytics"
-              className="text-primary"
-            />
-          }
-          emptyStateContent={
-            <div className="text-center">
-              <p className="text-foreground font-medium">No analytics yet</p>
-              <p className="text-muted-foreground mt-1 text-xs">
-                This link hasn’t received any clicks in the selected range.
-              </p>
-            </div>
-          }
-        >
-          <BarChart
-            accessibilityLayer
-            data={chartData}
-            layout="vertical"
-            margin={{
-              right: 16,
-            }}
-          >
-            <defs>
-              <linearGradient
-                id="barGradientHorizontalLink"
-                x1="0"
-                y1="0"
-                x2="1"
-                y2="0"
-              >
-                <stop offset="0%" stopColor="var(--color-purple-300)" />
-                <stop offset="100%" stopColor="var(--color-purple-500)" />
-              </linearGradient>
-            </defs>
-            <CartesianGrid horizontal={false} />
-            <YAxis
-              dataKey="link"
-              type="category"
-              tickLine={false}
-              tickMargin={10}
-              axisLine={false}
-              tickFormatter={(value) => value.slice(0, 8)}
-              hide
-            />
-            <XAxis dataKey="clicks" type="number" hide />
-            <ChartTooltip
-              cursor={false}
-              content={
-                <ChartTooltipContent
-                  className="bg-white/90 backdrop-blur-lg"
-                  indicator="dashed"
-                  color="var(--color-purple-600)"
-                  labelFormatter={(label, payload) => {
-                    const row = payload?.[0]?.payload as
-                      | { link: string; clicks: number }
-                      | undefined;
-                    const totalClicks = chartData.reduce(
-                      (sum, item) => sum + item.clicks,
-                      0,
-                    );
-                    const percentage =
-                      row && totalClicks
-                        ? ((row.clicks / totalClicks) * 100).toFixed(1)
-                        : "0.0";
-
-                    return `${label} [${percentage}%]`;
-                  }}
-                />
-              }
-            />
-            <Bar
-              dataKey="clicks"
-              layout="vertical"
-              fill="url(#barGradientHorizontalLink)"
-              radius={4}
-              maxBarSize={20}
-            >
-              <LabelList
-                dataKey="link"
-                position="insideLeft"
-                offset={8}
-                className="fill-(--color-label)"
-                fontSize={12}
-              />
-              <LabelList
-                dataKey="clicks"
-                position="right"
-                offset={8}
-                className="fill-foreground"
-                fontSize={12}
-              />
-            </Bar>
-          </BarChart>
-        </ChartContainer>
+          labelFormatter={(value) => String(value ?? "").slice(0, 36)}
+          labelKey="link"
+          labelWidth={120}
+          valueKey="clicks"
+        />
       </CardContent>
     </Card>
   );

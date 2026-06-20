@@ -7,34 +7,6 @@
  * the same primitives used by the native analytics charts.
  */
 
-import {
-  Area,
-  AreaChart as RechartsAreaChart,
-  Bar,
-  BarChart as RechartsBarChart,
-  CartesianGrid,
-  Cell,
-  Funnel,
-  FunnelChart as RechartsFunnelChart,
-  LabelList,
-  Legend,
-  Line,
-  LineChart as RechartsLineChart,
-  PolarAngleAxis,
-  PolarGrid,
-  PolarRadiusAxis,
-  Pie,
-  PieChart as RechartsPieChart,
-  Radar,
-  RadarChart as RechartsRadarChart,
-  RadialBar,
-  RadialBarChart as RechartsRadialBarChart,
-  Scatter,
-  ScatterChart as RechartsScatterChart,
-  XAxis,
-  YAxis,
-  ZAxis,
-} from "recharts";
 import type {
   ComponentRegistry,
   ComponentRenderProps,
@@ -46,22 +18,23 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import {
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-  type ChartConfig,
-} from "@/components/ui/chart";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { useChartQueryContext } from "@/hooks/chart-query-context";
-import { useEffect, useMemo, useState, type ComponentProps } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import {
   ChartBarIcon,
   ChartLineIcon,
   ChartPieIcon,
   StackIcon,
 } from "@phosphor-icons/react";
+import {
+  BklitAreaSeriesChart,
+  BklitDonutChart,
+  BklitHorizontalBarChart,
+  BklitLineSeriesChart,
+  BklitVerticalBarChart,
+} from "@/components/charts/bklit-chart-kit";
 import {
   Table,
   TableBody,
@@ -86,6 +59,7 @@ const CARD_CLASS =
   "min-w-0 flex h-full flex-col border-zinc-200 bg-white text-zinc-900";
 const CONTENT_HEIGHT = "clamp(220px, 35vh, 280px)";
 const PIE_CONTENT_HEIGHT = "clamp(220px, 32vh, 260px)";
+const AI_TIME_KEY = "__bklitTime";
 
 function isNumericLike(value: unknown): boolean {
   if (typeof value === "number" || typeof value === "bigint") return true;
@@ -201,6 +175,41 @@ function getMetricValueFromRows(rows: Array<Record<string, unknown>>): number {
   return 0;
 }
 
+function coerceChartDate(value: unknown, index: number): Date {
+  if (value instanceof Date && Number.isFinite(value.getTime())) {
+    return value;
+  }
+
+  if (typeof value === "number" && Number.isFinite(value)) {
+    const epochMs = value < 10_000_000_000 ? value * 1000 : value;
+    const parsed = new Date(epochMs);
+    if (Number.isFinite(parsed.getTime())) {
+      return parsed;
+    }
+  }
+
+  if (typeof value === "string" && value.trim().length > 0) {
+    const parsed = new Date(value);
+    if (Number.isFinite(parsed.getTime())) {
+      return parsed;
+    }
+  }
+
+  return new Date(Date.UTC(2026, 0, index + 1));
+}
+
+function coerceTimeSeriesRows(
+  data: Array<Record<string, unknown>>,
+  dateKey: string,
+  valueKey: string,
+): Array<Record<string, unknown>> {
+  return data.map((row, index) => ({
+    ...row,
+    [valueKey]: isNumericLike(row[valueKey]) ? Number(row[valueKey]) : row[valueKey],
+    [AI_TIME_KEY]: coerceChartDate(row[dateKey], index),
+  }));
+}
+
 function useChartData(query?: string) {
   const {
     execute,
@@ -256,12 +265,12 @@ function ChartCardShell({
 }: {
   title?: string;
   description?: string;
-  icon?: React.ReactNode;
+  icon?: ReactNode;
   isLoading: boolean;
   error?: string | null;
   isEmpty: boolean;
   emptyMessage: string;
-  children: React.ReactNode;
+  children: ReactNode;
 }) {
   return (
     <Card className={CARD_CLASS}>
@@ -303,17 +312,6 @@ function ChartCardShell({
   );
 }
 
-function BaseTooltipContent(props: ComponentProps<typeof ChartTooltipContent>) {
-  return (
-    <ChartTooltipContent
-      {...props}
-      className="rounded-sm bg-linear-to-br from-black/80 to-black text-white *:text-inherit **:text-inherit"
-      labelClassName="text-white font-medium"
-      indicator="dot"
-    />
-  );
-}
-
 function BarChartComponent({ element }: ComponentRenderProps) {
   const { title, description, xKey, yKey, orientation, color } =
     element.props as {
@@ -330,18 +328,6 @@ function BarChartComponent({ element }: ComponentRenderProps) {
   const valueKey = yKey || "value";
   const categoryKey = xKey || "category";
   const barColor = color || "#ffc700";
-  const gradientId = useMemo(
-    () => `ai-bar-gradient-${String(element.key).replace(/[^a-zA-Z0-9_-]/g, "")}`,
-    [element.key],
-  );
-
-  const chartConfig: ChartConfig = {
-    [valueKey]: {
-      label: valueKey,
-      color: barColor,
-    },
-  };
-
   const isHorizontal = orientation === "horizontal";
 
   return (
@@ -354,336 +340,52 @@ function BarChartComponent({ element }: ComponentRenderProps) {
       isEmpty={data.length === 0}
       emptyMessage="No data available"
     >
-      <ChartContainer
-        config={chartConfig}
-        className="aspect-auto w-full min-w-0"
-        style={{ height: CONTENT_HEIGHT }}
-      >
-        <RechartsBarChart
+      {isHorizontal ? (
+        <BklitHorizontalBarChart
+          color={barColor}
           data={data}
-          layout={isHorizontal ? "vertical" : "horizontal"}
-          margin={{ left: 8, right: 16 }}
-          barCategoryGap="18%"
-        >
-          <defs>
-            <linearGradient id={gradientId} x1="0" y1="0" x2="1" y2="0">
-              <stop offset="0%" stopColor={barColor} stopOpacity={0.75} />
-              <stop offset="100%" stopColor={barColor} stopOpacity={1} />
-            </linearGradient>
-          </defs>
-          <CartesianGrid
-            horizontal={!isHorizontal}
-            vertical={false}
-            strokeDasharray="5"
-            stroke="var(--border)"
-            strokeOpacity={1}
-          />
-          {isHorizontal ? (
-            <>
-              <YAxis
-                dataKey={categoryKey}
-                type="category"
-                tickLine={false}
-                axisLine={false}
-                tickMargin={8}
-                width={88}
-                tick={{ fontSize: 12, fill: "#71717a" }}
-                tickFormatter={(value) => formatTickLabel(value, 12)}
-              />
-              <XAxis type="number" tickLine={false} axisLine={false} />
-            </>
-          ) : (
-            <>
-              <XAxis
-                dataKey={categoryKey}
-                tickLine={false}
-                axisLine={false}
-                tickMargin={8}
-                minTickGap={16}
-                tickFormatter={(value) => formatTickLabel(value, 10)}
-              />
-              <YAxis tickLine={false} axisLine={false} width={40} />
-            </>
-          )}
-          <ChartTooltip cursor={false} content={<BaseTooltipContent />} />
-          <Bar
-            dataKey={valueKey}
-            fill={`url(#${gradientId})`}
-            radius={isHorizontal ? 4 : [4, 4, 0, 0]}
-            barSize={isHorizontal ? 24 : 28}
-          />
-        </RechartsBarChart>
-      </ChartContainer>
+          heightClassName="h-auto"
+          labelFormatter={(value) => formatTickLabel(value, 18)}
+          labelKey={categoryKey}
+          labelWidth={112}
+          showValueLabels={false}
+          style={{ height: CONTENT_HEIGHT }}
+          valueKey={valueKey}
+        />
+      ) : (
+        <BklitVerticalBarChart
+          color={barColor}
+          data={data}
+          heightClassName="h-auto"
+          labelFormatter={(value) => formatTickLabel(value, 18)}
+          labelKey={categoryKey}
+          style={{ height: CONTENT_HEIGHT }}
+          valueKey={valueKey}
+        />
+      )}
     </ChartCardShell>
   );
 }
 
 function LineChartComponent({ element }: ComponentRenderProps) {
-  const { title, description, xKey, yKey, smooth, showDots } =
+  const { title, description, xKey, yKey, color } =
     element.props as {
       title?: string;
       description?: string;
       xKey?: string;
       yKey?: string;
-      smooth?: boolean;
-      showDots?: boolean;
+      color?: string;
     };
 
   const { data, error, isLoading } = useChartData(element.props.query as string);
 
   const valueKey = yKey || "value";
-  const categoryKey = xKey || "label";
-  const lineColor = CHART_COLORS[2];
-  const chartConfig: ChartConfig = {
-    [valueKey]: {
-      label: valueKey,
-      color: lineColor,
-    },
-  };
-
-  return (
-    <ChartCardShell
-      title={title}
-      description={description}
-      icon={<ChartLineIcon className="size-5" weight="duotone" />}
-      isLoading={isLoading}
-      error={error}
-      isEmpty={data.length === 0}
-      emptyMessage="No data available"
-    >
-      <ChartContainer
-        config={chartConfig}
-        className="aspect-auto w-full min-w-0"
-        style={{ height: CONTENT_HEIGHT }}
-      >
-        <RechartsLineChart data={data} margin={{ left: 8, right: 16 }}>
-          <CartesianGrid
-            vertical={false}
-            strokeDasharray="5"
-            stroke="var(--border)"
-            strokeOpacity={1}
-          />
-          <XAxis
-            dataKey={categoryKey}
-            tickLine={false}
-            axisLine={false}
-            tickMargin={8}
-            minTickGap={24}
-            tickFormatter={(value) => formatTickLabel(value, 10)}
-          />
-          <YAxis tickLine={false} axisLine={false} width={40} />
-          <ChartTooltip cursor={false} content={<BaseTooltipContent />} />
-          <Line
-            dataKey={valueKey}
-            type={smooth !== false ? "monotone" : "linear"}
-            stroke={lineColor}
-            strokeWidth={2}
-            dot={showDots !== false}
-            activeDot={{ r: 5 }}
-          />
-        </RechartsLineChart>
-      </ChartContainer>
-    </ChartCardShell>
-  );
-}
-
-function AreaChartComponent({ element }: ComponentRenderProps) {
-  const { title, description, xKey, yKey, gradient } = element.props as {
-    title?: string;
-    description?: string;
-    xKey?: string;
-    yKey?: string;
-    gradient?: boolean;
-  };
-
-  const { data, error, isLoading } = useChartData(element.props.query as string);
-
-  const valueKey = yKey || "value";
-  const categoryKey = xKey || "label";
-  const areaColor = CHART_COLORS[1];
-  const gradientId = useMemo(
-    () =>
-      `ai-area-gradient-${String(element.key).replace(/[^a-zA-Z0-9_-]/g, "")}`,
-    [element.key],
-  );
-
-  const chartConfig: ChartConfig = {
-    [valueKey]: {
-      label: valueKey,
-      color: areaColor,
-    },
-  };
-
-  return (
-    <ChartCardShell
-      title={title}
-      description={description}
-      icon={<StackIcon className="size-5" weight="duotone" />}
-      isLoading={isLoading}
-      error={error}
-      isEmpty={data.length === 0}
-      emptyMessage="No data available"
-    >
-      <ChartContainer
-        config={chartConfig}
-        className="aspect-auto w-full min-w-0"
-        style={{ height: CONTENT_HEIGHT }}
-      >
-        <RechartsAreaChart data={data} margin={{ left: 8, right: 16 }}>
-          <defs>
-            <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor={areaColor} stopOpacity={0.35} />
-              <stop offset="95%" stopColor={areaColor} stopOpacity={0.06} />
-            </linearGradient>
-          </defs>
-          <CartesianGrid
-            vertical={false}
-            strokeDasharray="5"
-            stroke="var(--border)"
-            strokeOpacity={1}
-          />
-          <XAxis
-            dataKey={categoryKey}
-            tickLine={false}
-            axisLine={false}
-            tickMargin={8}
-            minTickGap={24}
-            tickFormatter={(value) => formatTickLabel(value, 10)}
-          />
-          <YAxis tickLine={false} axisLine={false} width={40} />
-          <ChartTooltip cursor={false} content={<BaseTooltipContent />} />
-          <Area
-            dataKey={valueKey}
-            type="monotone"
-            stroke={areaColor}
-            strokeWidth={2}
-            fill={gradient !== false ? `url(#${gradientId})` : areaColor}
-            fillOpacity={gradient !== false ? 1 : 0.2}
-          />
-        </RechartsAreaChart>
-      </ChartContainer>
-    </ChartCardShell>
-  );
-}
-
-function PieChartComponent({ element }: ComponentRenderProps) {
-  const { title, description, nameKey, valueKey, showLabels, donut } =
-    element.props as {
-      title?: string;
-      description?: string;
-      nameKey?: string;
-      valueKey?: string;
-      showLabels?: boolean;
-      donut?: boolean;
-    };
-
-  const { data, error, isLoading } = useChartData(element.props.query as string);
-
-  const labelKey = nameKey || "name";
-  const metricKey = valueKey || "value";
-  const chartConfig: ChartConfig = {
-    [metricKey]: {
-      label: metricKey,
-      color: CHART_COLORS[0],
-    },
-  };
-
-  return (
-    <ChartCardShell
-      title={title}
-      description={description}
-      icon={<ChartPieIcon className="size-5" weight="duotone" />}
-      isLoading={isLoading}
-      error={error}
-      isEmpty={data.length === 0}
-      emptyMessage="No data available"
-    >
-      <ChartContainer
-        config={chartConfig}
-        className="aspect-auto w-full min-w-0"
-        style={{ height: PIE_CONTENT_HEIGHT }}
-      >
-        <RechartsPieChart>
-          <Pie
-            data={data}
-            dataKey={metricKey}
-            nameKey={labelKey}
-            cx="50%"
-            cy="50%"
-            innerRadius={donut ? 55 : 0}
-            outerRadius={86}
-            label={showLabels !== false}
-          >
-            {data.map((_, index) => (
-              <Cell
-                key={`cell-${index}`}
-                fill={CHART_COLORS[index % CHART_COLORS.length]}
-              />
-            ))}
-          </Pie>
-          <ChartTooltip cursor={false} content={<BaseTooltipContent />} />
-          <Legend
-            verticalAlign="bottom"
-            formatter={(value) => formatTickLabel(value, 16)}
-            wrapperStyle={{ paddingTop: 12, fontSize: 12 }}
-          />
-        </RechartsPieChart>
-      </ChartContainer>
-    </ChartCardShell>
-  );
-}
-
-function ScatterChartComponent({ element }: ComponentRenderProps) {
-  const { title, description, xKey, yKey, zKey, color } = element.props as {
-    title?: string;
-    description?: string;
-    xKey?: string;
-    yKey?: string;
-    zKey?: string;
-    color?: string;
-  };
-
-  const { data, error, isLoading } = useChartData(element.props.query as string);
-
-  const xDataKey = xKey || "x";
-  const yDataKey = yKey || "y";
-  const zDataKey = zKey;
-  const scatterColor = color || CHART_COLORS[4];
-
+  const dateKey = xKey || "date";
+  const lineColor = color || CHART_COLORS[2];
   const chartData = useMemo(
-    () =>
-      data.map((row) => ({
-        ...row,
-        [xDataKey]: isNumericLike(row[xDataKey]) ? Number(row[xDataKey]) : row[xDataKey],
-        [yDataKey]: isNumericLike(row[yDataKey]) ? Number(row[yDataKey]) : row[yDataKey],
-        ...(zDataKey
-          ? {
-              [zDataKey]: isNumericLike(row[zDataKey])
-                ? Number(row[zDataKey])
-                : row[zDataKey],
-            }
-          : {}),
-      })),
-    [data, xDataKey, yDataKey, zDataKey],
+    () => coerceTimeSeriesRows(data, dateKey, valueKey),
+    [data, dateKey, valueKey],
   );
-
-  const xType: "number" | "category" = chartData.every((row) =>
-    isNumericLike(row[xDataKey]),
-  )
-    ? "number"
-    : "category";
-  const yType: "number" | "category" = chartData.every((row) =>
-    isNumericLike(row[yDataKey]),
-  )
-    ? "number"
-    : "category";
-
-  const chartConfig: ChartConfig = {
-    [yDataKey]: {
-      label: yDataKey,
-      color: scatterColor,
-    },
-  };
 
   return (
     <ChartCardShell
@@ -695,127 +397,83 @@ function ScatterChartComponent({ element }: ComponentRenderProps) {
       isEmpty={chartData.length === 0}
       emptyMessage="No data available"
     >
-      <ChartContainer
-        config={chartConfig}
-        className="aspect-auto w-full min-w-0"
+      <BklitLineSeriesChart
+        color={lineColor}
+        data={chartData}
+        dateKey={AI_TIME_KEY}
+        heightClassName="h-auto"
+        numTicks={5}
         style={{ height: CONTENT_HEIGHT }}
-      >
-        <RechartsScatterChart margin={{ left: 8, right: 16 }}>
-          <CartesianGrid
-            vertical={false}
-            strokeDasharray="5"
-            stroke="var(--border)"
-            strokeOpacity={1}
-          />
-          <XAxis
-            dataKey={xDataKey}
-            type={xType}
-            tickLine={false}
-            axisLine={false}
-            tickMargin={8}
-            minTickGap={24}
-            tickFormatter={(value) => formatTickLabel(value, 10)}
-          />
-          <YAxis
-            dataKey={yDataKey}
-            type={yType}
-            tickLine={false}
-            axisLine={false}
-            width={40}
-          />
-          {zDataKey ? <ZAxis dataKey={zDataKey} range={[40, 320]} /> : null}
-          <ChartTooltip cursor={false} content={<BaseTooltipContent />} />
-          <Scatter data={chartData} fill={scatterColor} />
-        </RechartsScatterChart>
-      </ChartContainer>
+        valueKey={valueKey}
+        valueLabel={valueKey}
+      />
     </ChartCardShell>
   );
 }
 
-function RadarChartComponent({ element }: ComponentRenderProps) {
-  const { title, description, categoryKey, valueKey } = element.props as {
+function AreaChartComponent({ element }: ComponentRenderProps) {
+  const { title, description, xKey, yKey, gradient, color } = element.props as {
     title?: string;
     description?: string;
-    categoryKey?: string;
-    valueKey?: string;
+    xKey?: string;
+    yKey?: string;
+    gradient?: boolean;
+    color?: string;
   };
 
   const { data, error, isLoading } = useChartData(element.props.query as string);
 
-  const labelKey = categoryKey || "category";
-  const metricKey = valueKey || "value";
-  const radarColor = CHART_COLORS[1];
-  const chartConfig: ChartConfig = {
-    [metricKey]: {
-      label: metricKey,
-      color: radarColor,
-    },
-  };
+  const valueKey = yKey || "value";
+  const dateKey = xKey || "date";
+  const areaColor = color || CHART_COLORS[1];
+  const chartData = useMemo(
+    () => coerceTimeSeriesRows(data, dateKey, valueKey),
+    [data, dateKey, valueKey],
+  );
 
   return (
     <ChartCardShell
       title={title}
       description={description}
-      icon={<ChartLineIcon className="size-5" weight="duotone" />}
+      icon={<StackIcon className="size-5" weight="duotone" />}
       isLoading={isLoading}
       error={error}
-      isEmpty={data.length === 0}
+      isEmpty={chartData.length === 0}
       emptyMessage="No data available"
     >
-      <ChartContainer
-        config={chartConfig}
-        className="aspect-auto w-full min-w-0"
+      <BklitAreaSeriesChart
+        color={areaColor}
+        data={chartData}
+        dateKey={AI_TIME_KEY}
+        gradient={gradient !== false}
+        heightClassName="h-auto"
+        numTicks={5}
         style={{ height: CONTENT_HEIGHT }}
-      >
-        <RechartsRadarChart data={data}>
-          <PolarGrid stroke="var(--border)" />
-          <PolarAngleAxis
-            dataKey={labelKey}
-            tick={(props) => {
-              const { x, y, payload } = props as {
-                x: number;
-                y: number;
-                payload: { value: unknown };
-              };
-              return (
-                <text x={x} y={y} textAnchor="middle" className="fill-zinc-500 text-[11px]">
-                  {formatTickLabel(payload?.value, 10)}
-                </text>
-              );
-            }}
-          />
-          <PolarRadiusAxis axisLine={false} tickLine={false} />
-          <ChartTooltip cursor={false} content={<BaseTooltipContent />} />
-          <Radar
-            dataKey={metricKey}
-            stroke={radarColor}
-            fill={radarColor}
-            fillOpacity={0.32}
-          />
-        </RechartsRadarChart>
-      </ChartContainer>
+        valueKey={valueKey}
+        valueLabel={valueKey}
+      />
     </ChartCardShell>
   );
 }
 
-function RadialBarChartComponent({ element }: ComponentRenderProps) {
-  const { title, description, nameKey, valueKey } = element.props as {
-    title?: string;
-    description?: string;
-    nameKey?: string;
-    valueKey?: string;
-  };
+function PieChartComponent({ element }: ComponentRenderProps) {
+  const { title, description, nameKey, valueKey } =
+    element.props as {
+      title?: string;
+      description?: string;
+      nameKey?: string;
+      valueKey?: string;
+    };
 
   const { data, error, isLoading } = useChartData(element.props.query as string);
 
   const labelKey = nameKey || "name";
   const metricKey = valueKey || "value";
-  const chartConfig: ChartConfig = {
-    [metricKey]: {
-      label: metricKey,
-      color: CHART_COLORS[0],
-    },
-  };
+  const chartData = data.map((row, index) => ({
+    label: formatTickLabel(row[labelKey], 16),
+    value: Number(row[metricKey] ?? 0),
+    color: CHART_COLORS[index % CHART_COLORS.length],
+  }));
 
   return (
     <ChartCardShell
@@ -827,96 +485,11 @@ function RadialBarChartComponent({ element }: ComponentRenderProps) {
       isEmpty={data.length === 0}
       emptyMessage="No data available"
     >
-      <ChartContainer
-        config={chartConfig}
-        className="aspect-auto w-full min-w-0"
-        style={{ height: CONTENT_HEIGHT }}
-      >
-        <RechartsRadialBarChart
-          data={data}
-          innerRadius="20%"
-          outerRadius="90%"
-          barSize={14}
-        >
-          <PolarAngleAxis type="number" domain={[0, "dataMax"]} tick={false} />
-          <ChartTooltip cursor={false} content={<BaseTooltipContent />} />
-          <RadialBar background dataKey={metricKey} cornerRadius={6}>
-            {data.map((_, index) => (
-              <Cell
-                key={`radial-cell-${index}`}
-                fill={CHART_COLORS[index % CHART_COLORS.length]}
-              />
-            ))}
-          </RadialBar>
-          <Legend
-            verticalAlign="bottom"
-            formatter={(value) => formatTickLabel(value, 16)}
-            payload={data.map((entry, index) => ({
-              value: formatCellValue(entry[labelKey]),
-              type: "square",
-              color: CHART_COLORS[index % CHART_COLORS.length],
-            }))}
-            wrapperStyle={{ paddingTop: 12, fontSize: 12 }}
-          />
-        </RechartsRadialBarChart>
-      </ChartContainer>
-    </ChartCardShell>
-  );
-}
-
-function FunnelChartComponent({ element }: ComponentRenderProps) {
-  const { title, description, nameKey, valueKey } = element.props as {
-    title?: string;
-    description?: string;
-    nameKey?: string;
-    valueKey?: string;
-  };
-
-  const { data, error, isLoading } = useChartData(element.props.query as string);
-
-  const labelKey = nameKey || "name";
-  const metricKey = valueKey || "value";
-  const chartConfig: ChartConfig = {
-    [metricKey]: {
-      label: metricKey,
-      color: CHART_COLORS[0],
-    },
-  };
-
-  return (
-    <ChartCardShell
-      title={title}
-      description={description}
-      icon={<ChartBarIcon className="size-5" weight="duotone" />}
-      isLoading={isLoading}
-      error={error}
-      isEmpty={data.length === 0}
-      emptyMessage="No data available"
-    >
-      <ChartContainer
-        config={chartConfig}
-        className="aspect-auto w-full min-w-0"
-        style={{ height: CONTENT_HEIGHT }}
-      >
-        <RechartsFunnelChart>
-          <ChartTooltip cursor={false} content={<BaseTooltipContent />} />
-          <Funnel data={data} dataKey={metricKey} nameKey={labelKey}>
-            {data.map((_, index) => (
-              <Cell
-                key={`funnel-cell-${index}`}
-                fill={CHART_COLORS[index % CHART_COLORS.length]}
-              />
-            ))}
-            <LabelList
-              position="right"
-              dataKey={labelKey}
-              fill="#52525b"
-              stroke="none"
-              formatter={(value: unknown) => formatTickLabel(value, 18)}
-            />
-          </Funnel>
-        </RechartsFunnelChart>
-      </ChartContainer>
+      <BklitDonutChart
+        data={chartData}
+        heightClassName="h-auto"
+        style={{ height: PIE_CONTENT_HEIGHT }}
+      />
     </ChartCardShell>
   );
 }
@@ -1098,10 +671,6 @@ export const chartRegistry: ComponentRegistry = {
   LineChart: LineChartComponent,
   AreaChart: AreaChartComponent,
   PieChart: PieChartComponent,
-  ScatterChart: ScatterChartComponent,
-  RadarChart: RadarChartComponent,
-  RadialBarChart: RadialBarChartComponent,
-  FunnelChart: FunnelChartComponent,
   DataTable: DataTableComponent,
   FallbackCard: FallbackCardComponent,
   MetricCard: MetricCardComponent,

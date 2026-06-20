@@ -2,7 +2,7 @@ import { Redis } from "@upstash/redis";
 import { v } from "convex/values";
 import { internalAction } from "./_generated/server";
 import { internal } from "./_generated/api";
-import { RedisValueObject } from "./utils";
+import { buildRedirectProjection } from "./redisProjection";
 
 const redis = new Redis({
   url: process.env.UPSTASH_REDIS_REST_URL,
@@ -16,6 +16,8 @@ export const insertIntoRedis = internalAction({
     docId: v.id("urls"),
     analytics_owner_key: v.string(),
     convex_user_id: v.optional(v.id("users")),
+    trackingEnabled: v.boolean(),
+    expiresAt: v.optional(v.number()),
     // UTM Parameters
     utmSource: v.optional(v.string()),
     utmMedium: v.optional(v.string()),
@@ -39,49 +41,22 @@ export const insertIntoRedis = internalAction({
     overwrite: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
-    // Build utm_params object only with non-empty values
-    const utmParams: Record<string, string> = {};
-    if (args.utmSource) utmParams.utm_source = args.utmSource;
-    if (args.utmMedium) utmParams.utm_medium = args.utmMedium;
-    if (args.utmCampaign) utmParams.utm_campaign = args.utmCampaign;
-    if (args.utmTerm) utmParams.utm_term = args.utmTerm;
-    if (args.utmContent) utmParams.utm_content = args.utmContent;
-
-    // Build A/B test config if enabled
-    const abTestConfig =
-      args.abEnabled && args.abVariants?.length
-        ? {
-            enabled: true,
-            variants: args.abVariants,
-            distribution: args.abDistribution ?? ("deterministic" as const),
-          }
-        : undefined;
-
-    const redisValueObject: RedisValueObject = {
-      destination: args.fullUrl,
-      user_id: args.analytics_owner_key,
-      analytics_owner_key: args.analytics_owner_key,
-      convex_user_id: args.convex_user_id,
-      tenant_id: args.convex_user_id ?? args.analytics_owner_key,
-      redirect_type: 302,
-      created_at: Date.now(),
-      updated_at: Date.now(),
-      link_id: args.docId,
-      is_active: true,
-      expires_at: null,
-      max_clicks: null,
-      tags: [],
-      utm_params: utmParams,
-      rules: {
-        ...(abTestConfig && { ab_test: abTestConfig }),
-      },
-      features: {
-        track_clicks: true,
-        track_conversions: true,
-      },
-      custom_metadata: {},
-      version: 1,
-    };
+    const redisValueObject = buildRedirectProjection({
+      fullUrl: args.fullUrl,
+      docId: args.docId,
+      analyticsOwnerKey: args.analytics_owner_key,
+      convexUserId: args.convex_user_id,
+      trackingEnabled: args.trackingEnabled,
+      expiresAt: args.expiresAt,
+      utmSource: args.utmSource,
+      utmMedium: args.utmMedium,
+      utmCampaign: args.utmCampaign,
+      utmTerm: args.utmTerm,
+      utmContent: args.utmContent,
+      abEnabled: args.abEnabled,
+      abVariants: args.abVariants,
+      abDistribution: args.abDistribution,
+    });
 
     const result = args.overwrite
       ? await redis.json.set(

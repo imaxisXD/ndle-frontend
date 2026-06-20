@@ -18,32 +18,18 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
-  Legend,
-} from "recharts";
+  BklitDonutChart,
+  BklitHorizontalBarChart,
+} from "@/components/charts/bklit-chart-kit";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { UTMAnalyticsData } from "@/types/utm-analytics";
 
 const COLORS = [
-  "#6366f1", // indigo
-  "#10b981", // emerald
-  "#f59e0b", // amber
-  "#ef4444", // red
-  "#8b5cf6", // violet
-  "#06b6d4", // cyan
-  "#ec4899", // pink
-  "#84cc16", // lime
-  "#f97316", // orange
-  "#14b8a6", // teal
+  "var(--chart-line-primary)",
+  "var(--chart-line-secondary)",
+  "var(--chart-2)",
+  "var(--chart-3)",
+  "var(--chart-4)",
 ];
 
 interface UTMAnalyticsPanelProps {
@@ -210,35 +196,15 @@ export function UTMAnalyticsPanel({ data, isLoading }: UTMAnalyticsPanelProps) {
             <CardDescription>Clicks by utm_source parameter</CardDescription>
           </CardHeader>
           <CardContent>
-            {filteredSourceData.length > 0 ? (
-              <ResponsiveContainer width="100%" height={250}>
-                <BarChart
-                  data={filteredSourceData.slice(0, 10)}
-                  layout="vertical"
-                  margin={{ left: 80 }}
-                >
-                  <CartesianGrid strokeDasharray="3 3" horizontal={false} />
-                  <XAxis type="number" />
-                  <YAxis
-                    dataKey="source"
-                    type="category"
-                    tick={{ fontSize: 12 }}
-                    width={80}
-                  />
-                  <Tooltip
-                    formatter={(value: number) => [
-                      value.toLocaleString(),
-                      "Clicks",
-                    ]}
-                  />
-                  <Bar dataKey="clicks" fill="#6366f1" radius={[0, 4, 4, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            ) : (
-              <div className="text-muted-foreground flex h-[250px] items-center justify-center text-sm">
-                No source data available
-              </div>
-            )}
+            <BklitHorizontalBarChart
+              data={filteredSourceData.slice(0, 10)}
+              emptyDescription="No source data available"
+              emptyTitle="No source data"
+              heightClassName="h-[250px]"
+              labelKey="source"
+              labelWidth={112}
+              valueKey="clicks"
+            />
           </CardContent>
         </Card>
 
@@ -249,35 +215,15 @@ export function UTMAnalyticsPanel({ data, isLoading }: UTMAnalyticsPanelProps) {
             <CardDescription>Clicks by utm_campaign parameter</CardDescription>
           </CardHeader>
           <CardContent>
-            {filteredCampaignData.length > 0 ? (
-              <ResponsiveContainer width="100%" height={250}>
-                <BarChart
-                  data={filteredCampaignData.slice(0, 10)}
-                  layout="vertical"
-                  margin={{ left: 100 }}
-                >
-                  <CartesianGrid strokeDasharray="3 3" horizontal={false} />
-                  <XAxis type="number" />
-                  <YAxis
-                    dataKey="campaign"
-                    type="category"
-                    tick={{ fontSize: 12 }}
-                    width={100}
-                  />
-                  <Tooltip
-                    formatter={(value: number) => [
-                      value.toLocaleString(),
-                      "Clicks",
-                    ]}
-                  />
-                  <Bar dataKey="clicks" fill="#10b981" radius={[0, 4, 4, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            ) : (
-              <div className="text-muted-foreground flex h-[250px] items-center justify-center text-sm">
-                No campaign data available
-              </div>
-            )}
+            <BklitHorizontalBarChart
+              data={filteredCampaignData.slice(0, 10)}
+              emptyDescription="No campaign data available"
+              emptyTitle="No campaign data"
+              heightClassName="h-[250px]"
+              labelKey="campaign"
+              labelWidth={132}
+              valueKey="clicks"
+            />
           </CardContent>
         </Card>
       </div>
@@ -293,40 +239,16 @@ export function UTMAnalyticsPanel({ data, isLoading }: UTMAnalyticsPanelProps) {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            {filteredMediumData.length > 0 ? (
-              <ResponsiveContainer width="100%" height={250}>
-                <PieChart>
-                  <Pie
-                    data={filteredMediumData}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={60}
-                    outerRadius={100}
-                    paddingAngle={2}
-                    dataKey="clicks"
-                    nameKey="medium"
-                  >
-                    {filteredMediumData.map((entry, index) => (
-                      <Cell
-                        key={`cell-${index}`}
-                        fill={COLORS[index % COLORS.length]}
-                      />
-                    ))}
-                  </Pie>
-                  <Tooltip
-                    formatter={(value: number) => [
-                      value.toLocaleString(),
-                      "Clicks",
-                    ]}
-                  />
-                  <Legend />
-                </PieChart>
-              </ResponsiveContainer>
-            ) : (
-              <div className="text-muted-foreground flex h-[250px] items-center justify-center text-sm">
-                No medium data available
-              </div>
-            )}
+            <BklitDonutChart
+              data={filteredMediumData.map((item, index) => ({
+                label: item.medium,
+                value: item.clicks,
+                color: COLORS[index % COLORS.length],
+              }))}
+              emptyDescription="No medium data available"
+              emptyTitle="No medium data"
+              heightClassName="h-[250px]"
+            />
           </CardContent>
         </Card>
 

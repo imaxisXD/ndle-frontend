@@ -2,14 +2,6 @@
 
 import { useMemo } from "react";
 import {
-  Bar,
-  BarChart,
-  XAxis,
-  YAxis,
-  LabelList,
-  CartesianGrid,
-} from "recharts";
-import {
   Card,
   CardContent,
   CardTitle,
@@ -17,13 +9,7 @@ import {
   CardHeader,
   CardFooter,
 } from "@/components/ui/card";
-import {
-  ChartConfig,
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-} from "@/components/ui/chart";
-import { Skeleton } from "@/components/ui/skeleton";
+import { BklitHorizontalBarChart } from "@/components/charts/bklit-chart-kit";
 import {
   Dialog,
   DialogContent,
@@ -38,24 +24,7 @@ import { Expand } from "iconoir-react";
 import { cn } from "@/lib/utils";
 
 import {
-  ArrowSquareOutIcon,
-  DiscordLogoIcon,
-  FacebookLogoIcon,
-  GithubLogoIcon,
-  GlobeIcon,
-  GoogleLogoIcon,
-  InstagramLogoIcon,
-  LinkedinLogoIcon,
   LinkSimpleIcon,
-  MediumLogoIcon,
-  PinterestLogoIcon,
-  RedditLogoIcon,
-  SlackLogoIcon,
-  TelegramLogoIcon,
-  TiktokLogoIcon,
-  WhatsappLogoIcon,
-  XLogoIcon,
-  YoutubeLogoIcon,
 } from "@phosphor-icons/react/dist/ssr";
 
 function normalizeReferrerHost(domain: string): string {
@@ -77,35 +46,6 @@ function normalizeReferrerHost(domain: string): string {
 
 function matchesDomain(host: string, domain: string): boolean {
   return host === domain || host.endsWith(`.${domain}`);
-}
-
-/** Map domain patterns to Phosphor icons */
-function getReferrerIcon(domain: string) {
-  const d = normalizeReferrerHost(domain);
-
-  if (matchesDomain(d, "google.com")) return GoogleLogoIcon;
-  if (matchesDomain(d, "twitter.com") || d === "t.co" || d === "x.com")
-    return XLogoIcon;
-  if (matchesDomain(d, "linkedin.com")) return LinkedinLogoIcon;
-  if (matchesDomain(d, "facebook.com") || d === "fb.com")
-    return FacebookLogoIcon;
-  if (matchesDomain(d, "instagram.com")) return InstagramLogoIcon;
-  if (matchesDomain(d, "youtube.com") || d === "youtu.be")
-    return YoutubeLogoIcon;
-  if (matchesDomain(d, "reddit.com")) return RedditLogoIcon;
-  if (matchesDomain(d, "github.com")) return GithubLogoIcon;
-  if (matchesDomain(d, "tiktok.com")) return TiktokLogoIcon;
-  if (matchesDomain(d, "pinterest.com")) return PinterestLogoIcon;
-  if (matchesDomain(d, "medium.com")) return MediumLogoIcon;
-  if (matchesDomain(d, "discord.com") || matchesDomain(d, "discord.gg"))
-    return DiscordLogoIcon;
-  if (matchesDomain(d, "telegram.org") || d === "t.me") return TelegramLogoIcon;
-  if (matchesDomain(d, "whatsapp.com") || d === "wa.me")
-    return WhatsappLogoIcon;
-  if (matchesDomain(d, "slack.com")) return SlackLogoIcon;
-  if (d === "direct") return ArrowSquareOutIcon;
-
-  return GlobeIcon;
 }
 
 /** Convert domain to friendly display name */
@@ -135,43 +75,6 @@ function getFriendlyName(domain: string): string {
   // Return domain as-is for unknown sources
   return domain;
 }
-
-// Custom label component to render icon + referrer name inside the bar
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function ReferrerLabel(props: any) {
-  const { x = 0, y = 0, height = 0, value = "" } = props;
-  const IconComponent = getReferrerIcon(String(value));
-  const friendlyName = getFriendlyName(String(value));
-
-  return (
-    <foreignObject
-      x={Number(x) + 8}
-      y={Number(y)}
-      width={160}
-      height={Number(height)}
-    >
-      <div className="flex h-full items-center gap-2">
-        <IconComponent
-          className="size-4 shrink-0 text-zinc-600"
-          weight="duotone"
-        />
-        <span className="truncate text-xs font-medium text-black">
-          {friendlyName}
-        </span>
-      </div>
-    </foreignObject>
-  );
-}
-
-const chartConfig = {
-  clicks: {
-    label: "Clicks",
-    color: "var(--color-black)",
-  },
-  label: {
-    color: "var(--primary)",
-  },
-} satisfies ChartConfig;
 
 export interface ReferrerData {
   domain: string;
@@ -246,99 +149,18 @@ export function ReferrerChart({
                 </DialogHeader>
                 <DialogBody className="rounded-sm bg-white p-2">
                   <div className="max-h-[70vh] overflow-y-auto px-2 py-4">
-                    <ChartContainer
-                      config={chartConfig}
-                      className="aspect-auto w-full"
+                    <BklitHorizontalBarChart
+                      barWidth={28}
+                      data={sortedData}
+                      heightClassName="h-auto"
+                      labelFormatter={(value) => getFriendlyName(String(value))}
+                      labelKey="domain"
+                      labelWidth={132}
                       style={{
                         height: `${Math.max(sortedData.length * 40, 200)}px`,
                       }}
-                    >
-                      <BarChart
-                        data={sortedData}
-                        layout="vertical"
-                        margin={{
-                          right: 48,
-                          left: 8,
-                        }}
-                        barCategoryGap="20%"
-                      >
-                        <defs>
-                          <linearGradient
-                            id="barGradientHorizontalRefererDialog"
-                            x1="0"
-                            y1="0"
-                            x2="1"
-                            y2="0"
-                          >
-                            <stop
-                              offset="0%"
-                              stopColor="#06b6d4"
-                              stopOpacity={0.7}
-                            />
-                            <stop
-                              offset="100%"
-                              stopColor="#0891b2"
-                              stopOpacity={1}
-                            />
-                          </linearGradient>
-                        </defs>
-                        <CartesianGrid
-                          horizontal={false}
-                          strokeDasharray="5"
-                          stroke="var(--border)"
-                          strokeOpacity={1}
-                        />
-                        <YAxis
-                          dataKey="domain"
-                          type="category"
-                          tickLine={false}
-                          tickMargin={10}
-                          axisLine={false}
-                          hide
-                        />
-                        <XAxis
-                          dataKey="clicks"
-                          type="number"
-                          hide
-                          domain={[0, "dataMax"]}
-                        />
-                        <ChartTooltip
-                          cursor={false}
-                          content={
-                            <ChartTooltipContent
-                              className="rounded-sm bg-linear-to-br from-black/80 to-black text-white *:text-inherit **:text-inherit"
-                              labelClassName="text-white font-medium"
-                              labelFormatter={(value) =>
-                                getFriendlyName(String(value))
-                              }
-                              indicator="dot"
-                              color="var(--accent)"
-                            />
-                          }
-                        />
-                        <Bar
-                          dataKey="clicks"
-                          layout="vertical"
-                          fill="url(#barGradientHorizontalRefererDialog)"
-                          radius={4}
-                          barSize={28}
-                          minPointSize={160}
-                        >
-                          <LabelList
-                            dataKey="domain"
-                            position="insideLeft"
-                            content={ReferrerLabel}
-                          />
-                          <LabelList
-                            dataKey="clicks"
-                            position="right"
-                            offset={16}
-                            className="fill-primary font-medium"
-                            fontSize={12}
-                          />
-                        </Bar>
-                      </BarChart>
-                    </ChartContainer>
+                      valueKey="clicks"
+                    />
                   </div>
                 </DialogBody>
               </DialogContent>
@@ -347,99 +169,18 @@ export function ReferrerChart({
         </div>
       </CardHeader>
       <CardContent className="grow p-6">
-        {isLoading ? (
-          <div className="flex h-[280px] flex-col justify-between">
-            {[1, 2, 3, 4, 5, 6, 7].map((i) => (
-              <Skeleton key={i} className="h-7 w-full rounded" />
-            ))}
-          </div>
-        ) : chartData.length === 0 ? (
-          <div className="text-muted-foreground flex h-40 items-center justify-center text-sm">
-            No referrer data available.
-          </div>
-        ) : (
-          <ChartContainer
-            config={chartConfig}
-            className="aspect-auto w-full"
-            style={{ height: "280px" }}
-          >
-            <BarChart
-              data={chartData}
-              layout="vertical"
-              margin={{
-                right: 48,
-                left: 8,
-              }}
-              barCategoryGap="20%"
-            >
-              <defs>
-                <linearGradient
-                  id="barGradientHorizontalReferer"
-                  x1="0"
-                  y1="0"
-                  x2="1"
-                  y2="0"
-                >
-                  <stop offset="0%" stopColor="#06b6d4" stopOpacity={0.7} />
-                  <stop offset="100%" stopColor="#0891b2" stopOpacity={1} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid
-                horizontal={false}
-                strokeDasharray="5"
-                stroke="var(--border)"
-                strokeOpacity={1}
-              />
-              <YAxis
-                dataKey="domain"
-                type="category"
-                tickLine={false}
-                tickMargin={10}
-                axisLine={false}
-                hide
-              />
-              <XAxis
-                dataKey="clicks"
-                type="number"
-                hide
-                domain={[0, "dataMax"]}
-              />
-              <ChartTooltip
-                cursor={false}
-                content={
-                  <ChartTooltipContent
-                    className="rounded-sm bg-linear-to-br from-black/80 to-black text-white *:text-inherit **:text-inherit"
-                    labelClassName="text-white font-medium"
-                    labelFormatter={(value) => getFriendlyName(String(value))}
-                    indicator="dot"
-                    color="var(--accent)"
-                  />
-                }
-              />
-              <Bar
-                dataKey="clicks"
-                layout="vertical"
-                fill="url(#barGradientHorizontalReferer)"
-                radius={4}
-                barSize={28}
-                minPointSize={160}
-              >
-                <LabelList
-                  dataKey="domain"
-                  position="insideLeft"
-                  content={ReferrerLabel}
-                />
-                <LabelList
-                  dataKey="clicks"
-                  position="right"
-                  offset={16}
-                  className="fill-primary font-medium"
-                  fontSize={12}
-                />
-              </Bar>
-            </BarChart>
-          </ChartContainer>
-        )}
+        <BklitHorizontalBarChart
+          barWidth={28}
+          data={chartData}
+          emptyDescription="No referrer data available."
+          emptyTitle="No referrer data"
+          heightClassName="h-[280px]"
+          isLoading={isLoading}
+          labelFormatter={(value) => getFriendlyName(String(value))}
+          labelKey="domain"
+          labelWidth={132}
+          valueKey="clicks"
+        />
       </CardContent>
       {!isLoading && chartData.length > 0 && (
         <CardFooter className="flex-col items-start gap-2 border-t border-zinc-200 pt-4 text-sm">

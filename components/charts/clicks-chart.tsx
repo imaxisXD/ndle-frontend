@@ -2,15 +2,6 @@
 
 import { useMemo } from "react";
 import {
-  Bar,
-  BarChart,
-  XAxis,
-  YAxis,
-  LabelList,
-  Cell,
-  CartesianGrid,
-} from "recharts";
-import {
   Card,
   CardContent,
   CardTitle,
@@ -18,26 +9,10 @@ import {
   CardHeader,
   CardFooter,
 } from "@/components/ui/card";
-import {
-  ChartConfig,
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-} from "@/components/ui/chart";
-import { Skeleton } from "@/components/ui/skeleton";
+import { BklitHorizontalBarChart } from "@/components/charts/bklit-chart-kit";
 import { RefreshDouble } from "iconoir-react";
 import { cn, expandWeekday } from "@/lib/utils";
 import { CursorClickIcon } from "@phosphor-icons/react/dist/ssr";
-
-const chartConfig = {
-  clicks: {
-    label: "Clicks",
-    color: "var(--color-black)",
-  },
-  label: {
-    color: "var(--primary)",
-  },
-} satisfies ChartConfig;
 
 export function ClicksChart({
   data,
@@ -61,28 +36,6 @@ export function ClicksChart({
     const total = chartData.reduce((sum, d) => sum + d.clicks, 0);
     return Math.round(total / Math.max(chartData.length, 1));
   }, [chartData]);
-
-  const maxClicks = useMemo(() => {
-    if (!chartData || chartData.length === 0) return 0;
-    return Math.max(...chartData.map((d) => d.clicks));
-  }, [chartData]);
-
-  // Prepare data with background bar (always shows full width gray bar)
-  const processedData = useMemo(() => {
-    if (!chartData || chartData.length === 0) return [];
-    const effectiveMax = maxClicks || 1;
-
-    return chartData.map((item) => ({
-      ...item,
-      // Background shows the remaining portion (max - clicks)
-      background: effectiveMax - item.clicks,
-      // Actual clicks value
-      clicks: item.clicks,
-    }));
-  }, [chartData, maxClicks]);
-
-  // Domain max for proper scaling
-  const domainMax = maxClicks || 1;
 
   return (
     <Card
@@ -108,124 +61,17 @@ export function ClicksChart({
         </div>
       </CardHeader>
       <CardContent className="grow p-6">
-        {isLoading ? (
-          <div className="flex h-[280px] flex-col justify-between">
-            {[1, 2, 3, 4, 5, 6, 7].map((i) => (
-              <Skeleton key={i} className="h-7 w-full rounded" />
-            ))}
-          </div>
-        ) : chartData.length === 0 ? (
-          <div className="text-muted-foreground flex h-40 items-center justify-center text-sm">
-            No clicks recorded in this period.
-          </div>
-        ) : (
-          <ChartContainer
-            config={chartConfig}
-            className="[&_.recharts-cartesian-axis-tick_text]:fill-primary aspect-auto w-full"
-            style={{ height: "280px" }}
-          >
-            <BarChart
-              accessibilityLayer
-              data={processedData}
-              layout="vertical"
-              margin={{
-                right: 40,
-                left: 8,
-              }}
-              barCategoryGap="20%"
-              stackOffset="none"
-            >
-              <defs>
-                <linearGradient
-                  id="barGradientHorizontalClicks"
-                  x1="0"
-                  y1="0"
-                  x2="1"
-                  y2="0"
-                >
-                  <stop offset="0%" stopColor="#ffcc00" stopOpacity={1} />
-                  <stop offset="100%" stopColor="#ffc700" stopOpacity={1} />
-                </linearGradient>
-              </defs>
-              <YAxis
-                dataKey="dayFull"
-                type="category"
-                tickLine={false}
-                tickMargin={8}
-                axisLine={false}
-                width={70}
-                tick={{ fontSize: 12, fill: "#0a0a0a" }}
-              />
-              <XAxis type="number" hide domain={[0, domainMax]} />
-              <CartesianGrid
-                horizontal={false}
-                strokeDasharray="5"
-                stroke="var(--border)"
-                strokeOpacity={1}
-              />
-              <ChartTooltip
-                cursor={false}
-                content={
-                  <ChartTooltipContent
-                    className="rounded-sm bg-linear-to-br from-black/80 to-black text-white *:text-inherit **:text-inherit"
-                    labelClassName="text-white font-medium"
-                    indicator="dot"
-                    hideIndicator={false}
-                    formatter={(value, name) => {
-                      if (name === "background") return null;
-                      return (
-                        <div className="flex items-center gap-2">
-                          <span className="inline-block size-3 shrink-0 rounded-xs bg-amber-400" />
-                          <span>Clicks</span>
-                          <span className="ml-auto font-medium tabular-nums">
-                            {value}
-                          </span>
-                        </div>
-                      );
-                    }}
-                  />
-                }
-              />
-              <Bar
-                dataKey="clicks"
-                stackId="a"
-                layout="vertical"
-                radius={[4, 0, 0, 4]}
-                barSize={28}
-              >
-                {processedData.map((entry, index) => (
-                  <Cell
-                    key={`clicks-${index}`}
-                    fill={
-                      entry.clicks === 0
-                        ? "#e5e5e5"
-                        : "url(#barGradientHorizontalClicks)"
-                    }
-                  />
-                ))}
-              </Bar>
-              {/* Background bar (gray) - fills remaining space */}
-              <Bar
-                dataKey="background"
-                stackId="a"
-                layout="vertical"
-                fill="var(--color-slate-200)"
-                radius={[0, 4, 4, 0]}
-                barSize={28}
-                className="opacity-70 backdrop-blur-xl"
-              >
-                {/* Label showing click count on the right edge */}
-                <LabelList
-                  dataKey="clicks"
-                  position="right"
-                  offset={8}
-                  className="fill-primary font-medium"
-                  fontSize={12}
-                />
-              </Bar>
-            </BarChart>
-          </ChartContainer>
-        )}
+        <BklitHorizontalBarChart
+          barWidth={28}
+          data={chartData}
+          emptyDescription="No clicks recorded in this period."
+          emptyTitle="No clicks recorded"
+          heightClassName="h-[280px]"
+          isLoading={isLoading}
+          labelKey="dayFull"
+          labelWidth={74}
+          valueKey="clicks"
+        />
       </CardContent>
       {!isLoading && chartData.length > 0 && (
         <CardFooter className="flex-col items-start gap-2 border-t border-zinc-200 pt-4 text-sm">

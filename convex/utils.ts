@@ -90,12 +90,7 @@ export interface RedisValueObject {
   max_clicks: number | null;
   // Analytics tags (keep arrays small)
   tags?: Array<string>;
-  utm_params?: {
-    // Pre-parsed UTM for analytics
-    source?: string;
-    medium?: string;
-    campaign?: string;
-  };
+  utm_params?: Record<string, string>;
   // Smart routing (only if needed)
   rules?: {
     geo?: Record<string, string>; // {"US": "url1", "GB": "url2"}

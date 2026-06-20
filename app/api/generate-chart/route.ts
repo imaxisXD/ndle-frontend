@@ -21,10 +21,6 @@ AVAILABLE COMPONENTS:
 - LineChart (props: title, description, query, xKey, yKey, smooth, showDots)
 - AreaChart (props: title, description, query, xKey, yKey, gradient)
 - PieChart (props: title, description, query, nameKey, valueKey, showLabels, donut)
-- ScatterChart (props: title, description, query, xKey, yKey, zKey, color)
-- RadarChart (props: title, description, query, categoryKey, valueKey)
-- RadialBarChart (props: title, description, query, nameKey, valueKey)
-- FunnelChart (props: title, description, query, nameKey, valueKey)
 - MetricCard (props: title, format, prefix, suffix, query)
 - DataTable (props: title, description, query, columns, limit)
 - FallbackCard (props: title, description, reason, suggestion, examplePrompt)
@@ -49,11 +45,9 @@ NO markdown, NO code blocks, ONLY raw JSONL lines.
 {"op":"set","path":"/root","value":"fallback-1"}
 
 CHART TYPE MAPPING RULES:
-- If user asks for bubble chart -> use ScatterChart with zKey.
-- If user asks for spider chart -> use RadarChart.
 - If user asks for donut chart -> use PieChart with donut=true.
 - If user asks for histogram -> use BarChart over binned values.
-- If user asks for unsupported types (heatmap/sankey/treemap/gantt/candlestick), use DataTable or FallbackCard.
+- If user asks for unsupported types (bubble/scatter/radar/spider/radial/funnel/heatmap/sankey/treemap/gantt/candlestick), use DataTable or FallbackCard.
 
 CRITICAL RULES:
 1. Use {DATA} as the table name in SQL. It will be replaced with actual data source.

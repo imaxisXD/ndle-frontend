@@ -67,8 +67,8 @@ export default function SignInComponent() {
         </div>
       </div>
 
-      <div className="bg-background relative flex min-h-full w-full flex-1 justify-center px-6 py-12 lg:px-16 lg:py-14">
-        <div className="relative z-10 flex w-full max-w-md flex-col justify-center gap-10">
+      <div className="bg-background relative flex min-h-[100svh] w-full flex-1 items-center justify-center px-6 py-12 lg:px-16 lg:py-14">
+        <div className="relative z-10 flex w-full max-w-md flex-col gap-10">
           <Link
             href="/"
             className="text-muted-foreground hover:text-foreground flex w-fit items-center gap-1 text-sm transition"
@@ -97,8 +97,8 @@ export default function SignInComponent() {
                   logoImageUrl: "",
                 },
                 elements: {
-                  rootBox: "bg-transparent",
-                  card: "border-0 bg-transparent shadow-none",
+                  rootBox: "mx-auto w-full bg-transparent",
+                  card: "mx-auto w-full border-0 bg-transparent shadow-none",
                   headerTitle: "text-foreground",
                   headerSubtitle: "text-muted-foreground",
                   formFieldLabel:

@@ -97,54 +97,6 @@ export const chartCatalog = createCatalog({
         "Pie/donut chart for showing proportions. Use for browser share, device breakdown, etc.",
     },
 
-    ScatterChart: {
-      props: z.object({
-        title: z.string().describe("Chart title"),
-        description: z.string().optional().describe("Optional subtitle"),
-        query: z.string().describe("DuckDB SQL query to fetch data"),
-        xKey: z.string().describe("X-axis column"),
-        yKey: z.string().describe("Y-axis column"),
-        zKey: z.string().optional().describe("Optional size column"),
-        color: z.string().optional().describe("Point color"),
-      }),
-      description:
-        "Scatter or bubble-style plot for correlations and distributions.",
-    },
-
-    RadarChart: {
-      props: z.object({
-        title: z.string().describe("Chart title"),
-        description: z.string().optional().describe("Optional subtitle"),
-        query: z.string().describe("DuckDB SQL query to fetch data"),
-        categoryKey: z.string().describe("Category/dimension column"),
-        valueKey: z.string().describe("Metric column"),
-      }),
-      description: "Radar/spider chart for comparing categories on one metric.",
-    },
-
-    RadialBarChart: {
-      props: z.object({
-        title: z.string().describe("Chart title"),
-        description: z.string().optional().describe("Optional subtitle"),
-        query: z.string().describe("DuckDB SQL query to fetch data"),
-        nameKey: z.string().describe("Category label column"),
-        valueKey: z.string().describe("Metric value column"),
-      }),
-      description: "Circular radial bar chart for ranked category comparisons.",
-    },
-
-    FunnelChart: {
-      props: z.object({
-        title: z.string().describe("Chart title"),
-        description: z.string().optional().describe("Optional subtitle"),
-        query: z.string().describe("DuckDB SQL query to fetch data"),
-        nameKey: z.string().describe("Stage/category column"),
-        valueKey: z.string().describe("Metric value column"),
-      }),
-      description:
-        "Funnel chart for stage-wise dropoff and conversion-style analysis.",
-    },
-
     DataTable: {
       props: z.object({
         title: z.string().optional().describe("Optional table title"),
@@ -258,10 +210,6 @@ Additional instructions:
   - LineChart for trends over time
   - PieChart for showing proportions (use sparingly, max 7-8 segments)
   - AreaChart for cumulative data
-  - ScatterChart for correlation/distribution
-  - RadarChart for category profile comparisons
-  - RadialBarChart for circular category rankings
-  - FunnelChart for stage/drop-off style data
   - MetricCard for single key values
   - DataTable when user asks for raw rows/details
 - If a request cannot be represented as a supported chart, use FallbackCard

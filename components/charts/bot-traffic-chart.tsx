@@ -1,8 +1,5 @@
 "use client";
 
-import { Cell, Pie, PieChart, Sector } from "recharts";
-import { PieSectorDataItem } from "recharts/types/polar/Pie";
-
 import {
   Card,
   CardContent,
@@ -10,24 +7,11 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import {
-  ChartConfig,
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-} from "@/components/ui/chart";
+import { BklitDonutChart } from "@/components/charts/bklit-chart-kit";
 import { ShieldAlert } from "iconoir-react";
-import { CircleGridLoaderIcon } from "@/components/icons";
 
 export const description =
   "A donut chart showing bot vs human traffic with active sector";
-
-const chartConfig = {
-  value: {
-    label: "Traffic",
-    color: "var(--primary)",
-  },
-} satisfies ChartConfig;
 
 export function BotTrafficChart({
   data,
@@ -36,8 +20,13 @@ export function BotTrafficChart({
   data?: Array<{ name: string; value: number; color?: string }>;
   isLoading?: boolean;
 }) {
-  const chartData = data ?? [];
-  const showEmptyState = !isLoading && chartData.length === 0;
+  const palette = ["var(--chart-line-primary)", "var(--chart-line-secondary)"];
+  const chartData = (data ?? []).map((item, index) => ({
+    label: item.name,
+    value: item.value,
+    color: item.color ?? palette[index % palette.length],
+  }));
+
   return (
     <Card>
       <CardHeader className="flex flex-col items-start justify-between gap-1.5">
@@ -50,81 +39,19 @@ export function BotTrafficChart({
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <ChartContainer
-          config={chartConfig}
-          className="aspect-auto h-[250px] w-full"
+        <BklitDonutChart
+          data={chartData}
+          heightClassName="h-[250px]"
           isLoading={isLoading}
-          showEmptyState={showEmptyState}
-          loadingContent={
-            <CircleGridLoaderIcon
-              title="Loading analytics"
-              className="text-primary"
-            />
-          }
-          emptyStateContent={
-            <div className="text-center">
-              <p className="text-foreground font-medium">No analytics yet</p>
-              <p className="text-muted-foreground mt-1 text-xs">
-                This link hasn’t received any clicks in the selected range.
-              </p>
-            </div>
-          }
-        >
-          <PieChart>
-            <Pie
-              data={chartData}
-              cx="50%"
-              cy="50%"
-              innerRadius={60}
-              outerRadius={100}
-              paddingAngle={5}
-              dataKey="value"
-              activeIndex={0}
-              activeShape={({
-                outerRadius = 0,
-                ...props
-              }: PieSectorDataItem) => (
-                <Sector {...props} outerRadius={outerRadius + 10} />
-              )}
-            >
-              {chartData.map((entry, index) => (
-                <Cell key={`cell-${index}`} fill={entry.color} />
-              ))}
-            </Pie>
-            <ChartTooltip
-              content={
-                <ChartTooltipContent
-                  className="bg-white/90 backdrop-blur-lg"
-                  indicator="dashed"
-                  labelFormatter={(label, payload) => {
-                    const row = payload?.[0]?.payload as
-                      | { name: string; value: number }
-                      | undefined;
-                    const total = chartData.reduce(
-                      (sum: number, item: { name: string; value: number }) =>
-                        sum + item.value,
-                      0,
-                    );
-                    const percentage =
-                      row && total
-                        ? ((row.value / total) * 100).toFixed(1)
-                        : "0.0";
-
-                    return `${label} [${percentage}%]`;
-                  }}
-                />
-              }
-            />
-          </PieChart>
-        </ChartContainer>
+        />
         <div className="mt-4 flex justify-center gap-6">
           {chartData.map((item) => (
-            <div key={item.name} className="flex items-center gap-2">
+            <div key={item.label} className="flex items-center gap-2">
               <div
                 className="h-3 w-3 rounded-full"
                 style={{ backgroundColor: item.color }}
               />
-              <span className="text-sm">{item.name}</span>
+              <span className="text-sm">{item.label}</span>
             </div>
           ))}
         </div>

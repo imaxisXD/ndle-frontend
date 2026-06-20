@@ -325,6 +325,8 @@ async function syncUrlToRedis(
     fullUrl: string;
     analyticsOwnerKey: string;
     convexUserId?: Id<"users">;
+    trackingEnabled: boolean;
+    expiresAt?: number;
     utmSource?: string;
     utmMedium?: string;
     utmCampaign?: string;
@@ -345,6 +347,8 @@ async function syncUrlToRedis(
     slugAssigned: args.slugAssigned,
     analytics_owner_key: args.analyticsOwnerKey,
     convex_user_id: args.convexUserId,
+    trackingEnabled: args.trackingEnabled,
+    expiresAt: args.expiresAt,
     utmSource: args.utmSource,
     utmMedium: args.utmMedium,
     utmCampaign: args.utmCampaign,
@@ -490,6 +494,8 @@ export const createUrl = mutation({
       fullUrl: normalizedUrl,
       analyticsOwnerKey: ownerKey,
       convexUserId: user._id,
+      trackingEnabled: args.trackingEnabled,
+      expiresAt: args.expiresAt,
       utmSource: args.utmSource,
       utmMedium: args.utmMedium,
       utmCampaign: args.utmCampaign,
@@ -595,6 +601,8 @@ export const createGuestUrl = mutation({
       slugAssigned: slug,
       fullUrl: normalizedUrl,
       analyticsOwnerKey: ownerKey,
+      trackingEnabled: true,
+      expiresAt,
     });
 
     await ctx.scheduler.runAt(expiresAt, internal.urlMainFuction.deleteUrlById, {

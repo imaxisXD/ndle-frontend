@@ -1,15 +1,6 @@
 "use client";
 
 import { useMemo } from "react";
-import Image from "next/image";
-import {
-  Bar,
-  BarChart,
-  XAxis,
-  YAxis,
-  LabelList,
-  CartesianGrid,
-} from "recharts";
 import {
   Card,
   CardContent,
@@ -18,13 +9,7 @@ import {
   CardHeader,
   CardFooter,
 } from "@/components/ui/card";
-import {
-  ChartConfig,
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-} from "@/components/ui/chart";
-import { Skeleton } from "@/components/ui/skeleton";
+import { BklitHorizontalBarChart } from "@/components/charts/bklit-chart-kit";
 import {
   Dialog,
   DialogContent,
@@ -38,60 +23,6 @@ import { Expand } from "iconoir-react";
 
 import { cn, countryCodeToName } from "@/lib/utils";
 import { GlobeHemisphereWestIcon } from "@phosphor-icons/react";
-
-function getFlagUrl(countryCode: string): string | null {
-  const code = (countryCode || "").slice(0, 2).toLowerCase();
-  const showFlag = /^[a-z]{2}$/.test(code) && code !== "ot" && code !== "un";
-  if (!showFlag) return null;
-  // Use Cloudflare Worker for edge caching, fallback to local API
-  const baseUrl = process.env.NEXT_PUBLIC_FILE_PROXY_URL || "";
-  const apiPath = baseUrl ? `${baseUrl}/flag` : "/api/flag";
-  return `${apiPath}?code=${code}`;
-}
-
-// Custom label component to render flag + country name inside the bar
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function CountryLabel(props: any) {
-  const { x = 0, y = 0, height = 0, value = "" } = props;
-  const flagUrl = getFlagUrl(String(value));
-
-  return (
-    <foreignObject
-      x={Number(x) + 8}
-      y={Number(y)}
-      width={160}
-      height={Number(height)}
-    >
-      <div className="flex h-full items-center gap-2">
-        {flagUrl ? (
-          <Image
-            src={flagUrl}
-            alt={String(value)}
-            width={16}
-            height={16}
-            className="size-4 shrink-0"
-            unoptimized
-          />
-        ) : (
-          <GlobeHemisphereWestIcon className="text-muted-foreground size-4" />
-        )}
-        <span className="truncate text-xs font-medium text-black">
-          {countryCodeToName(String(value))}
-        </span>
-      </div>
-    </foreignObject>
-  );
-}
-
-const chartConfig = {
-  clicks: {
-    label: "Clicks",
-    color: "var(--color-black)",
-  },
-  label: {
-    color: "var(--primary)",
-  },
-} satisfies ChartConfig;
 
 export function CountryChart({
   data,
@@ -161,99 +92,20 @@ export function CountryChart({
                 </DialogHeader>
                 <DialogBody className="rounded-sm bg-white p-2">
                   <div className="max-h-[70vh] overflow-y-auto px-2 py-4">
-                    <ChartContainer
-                      config={chartConfig}
-                      className="aspect-auto w-full"
+                    <BklitHorizontalBarChart
+                      barWidth={28}
+                      data={topCountries}
+                      heightClassName="h-auto"
+                      labelFormatter={(value) =>
+                        countryCodeToName(String(value))
+                      }
+                      labelKey="country"
+                      labelWidth={132}
                       style={{
                         height: `${Math.max(topCountries.length * 40, 200)}px`,
                       }}
-                    >
-                      <BarChart
-                        data={topCountries}
-                        layout="vertical"
-                        margin={{
-                          right: 48,
-                          left: 8,
-                        }}
-                        barCategoryGap="20%"
-                      >
-                        <defs>
-                          <linearGradient
-                            id="barGradientHorizontalCountryDialog"
-                            x1="0"
-                            y1="0"
-                            x2="1"
-                            y2="0"
-                          >
-                            <stop
-                              offset="0%"
-                              stopColor="#ffcc00ff"
-                              stopOpacity={0.7}
-                            />
-                            <stop
-                              offset="100%"
-                              stopColor="#ffc700"
-                              stopOpacity={1}
-                            />
-                          </linearGradient>
-                        </defs>
-                        <CartesianGrid
-                          horizontal={false}
-                          strokeDasharray="5"
-                          stroke="var(--border)"
-                          strokeOpacity={1}
-                        />
-                        <YAxis
-                          dataKey="country"
-                          type="category"
-                          tickLine={false}
-                          tickMargin={10}
-                          axisLine={false}
-                          hide
-                        />
-                        <XAxis
-                          dataKey="clicks"
-                          type="number"
-                          hide
-                          domain={[0, "dataMax"]}
-                        />
-                        <ChartTooltip
-                          cursor={false}
-                          content={
-                            <ChartTooltipContent
-                              className="rounded-sm bg-linear-to-br from-black/80 to-black text-white *:text-inherit **:text-inherit"
-                              labelClassName="text-white font-medium"
-                              labelFormatter={(value) =>
-                                countryCodeToName(String(value))
-                              }
-                              indicator="dot"
-                              color="var(--accent)"
-                            />
-                          }
-                        />
-                        <Bar
-                          dataKey="clicks"
-                          layout="vertical"
-                          fill="url(#barGradientHorizontalCountryDialog)"
-                          radius={4}
-                          barSize={28}
-                          minPointSize={160}
-                        >
-                          <LabelList
-                            dataKey="country"
-                            position="insideLeft"
-                            content={CountryLabel}
-                          />
-                          <LabelList
-                            dataKey="clicks"
-                            position="right"
-                            offset={16}
-                            className="fill-primary font-medium"
-                            fontSize={12}
-                          />
-                        </Bar>
-                      </BarChart>
-                    </ChartContainer>
+                      valueKey="clicks"
+                    />
                   </div>
                 </DialogBody>
               </DialogContent>
@@ -262,99 +114,18 @@ export function CountryChart({
         </div>
       </CardHeader>
       <CardContent className="grow p-6">
-        {isLoading ? (
-          <div className="flex h-[280px] flex-col justify-between">
-            {[1, 2, 3, 4, 5, 6, 7].map((i) => (
-              <Skeleton key={i} className="h-7 w-full rounded" />
-            ))}
-          </div>
-        ) : chartData.length === 0 ? (
-          <div className="text-muted-foreground flex h-40 items-center justify-center text-sm">
-            No location data available.
-          </div>
-        ) : (
-          <ChartContainer
-            config={chartConfig}
-            className="aspect-auto w-full"
-            style={{ height: "280px" }}
-          >
-            <BarChart
-              data={chartData}
-              layout="vertical"
-              margin={{
-                right: 48,
-                left: 8,
-              }}
-              barCategoryGap="20%"
-            >
-              <defs>
-                <linearGradient
-                  id="barGradientHorizontalCountry"
-                  x1="0"
-                  y1="0"
-                  x2="1"
-                  y2="0"
-                >
-                  <stop offset="0%" stopColor="#ffcc00ff" stopOpacity={0.7} />
-                  <stop offset="100%" stopColor="#ffc700" stopOpacity={1} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid
-                horizontal={false}
-                strokeDasharray="5"
-                stroke="var(--border)"
-                strokeOpacity={1}
-              />
-              <YAxis
-                dataKey="country"
-                type="category"
-                tickLine={false}
-                tickMargin={10}
-                axisLine={false}
-                hide
-              />
-              <XAxis
-                dataKey="clicks"
-                type="number"
-                hide
-                domain={[0, "dataMax"]}
-              />
-              <ChartTooltip
-                cursor={false}
-                content={
-                  <ChartTooltipContent
-                    className="rounded-sm bg-linear-to-br from-black/80 to-black text-white *:text-inherit **:text-inherit"
-                    labelClassName="text-white font-medium"
-                    labelFormatter={(value) => countryCodeToName(String(value))}
-                    indicator="dot"
-                    color="var(--accent)"
-                  />
-                }
-              />
-              <Bar
-                dataKey="clicks"
-                layout="vertical"
-                fill="url(#barGradientHorizontalCountry)"
-                radius={4}
-                barSize={28}
-                minPointSize={160}
-              >
-                <LabelList
-                  dataKey="country"
-                  position="insideLeft"
-                  content={CountryLabel}
-                />
-                <LabelList
-                  dataKey="clicks"
-                  position="right"
-                  offset={16}
-                  className="fill-primary font-medium"
-                  fontSize={12}
-                />
-              </Bar>
-            </BarChart>
-          </ChartContainer>
-        )}
+        <BklitHorizontalBarChart
+          barWidth={28}
+          data={chartData}
+          emptyDescription="No location data available."
+          emptyTitle="No location data"
+          heightClassName="h-[280px]"
+          isLoading={isLoading}
+          labelFormatter={(value) => countryCodeToName(String(value))}
+          labelKey="country"
+          labelWidth={132}
+          valueKey="clicks"
+        />
       </CardContent>
       {!isLoading && chartData.length > 0 && (
         <CardFooter className="flex-col items-start gap-2 border-t border-zinc-200 pt-4 text-sm">
