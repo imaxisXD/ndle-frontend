@@ -4,6 +4,7 @@ import { auth } from "@clerk/nextjs/server";
 import { getRateLimit } from "@/lib/rateLimit";
 import { AnalyticsRange, getUtcRange } from "@/lib/analyticsRanges";
 import { getRangeAccessError } from "@/lib/analytics-access";
+import { getSignedInUserPlan } from "@/lib/server-analytics-plan";
 
 const INTERNAL_API_URL = process.env.INTERNAL_API_URL;
 const API_SECRET = process.env.API_SECRET;
@@ -50,7 +51,7 @@ export async function GET(req: NextRequest) {
   const rateLimit = getRateLimit();
 
   try {
-    const { userId: clerkUserId, sessionClaims } = await auth();
+    const { userId: clerkUserId, sessionClaims, getToken } = await auth();
     const { searchParams } = new URL(req.url);
     const parsed = schema.safeParse({
       range: searchParams.get("range") ?? undefined,
@@ -80,14 +81,6 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    const rangeError = getRangeAccessError(range, sessionClaims);
-    if (rangeError) {
-      return NextResponse.json(
-        { error: rangeError },
-        { status: 403, headers: getAnalyticsCacheHeaders(false) },
-      );
-    }
-
     const identifier = `overview:${clerkUserId}:${link_slug || "all"}`;
     const {
       success,
@@ -98,6 +91,18 @@ export async function GET(req: NextRequest) {
       return NextResponse.json(
         { error: "Too many requests", limit: rlLimit, remaining },
         { status: 429, headers: getAnalyticsCacheHeaders(false) },
+      );
+    }
+
+    let rangeError = getRangeAccessError(range);
+    if (rangeError) {
+      const viewerPlan = await getSignedInUserPlan(getToken);
+      rangeError = getRangeAccessError(range, viewerPlan);
+    }
+    if (rangeError) {
+      return NextResponse.json(
+        { error: rangeError },
+        { status: 403, headers: getAnalyticsCacheHeaders(false) },
       );
     }
 

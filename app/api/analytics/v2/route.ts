@@ -4,6 +4,7 @@ import { z } from "zod";
 import type { AnalyticsV2Response } from "@/types/analytics-v2";
 import { getDateWindowAccessError } from "@/lib/analytics-access";
 import { getRateLimit } from "@/lib/rateLimit";
+import { getSignedInUserPlan } from "@/lib/server-analytics-plan";
 
 const INTERNAL_API_URL = process.env.INTERNAL_API_URL;
 const API_SECRET = process.env.API_SECRET;
@@ -21,7 +22,7 @@ export async function GET(request: NextRequest) {
   // 1. AUTH: Require Clerk authentication and extract convex_user_id from JWT claims
   // Security: The convex_user_id comes from signed JWT claims, NOT from a spoofable header
   // This requires Clerk session template: { "convex_user_id": "{{user.public_metadata.convex_user_id}}" }
-  const { userId: clerkUserId, sessionClaims } = await auth();
+  const { userId: clerkUserId, sessionClaims, getToken } = await auth();
   const t1 = performance.now();
   console.log(`[Perf] Clerk auth(): ${(t1 - t0).toFixed(2)}ms`);
 
@@ -58,10 +59,6 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Invalid date range" }, { status: 400 });
   }
   const { start, end } = parsedDates.data;
-  const rangeError = getDateWindowAccessError(start, end, sessionClaims);
-  if (rangeError) {
-    return NextResponse.json({ error: rangeError }, { status: 403 });
-  }
   const rateLimit = getRateLimit();
   const {
     success,
@@ -73,6 +70,15 @@ export async function GET(request: NextRequest) {
       { error: "Too many requests", limit: rlLimit, remaining },
       { status: 429 },
     );
+  }
+
+  let rangeError = getDateWindowAccessError(start, end);
+  if (rangeError) {
+    const viewerPlan = await getSignedInUserPlan(getToken);
+    rangeError = getDateWindowAccessError(start, end, viewerPlan);
+  }
+  if (rangeError) {
+    return NextResponse.json({ error: rangeError }, { status: 403 });
   }
   console.log("📈 [AnalyticsV2] Incoming request", {
     start,

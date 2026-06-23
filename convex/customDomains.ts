@@ -8,6 +8,7 @@ import {
 } from "./_generated/server";
 import { getCurrentUser } from "./users";
 import { internal } from "./_generated/api";
+import { getViewerPlan } from "./ownership";
 
 // ============================================================================
 // CONSTANTS
@@ -61,12 +62,9 @@ function normalizeDomain(domain: string): string {
  * Get the domain limit for a user based on their membership
  */
 function getDomainLimit(membership: string): number {
-  switch (membership) {
-    case "pro":
-      return MAX_DOMAINS_PRO;
-    default:
-      return MAX_DOMAINS_FREE;
-  }
+  return getViewerPlan(membership) === "pro"
+    ? MAX_DOMAINS_PRO
+    : MAX_DOMAINS_FREE;
 }
 
 // ============================================================================
@@ -185,7 +183,7 @@ export const getDomainLimits = query({
       used,
       limit,
       canAddMore: used < limit,
-      isPro: user.membership === "pro",
+      isPro: getViewerPlan(user.membership) === "pro",
       membership: user.membership,
     };
   },

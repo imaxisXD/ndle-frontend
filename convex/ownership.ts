@@ -11,7 +11,7 @@ export type ViewerPlan = "guest" | "free" | "pro";
 export function getViewerPlan(
   membership: string | null | undefined,
 ): ViewerPlan {
-  if (membership === "pro") {
+  if (membership?.trim().toLowerCase() === "pro") {
     return "pro";
   }
   if (membership) {

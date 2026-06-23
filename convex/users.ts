@@ -48,7 +48,6 @@ export const store = mutation({
       .unique();
 
     if (existingUser !== null) {
-      // User already exists - no metadata update needed
       if (existingUser.name !== identity.name) {
         await ctx.db.patch(existingUser._id, { name: identity.name });
       }
@@ -135,6 +134,7 @@ export const syncMetadataToClerk = internalAction({
     }
 
     try {
+      const plan = getViewerPlan(membership);
       const response = await fetch(
         `https://api.clerk.com/v1/users/${clerkUserId}/metadata`,
         {
@@ -146,7 +146,8 @@ export const syncMetadataToClerk = internalAction({
           body: JSON.stringify({
             public_metadata: {
               convex_user_id: convexUserId,
-              plan: membership === "pro" ? "pro" : "free",
+              membership: plan === "pro" ? "pro" : "free",
+              plan: plan === "pro" ? "pro" : "free",
             },
           }),
         },

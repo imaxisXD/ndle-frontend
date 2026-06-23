@@ -4,6 +4,7 @@ import { auth } from "@clerk/nextjs/server";
 import { getRateLimit } from "@/lib/rateLimit";
 import { AnalyticsRange, getUtcRange } from "@/lib/analyticsRanges";
 import { getRangeAccessError } from "@/lib/analytics-access";
+import { getSignedInUserPlan } from "@/lib/server-analytics-plan";
 
 const INTERNAL_API_URL = (process.env.INTERNAL_API_URL || "").replace(
   /\/analytics\/v2$/,
@@ -36,7 +37,7 @@ const schema = z.object({
 export async function GET(req: NextRequest) {
   try {
     const rateLimit = getRateLimit();
-    const { userId, sessionClaims } = await auth();
+    const { userId, sessionClaims, getToken } = await auth();
     const { searchParams } = new URL(req.url);
 
     const parsed = schema.safeParse({
@@ -64,11 +65,6 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    const rangeError = getRangeAccessError(range, sessionClaims);
-    if (rangeError) {
-      return NextResponse.json({ error: rangeError }, { status: 403 });
-    }
-
     // Rate limiting
     const identifier = `dashboard:${userId}:${link_slug || "all"}`;
     const {
@@ -82,6 +78,15 @@ export async function GET(req: NextRequest) {
         { error: "Too many requests", limit: rlLimit, remaining },
         { status: 429 },
       );
+    }
+
+    let rangeError = getRangeAccessError(range);
+    if (rangeError) {
+      const viewerPlan = await getSignedInUserPlan(getToken);
+      rangeError = getRangeAccessError(range, viewerPlan);
+    }
+    if (rangeError) {
+      return NextResponse.json({ error: rangeError }, { status: 403 });
     }
 
     if (!INTERNAL_API_URL || !API_SECRET) {

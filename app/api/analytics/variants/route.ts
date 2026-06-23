@@ -4,6 +4,7 @@ import { auth } from "@clerk/nextjs/server";
 import { getRateLimit } from "@/lib/rateLimit";
 import { AnalyticsRange, getUtcRange } from "@/lib/analyticsRanges";
 import { getRangeAccessError } from "@/lib/analytics-access";
+import { getSignedInUserPlan } from "@/lib/server-analytics-plan";
 
 // Strip /analytics/v2 suffix to get base URL if present, but we specifically need /analytics/v2 here
 // process.env.INTERNAL_API_URL is typically http://host:port/api or http://host:port/api/analytics/v2
@@ -35,7 +36,7 @@ const schema = z.object({
 export async function GET(req: NextRequest) {
   try {
     const rateLimit = getRateLimit();
-    const { userId: clerkUserId, sessionClaims } = await auth();
+    const { userId: clerkUserId, sessionClaims, getToken } = await auth();
     const { searchParams } = new URL(req.url);
 
     const parsed = schema.safeParse({
@@ -65,11 +66,6 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    const rangeError = getRangeAccessError(range, sessionClaims);
-    if (rangeError) {
-      return NextResponse.json({ error: rangeError }, { status: 403 });
-    }
-
     const identifier = `variants:${clerkUserId}:${link_id}`;
     const {
       success,
@@ -82,6 +78,15 @@ export async function GET(req: NextRequest) {
         { error: "Too many requests", limit: rlLimit, remaining },
         { status: 429 },
       );
+    }
+
+    let rangeError = getRangeAccessError(range);
+    if (rangeError) {
+      const viewerPlan = await getSignedInUserPlan(getToken);
+      rangeError = getRangeAccessError(range, viewerPlan);
+    }
+    if (rangeError) {
+      return NextResponse.json({ error: rangeError }, { status: 403 });
     }
 
     // Convert range to start/end dates
