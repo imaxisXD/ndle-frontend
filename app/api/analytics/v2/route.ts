@@ -16,6 +16,10 @@ const dateSchema = z
     return !Number.isNaN(date.getTime()) && date.toISOString().slice(0, 10) === value;
   });
 
+function getTodayUtcDate() {
+  return new Date().toISOString().slice(0, 10);
+}
+
 export async function GET(request: NextRequest) {
   const t0 = performance.now();
 
@@ -58,7 +62,13 @@ export async function GET(request: NextRequest) {
   if (!parsedDates.success) {
     return NextResponse.json({ error: "Invalid date range" }, { status: 400 });
   }
-  const { start, end } = parsedDates.data;
+  const { start } = parsedDates.data;
+  const todayUtc = getTodayUtcDate();
+  const end = parsedDates.data.end > todayUtc ? todayUtc : parsedDates.data.end;
+  if (start > end) {
+    return NextResponse.json({ error: "Invalid date range" }, { status: 400 });
+  }
+
   const rateLimit = getRateLimit();
   const {
     success,
