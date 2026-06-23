@@ -60,14 +60,19 @@ export function useFavicon(url: string | null) {
     queryFn: async () => {
       if (!url) return null;
 
-      // Use Cloudflare Worker for edge caching, fallback to local API
+      // Use Cloudflare Worker for edge caching, fallback to the local proxy route.
       const baseUrl = process.env.NEXT_PUBLIC_FILE_PROXY_URL || "";
-      const apiPath = baseUrl ? `${baseUrl}/favicon` : "/api/getFavicon";
+      const apiPath = baseUrl ? `${baseUrl}/favicon` : "/api/favicon";
       const response = await fetch(`${apiPath}?url=${encodeURIComponent(url)}`);
 
       if (!response.ok) {
         // Throw on error so TanStack Query knows it failed and can retry
         throw new Error(`Favicon fetch failed: ${response.status}`);
+      }
+
+      const contentType = response.headers.get("content-type") || "";
+      if (!contentType.includes("application/json")) {
+        throw new Error("Favicon API returned an invalid response");
       }
 
       const data = await response.json();
