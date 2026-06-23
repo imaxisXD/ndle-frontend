@@ -55,6 +55,12 @@ export default [
       "react/react-in-jsx-scope": "off",
       // Allow target="_blank" with noopener (without noreferrer) for referrer analytics
       "react/jsx-no-target-blank": "off",
+      // The updated React Hooks plugin enables React Compiler policy rules by
+      // default. Keep lint focused on dependency safety for this package update.
+      "react-hooks/preserve-manual-memoization": "off",
+      "react-hooks/purity": "off",
+      "react-hooks/refs": "off",
+      "react-hooks/set-state-in-effect": "off",
     },
   },
 ];

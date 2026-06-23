@@ -1,18 +1,18 @@
 /**
  * Chart Catalog for Agentic Chart Generation
  *
- * Uses JSON Render's createCatalog with Zod v4 schemas.
+ * Uses JSON Render's React schema catalog with Zod v4 schemas.
  * This catalog defines the guardrails for AI-generated charts.
  * The AI can ONLY generate JSON that matches these component schemas.
  */
 
-import { createCatalog, generateCatalogPrompt } from "@json-render/core";
+import { schema } from "@json-render/react/schema";
 import { z } from "zod";
 
 /**
  * Chart catalog defining all allowed chart components
  */
-export const chartCatalog = createCatalog({
+export const chartCatalog = schema.createCatalog({
   name: "analytics-charts",
   components: {
     /**
@@ -150,7 +150,7 @@ export const chartCatalog = createCatalog({
           .optional()
           .describe("Number of columns in the grid, defaults to 2"),
       }),
-      hasChildren: true,
+      slots: ["default"],
       description: "Grid container to display multiple charts side by side.",
     },
   },
@@ -179,7 +179,7 @@ export const chartCatalog = createCatalog({
  * Generate the system prompt for AI from the catalog
  */
 export function getChartSystemPrompt(tableSchema?: string): string {
-  const basePrompt = generateCatalogPrompt(chartCatalog);
+  const basePrompt = chartCatalog.prompt();
 
   const dataContext = tableSchema
     ? `

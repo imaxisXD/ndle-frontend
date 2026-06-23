@@ -11,6 +11,8 @@ export interface BarYAxisProps {
   showAllLabels?: boolean;
   /** Maximum number of labels to show. Default: 20 */
   maxLabels?: number;
+  /** Format the raw category value before showing it on the axis. */
+  labelFormatter?: (value: string, item: Record<string, unknown>) => string;
 }
 
 interface BarYAxisLabelProps {
@@ -18,6 +20,7 @@ interface BarYAxisLabelProps {
   y: number;
   bandHeight: number;
   isHovered: boolean;
+  maxWidth: number;
 }
 
 function BarYAxisLabel({
@@ -25,6 +28,7 @@ function BarYAxisLabel({
   y,
   bandHeight,
   isHovered,
+  maxWidth,
 }: BarYAxisLabelProps) {
   return (
     <div
@@ -46,7 +50,7 @@ function BarYAxisLabel({
           opacity: 0.7,
           color: "var(--chart-label, var(--color-zinc-500))",
         }}
-        style={{ maxWidth: 70 }}
+        style={{ maxWidth }}
         transition={{ duration: 0.15 }}
       >
         {label}
@@ -78,6 +82,7 @@ export function BarYAxis(props: BarYAxisProps) {
 const BarYAxisInner = memo(function BarYAxisInner({
   showAllLabels = true,
   maxLabels = 20,
+  labelFormatter,
   container,
 }: BarYAxisProps & { container: HTMLDivElement }) {
   const { margin, barScale, bandWidth, barXAccessor, data, hoveredBarIndex } =
@@ -90,10 +95,12 @@ const BarYAxisInner = memo(function BarYAxisInner({
     }
 
     const allLabels = data.map((d, i) => {
-      const label = barXAccessor(d);
-      const bandY = barScale(label) ?? 0;
+      const rawLabel = barXAccessor(d);
+      const label = labelFormatter ? labelFormatter(rawLabel, d) : rawLabel;
+      const bandY = barScale(rawLabel) ?? 0;
+      const rowOffset = Math.max(0, (barScale.bandwidth() - bandWidth) / 2);
       // Center the label vertically within the band
-      const y = bandY + margin.top;
+      const y = bandY + rowOffset + margin.top;
       return { label, y, bandHeight: bandWidth, index: i };
     });
 
@@ -110,6 +117,7 @@ const BarYAxisInner = memo(function BarYAxisInner({
     bandWidth,
     barXAccessor,
     data,
+    labelFormatter,
     margin.top,
     showAllLabels,
     maxLabels,
@@ -129,6 +137,7 @@ const BarYAxisInner = memo(function BarYAxisInner({
           isHovered={hoveredBarIndex === item.index}
           key={`${item.label}-${item.y}`}
           label={item.label}
+          maxWidth={Math.max(0, margin.left - 10)}
           y={item.y}
         />
       ))}

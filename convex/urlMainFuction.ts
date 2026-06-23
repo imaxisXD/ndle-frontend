@@ -670,6 +670,13 @@ export const getUserUrlsWithAnalytics = query({
       .withIndex("by_user", (q) => q.eq("userTableId", user._id))
       .order("desc")
       .collect();
+    const healthChecks = await ctx.db
+      .query("linkHealthChecks")
+      .withIndex("by_user_id", (q) => q.eq("userId", user._id))
+      .collect();
+    const healthCheckByUrlId = new Map(
+      healthChecks.map((check) => [check.urlId, check]),
+    );
     return await Promise.all(
       urls.map(async (url) => {
         const analytics = await ctx.db
@@ -680,6 +687,7 @@ export const getUserUrlsWithAnalytics = query({
         return {
           ...url,
           analytics: analytics ? { ...analytics, totalClickCounts } : null,
+          latestHealthCheck: healthCheckByUrlId.get(url._id) ?? null,
         };
       }),
     );
@@ -703,6 +711,13 @@ export const getUserUrlsWithAnalyticsByCollection = query({
 
     const urls = await Promise.all(collection.urls.map((urlId) => ctx.db.get(urlId)));
     const validUrls = urls.filter((url): url is Doc<"urls"> => url !== null);
+    const healthChecks = await ctx.db
+      .query("linkHealthChecks")
+      .withIndex("by_user_id", (q) => q.eq("userId", user._id))
+      .collect();
+    const healthCheckByUrlId = new Map(
+      healthChecks.map((check) => [check.urlId, check]),
+    );
 
     return await Promise.all(
       validUrls.map(async (url) => {
@@ -714,6 +729,7 @@ export const getUserUrlsWithAnalyticsByCollection = query({
         return {
           ...url,
           analytics: analytics ? { ...analytics, totalClickCounts } : null,
+          latestHealthCheck: healthCheckByUrlId.get(url._id) ?? null,
         };
       }),
     );

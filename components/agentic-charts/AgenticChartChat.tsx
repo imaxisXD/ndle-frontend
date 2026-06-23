@@ -28,7 +28,7 @@ import { getTableSchema } from "@/hooks/use-chart-query";
 import { ChartQueryProvider } from "@/hooks/chart-query-context";
 import type { ColdFile } from "@/types/analytics-v2";
 import { useUIStream, Renderer, JSONUIProvider } from "@json-render/react";
-import type { UITree } from "@json-render/core";
+import type { Spec } from "@json-render/react";
 import { chartRegistry } from "./chart-registry";
 
 // Chat message type
@@ -36,7 +36,7 @@ interface ChatMessage {
   id: string;
   role: "user" | "assistant";
   content: string;
-  tree?: UITree | null;
+  spec?: Spec | null;
   timestamp: Date;
 }
 
@@ -103,15 +103,15 @@ export function AgenticChartChat({ className }: AgenticChartChatProps) {
   }, [loadChartDataSource]);
 
   // Use json-render hook for streaming UI (same as their example)
-  const { tree, isStreaming, error, send, clear } = useUIStream({
+  const { spec, isStreaming, error, send, clear } = useUIStream({
     api: "/api/generate-chart",
-    onComplete: (completedTree) => {
-      // When streaming completes, save the tree to the last assistant message
+    onComplete: (completedSpec) => {
+      // When streaming completes, save the spec to the last assistant message
       setMessages((prev) => {
         const updated = [...prev];
         const lastMsg = updated[updated.length - 1];
         if (lastMsg && lastMsg.role === "assistant") {
-          lastMsg.tree = completedTree;
+          lastMsg.spec = completedSpec;
         }
         return updated;
       });
@@ -127,7 +127,7 @@ export function AgenticChartChat({ className }: AgenticChartChatProps) {
       messagesContainerRef.current.scrollTop =
         messagesContainerRef.current.scrollHeight;
     }
-  }, [messages, tree]);
+  }, [messages, spec]);
 
   // Handle submit
   const handleSubmit = useCallback(
@@ -151,7 +151,7 @@ export function AgenticChartChat({ className }: AgenticChartChatProps) {
         id: `assistant-${Date.now()}`,
         role: "assistant",
         content: "",
-        tree: null,
+        spec: null,
         timestamp: new Date(),
       };
 
@@ -334,16 +334,16 @@ export function AgenticChartChat({ className }: AgenticChartChatProps) {
                               <span className="h-2 w-2 animate-bounce rounded-full bg-zinc-400 [animation-delay:-0.15s]" />
                               <span className="h-2 w-2 animate-bounce rounded-full bg-zinc-400" />
                             </div>
-                            {/* Show streaming tree */}
-                            {tree &&
-                              Object.keys(tree.elements || {}).length > 0 && (
+                            {/* Show streaming spec */}
+                            {spec &&
+                              Object.keys(spec.elements || {}).length > 0 && (
                                 <ChartQueryProvider
                                   coldFiles={chartColdFiles}
                                   hotFile={chartHotFile}
                                 >
                                   <JSONUIProvider registry={chartRegistry}>
                                     <Renderer
-                                      tree={tree}
+                                      spec={spec}
                                       registry={chartRegistry}
                                       loading={true}
                                     />
@@ -351,8 +351,8 @@ export function AgenticChartChat({ className }: AgenticChartChatProps) {
                                 </ChartQueryProvider>
                               )}
                           </div>
-                        ) : message.tree &&
-                          Object.keys(message.tree.elements || {}).length >
+                        ) : message.spec &&
+                          Object.keys(message.spec.elements || {}).length >
                             0 ? (
                           <ChartQueryProvider
                             coldFiles={chartColdFiles}
@@ -360,7 +360,7 @@ export function AgenticChartChat({ className }: AgenticChartChatProps) {
                           >
                             <JSONUIProvider registry={chartRegistry}>
                               <Renderer
-                                tree={message.tree}
+                                spec={message.spec}
                                 registry={chartRegistry}
                                 loading={false}
                               />

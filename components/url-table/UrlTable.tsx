@@ -65,7 +65,7 @@ import {
   DialogClose,
 } from "../ui/base-dialog";
 import { type DisplayUrl } from "./types";
-import { formatRelative, cn } from "@/lib/utils";
+import { formatRelative, cn, mapHealthStatusToUI } from "@/lib/utils";
 import { CircleGridLoaderIcon } from "../icons";
 import { Skeleton } from "../ui/skeleton";
 import { makeShortLinkWithDomain } from "@/lib/config";
@@ -74,6 +74,7 @@ import NumberFlow from "@number-flow/react";
 import { ChartBarIcon, CopyIcon, TrashIcon } from "@phosphor-icons/react";
 import { LinkWithFavicon } from "../ui/link-with-favicon";
 import { trackUrlCopied, trackUrlDeleted } from "@/lib/posthog";
+import type { HealthStatus } from "@/lib/utils";
 interface UrlTableProps {
   showSearch?: boolean;
   showFilters?: boolean;
@@ -88,6 +89,13 @@ interface UrlTableProps {
   queryArgs?: Record<string, unknown>;
   collectionId?: Id<"collections">;
 }
+
+type UserUrlsResponse = NonNullable<
+  | FunctionReturnType<typeof api.urlMainFuction.getUserUrlsWithAnalytics>
+  | FunctionReturnType<
+      typeof api.urlMainFuction.getUserUrlsWithAnalyticsByCollection
+    >
+>;
 
 function SortableHeader({
   column,
@@ -308,6 +316,57 @@ function ShortUrlCell({
   );
 }
 
+function getDisplayStatus(doc: UserUrlsResponse[number]) {
+  const healthStatus = doc.latestHealthCheck?.healthStatus as
+    | HealthStatus
+    | undefined;
+
+  if (healthStatus) {
+    return mapHealthStatusToUI(healthStatus);
+  }
+
+  const savedStatus = (
+    doc.analytics?.urlStatusMessage ??
+    doc.urlStatusMessage ??
+    ""
+  )
+    .trim()
+    .toLowerCase();
+
+  switch (savedStatus) {
+    case "success":
+    case "healthy":
+      return "healthy";
+    case "failed":
+    case "error":
+      return "error";
+    case "warning":
+    case "degraded":
+      return "warning";
+    case "healed":
+      return "healed";
+    case "creating":
+    case "checking":
+    case "no traffic":
+    case "":
+      return "checking";
+    default:
+      return savedStatus;
+  }
+}
+
+function getStatusBadgeVariant(status: string): "green" | "yellow" | "red" {
+  if (status === "healthy" || status === "healed") {
+    return "green";
+  }
+
+  if (status === "error") {
+    return "red";
+  }
+
+  return "yellow";
+}
+
 export function UrlTable({
   showSearch = false,
   showFilters = false,
@@ -360,12 +419,6 @@ export function UrlTable({
         ? (queryArgs as never)
         : undefined,
   );
-  type UserUrlsResponse = NonNullable<
-    | FunctionReturnType<typeof api.urlMainFuction.getUserUrlsWithAnalytics>
-    | FunctionReturnType<
-        typeof api.urlMainFuction.getUserUrlsWithAnalyticsByCollection
-      >
-  >;
   const isLoading = urls === undefined;
   const isEmpty = urls === null || (Array.isArray(urls) && urls.length === 0);
 
@@ -389,9 +442,7 @@ export function UrlTable({
             )
         : "";
 
-      const message = (doc.analytics?.urlStatusMessage ?? "").toLowerCase();
-
-      const status = message;
+      const status = getDisplayStatus(doc);
 
       return {
         id: doc._id,
@@ -537,8 +588,7 @@ export function UrlTable({
         header: () => <span className="pl-2 text-sm font-medium">Status</span>,
         cell: ({ row }) => {
           const status = row.original.status;
-          const variant: "green" | "yellow" =
-            status === "healthy" ? "green" : "yellow";
+          const variant = getStatusBadgeVariant(status);
           return (
             <div className="pl-2">
               <Badge
@@ -809,7 +859,14 @@ export function UrlTable({
                   Status:
                 </span>
                 <div className="flex gap-2">
-                  {["all", "healthy", "healed", "checking"].map((status) => (
+                  {[
+                    "all",
+                    "healthy",
+                    "warning",
+                    "error",
+                    "checking",
+                    "healed",
+                  ].map((status) => (
                     <button
                       type="button"
                       key={status}

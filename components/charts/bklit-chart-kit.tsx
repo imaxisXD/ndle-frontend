@@ -1,6 +1,13 @@
 "use client";
 
-import { useMemo, type CSSProperties, type ReactNode } from "react";
+import {
+  useEffect,
+  useMemo,
+  useState,
+  type CSSProperties,
+  type ReactNode,
+} from "react";
+import { createPortal } from "react-dom";
 
 import { CircleGridLoaderIcon } from "@/components/icons";
 import { Area } from "@/components/charts/area";
@@ -26,6 +33,7 @@ import { ChartTooltip } from "@/components/charts/tooltip/chart-tooltip";
 import { TooltipContent } from "@/components/charts/tooltip/tooltip-content";
 import { XAxis } from "@/components/charts/x-axis";
 import { YAxis } from "@/components/charts/y-axis";
+import { useChart } from "@/components/charts/chart-context";
 import { cn } from "@/lib/utils";
 
 const numberFormatter = new Intl.NumberFormat("en-US");
@@ -107,30 +115,74 @@ function ChartStateFrame({
 }
 
 function ValueLabels<T extends object>({
-  data,
   valueKey,
   valueFormatter = formatChartNumber,
-  top = 18,
-  bottom = 22,
 }: {
-  data: T[];
   valueKey: string;
   valueFormatter?: (value: unknown, item: T) => string;
-  top?: number;
-  bottom?: number;
 }) {
-  return (
+  const { margin, barScale, bandWidth, barXAccessor, data, containerRef } =
+    useChart();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const container = containerRef.current;
+
+  if (!(mounted && container && barScale && bandWidth && barXAccessor)) {
+    return null;
+  }
+
+  return createPortal(
     <div
-      className="pointer-events-none absolute right-0 flex flex-col justify-around text-xs font-medium text-foreground tabular-nums"
-      style={{ top, bottom }}
+      className="pointer-events-none absolute top-0 right-0 bottom-0 text-xs font-medium text-foreground tabular-nums"
+      style={{ width: margin.right }}
     >
-      {data.map((item, index) => (
-        <span key={`${index}-${String(getRecordValue(item as ChartRecord, valueKey))}`}>
-          {valueFormatter(getRecordValue(item as ChartRecord, valueKey), item)}
-        </span>
-      ))}
-    </div>
+      {data.map((item, index) => {
+        const label = barXAccessor(item);
+        const rowOffset = Math.max(0, (barScale.bandwidth() - bandWidth) / 2);
+        const y = (barScale(label) ?? 0) + rowOffset + margin.top;
+        return (
+          <div
+            className="absolute right-0 flex items-center justify-end"
+            key={`${index}-${label}-${String(getRecordValue(item, valueKey))}`}
+            style={{ top: y, height: bandWidth, width: margin.right }}
+          >
+            {valueFormatter(getRecordValue(item, valueKey), item as T)}
+          </div>
+        );
+      })}
+    </div>,
+    container,
   );
+}
+
+function estimateLabelWidth<T extends object>({
+  data,
+  labelKey,
+  labelFormatter,
+  maxWidth,
+}: {
+  data: T[];
+  labelKey: string;
+  labelFormatter: (value: unknown, item?: T) => string;
+  maxWidth: number;
+}) {
+  if (data.length === 0) {
+    return maxWidth;
+  }
+
+  const longestVisibleLength = data.reduce((longest, item) => {
+    const label = labelFormatter(
+      getRecordValue(item as ChartRecord, labelKey),
+      item,
+    );
+    return Math.max(longest, Math.min(label.length, 12));
+  }, 0);
+
+  return Math.max(48, Math.min(maxWidth, longestVisibleLength * 7 + 24));
 }
 
 export function BklitHorizontalBarChart<T extends object>({
@@ -170,6 +222,16 @@ export function BklitHorizontalBarChart<T extends object>({
 }) {
   const chartData = data as ChartRecord[];
   const total = useMemo(() => chartTotal(data, valueKey), [data, valueKey]);
+  const effectiveLabelWidth = useMemo(
+    () =>
+      estimateLabelWidth({
+        data,
+        labelKey,
+        labelFormatter,
+        maxWidth: labelWidth,
+      }),
+    [data, labelFormatter, labelKey, labelWidth],
+  );
 
   return (
     <ChartStateFrame
@@ -186,7 +248,12 @@ export function BklitHorizontalBarChart<T extends object>({
         barWidth={barWidth}
         className="h-full w-full"
         data={chartData}
-        margin={{ top: 14, right: showValueLabels ? 40 : 12, bottom: 18, left: labelWidth }}
+        margin={{
+          top: 14,
+          right: showValueLabels ? 40 : 12,
+          bottom: 18,
+          left: effectiveLabelWidth,
+        }}
         orientation="horizontal"
         xDataKey={labelKey}
       >
@@ -197,7 +264,9 @@ export function BklitHorizontalBarChart<T extends object>({
           vertical
         />
         <Bar dataKey={valueKey} fill={color} lineCap={4} stroke={color} />
-        <BarYAxis />
+        <BarYAxis
+          labelFormatter={(value, item) => labelFormatter(value, item as T)}
+        />
         <ChartTooltip
           content={({ point }) => {
             const item = point as T;
@@ -227,10 +296,10 @@ export function BklitHorizontalBarChart<T extends object>({
           showCrosshair={false}
           showDatePill={false}
         />
+        {showValueLabels ? (
+          <ValueLabels valueFormatter={valueFormatter} valueKey={valueKey} />
+        ) : null}
       </BarChart>
-      {showValueLabels ? (
-        <ValueLabels data={data} valueFormatter={valueFormatter} valueKey={valueKey} />
-      ) : null}
     </ChartStateFrame>
   );
 }

@@ -1,10 +1,10 @@
 /**
  * Chart Utilities
  *
- * Functions for converting AI SDK tool outputs to json-render UITree format.
+ * Functions for converting AI SDK tool outputs to json-render Spec format.
  */
 
-import type { UITree } from "@json-render/core";
+import type { Spec } from "@json-render/react";
 
 // Chart specification type (matches the Zod schema in the API route)
 export interface ChartSpec {
@@ -40,16 +40,15 @@ export interface DashboardSpec {
 }
 
 /**
- * Convert a single chart specification to a UITree
+ * Convert a single chart specification to a Spec
  */
-export function chartSpecToUITree(spec: ChartSpec): UITree {
+export function chartSpecToSpec(spec: ChartSpec): Spec {
   const elementKey = spec.key || `chart-${Date.now()}`;
 
   return {
     root: elementKey,
     elements: {
       [elementKey]: {
-        key: elementKey,
         type: spec.type,
         props: {
           title: spec.title,
@@ -69,20 +68,21 @@ export function chartSpecToUITree(spec: ChartSpec): UITree {
           prefix: spec.prefix,
           suffix: spec.suffix,
         },
+        children: [],
       },
     },
   };
 }
 
 /**
- * Convert a dashboard specification (multiple charts) to a UITree
+ * Convert a dashboard specification (multiple charts) to a Spec
  */
-export function dashboardSpecToUITree(spec: DashboardSpec): UITree {
+export function dashboardSpecToSpec(spec: DashboardSpec): Spec {
   const gridKey = "chart-grid";
   const columns = spec.columns || 2;
 
   // Build elements map
-  const elements: UITree["elements"] = {};
+  const elements: Spec["elements"] = {};
 
   // Add each chart as an element
   const childKeys: string[] = [];
@@ -91,7 +91,6 @@ export function dashboardSpecToUITree(spec: DashboardSpec): UITree {
     childKeys.push(chartKey);
 
     elements[chartKey] = {
-      key: chartKey,
       type: chart.type,
       props: {
         title: chart.title,
@@ -111,12 +110,12 @@ export function dashboardSpecToUITree(spec: DashboardSpec): UITree {
         prefix: chart.prefix,
         suffix: chart.suffix,
       },
+      children: [],
     };
   });
 
   // Add the grid container
   elements[gridKey] = {
-    key: gridKey,
     type: "ChartGrid",
     props: { columns },
     children: childKeys,
@@ -154,15 +153,15 @@ export function isDashboardSpec(output: unknown): output is DashboardSpec {
 }
 
 /**
- * Convert tool output to UITree, handling both single charts and dashboards
+ * Convert tool output to Spec, handling both single charts and dashboards
  */
-export function toolOutputToUITree(output: unknown): UITree | null {
+export function toolOutputToSpec(output: unknown): Spec | null {
   if (isChartSpec(output)) {
-    return chartSpecToUITree(output);
+    return chartSpecToSpec(output);
   }
 
   if (isDashboardSpec(output)) {
-    return dashboardSpecToUITree(output);
+    return dashboardSpecToSpec(output);
   }
 
   console.warn("[chart-utils] Unknown tool output format:", output);

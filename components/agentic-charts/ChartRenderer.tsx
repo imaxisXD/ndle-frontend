@@ -3,21 +3,20 @@
 /**
  * Chart Renderer Component
  *
- * Wrapper that takes an AI-generated JSON tree and renders charts.
+ * Wrapper that takes an AI-generated JSON spec and renders charts.
  * Uses JSON Render's Renderer with custom data fetching via DuckDB.
  */
 
 import { useEffect, useState, useMemo, useCallback } from "react";
 import {
   Renderer,
-  DataProvider,
-  ActionProvider,
+  JSONUIProvider,
   type ComponentRegistry,
+  type Spec,
 } from "@json-render/react";
-import type { UITree } from "@json-render/core";
 
 interface ChartRendererProps {
-  tree: UITree | null;
+  spec: Spec | null;
   registry: ComponentRegistry;
   execute: (query: string) => Promise<Array<Record<string, unknown>>>;
   onAction?: (actionName: string, params: Record<string, unknown>) => void;
@@ -28,7 +27,7 @@ interface ChartRendererProps {
  * Fetches data for charts based on their query props
  */
 export function ChartRenderer({
-  tree,
+  spec,
   registry,
   execute,
   onAction,
@@ -37,9 +36,9 @@ export function ChartRenderer({
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
-  // Extract all queries from the tree and fetch data
+  // Extract all queries from the spec and fetch data
   useEffect(() => {
-    if (!tree) {
+    if (!spec) {
       setIsLoading(false);
       return;
     }
@@ -49,7 +48,7 @@ export function ChartRenderer({
       setError(null);
 
       try {
-        const queries = extractQueries(tree);
+        const queries = extractQueries(spec);
         const data: Record<string, unknown> = {};
 
         for (const { key, query } of queries) {
@@ -71,7 +70,7 @@ export function ChartRenderer({
     };
 
     fetchAllData();
-  }, [tree, execute]);
+  }, [spec, execute]);
 
   // Handle actions
   const handleAction = useCallback(
@@ -104,7 +103,7 @@ export function ChartRenderer({
     );
   }
 
-  if (!tree) {
+  if (!spec) {
     return (
       <div className="rounded-lg border border-zinc-200 bg-zinc-50 p-4 text-center">
         <p className="text-sm text-zinc-500">No chart to display</p>
@@ -113,24 +112,26 @@ export function ChartRenderer({
   }
 
   return (
-    <DataProvider initialData={{ charts: chartData, isLoading }}>
-      <ActionProvider handlers={actionHandlers}>
-        <Renderer tree={tree} registry={registry} />
-      </ActionProvider>
-    </DataProvider>
+    <JSONUIProvider
+      registry={registry}
+      initialState={{ charts: chartData, isLoading }}
+      handlers={actionHandlers}
+    >
+      <Renderer spec={spec} registry={registry} />
+    </JSONUIProvider>
   );
 }
 
 /**
- * Extract query information from the tree
+ * Extract query information from the spec
  */
 function extractQueries(
-  tree: unknown,
+  spec: unknown,
   prefix = "chart",
 ): Array<{ key: string; query: string }> {
   const queries: Array<{ key: string; query: string }> = [];
 
-  if (!tree || typeof tree !== "object") {
+  if (!spec || typeof spec !== "object") {
     return queries;
   }
 
@@ -157,10 +158,10 @@ function extractQueries(
   };
 
   // Handle array of elements
-  if (Array.isArray(tree)) {
-    tree.forEach((item, i) => traverse(item, i));
+  if (Array.isArray(spec)) {
+    spec.forEach((item, i) => traverse(item, i));
   } else {
-    traverse(tree, 0);
+    traverse(spec, 0);
   }
 
   return queries;

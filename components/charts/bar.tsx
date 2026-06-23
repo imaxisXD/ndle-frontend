@@ -228,6 +228,7 @@ const BarInner = memo(function BarInner({
 
         const categoryValue = barXAccessor(d);
         const bandPos = barScale(categoryValue) ?? 0;
+        const bandSize = barScale.bandwidth();
 
         let x: number;
         let y: number;
@@ -246,6 +247,8 @@ const BarInner = memo(function BarInner({
             const offset = stackOffsets.get(i)?.get(dataKey) ?? 0;
             x = scale(offset) ?? 0;
             barW = valuePos - x;
+            const rowOffset = Math.max(0, (bandSize - barHeight) / 2);
+            y = bandPos + rowOffset;
             // Apply stack gap for horizontal: shift right and reduce width
             const gapOffset = seriesIndex * stackGap;
             x += gapOffset;
@@ -256,12 +259,14 @@ const BarInner = memo(function BarInner({
             x = 0;
             // For grouped bars, offset y position
             const effectiveGroupGap = seriesCount > 1 ? groupGap : 0;
-            y = bandPos + seriesIndex * (barWidth + effectiveGroupGap);
+            const groupHeight =
+              seriesCount * barWidth + (seriesCount - 1) * effectiveGroupGap;
+            const rowOffset = Math.max(0, (bandSize - groupHeight) / 2);
+            y =
+              bandPos +
+              rowOffset +
+              seriesIndex * (barWidth + effectiveGroupGap);
           }
-          y = stacked
-            ? bandPos
-            : bandPos +
-              seriesIndex * (barWidth + (seriesCount > 1 ? groupGap : 0));
         } else {
           // Vertical bars: category on x-axis, value on y-axis
           const valuePos = scale(value) ?? 0;
@@ -271,6 +276,8 @@ const BarInner = memo(function BarInner({
           if (stacked && stackOffsets) {
             const offset = stackOffsets.get(i)?.get(dataKey) ?? 0;
             const offsetY = scale(offset) ?? innerHeight;
+            const rowOffset = Math.max(0, (bandSize - barW) / 2);
+            x = bandPos + rowOffset;
             // Apply stack gap: shift up and reduce height
             const gapOffset = seriesIndex * stackGap;
             y = offsetY - barHeight - gapOffset;
@@ -282,12 +289,14 @@ const BarInner = memo(function BarInner({
             y = valuePos;
             // For grouped bars, offset x position
             const effectiveGroupGap = seriesCount > 1 ? groupGap : 0;
-            x = bandPos + seriesIndex * (barWidth + effectiveGroupGap);
+            const groupWidth =
+              seriesCount * barWidth + (seriesCount - 1) * effectiveGroupGap;
+            const rowOffset = Math.max(0, (bandSize - groupWidth) / 2);
+            x =
+              bandPos +
+              rowOffset +
+              seriesIndex * (barWidth + effectiveGroupGap);
           }
-          x = stacked
-            ? bandPos
-            : bandPos +
-              seriesIndex * (barWidth + (seriesCount > 1 ? groupGap : 0));
         }
 
         const isFaded =

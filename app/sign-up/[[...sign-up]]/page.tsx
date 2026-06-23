@@ -12,10 +12,11 @@ export default function Page() {
       switchLabel="Log in"
     >
       <SignUp
-        redirectUrl="/static-app-shell"
-        afterSignUpUrl="/static-app-shell"
+        forceRedirectUrl="/static-app-shell"
+        fallbackRedirectUrl="/static-app-shell"
         signInUrl="/sign-in"
-        afterSignInUrl="/static-app-shell"
+        signInForceRedirectUrl="/static-app-shell"
+        signInFallbackRedirectUrl="/static-app-shell"
         appearance={authClerkAppearance}
       />
     </AuthScreen>
