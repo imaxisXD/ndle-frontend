@@ -43,8 +43,8 @@ export async function getSignedInUserPlan(
       },
       body: JSON.stringify({
         path: "users:getViewerState",
-        format: "convex_encoded_json",
-        args: [{}],
+        args: {},
+        format: "json",
       }),
       cache: "no-store",
     });
