@@ -18,10 +18,13 @@ export interface TooltipContentProps {
 
 export function TooltipContent({ title, rows, children }: TooltipContentProps) {
   return (
-    <div className="overflow-hidden">
+    <div className="max-w-72 overflow-hidden">
       <div className="px-3 py-2.5">
         {title && (
-          <div className="mb-2 font-medium text-chart-tooltip-foreground text-xs">
+          <div
+            className="mb-2 truncate font-medium text-chart-tooltip-foreground text-xs"
+            title={title}
+          >
             {title}
           </div>
         )}

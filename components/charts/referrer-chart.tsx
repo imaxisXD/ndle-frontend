@@ -72,8 +72,7 @@ function getFriendlyName(domain: string): string {
   if (d === "direct") return "Direct";
   if (d === "other") return "Other";
 
-  // Return domain as-is for unknown sources
-  return domain;
+  return d;
 }
 
 export interface ReferrerData {
