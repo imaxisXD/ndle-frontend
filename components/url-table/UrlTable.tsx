@@ -1,4 +1,10 @@
-import React, { useCallback, useMemo, useState, Fragment } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  Fragment,
+} from "react";
 import {
   ColumnDef,
   ColumnFiltersState,
@@ -67,6 +73,7 @@ import {
 import { type DisplayUrl } from "./types";
 import { formatRelative, cn, mapHealthStatusToUI } from "@/lib/utils";
 import { CircleGridLoaderIcon } from "../icons";
+import { EmptyStateImage } from "@/components/empty-state-image";
 import { Skeleton } from "../ui/skeleton";
 import { makeShortLinkWithDomain } from "@/lib/config";
 import NumberFlow from "@number-flow/react";
@@ -316,6 +323,16 @@ function ShortUrlCell({
   );
 }
 
+function ClickCountNumber({ clicks }: { clicks: number }) {
+  const [shownClicks, setShownClicks] = useState(clicks);
+
+  useEffect(() => {
+    setShownClicks(clicks);
+  }, [clicks]);
+
+  return <NumberFlow value={shownClicks} isolate willChange />;
+}
+
 function getDisplayStatus(doc: UserUrlsResponse[number]) {
   const healthStatus = doc.latestHealthCheck?.healthStatus as
     | HealthStatus
@@ -420,7 +437,8 @@ export function UrlTable({
         : undefined,
   );
   const isLoading = urls === undefined;
-  const isEmpty = urls === null || (Array.isArray(urls) && urls.length === 0);
+  const hasLoadProblem = urls === null;
+  const isEmpty = Array.isArray(urls) && urls.length === 0;
 
   // Destructure stable values from the query result to use in dependency arrays
   const selectedCollectionUrls = selectedCollectionData?.urls;
@@ -651,8 +669,8 @@ export function UrlTable({
         cell: ({ row }) => {
           return (
             <div className="flex flex-col items-start justify-center">
-              <p className="pl-5 text-sm font-medium">
-                <NumberFlow value={row.original.clicks} isolate={true} />
+              <p className="pl-5 text-sm font-medium tabular-nums">
+                <ClickCountNumber clicks={row.original.clicks} />
               </p>
               <p className="text-muted-foreground text-xs">[clicks]</p>
             </div>
@@ -712,6 +730,7 @@ export function UrlTable({
   const table = useReactTable({
     data: sortedUrls,
     columns,
+    getRowId: (row) => row.id,
     onSortingChange: updateSorting,
     onColumnFiltersChange: setColumnFilters,
     getCoreRowModel: getCoreRowModel(),
@@ -971,11 +990,8 @@ export function UrlTable({
               Please wait while we load your links
             </p>
           </Skeleton>
-        ) : isEmpty || filteredUrls.length === 0 ? (
-          <Table
-            key={`${sorting.map((s) => `${s.id}:${s.desc}`).join("|") || "none"}`}
-            style={{ tableLayout: "fixed", width: "100%" }}
-          >
+        ) : hasLoadProblem || isEmpty || filteredUrls.length === 0 ? (
+          <Table style={{ tableLayout: "fixed", width: "100%" }}>
             <TableHeader className="bg-card sticky top-0">
               {table.getHeaderGroups().map((headerGroup) => (
                 <TableRow key={headerGroup.id} className="hover:bg-transparent">
@@ -999,11 +1015,24 @@ export function UrlTable({
             <TableBody>
               <TableRow>
                 <TableCell colSpan={columns_count} className="my-auto">
-                  <div className="my-auto p-12 text-center">
-                    <Search className="text-muted-foreground mx-auto h-34 w-12" />
-                    <h3 className="mt-4 text-sm font-medium">No links found</h3>
-                    <p className="text-muted-foreground mt-2 h-64 text-xs">
-                      Create your first shortened link to get started
+                  <div className="my-auto flex min-h-[360px] flex-col items-center justify-center px-6 py-10 text-center">
+                    <EmptyStateImage
+                      alt=""
+                      className={cn(
+                        "mb-5 w-full",
+                        hasLoadProblem ? "max-w-[560px]" : "max-w-[430px]",
+                      )}
+                      name={hasLoadProblem ? "errorLinks" : "noLinks"}
+                    />
+                    <h3 className="mt-4 text-sm font-medium">
+                      {hasLoadProblem
+                        ? "Links could not load"
+                        : "No links found"}
+                    </h3>
+                    <p className="text-muted-foreground mt-2 max-w-sm text-xs">
+                      {hasLoadProblem
+                        ? "Try refreshing the page. Your saved links stay safe."
+                        : "Create your first shortened link to get started"}
                     </p>
                   </div>
                 </TableCell>
@@ -1011,10 +1040,7 @@ export function UrlTable({
             </TableBody>
           </Table>
         ) : (
-          <Table
-            key={`${sorting.map((s) => `${s.id}:${s.desc}`).join("|") || "none"}`}
-            style={{ tableLayout: "fixed", width: "100%" }}
-          >
+          <Table style={{ tableLayout: "fixed", width: "100%" }}>
             <TableHeader className="bg-card sticky top-0">
               {table.getHeaderGroups().map((headerGroup) => (
                 <TableRow key={headerGroup.id} className="hover:bg-transparent">

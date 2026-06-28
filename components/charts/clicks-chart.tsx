@@ -48,7 +48,7 @@ export function ClicksChart({
         <div className="flex w-full items-center justify-between gap-3">
           <div className="flex min-w-0 flex-col gap-1">
             <CardTitle className="flex items-center gap-2 font-medium text-zinc-900">
-              <CursorClickIcon className="size-4.5" weight="duotone" />
+              <CursorClickIcon className="size-5" weight="duotone" />
               Weekly Click Count
               {isLoading && (
                 <RefreshDouble className="h-3 w-3 animate-spin text-zinc-400" />

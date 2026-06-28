@@ -22,6 +22,7 @@ import {
 import { UTMAnalyticsPanel } from "@/components/UTMAnalyticsPanel";
 import type { UTMAnalyticsData } from "@/types/utm-analytics";
 import { AgenticChartChat } from "@/components/agentic-charts";
+import { EmptyStateImage } from "@/components/empty-state-image";
 
 function TotalClicksCard() {
   const totalClicksFromConvex = useQuery(api.urlAnalytics.getUsersTotalClicks);
@@ -348,9 +349,21 @@ export function Analytics() {
   }, [urlsWithAnalytics]);
 
   if (isError) {
+    console.error("Analytics failed to load:", error);
+
     return (
-      <div className="rounded-lg bg-red-50 p-6 text-red-500">
-        Error loading analytics: {error?.message}
+      <div className="flex flex-col items-center px-6 py-12 text-center">
+        <EmptyStateImage
+          alt=""
+          className="mb-5 w-full max-w-[680px]"
+          name="errorAnalytics"
+        />
+        <h3 className="text-foreground text-sm font-medium">
+          Analytics could not load
+        </h3>
+        <p className="text-muted-foreground mt-2 max-w-md text-xs">
+          Try refreshing the page. Your links are safe.
+        </p>
       </div>
     );
   }

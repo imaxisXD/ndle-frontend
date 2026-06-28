@@ -1,0 +1,31 @@
+packages:
+  - .
+
+allowBuilds:
+  core-js: true
+  esbuild: true
+  sharp: true
+  unrs-resolver: true
+  workerd: true
+
+overrides:
+  react-is: ^19
+  "@types/react": 19.2.17
+  "@types/react-dom": 19.2.3
+  postcss: 8.5.15
+  "@babel/core": 7.29.7
+  "@isaacs/brace-expansion": 5.0.1
+  ajv: 6.15.0
+  flatted: 3.4.2
+  form-data: 4.0.6
+  js-yaml: 4.2.0
+  lodash: 4.18.1
+  path-to-regexp: 8.4.2
+  picomatch: 4.0.4
+  preact: 10.29.2
+  qs: 6.15.2
+  ws: 8.21.0
+  yaml: 2.9.0
+
+patchedDependencies:
+  apache-arrow@17.0.0: patches/apache-arrow@17.0.0.patch

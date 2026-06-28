@@ -11,6 +11,7 @@ import LinkDetailRoute from "@/routes/LinkDetailRoute";
 import CollectionDetailRoute from "@/routes/CollectionDetailRoute";
 import { Toaster } from "@/components/ui/sonner-toaster";
 import ScrollToTop from "@/components/scroll-to-top";
+import { RouteStateBoundary } from "@/components/route-state-boundary";
 import { ConvexQueryCacheProvider } from "convex-helpers/react/cache/provider";
 import { api } from "@/convex/_generated/api";
 import { useQuery } from "convex/react";
@@ -29,13 +30,54 @@ export default function App() {
               <ScrollToTop />
               <Routes>
                 <Route path="/" element={<HomeRoute />} />
-                <Route path="/urls" element={<UrlsRoute />} />
-                <Route path="/analytics" element={<AnalyticsRoute />} />
-                <Route path="/monitoring" element={<MonitoringRoute />} />
+                <Route
+                  path="/urls"
+                  element={
+                    <RouteStateBoundary
+                      description="Try refreshing the page. Your saved links stay safe."
+                      imageName="errorLinks"
+                      title="Links could not load"
+                    >
+                      <UrlsRoute />
+                    </RouteStateBoundary>
+                  }
+                />
+                <Route
+                  path="/analytics"
+                  element={
+                    <RouteStateBoundary
+                      description="Try refreshing the page. Your links are safe."
+                      imageName="errorAnalytics"
+                      title="Analytics could not load"
+                    >
+                      <AnalyticsRoute />
+                    </RouteStateBoundary>
+                  }
+                />
+                <Route
+                  path="/monitoring"
+                  element={
+                    <RouteStateBoundary
+                      description="Try refreshing the page. Monitoring will resume when the data returns."
+                      imageName="errorMonitoring"
+                      title="Monitoring could not load"
+                    >
+                      <MonitoringRoute />
+                    </RouteStateBoundary>
+                  }
+                />
                 <Route path="/settings" element={<SettingsRoute />} />
                 <Route
                   path="/collections"
-                  element={<CollectionsRoute collections={collections} />}
+                  element={
+                    <RouteStateBoundary
+                      description="Try refreshing the page. Your saved links stay safe."
+                      imageName="errorCollections"
+                      title="Collections could not load"
+                    >
+                      <CollectionsRoute collections={collections} />
+                    </RouteStateBoundary>
+                  }
                 />
                 <Route
                   path="/collection/:slug"

@@ -55,6 +55,17 @@
   --checkbox-border: #b1b1b1;
   --input: oklch(0.95 0 0);
   --ring: oklch(0.86 0.17 88);
+  /* Rim-light elevation — a 1px inner highlight that reads as a raised edge
+     catching light, used INSTEAD of a cast drop shadow. Tuned for dark /
+     elevated surfaces (near-invisible on the light app surface by design).
+     Source: #ffffff @ 2%, x/y/blur 0, spread 1px, inset. */
+  --shadow-rim: inset 0 0 0 1px rgba(255, 255, 255, 0.02);
+  /* Light-surface companion to --shadow-rim. A top white highlight (for tinted /
+     elevated surfaces) PLUS a faint dark inner hairline — the hairline is what
+     actually reads on near-white cards, giving a gentle raised edge with no
+     cast shadow. Use on light surfaces; use --shadow-rim on dark ones. */
+  --shadow-rim-soft: inset 0 1px 0 rgba(255, 255, 255, 0.9),
+    inset 0 0 0 1px rgba(17, 17, 17, 0.08);
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
   --chart-3: oklch(0.398 0.07 227.392);
@@ -172,6 +183,21 @@
   --color-chart-foreground-muted: var(--chart-foreground-muted);
   --color-chart-foreground: var(--chart-foreground);
   --color-chart-background: var(--chart-background);
+}
+
+/* Rim-light elevation utility — depth from a 1px inner highlight instead of a
+   cast drop shadow (see --shadow-rim). Reusable as a single class:
+   `className="shadow-rim"`. Composes with a border (separate property). To pair
+   it with a drop shadow, author BOTH in one box-shadow value — two box-shadow
+   utility classes don't stack. Reads best on dark / elevated surfaces. */
+@utility shadow-rim {
+  box-shadow: var(--shadow-rim);
+}
+
+/* Light-surface sibling of shadow-rim. Use on near-white / elevated light
+   surfaces where a white rim wouldn't read. `className="shadow-rim-soft"`. */
+@utility shadow-rim-soft {
+  box-shadow: var(--shadow-rim-soft);
 }
 
 @layer base {
@@ -477,6 +503,8 @@
 }
 
 .dark {
+  /* The rim reads more on true dark surfaces, so nudge it a touch stronger. */
+  --shadow-rim: inset 0 0 0 1px rgba(255, 255, 255, 0.04);
   --chart-background: var(--background);
   --chart-foreground: var(--foreground);
   --chart-foreground-muted: var(--muted-foreground);

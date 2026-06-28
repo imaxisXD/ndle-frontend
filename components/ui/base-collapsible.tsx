@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useState } from "react";
 import { cn } from "@/lib/utils";
-import { Collapsible as BaseCollapsible } from "@base-ui-components/react/collapsible";
+import { Collapsible as BaseCollapsible } from "@base-ui/react/collapsible";
 import { AnimatePresence, motion } from "motion/react";
 
 const CollapsibleContext = createContext<{ open: boolean } | null>(null);

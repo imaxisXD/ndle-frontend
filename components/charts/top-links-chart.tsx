@@ -20,10 +20,11 @@ import {
   TooltipContent,
 } from "@/components/ui/base-tooltip";
 import { LinkWithFavicon } from "@/components/ui/link-with-favicon";
-import { CopyIcon, LinkIcon } from "@phosphor-icons/react";
+import { CopyIcon, LinkIcon, RankingIcon } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { useCallback } from "react";
+import { motion, useReducedMotion } from "motion/react";
 
 export interface TopLink {
   url: string;
@@ -48,6 +49,7 @@ export function TopLinksChart({
   className,
 }: TopLinksChartProps) {
   const displayData = data.slice(0, limit);
+  const reduce = useReducedMotion();
   const { add } = useToast();
 
   const handleCopy = useCallback(
@@ -66,29 +68,39 @@ export function TopLinksChart({
   );
 
   return (
-    <Card className={cn("bg-white", className)}>
-      <CardHeader className="flex flex-col items-start gap-1">
-        <CardTitle className="flex items-center gap-2 text-base leading-none font-medium tracking-tight text-zinc-900">
-          <LinkIcon className="size-5" />
-          Top Performing Links
-        </CardTitle>
-        <CardDescription className="text-xs text-zinc-400">
-          Most clicked links in the selected period
-        </CardDescription>
+    <Card
+      className={cn(
+        "shadow-[0_1px_2px_rgba(0,0,0,0.04),0_4px_10px_-2px_rgba(0,0,0,0.08)]",
+        className,
+      )}
+    >
+      <CardHeader className="flex flex-row items-center justify-start gap-3">
+        <span className="bg-muted flex shrink-0 items-center justify-center rounded-lg p-3">
+          <RankingIcon className="size-6" weight="duotone" aria-hidden="true" />
+        </span>
+        <div className="flex flex-col gap-1">
+          <CardTitle className="font-medium">Top Performing Links</CardTitle>
+          <CardDescription className="text-xs">
+            Most clicked links in the selected period
+          </CardDescription>
+        </div>
       </CardHeader>
 
-      <CardContent className="flex flex-col gap-4 p-6">
+      <CardContent className="flex flex-col divide-y divide-dashed divide-gray-400/50 p-3">
         {isLoading ? (
-          <div className="p-6 pt-0">
-            <div className="space-y-2">
-              {[1, 2, 3].map((i) => (
-                <Skeleton key={i} className="h-14 w-full" />
-              ))}
-            </div>
+          <div className="flex flex-col gap-1">
+            {Array.from({ length: limit }).map((_, i) => (
+              <Skeleton key={i} className="h-16 w-full rounded-sm" />
+            ))}
           </div>
         ) : displayData.length === 0 ? (
-          <div className="text-muted-foreground flex h-40 items-center justify-center text-sm">
-            No link activity found.
+          <div className="text-muted-foreground flex h-40 flex-col items-center justify-center gap-2 text-center">
+            <LinkIcon className="size-6 opacity-50" aria-hidden="true" />
+            <p className="text-sm">
+              No clicks in this period yet.
+              <br />
+              Share a link to see your top performers.
+            </p>
           </div>
         ) : (
           displayData.map((link, index) => {
@@ -102,16 +114,27 @@ export function TopLinksChart({
             const slug = link.url;
 
             return (
-              <div
+              <motion.div
                 key={link.url}
-                className="group border-border/70 bg-card flex h-18 items-center gap-4 rounded-sm border px-2"
+                layout="position"
+                transition={{
+                  layout: { duration: reduce ? 0 : 0.45, ease: [0.16, 1, 0.3, 1] },
+                }}
+                className="px-2 py-3 first:pt-0 last:pb-0"
               >
-                <div className="flex items-center justify-start gap-1 text-sm">
-                  <span>[{index + 1}]</span>
-                </div>
-                {/* Favicon + Link Info */}
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center justify-start gap-1">
+                {/* Primary line — rank, link, count and action all aligned */}
+                <div className="flex items-center gap-4">
+                  {index === 0 ? (
+                    <span className="bg-accent text-accent-foreground flex size-6 shrink-0 items-center justify-center rounded-sm text-xs font-semibold tabular-nums">
+                      1
+                    </span>
+                  ) : (
+                    <span className="text-muted-foreground w-6 shrink-0 text-center text-sm tabular-nums">
+                      [{index + 1}]
+                    </span>
+                  )}
+
+                  <div className="flex min-w-0 flex-1 items-center gap-1">
                     <LinkWithFavicon
                       url={normalizedHref}
                       originalUrl={link.originalUrl}
@@ -125,61 +148,70 @@ export function TopLinksChart({
                         render={
                           <Button
                             size="icon"
-                            variant="link"
+                            variant="ghost"
                             type="button"
-                            className="text-muted-foreground hover:bg-muted flex shrink-0 items-center justify-center rounded-md p-1 transition-colors hover:text-blue-600"
+                            aria-label="Copy link"
+                            className="text-muted-foreground hover:text-foreground size-7 shrink-0"
                             onClick={(e) => {
                               e.stopPropagation();
                               handleCopy(shortLink);
                             }}
                           >
-                            <CopyIcon weight="duotone" strokeWidth={2.5} />
+                            <CopyIcon weight="duotone" />
                           </Button>
                         }
                       />
                       <TooltipContent side="top">Copy</TooltipContent>
                     </Tooltip>
                   </div>
-                  <p
-                    className="text-muted-foreground truncate pl-1 text-xs"
-                    title={link.originalUrl}
-                  >
-                    {link.originalUrl}
-                  </p>
+
+                  <div className="flex shrink-0 flex-col items-end leading-tight">
+                    <p className="text-sm font-medium tabular-nums">
+                      <NumberFlow value={link.clicks} isolate={true} />
+                    </p>
+                    <p className="text-muted-foreground text-xs">[clicks]</p>
+                  </div>
+
+                  <Tooltip>
+                    <TooltipTrigger
+                      render={
+                        <NavLink
+                          to={`/link/${slug}`}
+                          aria-label="View analytics"
+                          className="text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:ring-accent/50 flex shrink-0 items-center justify-center rounded-md p-2 transition-colors outline-none focus-visible:ring-2"
+                        >
+                          <NavArrowRight className="size-4" strokeWidth={2} />
+                        </NavLink>
+                      }
+                    />
+                    <TooltipContent side="right">View analytics</TooltipContent>
+                  </Tooltip>
                 </div>
 
-                {/* Clicks */}
-                <div className="flex flex-col items-center justify-center">
-                  <p className="text-sm font-medium">
-                    <NumberFlow value={link.clicks} isolate={true} />
-                  </p>
-                  <p className="text-muted-foreground text-xs">[clicks]</p>
-                </div>
-
-                {/* View Details Action */}
-                <Tooltip>
-                  <TooltipTrigger
-                    render={
-                      <NavLink
-                        to={`/link/${slug}`}
-                        className="text-muted-foreground hover:bg-muted hover:text-foreground rounded-md p-2 transition-colors"
-                      >
-                        <NavArrowRight className="size-4" strokeWidth={2} />
-                      </NavLink>
-                    }
-                  />
-                  <TooltipContent side="right">View analytics</TooltipContent>
-                </Tooltip>
-              </div>
+                {/* Secondary line — full URL, aligned under the link */}
+                <p
+                  className="text-muted-foreground mt-1 truncate pl-10 text-xs"
+                  title={link.originalUrl}
+                >
+                  {link.originalUrl}
+                </p>
+              </motion.div>
             );
           })
         )}
       </CardContent>
-      <CardFooter>
-        {/* <p className="text-muted-foreground text-xs">
-          Clicks are updated every 5 minutes
-        </p> */}
-      </CardFooter>
+
+      {!isLoading && displayData.length > 0 && (
+        <CardFooter className="justify-end">
+          <NavLink
+            to="/urls"
+            className="text-muted-foreground hover:text-foreground focus-visible:ring-accent/50 inline-flex items-center gap-1 rounded-sm text-xs font-medium transition-colors outline-none focus-visible:ring-2"
+          >
+            View all links
+            <NavArrowRight className="size-3.5" strokeWidth={2} />
+          </NavLink>
+        </CardFooter>
+      )}
     </Card>
   );
 }

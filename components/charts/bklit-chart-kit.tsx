@@ -34,6 +34,7 @@ import { TooltipContent } from "@/components/charts/tooltip/tooltip-content";
 import { XAxis } from "@/components/charts/x-axis";
 import { YAxis } from "@/components/charts/y-axis";
 import { useChart } from "@/components/charts/chart-context";
+import { EmptyStateImage } from "@/components/empty-state-image";
 import { cn } from "@/lib/utils";
 
 const numberFormatter = new Intl.NumberFormat("en-US");
@@ -71,7 +72,12 @@ function EmptyState({
   description?: string;
 }) {
   return (
-    <div className="text-center">
+    <div className="flex flex-col items-center text-center">
+      <EmptyStateImage
+        alt=""
+        className="mb-3 w-full max-w-[170px]"
+        name="noAnalytics"
+      />
       <p className="text-foreground font-medium">{title}</p>
       <p className="text-muted-foreground mt-1 text-xs">{description}</p>
     </div>
@@ -137,7 +143,7 @@ function ValueLabels<T extends object>({
 
   return createPortal(
     <div
-      className="pointer-events-none absolute top-0 right-0 bottom-0 text-xs font-medium text-foreground tabular-nums"
+      className="text-foreground pointer-events-none absolute top-0 right-0 bottom-0 text-xs font-medium tabular-nums"
       style={{ width: margin.right }}
     >
       {data.map((item, index) => {
@@ -272,7 +278,9 @@ export function BklitHorizontalBarChart<T extends object>({
             const item = point as T;
             const value = getRecordValue(point, valueKey);
             const percentage =
-              total > 0 ? ((Number(value ?? 0) / total) * 100).toFixed(1) : "0.0";
+              total > 0
+                ? ((Number(value ?? 0) / total) * 100).toFixed(1)
+                : "0.0";
 
             return (
               <TooltipContent
@@ -359,7 +367,9 @@ export function BklitVerticalBarChart<T extends object>({
             const item = point as T;
             const value = getRecordValue(point, valueKey);
             const percentage =
-              total > 0 ? ((Number(value ?? 0) / total) * 100).toFixed(1) : "0.0";
+              total > 0
+                ? ((Number(value ?? 0) / total) * 100).toFixed(1)
+                : "0.0";
 
             return (
               <TooltipContent
@@ -431,14 +441,21 @@ export function BklitLineSeriesChart<T extends object>({
         xDataKey={dateKey}
       >
         <Grid horizontal stroke="var(--border)" strokeDasharray="5" />
-        <Line dataKey={valueKey} showMarkers={data.length <= 12} stroke={color} />
+        <Line
+          dataKey={valueKey}
+          showMarkers={data.length <= 12}
+          stroke={color}
+        />
         <ChartTooltip
           indicatorColor={color}
           rows={(point) => [
             {
               color,
               label: valueLabel,
-              value: valueFormatter(getRecordValue(point, valueKey), point as T),
+              value: valueFormatter(
+                getRecordValue(point, valueKey),
+                point as T,
+              ),
             },
           ]}
         />
@@ -512,7 +529,10 @@ export function BklitAreaSeriesChart<T extends object>({
             {
               color,
               label: valueLabel,
-              value: valueFormatter(getRecordValue(point, valueKey), point as T),
+              value: valueFormatter(
+                getRecordValue(point, valueKey),
+                point as T,
+              ),
             },
           ]}
         />

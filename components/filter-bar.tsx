@@ -23,7 +23,6 @@ import {
   PopoverTrigger,
 } from "@/components/ui/base-popover";
 import { FILTER_CONFIGS } from "@/lib/analytics-filters";
-import { Button } from "./ui/button";
 
 // --- Types ---
 
@@ -53,46 +52,6 @@ interface FilterBarProps {
   excludeBots?: boolean;
   onExcludeBotsChange?: (value: boolean) => void;
   className?: string;
-}
-
-// --- Sub-components ---
-
-interface FilterPillProps {
-  label: string;
-  valueLabel: string;
-  icon: React.ElementType;
-  onRemove: () => void;
-}
-
-function FilterPill({
-  label,
-  valueLabel,
-  icon: Icon,
-  onRemove,
-}: FilterPillProps) {
-  return (
-    <div className="group border-border flex items-center justify-between gap-2 rounded-sm border bg-linear-to-tr from-black to-black/70 px-2 py-1 text-xs shadow-sm">
-      <div className="flex items-center gap-1">
-        <Icon className="size-3 text-zinc-300" weight="duotone" />
-        <span className="text-xs text-zinc-300">{label}:</span>
-      </div>
-      <span
-        className="max-w-[150px] truncate text-xs font-medium text-zinc-100"
-        title={valueLabel}
-      >
-        {valueLabel}
-      </span>
-      <Button
-        size="xs"
-        onClick={onRemove}
-        variant="ghost"
-        className="rounded-xs text-red-400"
-        aria-label={`Remove ${label} filter`}
-      >
-        <XIcon className="size-3" aria-hidden="true" />
-      </Button>
-    </div>
-  );
 }
 
 // --- Main Component ---
@@ -295,213 +254,219 @@ export function FilterBar({
 
   const hasActiveFilters = activeFilters.length > 0;
 
+  const barInner = (
+    <>
+      <div className="flex flex-1 flex-wrap items-center justify-between gap-2">
+        <div className="flex flex-wrap items-center gap-1.5">
+          {activeFilters.map((filter) => {
+            const Icon = filter.icon;
+            return (
+              <div
+                key={filter.key}
+                className="flex items-center gap-1.5 rounded-md border border-border bg-muted px-2 py-1 text-xs text-foreground shadow-xs"
+              >
+                <Icon className="size-3 text-muted-foreground" weight="duotone" />
+                <span className="text-muted-foreground">{filter.label}:</span>
+                <span
+                  className="max-w-[150px] truncate font-medium text-foreground"
+                  title={filter.valueLabel}
+                >
+                  {filter.valueLabel}
+                </span>
+                <button
+                  type="button"
+                  onClick={filter.onRemove}
+                  aria-label={`Remove ${filter.label} filter`}
+                  className="ml-0.5 rounded-xs text-muted-foreground transition-colors hover:text-foreground"
+                >
+                  <XIcon className="size-3" aria-hidden="true" />
+                </button>
+              </div>
+            );
+          })}
+
+          <Popover
+            open={isAddFilterOpen}
+            onOpenChange={(open) => {
+              setIsAddFilterOpen(open);
+              if (!open) {
+                setSelectedCategory(null);
+                setSearchQuery("");
+              }
+            }}
+          >
+            <PopoverTrigger
+              className={cn(
+                "text-foreground flex cursor-pointer items-center gap-1.5 rounded-md border border-dashed border-border bg-secondary px-2.5 py-1 text-xs font-medium shadow-xs transition-colors hover:border-accent hover:bg-accent/10 hover:text-foreground",
+                isAddFilterOpen && "border-accent bg-accent/10 text-foreground",
+              )}
+            >
+              {hasActiveFilters ? (
+                <FunnelIcon className="h-3.5 w-3.5" weight="duotone" />
+              ) : (
+                <PlusIcon className="h-3.5 w-3.5" />
+              )}
+              {hasActiveFilters ? "More" : "Add Filter"}
+            </PopoverTrigger>
+            <PopoverContent
+              className="w-[220px] p-0"
+              align="start"
+              sideOffset={8}
+              showArrow={false}
+            >
+              {!selectedCategory ? (
+                <div className="flex flex-col py-1">
+                  <span className="text-muted-foreground px-3 py-2 text-[10px] font-semibold tracking-wider uppercase">
+                    Filter by
+                  </span>
+                  {filterCategories.map((category) => {
+                    const isUsed = activeFilters.some(
+                      (f) => f.key === category.id,
+                    );
+                    const CatIcon = category.icon;
+                    return (
+                      <button
+                        key={category.id}
+                        disabled={isUsed}
+                        onClick={() => {
+                          setSelectedCategory(category.id);
+                          setSearchQuery("");
+                        }}
+                        className={cn(
+                          "mx-1 flex items-center justify-between rounded-md px-2 py-2 text-xs transition-colors",
+                          isUsed
+                            ? "text-muted-foreground/50 cursor-not-allowed"
+                            : "text-foreground/80 hover:bg-muted hover:text-foreground cursor-pointer",
+                        )}
+                      >
+                        <div className="flex items-center gap-2.5">
+                          <CatIcon
+                            weight="duotone"
+                            className="text-muted-foreground h-4 w-4"
+                          />
+                          <span className="font-medium">{category.label}</span>
+                        </div>
+                        {isUsed ? (
+                          <CheckIcon
+                            className="text-success h-3.5 w-3.5"
+                            weight="bold"
+                          />
+                        ) : (
+                          <CaretRightIcon className="text-muted-foreground/60 h-3.5 w-3.5" />
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="flex flex-col">
+                  <div className="flex items-center gap-2 border-b border-border px-2 py-2">
+                    <button
+                      onClick={() => setSelectedCategory(null)}
+                      className="text-muted-foreground hover:bg-muted hover:text-foreground rounded p-1 transition-colors"
+                    >
+                      <CaretRightIcon className="h-3.5 w-3.5 rotate-180" />
+                    </button>
+                    <span className="text-foreground text-xs font-semibold">
+                      {
+                        filterCategories.find(
+                          (c) => c.id === selectedCategory,
+                        )?.label
+                      }
+                    </span>
+                  </div>
+                  <div className="border-b border-border px-3 py-2">
+                    <input
+                      autoComplete="off"
+                      aria-label="Search filter values"
+                      className="text-foreground placeholder:text-muted-foreground w-full bg-transparent text-xs focus:outline-none"
+                      placeholder="Search…"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                    />
+                  </div>
+                  <div className="max-h-[200px] overflow-y-auto py-1">
+                    {filteredOptions.length === 0 ? (
+                      <div className="text-muted-foreground py-4 text-center text-xs">
+                        No results
+                      </div>
+                    ) : (
+                      filteredOptions.map((option) => (
+                        <button
+                          key={option.value}
+                          onClick={() => handleSelectOption(option.value)}
+                          className="text-foreground/80 hover:bg-muted hover:text-foreground mx-1 flex w-[calc(100%-8px)] cursor-pointer items-center rounded-md px-2 py-2 text-xs transition-colors"
+                        >
+                          <span
+                            className="max-w-[180px] truncate font-medium"
+                            title={option.label}
+                          >
+                            {option.label}
+                          </span>
+                        </button>
+                      ))
+                    )}
+                  </div>
+                </div>
+              )}
+            </PopoverContent>
+          </Popover>
+        </div>
+        {hasActiveFilters && (
+          <button
+            type="button"
+            onClick={clearAllFilters}
+            className="text-muted-foreground hover:text-foreground pr-1 pl-0 text-xs transition-colors"
+          >
+            Clear all
+          </button>
+        )}
+      </div>
+
+      <div className="h-5 w-px bg-border" />
+
+      <Select
+        value={timeRange}
+        onValueChange={(v) => onTimeRangeChange?.(v as string)}
+      >
+        <SelectTrigger
+          size="md"
+          className="border-border bg-card hover:bg-muted w-46 rounded-md px-3 text-xs shadow-xs"
+        >
+          <SelectValue>
+            <div className="flex items-center gap-1.5">
+              <CalendarDotIcon
+                weight="duotone"
+                className="text-muted-foreground size-4"
+              />
+              <span>
+                {
+                  timeRangeOptions.find((opt) => opt.value === timeRange)
+                    ?.displayValue
+                }
+              </span>
+            </div>
+          </SelectValue>
+        </SelectTrigger>
+        <SelectContent className="rounded-md border p-1 text-xs" alignOffset={0}>
+          {timeRangeOptions.map((option) => (
+            <SelectItem
+              key={option.value}
+              value={option.value}
+              className="text-muted-foreground rounded-sm text-xs"
+            >
+              {option.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </>
+  );
+
   return (
     <div className={cn("", className)}>
-      <div
-        className="border-border flex items-center gap-3 rounded-sm border bg-white px-4 py-2.5 shadow-xs"
-        style={{
-          backgroundImage:
-            "linear-gradient(rgba(255,255,255,0.6), rgba(255,255,255,0.6)), url(/stripe.svg)",
-          backgroundRepeat: "repeat",
-          backgroundSize: "24px 24px",
-        }}
-      >
-        {/* Filter Pills & Add Button */}
-        <div className="flex flex-1 flex-wrap items-center justify-between gap-2">
-          <div className="flex flex-wrap items-center justify-between gap-1">
-            {activeFilters.map((filter) => (
-              <FilterPill
-                key={filter.key}
-                label={filter.label}
-                valueLabel={filter.valueLabel}
-                icon={filter.icon}
-                onRemove={filter.onRemove}
-              />
-            ))}
-
-            <Popover
-              open={isAddFilterOpen}
-              onOpenChange={(open) => {
-                setIsAddFilterOpen(open);
-                if (!open) {
-                  setSelectedCategory(null);
-                  setSearchQuery("");
-                }
-              }}
-            >
-              <PopoverTrigger
-                className={cn(
-                  "text-muted-foreground flex cursor-pointer items-center gap-1.5 rounded-xs border border-dashed border-zinc-400 bg-white px-2 py-1 text-xs font-medium transition-all hover:border-yellow-500 hover:bg-zinc-50 hover:text-zinc-700",
-                  isAddFilterOpen && "border-zinc-400 bg-zinc-50 text-zinc-700",
-                )}
-              >
-                {hasActiveFilters ? (
-                  <FunnelIcon className="h-3.5 w-3.5" weight="duotone" />
-                ) : (
-                  <PlusIcon className="h-3.5 w-3.5" />
-                )}
-                {hasActiveFilters ? "More" : "Add Filter"}
-              </PopoverTrigger>
-              <PopoverContent
-                className="w-[220px] p-0"
-                align="start"
-                sideOffset={8}
-                showArrow={false}
-              >
-                {!selectedCategory ? (
-                  <div className="flex flex-col py-1">
-                    <span className="px-3 py-2 text-[10px] font-semibold tracking-wider text-zinc-400 uppercase">
-                      Filter by
-                    </span>
-                    {filterCategories.map((category) => {
-                      const isUsed = activeFilters.some(
-                        (f) => f.key === category.id,
-                      );
-                      return (
-                        <button
-                          key={category.id}
-                          disabled={isUsed}
-                          onClick={() => {
-                            setSelectedCategory(category.id);
-                            setSearchQuery("");
-                          }}
-                          className={cn(
-                            "mx-1 flex items-center justify-between rounded-md px-2 py-2 text-xs transition-colors",
-                            isUsed
-                              ? "cursor-not-allowed text-zinc-300"
-                              : "cursor-pointer text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900",
-                          )}
-                        >
-                          <div className="flex items-center gap-2.5">
-                            <category.icon
-                              weight="duotone"
-                              className={cn(
-                                "h-4 w-4",
-                                isUsed ? "text-zinc-300" : "text-zinc-400",
-                              )}
-                            />
-                            <span className="font-medium">
-                              {category.label}
-                            </span>
-                          </div>
-                          {isUsed ? (
-                            <CheckIcon
-                              className="h-3.5 w-3.5 text-green-500"
-                              weight="bold"
-                            />
-                          ) : (
-                            <CaretRightIcon className="h-3.5 w-3.5 text-zinc-300" />
-                          )}
-                        </button>
-                      );
-                    })}
-                  </div>
-                ) : (
-                  <div className="flex flex-col">
-                    <div className="flex items-center gap-2 border-b border-zinc-100 px-2 py-2">
-                      <button
-                        onClick={() => setSelectedCategory(null)}
-                        className="rounded p-1 text-zinc-400 transition-colors hover:bg-zinc-100 hover:text-zinc-600"
-                      >
-                        <CaretRightIcon className="h-3.5 w-3.5 rotate-180" />
-                      </button>
-                      <span className="text-xs font-semibold text-zinc-700">
-                        {
-                          filterCategories.find(
-                            (c) => c.id === selectedCategory,
-                          )?.label
-                        }
-                      </span>
-                    </div>
-                    <div className="border-b border-zinc-100 px-3 py-2">
-                      <input
-                        autoComplete="off"
-                        className="w-full bg-transparent text-xs text-zinc-700 placeholder:text-zinc-400 focus:outline-none"
-                        placeholder="Search…"
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                      />
-                    </div>
-                    <div className="max-h-[200px] overflow-y-auto py-1">
-                      {filteredOptions.length === 0 ? (
-                        <div className="py-4 text-center text-xs text-zinc-400">
-                          No results
-                        </div>
-                      ) : (
-                        filteredOptions.map((option) => (
-                          <button
-                            key={option.value}
-                            onClick={() => handleSelectOption(option.value)}
-                            className="mx-1 flex w-[calc(100%-8px)] cursor-pointer items-center rounded-md px-2 py-2 text-xs text-zinc-600 transition-colors hover:bg-zinc-100 hover:text-zinc-900"
-                          >
-                            <span
-                              className="max-w-[180px] truncate font-medium"
-                              title={option.label}
-                            >
-                              {option.label}
-                            </span>
-                          </button>
-                        ))
-                      )}
-                    </div>
-                  </div>
-                )}
-              </PopoverContent>
-            </Popover>
-          </div>
-          {hasActiveFilters && (
-            <Button
-              size="sm"
-              variant="link"
-              onClick={clearAllFilters}
-              className="pr-1 pl-0 text-xs text-red-400 hover:text-red-600"
-            >
-              Clear all
-            </Button>
-          )}
-        </div>
-
-        <div className="h-5 w-px bg-zinc-200" />
-
-        {/* Date Range - On the Right */}
-        <Select
-          value={timeRange}
-          onValueChange={(v) => onTimeRangeChange?.(v as string)}
-        >
-          <SelectTrigger
-            size="md"
-            className="w-46 rounded-xs border-zinc-200 bg-white px-3 text-xs shadow-none hover:bg-zinc-100"
-          >
-            <SelectValue>
-              <div className="flex items-center gap-1.5">
-                <CalendarDotIcon
-                  weight="duotone"
-                  className="size-4 text-zinc-500"
-                />
-                <span>
-                  {
-                    timeRangeOptions.find((opt) => opt.value === timeRange)
-                      ?.displayValue
-                  }
-                </span>
-              </div>
-            </SelectValue>
-          </SelectTrigger>
-          <SelectContent
-            className="rounded-xs border p-1 pb-1 text-xs"
-            alignOffset={0}
-          >
-            {timeRangeOptions.map((option) => (
-              <SelectItem
-                key={option.value}
-                value={option.value}
-                className="text-muted-foreground rounded-none border-x border-b text-xs"
-              >
-                {option.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+      <div className="flex items-center gap-3 rounded-md border border-border bg-card px-4 py-2.5 shadow-[0_1px_2px_rgba(0,0,0,0.04),0_4px_10px_-2px_rgba(0,0,0,0.08)]">
+        {barInner}
       </div>
     </div>
   );

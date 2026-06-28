@@ -13,7 +13,7 @@ import {
   getResponseTimeColor,
 } from "@/lib/utils";
 import { LinkWithFavicon } from "./ui/link-with-favicon";
-import { ShieldPlusIcon } from "@phosphor-icons/react/dist/ssr";
+import { EmptyStateImage } from "@/components/empty-state-image";
 
 const shortDomain = getShortDomain();
 
@@ -219,21 +219,18 @@ export function LinkMonitoring() {
 
       {/* Monitored Links */}
       {links.length === 0 ? (
-        <Card className="bg-card/50 p-12 text-center">
-          <div className="flex flex-col items-center gap-2">
-            <div className="bg-muted rounded-full p-4">
-              <ShieldPlusIcon
-                weight="duotone"
-                className="text-muted-foreground h-8 w-8"
-              />
-            </div>
-            <h3 className="mt-4 text-lg font-medium">No monitored links yet</h3>
-            <p className="text-muted-foreground max-w-sm text-sm">
-              Create a shortened link and health monitoring will start
-              automatically.
-            </p>
-          </div>
-        </Card>
+        <div className="flex flex-col items-center px-6 py-12 text-center">
+          <EmptyStateImage
+            alt=""
+            className="mb-5 w-full max-w-[460px]"
+            name="noMonitoring"
+          />
+          <h3 className="mt-4 text-lg font-medium">No monitored links yet</h3>
+          <p className="text-muted-foreground max-w-sm text-sm">
+            Create a shortened link and health monitoring will start
+            automatically.
+          </p>
+        </div>
       ) : (
         <div className="grid gap-4">
           {links.map((link) => (

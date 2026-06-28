@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { cn } from "@/lib/utils";
-import { Menu as MenuPrimitive } from "@base-ui-components/react/menu";
+import { Menu as MenuPrimitive } from "@base-ui/react/menu";
 import { KbdGroup } from "./kbd";
 import { CircleIcon } from "@phosphor-icons/react/dist/ssr";
 import { ArrowCircleRightIcon, CheckIcon } from "@phosphor-icons/react";

@@ -48,6 +48,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Id } from "@/convex/_generated/dataModel";
 import { trackCollectionDeleted } from "@/lib/posthog";
+import { EmptyStateImage } from "@/components/empty-state-image";
 
 function CollectionMenuCell({
   collection,
@@ -156,6 +157,8 @@ export function Collections({
     id: string;
     name: string;
   } | null>(null);
+  const hasNoCollections =
+    collections !== undefined && collections.length === 0;
 
   const handleView = useCallback(
     (collectionId: string) => {
@@ -206,79 +209,93 @@ export function Collections({
         />
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {collections?.map((collection, index) => {
-          const fallbackIndex = index % COLLECTION_COLORS.length;
-          const collectionColor =
-            collection.collectionColor || COLLECTION_COLORS[fallbackIndex];
+      {hasNoCollections ? (
+        <div className="flex flex-col items-center px-6 py-12 text-center">
+          <EmptyStateImage
+            alt=""
+            className="mb-5 w-full max-w-[460px]"
+            name="noCollections"
+          />
+          <h3 className="text-lg font-medium">No collections yet</h3>
+          <p className="text-muted-foreground mt-2 max-w-sm text-sm">
+            Create a collection to group links by project, campaign, or team.
+          </p>
+        </div>
+      ) : (
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          {collections?.map((collection, index) => {
+            const fallbackIndex = index % COLLECTION_COLORS.length;
+            const collectionColor =
+              collection.collectionColor || COLLECTION_COLORS[fallbackIndex];
 
-          return (
-            <Card
-              variant="accent"
-              key={collection.id}
-              className="group hover:border-accent border-border cursor-pointer border transition-all duration-100 ease-in-out hover:border-dashed hover:shadow-[0px_0px_0px_4px_#ffca0026]"
-            >
-              <CardHeader className="flex items-center">
+            return (
+              <Card
+                variant="accent"
+                key={collection.id}
+                className="group hover:border-accent border-border cursor-pointer border transition-all duration-100 ease-in-out hover:border-dashed hover:shadow-[0px_0px_0px_4px_#ffca0026]"
+              >
+                <CardHeader className="flex items-center">
+                  <NavLink
+                    to={`/collection/${collection.id}`}
+                    tabIndex={0}
+                    className="flex-1"
+                  >
+                    <CardHeading className="flex items-center gap-2">
+                      <div
+                        className="flex h-10 w-10 items-center justify-center rounded-lg"
+                        style={{ backgroundColor: collectionColor + "20" }}
+                      >
+                        <Folder
+                          className="h-5 w-5"
+                          style={{ color: collectionColor }}
+                        />
+                      </div>
+                      <CardTitle className="font-medium">
+                        {collection.name}
+                      </CardTitle>
+                    </CardHeading>
+                  </NavLink>
+                  <CardToolbar>
+                    <CollectionMenuCell
+                      collection={collection}
+                      onView={handleView}
+                      onDeleteClick={handleDeleteClick}
+                    />
+                  </CardToolbar>
+                </CardHeader>
+
                 <NavLink
                   to={`/collection/${collection.id}`}
                   tabIndex={0}
-                  className="flex-1"
+                  className="block"
                 >
-                  <CardHeading className="flex items-center gap-2">
-                    <div
-                      className="flex h-10 w-10 items-center justify-center rounded-lg"
-                      style={{ backgroundColor: collectionColor + "20" }}
-                    >
-                      <Folder
-                        className="h-5 w-5"
-                        style={{ color: collectionColor }}
-                      />
+                  <CardContent className="px-5 pb-0.5">
+                    <CardDescription className="mb-5 line-clamp-2 h-[2lh] text-xs">
+                      {collection.description || "No description given"}
+                    </CardDescription>
+                  </CardContent>
+                  <CardFooter>
+                    <div className="flex flex-wrap gap-2">
+                      <Badge variant="default">
+                        [{collection.urlCount}]{" "}
+                        <span className="text-muted-foreground pl-1 text-xs">
+                          {collection.urlCount > 1 ? "links" : "link"}
+                        </span>
+                      </Badge>
+                      <Badge variant="default">
+                        [{collection.totalClickCount}]{" "}
+                        <span className="text-muted-foreground pl-1 text-xs">
+                          {collection.totalClickCount > 1 ? "clicks" : "click"}
+                        </span>
+                      </Badge>
                     </div>
-                    <CardTitle className="font-medium">
-                      {collection.name}
-                    </CardTitle>
-                  </CardHeading>
+                  </CardFooter>
                 </NavLink>
-                <CardToolbar>
-                  <CollectionMenuCell
-                    collection={collection}
-                    onView={handleView}
-                    onDeleteClick={handleDeleteClick}
-                  />
-                </CardToolbar>
-              </CardHeader>
-
-              <NavLink
-                to={`/collection/${collection.id}`}
-                tabIndex={0}
-                className="block"
-              >
-                <CardContent className="px-5 pb-0.5">
-                  <CardDescription className="mb-5 line-clamp-2 h-[2lh] text-xs">
-                    {collection.description || "No description given"}
-                  </CardDescription>
-                </CardContent>
-                <CardFooter>
-                  <div className="flex flex-wrap gap-2">
-                    <Badge variant="default">
-                      [{collection.urlCount}]{" "}
-                      <span className="text-muted-foreground pl-1 text-xs">
-                        {collection.urlCount > 1 ? "links" : "link"}
-                      </span>
-                    </Badge>
-                    <Badge variant="default">
-                      [{collection.totalClickCount}]{" "}
-                      <span className="text-muted-foreground pl-1 text-xs">
-                        {collection.totalClickCount > 1 ? "clicks" : "click"}
-                      </span>
-                    </Badge>
-                  </div>
-                </CardFooter>
-              </NavLink>
-            </Card>
-          );
-        })}
-      </div>
+              </Card>
+            );
+          })}
+        </div>
+      )}
 
       {/* Delete Confirmation Dialog */}
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>

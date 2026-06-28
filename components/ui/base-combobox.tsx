@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { cn } from "@/lib/utils";
-import { Combobox as ComboboxPrimitive } from "@base-ui-components/react/combobox";
+import { Combobox as ComboboxPrimitive } from "@base-ui/react/combobox";
 import { cva, type VariantProps } from "class-variance-authority";
 import { NavArrowDown, XmarkCircle } from "iconoir-react";
 import { CheckFatIcon } from "@phosphor-icons/react";

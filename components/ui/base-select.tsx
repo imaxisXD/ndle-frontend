@@ -1,6 +1,6 @@
 import * as React from "react";
 import { isValidElement, ReactNode } from "react";
-import { Select as SelectPrimitive } from "@base-ui-components/react/select";
+import { Select as SelectPrimitive } from "@base-ui/react/select";
 import { cva, VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 import { Check, NavArrowDown, NavArrowUp, XmarkCircle } from "iconoir-react";
@@ -305,7 +305,7 @@ function SelectIndicator({
   const { indicatorPosition } = React.useContext(SelectContext);
 
   return (
-    <span
+    <SelectPrimitive.ItemIndicator
       data-slot="select-indicator"
       className={cn(
         "absolute top-1/2 flex -translate-y-1/2 items-center justify-center",
@@ -314,8 +314,8 @@ function SelectIndicator({
       )}
       {...props}
     >
-      <SelectPrimitive.ItemIndicator>{children}</SelectPrimitive.ItemIndicator>
-    </span>
+      {children}
+    </SelectPrimitive.ItemIndicator>
   );
 }
 

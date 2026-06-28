@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { cn } from "@/lib/utils";
-import { Accordion } from "@base-ui-components/react/accordion";
+import { Accordion } from "@base-ui/react/accordion";
 import { cva, type VariantProps } from "class-variance-authority";
 import { ArrowCircleDownIcon, PlusIcon } from "@phosphor-icons/react";
 
