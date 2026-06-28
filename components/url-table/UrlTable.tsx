@@ -293,25 +293,19 @@ function ShortUrlCell({
           {url.shortUrl}
         </LinkWithFavicon>
 
-        <Tooltip>
-          <TooltipTrigger
-            render={
-              <Button
-                size="icon"
-                variant="link"
-                type="button"
-                className="text-muted-foreground hover:bg-muted flex shrink-0 items-center justify-center rounded-md p-1 transition-colors hover:text-blue-600"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onCopy(url.shortUrl);
-                }}
-              >
-                <CopyIcon weight="duotone" strokeWidth={2.5} />
-              </Button>
-            }
-          />
-          <TooltipContent side="top">Copy</TooltipContent>
-        </Tooltip>
+        <Button
+          size="icon"
+          variant="link"
+          type="button"
+          aria-label="Copy short link"
+          className="text-muted-foreground hover:bg-muted flex shrink-0 items-center justify-center rounded-md p-1 transition-colors hover:text-blue-600"
+          onClick={(e) => {
+            e.stopPropagation();
+            onCopy(url.shortUrl);
+          }}
+        >
+          <CopyIcon weight="duotone" strokeWidth={2.5} />
+        </Button>
       </div>
       <p
         className="text-muted-foreground truncate pl-1 text-xs"
