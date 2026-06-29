@@ -9,7 +9,8 @@ import { cva, type VariantProps } from "class-variance-authority";
 const tabsListVariants = cva("flex items-center shrink-0", {
   variants: {
     variant: {
-      default: "bg-accent p-1",
+      // `relative` anchors the sliding TabsIndicator (default variant only).
+      default: "relative bg-accent p-1",
       button: "",
       line: "border-b border-border",
     },
@@ -83,8 +84,11 @@ const tabsTriggerVariants = cva(
   {
     variants: {
       variant: {
+        // The active-pill background lives on <TabsIndicator> for this variant
+        // (see TabsList) so only one filled pill shows; the trigger keeps just
+        // the text-color change. `relative z-[1]` lifts labels above the pill.
         default:
-          "text-muted-foreground hover:text-foreground aria-selected:bg-background aria-selected:text-foreground aria-selected:shadow-xs aria-selected:shadow-black/5 data-[selected]:bg-background data-[selected]:text-foreground data-[selected]:shadow-xs data-[selected]:shadow-black/5",
+          "relative z-[1] text-muted-foreground hover:text-foreground aria-selected:text-foreground data-[selected]:text-foreground",
         button:
           "focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 rounded-lg text-accent-foreground hover:text-foreground aria-selected:bg-accent aria-selected:text-foreground data-[selected]:bg-accent data-[selected]:text-foreground",
         line: "border-b-2 text-muted-foreground border-transparent hover:text-primary aria-selected:border-primary aria-selected:text-primary data-[selected]:border-primary data-[selected]:text-primary",
@@ -119,6 +123,51 @@ const tabsTriggerVariants = cva(
   },
 );
 
+// Variants for the sliding active-pill indicator (default variant only).
+// Positioned/sized from Base UI's --active-tab-* CSS vars. The radius mirrors
+// the trigger radius per size so the pill matches the active tab shape.
+const tabsIndicatorVariants = cva(
+  cn(
+    "pointer-events-none absolute top-0 left-0 z-0",
+    // Move with `translate` (GPU-friendly) and size from Base UI's --active-tab-*
+    // vars, so the pill tracks the active tab's box within the list padding.
+    "translate-x-[var(--active-tab-left)] translate-y-[var(--active-tab-top)]",
+    "h-[var(--active-tab-height)] w-[var(--active-tab-width)]",
+    // The filled pill that previously lived on the active trigger.
+    "bg-background shadow-xs shadow-black/5",
+    // Tween position + size with the shared motion tokens.
+    "transition-[translate,width,height] [transition-duration:var(--duration-fast)] [transition-timing-function:var(--ease-smooth-out)]",
+    // No first-paint flash: Base UI sets data-activation-direction="none" until
+    // a user actually switches tabs, so the initial snap runs without a tween.
+    "data-[activation-direction=none]:transition-none",
+    "motion-reduce:transition-none",
+  ),
+  {
+    variants: {
+      shape: {
+        default: "",
+        pill: "rounded-full",
+      },
+      size: {
+        lg: "rounded-md",
+        md: "rounded-md",
+        sm: "rounded-sm",
+        xs: "rounded-sm",
+      },
+    },
+    compoundVariants: [
+      { shape: "pill", size: "lg", className: "rounded-full" },
+      { shape: "pill", size: "md", className: "rounded-full" },
+      { shape: "pill", size: "sm", className: "rounded-full" },
+      { shape: "pill", size: "xs", className: "rounded-full" },
+    ],
+    defaultVariants: {
+      shape: "default",
+      size: "md",
+    },
+  },
+);
+
 // Variants for TabsContent
 const tabsContentVariants = cva(
   "mt-2.5 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2",
@@ -137,10 +186,12 @@ const tabsContentVariants = cva(
 // Context
 type TabsContextType = {
   variant?: "default" | "button" | "line";
+  shape?: "default" | "pill";
   size?: "lg" | "sm" | "xs" | "md";
 };
 const TabsContext = React.createContext<TabsContextType>({
   variant: "default",
+  shape: "default",
   size: "md",
 });
 
@@ -159,18 +210,39 @@ function TabsList({
   variant = "default",
   shape = "default",
   size = "md",
+  children,
   ...props
 }: React.ComponentProps<typeof BaseTabs.List> &
   VariantProps<typeof tabsListVariants>) {
   return (
     <TabsContext.Provider
-      value={{ variant: variant || "default", size: size || "md" }}
+      value={{
+        variant: variant || "default",
+        shape: shape || "default",
+        size: size || "md",
+      }}
     >
       <BaseTabs.List
         data-slot="tabs-list"
         className={cn(tabsListVariants({ variant, shape, size }), className)}
         {...props}
-      />
+      >
+        {/* Sliding active pill — segmented (default) variant only. Base UI's
+            Indicator measures the active tab and exposes --active-tab-* vars on
+            itself; tabsIndicatorVariants positions, sizes, and fills it. */}
+        {variant === "default" ? (
+          <BaseTabs.Indicator
+            data-slot="tabs-indicator"
+            className={cn(
+              tabsIndicatorVariants({
+                shape: shape || "default",
+                size: size || "md",
+              }),
+            )}
+          />
+        ) : null}
+        {children}
+      </BaseTabs.List>
     </TabsContext.Provider>
   );
 }

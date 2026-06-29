@@ -275,7 +275,10 @@ export function LinkAIChatPanel({ shortUrl, fullUrl }: LinkAIChatPanelProps) {
               <div className="border-border bg-card rounded-lg border p-3">
                 <div className="mb-2 flex items-center gap-2">
                   <MagicWand className="h-3.5 w-3.5 animate-pulse text-yellow-600" />
-                  <span className="text-muted-foreground text-xs font-medium">
+                  <span
+                    className="t-shimmer text-xs font-medium"
+                    data-text="AI is thinking..."
+                  >
                     AI is thinking...
                   </span>
                 </div>

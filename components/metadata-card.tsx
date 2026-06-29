@@ -3,7 +3,7 @@
 import { formatRelative } from "@/lib/utils";
 import { Card, CardContent } from "./ui/card";
 import { AntennaSignal, Clock, Link, OpenInBrowser } from "iconoir-react";
-import { Skeleton } from "./ui/skeleton";
+import { Skeleton, SkeletonReveal } from "./ui/skeleton";
 import LinkWithIcon from "./ui/link-with-icon";
 import { makeShortLinkWithDomain } from "@/lib/config";
 import { QRCodeSVG } from "qrcode.react";
@@ -131,11 +131,15 @@ export default function MetadataCard({
           </div>
           <div className="flex items-center gap-2">
             <Clock className="size-4" /> Created:{" "}
-            {creationTime ? (
-              formatRelative(creationTime || 0)
-            ) : (
-              <Skeleton className="w-24" />
-            )}
+            <SkeletonReveal
+              loading={creationTime === undefined}
+              className="h-lh w-24"
+              skeleton={<Skeleton className="h-full w-full" />}
+            >
+              <span className="whitespace-nowrap">
+                {formatRelative(creationTime || 0)}
+              </span>
+            </SkeletonReveal>
           </div>
           <div className="flex items-center gap-2">
             <AntennaSignal className="size-4" />

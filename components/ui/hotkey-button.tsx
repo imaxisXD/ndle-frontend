@@ -2,6 +2,7 @@ import { useHotkeys } from "react-hotkeys-hook";
 import { Button } from "./button";
 import { Kbd, KbdGroup } from "./kbd";
 import { KeyCommand } from "iconoir-react";
+import { cn } from "@/lib/utils";
 import type { VariantProps } from "class-variance-authority";
 import type * as React from "react";
 
@@ -17,6 +18,7 @@ interface HotkeyButtonProps extends Omit<
   enabled?: boolean;
   enableOnFormTags?: boolean;
   kbdClassName?: string;
+  loading?: boolean;
 }
 
 /**
@@ -73,18 +75,23 @@ export function HotkeyButton({
   enabled = true,
   enableOnFormTags = true,
   kbdClassName,
+  loading = false,
+  className,
+  disabled,
   ...props
 }: HotkeyButtonProps) {
+  const buttonDisabled = Boolean(disabled || loading);
+
   // Check if hotkey is empty
   const hasHotkey = Array.isArray(hotkey)
-    ? hotkey.length > 0 && hotkey.some((key) => key.trim() !== "")
+    ? hotkey.some((key) => key.trim() !== "")
     : hotkey.trim() !== "";
 
   // Register hotkeys with react-hotkeys-hook only if hotkey is provided
   useHotkeys(hotkey, onClick, {
     preventDefault: true,
     enableOnFormTags,
-    enabled: enabled && hasHotkey,
+    enabled: enabled && hasHotkey && !buttonDisabled,
   });
 
   const renderHotkeyDisplay = () => {
@@ -148,7 +155,18 @@ export function HotkeyButton({
   };
 
   return (
-    <Button {...props} onClick={onClick}>
+    <Button
+      {...props}
+      onClick={onClick}
+      disabled={buttonDisabled}
+      aria-busy={loading ? true : props["aria-busy"]}
+      data-loading={loading ? "true" : undefined}
+      className={cn(
+        className,
+        loading &&
+          "bg-black/85 text-white shadow-none transition-[background-color,color,box-shadow,filter] duration-150 ease-out hover:bg-black/85 hover:text-white hover:drop-shadow-none disabled:cursor-wait disabled:bg-black/85 disabled:text-white disabled:opacity-80",
+      )}
+    >
       {children}
       {renderHotkeyDisplay()}
     </Button>

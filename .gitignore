@@ -21,6 +21,11 @@
 /.open-next/
 cloudflare-env.d.ts
 
+# local tool/runtime state
+/.codex/
+/.impeccable/
+/.wrangler/
+
 # production
 /build
 

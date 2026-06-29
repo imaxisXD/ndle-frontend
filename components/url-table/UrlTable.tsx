@@ -1,9 +1,12 @@
 import React, {
+  memo,
   useCallback,
   useEffect,
+  useLayoutEffect,
+  useRef,
   useMemo,
   useState,
-  Fragment,
+  useSyncExternalStore,
 } from "react";
 import {
   ColumnDef,
@@ -72,11 +75,11 @@ import {
 } from "../ui/base-dialog";
 import { type DisplayUrl } from "./types";
 import { formatRelative, cn, mapHealthStatusToUI } from "@/lib/utils";
-import { CircleGridLoaderIcon } from "../icons";
+import { DotmatrixLoaderIcon } from "@/components/ui/dotmatrix-loader-icon";
 import { EmptyStateImage } from "@/components/empty-state-image";
+import { AnimatedMetricNumber } from "@/components/animated-metric-number";
 import { Skeleton } from "../ui/skeleton";
 import { makeShortLinkWithDomain } from "@/lib/config";
-import NumberFlow from "@number-flow/react";
 
 import { ChartBarIcon, CopyIcon, TrashIcon } from "@phosphor-icons/react";
 import { LinkWithFavicon } from "../ui/link-with-favicon";
@@ -172,15 +175,15 @@ function SortableHeader({
 }
 
 function ActionsMenuCell({
-  url,
+  shortUrl,
   onNavigateToAnalytics,
   onDeleteClick,
 }: {
-  url: DisplayUrl;
+  shortUrl: string;
   onNavigateToAnalytics: (slug: string) => void;
   onDeleteClick: (slug: string, shortUrl: string) => void;
 }) {
-  const slug = url.shortUrl.split("/").pop() || "";
+  const slug = shortUrl.split("/").pop() || "";
   const [menuOpen, setMenuOpen] = useState(false);
 
   useHotkeys(
@@ -201,7 +204,7 @@ function ActionsMenuCell({
     (e) => {
       if (menuOpen) {
         e.preventDefault();
-        onDeleteClick(slug, url.shortUrl);
+        onDeleteClick(slug, shortUrl);
         setMenuOpen(false);
       }
     },
@@ -253,7 +256,7 @@ function ActionsMenuCell({
           variant="destructive"
           onClick={(e) => {
             e.stopPropagation();
-            onDeleteClick(slug, url.shortUrl);
+            onDeleteClick(slug, shortUrl);
             setMenuOpen(false);
           }}
         >
@@ -272,60 +275,585 @@ function ActionsMenuCell({
 }
 
 function ShortUrlCell({
-  url,
+  shortUrl,
+  originalUrl,
   onCopy,
 }: {
-  url: DisplayUrl;
+  shortUrl: string;
+  originalUrl: string;
   onCopy: (shortUrl: string) => void;
 }) {
-  const normalizedHref = /^https?:\/\//i.test(url.shortUrl)
-    ? url.shortUrl
-    : `https://${url.shortUrl}`;
+  const [copied, setCopied] = useState(false);
+  const checkWrapRef = useRef<HTMLSpanElement>(null);
+  const checkPathRef = useRef<SVGPathElement>(null);
+  const revertTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Calibrate the stroke-draw to this exact check path once it's mounted.
+  useEffect(() => {
+    const path = checkPathRef.current;
+    if (!path) return;
+    const len = Math.ceil(path.getTotalLength());
+    path.style.strokeDasharray = String(len);
+    path.style.strokeDashoffset = String(len);
+  }, []);
+
+  // Play the celebratory success-check appear the moment `copied` flips true.
+  useEffect(() => {
+    if (!copied) return;
+    const node = checkWrapRef.current;
+    if (!node) return;
+    // Replay from an already-visible state: reset → reflow → run.
+    node.setAttribute("data-state", "out");
+    void node.offsetWidth; // force reflow so keyframes restart from offset 0
+    node.setAttribute("data-state", "in");
+  }, [copied]);
+
+  // Clear the revert timer on unmount so it never fires against a stale node.
+  useEffect(() => {
+    return () => {
+      if (revertTimerRef.current) clearTimeout(revertTimerRef.current);
+    };
+  }, []);
+
+  const normalizedHref = /^https?:\/\//i.test(shortUrl)
+    ? shortUrl
+    : `https://${shortUrl}`;
   return (
     <div className="w-full space-y-1">
       <div className="flex items-center justify-start gap-1">
         <LinkWithFavicon
           url={normalizedHref}
-          originalUrl={url.originalUrl}
+          originalUrl={originalUrl}
           onClick={(e) => e.stopPropagation()}
+          iconClassName="size-3"
           asCode
         >
-          {url.shortUrl}
+          {shortUrl}
         </LinkWithFavicon>
 
         <Button
           size="icon"
           variant="link"
           type="button"
-          aria-label="Copy short link"
-          className="text-muted-foreground hover:bg-muted flex shrink-0 items-center justify-center rounded-md p-1 transition-colors hover:text-blue-600"
+          aria-label={copied ? "Copied" : "Copy short link"}
+          className="text-muted-foreground hover:bg-muted flex size-7 shrink-0 items-center justify-center rounded-md transition-colors hover:text-blue-600"
           onClick={(e) => {
             e.stopPropagation();
-            onCopy(url.shortUrl);
+            onCopy(shortUrl);
+            setCopied(true);
+            if (revertTimerRef.current) clearTimeout(revertTimerRef.current);
+            revertTimerRef.current = setTimeout(() => setCopied(false), 2000);
           }}
         >
-          <CopyIcon weight="duotone" strokeWidth={2.5} />
+          {/* Icon slot: clipboard (a) cross-fades to the success check (b)
+              the moment the link is copied. */}
+          <span className="t-icon-swap" data-state={copied ? "b" : "a"}>
+            <span className="t-icon" data-icon="a" aria-hidden="true">
+              <CopyIcon
+                className="size-3.5"
+                weight="duotone"
+                strokeWidth={2.5}
+              />
+            </span>
+            <span className="t-icon" data-icon="b" aria-hidden="true">
+              {/* success-check: plays the celebratory draw on copy */}
+              <span
+                ref={checkWrapRef}
+                className="t-success-check size-3.5 text-green-600"
+                data-state="out"
+              >
+                <svg viewBox="0 0 24 24" fill="none" className="size-3.5">
+                  <path
+                    ref={checkPathRef}
+                    d="M5 12.5 L10 17.5 L19 6.5"
+                    stroke="currentColor"
+                    strokeWidth={2.5}
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </span>
+            </span>
+          </span>
         </Button>
       </div>
       <p
         className="text-muted-foreground truncate pl-1 text-xs"
-        title={url.originalUrl}
+        title={originalUrl}
       >
-        {url.originalUrl}
+        {originalUrl}
       </p>
     </div>
   );
 }
 
-function ClickCountNumber({ clicks }: { clicks: number }) {
-  const [shownClicks, setShownClicks] = useState(clicks);
+type StoredClickCount = {
+  clicks: number;
+  version: number;
+};
 
-  useEffect(() => {
-    setShownClicks(clicks);
-  }, [clicks]);
+const storedClickCounts = new Map<string, StoredClickCount>();
+const clickCountListeners = new Map<string, Set<() => void>>();
 
-  return <NumberFlow value={shownClicks} isolate willChange />;
+function updateStoredClickCounts(
+  clickCounts: Array<{ clicks: number; id: string }>,
+) {
+  for (const { clicks, id } of clickCounts) {
+    const previous = storedClickCounts.get(id);
+
+    if (!previous) {
+      storedClickCounts.set(id, { clicks, version: 0 });
+      continue;
+    }
+
+    if (previous.clicks === clicks) {
+      continue;
+    }
+
+    storedClickCounts.set(id, {
+      clicks,
+      version: previous.version + 1,
+    });
+
+    const listeners = clickCountListeners.get(id);
+    if (!listeners) {
+      continue;
+    }
+
+    for (const tellCountChanged of listeners) {
+      tellCountChanged();
+    }
+  }
 }
+
+function useStoredClickCount(clickCountId: string, startingClicks: number) {
+  const startingSnapshot = useMemo<StoredClickCount>(
+    () => ({ clicks: startingClicks, version: 0 }),
+    [startingClicks],
+  );
+
+  const getSnapshot = useCallback(
+    () => storedClickCounts.get(clickCountId) ?? startingSnapshot,
+    [clickCountId, startingSnapshot],
+  );
+
+  const subscribe = useCallback(
+    (tellCountChanged: () => void) => {
+      const listeners = clickCountListeners.get(clickCountId) ?? new Set();
+      listeners.add(tellCountChanged);
+      clickCountListeners.set(clickCountId, listeners);
+
+      return () => {
+        listeners.delete(tellCountChanged);
+        if (listeners.size === 0) {
+          clickCountListeners.delete(clickCountId);
+        }
+      };
+    },
+    [clickCountId],
+  );
+
+  return useSyncExternalStore(subscribe, getSnapshot, getSnapshot).clicks;
+}
+
+function ClickCountNumber({
+  clickCountId,
+  startingClicks,
+}: {
+  clickCountId: string;
+  startingClicks: number;
+}) {
+  const clicks = useStoredClickCount(clickCountId, startingClicks);
+
+  return (
+    <AnimatedMetricNumber
+      animationKey={`url-clicks:${clickCountId}`}
+      className="tabular-nums"
+      value={clicks}
+    />
+  );
+}
+
+const urlTableColumnSize = {
+  actions: 40,
+  clicks: 60,
+  createdAt: 60,
+  separator: 60,
+  shortUrl: 180,
+  status: 60,
+} as const;
+
+type UrlDataRowProps = {
+  createdAt: number;
+  id: string;
+  onCopy: (shortUrl: string) => void;
+  onDeleteClick: (slug: string, shortUrl: string) => void;
+  onNavigateToAnalytics: (slug: string) => void;
+  originalUrl: string;
+  shortUrl: string;
+  startingClicks: number;
+  status: string;
+};
+
+// React Compiler skips UrlTable because of useReactTable(), so rows need a real
+// memo boundary here. Count changes go through ClickCountNumber instead.
+const UrlDataRow = memo(function UrlDataRow({
+  createdAt,
+  id,
+  onCopy,
+  onDeleteClick,
+  onNavigateToAnalytics,
+  originalUrl,
+  shortUrl,
+  startingClicks,
+  status,
+}: UrlDataRowProps) {
+  const variant = getStatusBadgeVariant(status);
+
+  return (
+    <TableRow className="bg-muted/30 h-14">
+      <TableCell
+        className="px-4 py-3"
+        style={{ width: urlTableColumnSize.status }}
+      >
+        <div className="pl-2">
+          <Badge
+            variant={variant}
+            className={
+              status === "healed"
+                ? "inline-flex items-center gap-1.5"
+                : undefined
+            }
+          >
+            {status === "healed" && (
+              <span className="bg-success h-1.5 w-1.5 rounded-full" />
+            )}
+            {status}
+          </Badge>
+        </div>
+      </TableCell>
+
+      <TableCell
+        className="px-4 py-3 align-top"
+        style={{ width: urlTableColumnSize.shortUrl }}
+      >
+        <ShortUrlCell
+          shortUrl={shortUrl}
+          originalUrl={originalUrl}
+          onCopy={onCopy}
+        />
+      </TableCell>
+
+      <TableCell
+        className="px-4 py-3 align-top"
+        style={{ width: urlTableColumnSize.separator }}
+      />
+
+      <TableCell
+        className="px-4 py-3 align-top"
+        style={{ width: urlTableColumnSize.clicks }}
+      >
+        <div className="flex flex-col items-start space-y-1">
+          <div className="flex h-8 items-center">
+            <p className="pl-5 text-sm font-medium tabular-nums">
+              <ClickCountNumber
+                clickCountId={id}
+                startingClicks={startingClicks}
+              />
+            </p>
+          </div>
+          <p className="text-muted-foreground text-xs">[clicks]</p>
+        </div>
+      </TableCell>
+
+      <TableCell
+        className="px-4 py-3 align-top"
+        style={{ width: urlTableColumnSize.createdAt }}
+      >
+        <div className="flex h-8 items-center">
+          <p className="text-muted-foreground translate-y-px text-xs">
+            {formatRelative(createdAt)}
+          </p>
+        </div>
+      </TableCell>
+
+      <TableCell
+        className="px-4 py-3 align-top"
+        style={{ width: urlTableColumnSize.actions }}
+      >
+        <div className="flex h-8 items-center">
+          <ActionsMenuCell
+            shortUrl={shortUrl}
+            onNavigateToAnalytics={onNavigateToAnalytics}
+            onDeleteClick={onDeleteClick}
+          />
+        </div>
+      </TableCell>
+    </TableRow>
+  );
+}, areUrlDataRowPropsEqual);
+
+function areUrlDataRowPropsEqual(
+  previous: UrlDataRowProps,
+  next: UrlDataRowProps,
+) {
+  return (
+    previous.id === next.id &&
+    previous.status === next.status &&
+    previous.shortUrl === next.shortUrl &&
+    previous.originalUrl === next.originalUrl &&
+    previous.createdAt === next.createdAt &&
+    previous.onCopy === next.onCopy &&
+    previous.onDeleteClick === next.onDeleteClick &&
+    previous.onNavigateToAnalytics === next.onNavigateToAnalytics
+  );
+}
+
+type CollectionFilterOption = {
+  collectionColor?: string | null;
+  id: string;
+  name: string;
+};
+
+const statusFilterOptions = [
+  "all",
+  "healthy",
+  "warning",
+  "error",
+  "checking",
+  "healed",
+] as const;
+
+// Search and filters do not use live click counts, so they should stay out of
+// the count update render path.
+const UrlTableSearch = memo(function UrlTableSearch({
+  onClearSearch,
+  onSearchChange,
+  searchPlaceholder,
+  searchQuery,
+}: {
+  onClearSearch: () => void;
+  onSearchChange: (nextSearchQuery: string) => void;
+  searchPlaceholder: string;
+  searchQuery: string;
+}) {
+  return (
+    <div className="border-border border-b p-6">
+      <div className="relative">
+        <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
+        <input
+          type="text"
+          value={searchQuery}
+          onChange={(e) => onSearchChange(e.target.value)}
+          placeholder={searchPlaceholder}
+          className="border-border bg-home focus:ring-foreground/20 w-full rounded-md border py-2.5 pr-10 pl-10 text-sm focus:ring-2 focus:outline-none"
+        />
+        {searchQuery && (
+          <button
+            type="button"
+            onClick={onClearSearch}
+            className="text-muted-foreground hover:text-foreground absolute top-1/2 right-3 -translate-y-1/2"
+          >
+            <XmarkCircle className="size-4" />
+          </button>
+        )}
+      </div>
+    </div>
+  );
+});
+
+const UrlTableFilters = memo(function UrlTableFilters({
+  collectionFilter,
+  collectionOptions,
+  onClearAllFilters,
+  onClearSearch,
+  onCollectionFilterChange,
+  onStatusFilterChange,
+  onToggleFiltersPanel,
+  searchQuery,
+  showFiltersPanel,
+  statusFilter,
+}: {
+  collectionFilter: string | "all";
+  collectionOptions: CollectionFilterOption[];
+  onClearAllFilters: () => void;
+  onClearSearch: () => void;
+  onCollectionFilterChange: (collectionId: string | "all") => void;
+  onStatusFilterChange: (status: string | "all") => void;
+  onToggleFiltersPanel: () => void;
+  searchQuery: string;
+  showFiltersPanel: boolean;
+  statusFilter: string | "all";
+}) {
+  const selectedCollection = collectionOptions.find(
+    (collection) => collection.id === collectionFilter,
+  );
+  const hasActiveFilters =
+    searchQuery || statusFilter !== "all" || collectionFilter !== "all";
+
+  return (
+    <div className="border-border border-b p-6 py-3">
+      <div className="flex items-center justify-end">
+        <Button
+          variant="secondary"
+          type="button"
+          onClick={onToggleFiltersPanel}
+          className={`hover:bg-accent hover:text-foreground flex items-center gap-2 rounded-md px-3 py-2 text-sm transition-colors ${
+            showFiltersPanel ||
+            statusFilter !== "all" ||
+            collectionFilter !== "all"
+              ? "bg-foreground text-background"
+              : "border-border hover:bg-accent border"
+          }`}
+        >
+          {!showFiltersPanel ? (
+            <FilterAlt className="size-4.5" />
+          ) : (
+            <FilterSolid className="size-4.5" />
+          )}
+          Filters
+        </Button>
+      </div>
+
+      <div
+        className={`overflow-hidden transition-[max-height] duration-300 ease-in-out ${
+          showFiltersPanel ? "max-h-64" : "max-h-0"
+        }`}
+        aria-hidden={!showFiltersPanel}
+      >
+        <div className="bg-muted/30 border-border mt-4 flex flex-col gap-4 rounded-lg border p-4">
+          {collectionOptions.length > 0 && (
+            <div className="flex flex-col gap-2">
+              <span className="text-muted-foreground text-xs font-medium">
+                Collection:
+              </span>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={() => onCollectionFilterChange("all")}
+                  className={`rounded-md px-3 py-1 text-xs transition-colors ${
+                    collectionFilter === "all"
+                      ? "bg-foreground text-background"
+                      : "bg-background border-border hover:bg-accent border"
+                  }`}
+                >
+                  All
+                </button>
+                {collectionOptions.map((collection) => (
+                  <button
+                    type="button"
+                    key={collection.id}
+                    onClick={() => onCollectionFilterChange(collection.id)}
+                    className={`flex items-center gap-1.5 rounded-md px-3 py-1 text-xs transition-colors ${
+                      collectionFilter === collection.id
+                        ? "bg-foreground text-background"
+                        : "bg-background border-border hover:bg-accent border"
+                    }`}
+                  >
+                    <span
+                      className="h-2 w-2 rounded-full"
+                      style={{
+                        backgroundColor:
+                          collection.collectionColor || "#6b7280",
+                      }}
+                    />
+                    {collection.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <div className="flex items-center gap-2">
+            <span className="text-muted-foreground text-xs font-medium">
+              Status:
+            </span>
+            <div className="flex gap-2">
+              {statusFilterOptions.map((status) => (
+                <button
+                  type="button"
+                  key={status}
+                  onClick={() => onStatusFilterChange(status)}
+                  className={`rounded-md px-3 py-1 text-xs transition-colors ${
+                    statusFilter === status
+                      ? "bg-foreground text-background"
+                      : "bg-background border-border hover:bg-accent border"
+                  }`}
+                >
+                  {status === "all" ? "All" : status}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {!hasActiveFilters ? null : (
+        <div className="mt-3 flex flex-wrap items-center gap-2">
+          <span className="text-muted-foreground text-xs">Active filters:</span>
+          {searchQuery && (
+            <div className="inline-flex items-center">
+              <Badge variant="primary">Search: {searchQuery}</Badge>
+              <Button
+                size="icon"
+                variant="link"
+                type="button"
+                onClick={onClearSearch}
+                className="p-1 hover:text-red-500"
+              >
+                <XmarkCircle className="size-4" />
+              </Button>
+            </div>
+          )}
+          {collectionFilter !== "all" && selectedCollection && (
+            <div className="inline-flex items-center">
+              <Badge variant="primary">
+                <span
+                  className="mr-1.5 h-2 w-2 rounded-full"
+                  style={{
+                    backgroundColor:
+                      selectedCollection.collectionColor || "#6b7280",
+                  }}
+                />
+                {selectedCollection.name || "Collection"}
+              </Badge>
+              <Button
+                variant="link"
+                type="button"
+                size="icon"
+                onClick={() => onCollectionFilterChange("all")}
+                className="p-1 hover:text-red-500"
+              >
+                <XmarkCircle className="size-4" />
+              </Button>
+            </div>
+          )}
+          {statusFilter !== "all" && (
+            <div className="inline-flex items-center">
+              <Badge variant="primary">Status: {statusFilter}</Badge>
+              <Button
+                variant="link"
+                type="button"
+                size="icon"
+                onClick={() => onStatusFilterChange("all")}
+                className="p-1 hover:text-red-500"
+              >
+                <XmarkCircle className="size-4" />
+              </Button>
+            </div>
+          )}
+          <button
+            type="button"
+            onClick={onClearAllFilters}
+            className="text-muted-foreground hover:text-foreground text-xs underline"
+          >
+            Clear all
+          </button>
+        </div>
+      )}
+    </div>
+  );
+});
 
 function getDisplayStatus(doc: UserUrlsResponse[number]) {
   const healthStatus = doc.latestHealthCheck?.healthStatus as
@@ -399,8 +927,52 @@ export function UrlTable({
   );
   const [showFiltersPanel, setShowFiltersPanel] = useState(false);
 
+  const handleSearchChange = useCallback((nextSearchQuery: string) => {
+    setSearchQuery(nextSearchQuery);
+  }, []);
+
+  const handleClearSearch = useCallback(() => {
+    setSearchQuery("");
+  }, []);
+
+  const handleToggleFiltersPanel = useCallback(() => {
+    setShowFiltersPanel((isPanelShown) => !isPanelShown);
+  }, []);
+
+  const handleCollectionFilterChange = useCallback(
+    (nextCollectionFilter: string | "all") => {
+      setCollectionFilter(nextCollectionFilter);
+    },
+    [],
+  );
+
+  const handleStatusFilterChange = useCallback(
+    (nextStatusFilter: string | "all") => {
+      setStatusFilter(nextStatusFilter);
+    },
+    [],
+  );
+
+  const handleClearAllFilters = useCallback(() => {
+    setSearchQuery("");
+    setStatusFilter("all");
+    setCollectionFilter("all");
+  }, []);
+
   // Fetch collections for the filter
   const collections = useQuery(api.collectionMangament.getUserCollections, {});
+
+  const collectionOptions = useMemo<CollectionFilterOption[]>(() => {
+    if (!collections) {
+      return [];
+    }
+
+    return collections.map((collection) => ({
+      collectionColor: collection.collectionColor,
+      id: collection.id,
+      name: collection.name,
+    }));
+  }, [collections]);
 
   // Fetch the selected collection with URLs for filtering
   const selectedCollectionData = useQuery(
@@ -540,6 +1112,12 @@ export function UrlTable({
     return filteredUrls;
   }, [filteredUrls, sorting]);
 
+  useLayoutEffect(() => {
+    updateStoredClickCounts(
+      sortedUrls.map((url) => ({ clicks: url.clicks, id: url.id })),
+    );
+  }, [sortedUrls]);
+
   const handleCopy = useCallback(
     (shortUrl: string) => {
       const normalized = /^https?:\/\//i.test(shortUrl)
@@ -620,19 +1198,25 @@ export function UrlTable({
           );
         },
         enableSorting: false,
-        size: 60,
-        maxSize: 60,
-        minSize: 60,
+        size: urlTableColumnSize.status,
+        maxSize: urlTableColumnSize.status,
+        minSize: urlTableColumnSize.status,
       },
       {
         accessorKey: "shortUrl",
         header: () => <span className="text-sm font-medium">Short Link</span>,
         cell: ({ row }) => {
           const url = row.original;
-          return <ShortUrlCell url={url} onCopy={handleCopy} />;
+          return (
+            <ShortUrlCell
+              shortUrl={url.shortUrl}
+              originalUrl={url.originalUrl}
+              onCopy={handleCopy}
+            />
+          );
         },
         enableSorting: false,
-        size: 180,
+        size: urlTableColumnSize.shortUrl,
       },
       // Visual separator column
       {
@@ -640,9 +1224,9 @@ export function UrlTable({
         header: () => null,
         cell: () => null,
         enableSorting: false,
-        size: 60,
-        maxSize: 60,
-        minSize: 60,
+        size: urlTableColumnSize.separator,
+        maxSize: urlTableColumnSize.separator,
+        minSize: urlTableColumnSize.separator,
       },
       {
         accessorKey: "clicks",
@@ -664,15 +1248,18 @@ export function UrlTable({
           return (
             <div className="flex flex-col items-start justify-center">
               <p className="pl-5 text-sm font-medium tabular-nums">
-                <ClickCountNumber clicks={row.original.clicks} />
+                <ClickCountNumber
+                  clickCountId={row.original.id}
+                  startingClicks={row.original.clicks}
+                />
               </p>
               <p className="text-muted-foreground text-xs">[clicks]</p>
             </div>
           );
         },
-        size: 60,
-        maxSize: 60,
-        minSize: 60,
+        size: urlTableColumnSize.clicks,
+        maxSize: urlTableColumnSize.clicks,
+        minSize: urlTableColumnSize.clicks,
       },
       {
         accessorKey: "createdAt",
@@ -698,9 +1285,9 @@ export function UrlTable({
             </p>
           );
         },
-        size: 60,
-        maxSize: 60,
-        minSize: 60,
+        size: urlTableColumnSize.createdAt,
+        maxSize: urlTableColumnSize.createdAt,
+        minSize: urlTableColumnSize.createdAt,
       },
       {
         id: "actions",
@@ -709,13 +1296,13 @@ export function UrlTable({
           const url = row.original;
           return (
             <ActionsMenuCell
-              url={url}
+              shortUrl={url.shortUrl}
               onNavigateToAnalytics={handleNavigateToAnalytics}
               onDeleteClick={handleDeleteClick}
             />
           );
         },
-        size: 40,
+        size: urlTableColumnSize.actions,
       },
     ],
     [handleCopy, handleNavigateToAnalytics, handleDeleteClick],
@@ -750,9 +1337,6 @@ export function UrlTable({
 
   const columns_count = table.getAllColumns().length;
 
-  if (urls?.length === 0) {
-    return null;
-  }
   return (
     <div className="border-border bg-card rounded-md border">
       {showHeader && (
@@ -769,216 +1353,33 @@ export function UrlTable({
       )}
 
       {showSearch && (
-        <div className="border-border border-b p-6">
-          <div className="relative">
-            <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder={searchPlaceholder}
-              className="border-border bg-home focus:ring-foreground/20 w-full rounded-md border py-2.5 pr-10 pl-10 text-sm focus:ring-2 focus:outline-none"
-            />
-            {searchQuery && (
-              <button
-                type="button"
-                onClick={() => setSearchQuery("")}
-                className="text-muted-foreground hover:text-foreground absolute top-1/2 right-3 -translate-y-1/2"
-              >
-                <XmarkCircle className="size-4" />
-              </button>
-            )}
-          </div>
-        </div>
+        <UrlTableSearch
+          searchQuery={searchQuery}
+          searchPlaceholder={searchPlaceholder}
+          onSearchChange={handleSearchChange}
+          onClearSearch={handleClearSearch}
+        />
       )}
 
       {showFilters && (
-        <div className="border-border border-b p-6 py-3">
-          <div className="flex items-center justify-end">
-            <Button
-              variant="secondary"
-              type="button"
-              onClick={() => setShowFiltersPanel(!showFiltersPanel)}
-              className={`hover:bg-accent hover:text-foreground flex items-center gap-2 rounded-md px-3 py-2 text-sm transition-colors ${
-                showFiltersPanel ||
-                statusFilter !== "all" ||
-                collectionFilter !== "all"
-                  ? "bg-foreground text-background"
-                  : "border-border hover:bg-accent border"
-              }`}
-            >
-              {!showFiltersPanel ? (
-                <FilterAlt className="size-4.5" />
-              ) : (
-                <FilterSolid className="size-4.5" />
-              )}
-              Filters
-            </Button>
-          </div>
-
-          <div
-            className={`overflow-hidden transition-[max-height] duration-300 ease-in-out ${
-              showFiltersPanel ? "max-h-64" : "max-h-0"
-            }`}
-            aria-hidden={!showFiltersPanel}
-          >
-            <div className="bg-muted/30 border-border mt-4 flex flex-col gap-4 rounded-lg border p-4">
-              {/* Collection Filter */}
-              {collections && collections.length > 0 && (
-                <div className="flex flex-col gap-2">
-                  <span className="text-muted-foreground text-xs font-medium">
-                    Collection:
-                  </span>
-                  <div className="flex flex-wrap gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setCollectionFilter("all")}
-                      className={`rounded-md px-3 py-1 text-xs transition-colors ${
-                        collectionFilter === "all"
-                          ? "bg-foreground text-background"
-                          : "bg-background border-border hover:bg-accent border"
-                      }`}
-                    >
-                      All
-                    </button>
-                    {collections.map((collection) => (
-                      <button
-                        type="button"
-                        key={collection.id}
-                        onClick={() => setCollectionFilter(collection.id)}
-                        className={`flex items-center gap-1.5 rounded-md px-3 py-1 text-xs transition-colors ${
-                          collectionFilter === collection.id
-                            ? "bg-foreground text-background"
-                            : "bg-background border-border hover:bg-accent border"
-                        }`}
-                      >
-                        <span
-                          className="h-2 w-2 rounded-full"
-                          style={{
-                            backgroundColor:
-                              collection.collectionColor || "#6b7280",
-                          }}
-                        />
-                        {collection.name}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Status Filter */}
-              <div className="flex items-center gap-2">
-                <span className="text-muted-foreground text-xs font-medium">
-                  Status:
-                </span>
-                <div className="flex gap-2">
-                  {[
-                    "all",
-                    "healthy",
-                    "warning",
-                    "error",
-                    "checking",
-                    "healed",
-                  ].map((status) => (
-                    <button
-                      type="button"
-                      key={status}
-                      onClick={() => setStatusFilter(status)}
-                      className={`rounded-md px-3 py-1 text-xs transition-colors ${
-                        statusFilter === status
-                          ? "bg-foreground text-background"
-                          : "bg-background border-border hover:bg-accent border"
-                      }`}
-                    >
-                      {status === "all" ? "All" : status}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Active Filters */}
-          {!searchQuery &&
-          statusFilter === "all" &&
-          collectionFilter === "all" ? null : (
-            <div className="mt-3 flex flex-wrap items-center gap-2">
-              <span className="text-muted-foreground text-xs">
-                Active filters:
-              </span>
-              {searchQuery && (
-                <div className="inline-flex items-center">
-                  <Badge variant="primary">Search: {searchQuery}</Badge>
-                  <Button
-                    size="icon"
-                    variant="link"
-                    type="button"
-                    onClick={() => setSearchQuery("")}
-                    className="p-1 hover:text-red-500"
-                  >
-                    <XmarkCircle className="size-4" />
-                  </Button>
-                </div>
-              )}
-              {collectionFilter !== "all" && collections && (
-                <div className="inline-flex items-center">
-                  <Badge variant="primary">
-                    <span
-                      className="mr-1.5 h-2 w-2 rounded-full"
-                      style={{
-                        backgroundColor:
-                          collections.find((c) => c.id === collectionFilter)
-                            ?.collectionColor || "#6b7280",
-                      }}
-                    />
-                    {collections.find((c) => c.id === collectionFilter)?.name ||
-                      "Collection"}
-                  </Badge>
-                  <Button
-                    variant="link"
-                    type="button"
-                    size="icon"
-                    onClick={() => setCollectionFilter("all")}
-                    className="p-1 hover:text-red-500"
-                  >
-                    <XmarkCircle className="size-4" />
-                  </Button>
-                </div>
-              )}
-              {statusFilter !== "all" && (
-                <div className="inline-flex items-center">
-                  <Badge variant="primary">Status: {statusFilter}</Badge>
-                  <Button
-                    variant="link"
-                    type="button"
-                    size="icon"
-                    onClick={() => setStatusFilter("all")}
-                    className="p-1 hover:text-red-500"
-                  >
-                    <XmarkCircle className="size-4" />
-                  </Button>
-                </div>
-              )}
-              <button
-                type="button"
-                onClick={() => {
-                  setSearchQuery("");
-                  setStatusFilter("all");
-                  setCollectionFilter("all");
-                }}
-                className="text-muted-foreground hover:text-foreground text-xs underline"
-              >
-                Clear all
-              </button>
-            </div>
-          )}
-        </div>
+        <UrlTableFilters
+          searchQuery={searchQuery}
+          statusFilter={statusFilter}
+          collectionFilter={collectionFilter}
+          collectionOptions={collectionOptions}
+          showFiltersPanel={showFiltersPanel}
+          onToggleFiltersPanel={handleToggleFiltersPanel}
+          onCollectionFilterChange={handleCollectionFilterChange}
+          onStatusFilterChange={handleStatusFilterChange}
+          onClearSearch={handleClearSearch}
+          onClearAllFilters={handleClearAllFilters}
+        />
       )}
 
       <div className="border-border border-b">
         {isLoading ? (
           <Skeleton className="diagonal-dash bg-mute flex h-[499px] flex-col items-center justify-center rounded-none">
-            <CircleGridLoaderIcon className="mx-auto size-6" />
+            <DotmatrixLoaderIcon className="mx-auto" size={24} />
             <h3 className="mt-4 text-sm font-medium">Loading</h3>
             <p className="text-muted-foreground mt-2 h-64 text-xs">
               Please wait while we load your links
@@ -1068,26 +1469,21 @@ export function UrlTable({
             </TableHeader>
             <TableBody>
               {table.getRowModel().rows.map((row) => {
+                const url = row.original;
+
                 return (
-                  <Fragment key={row.id}>
-                    <TableRow
-                      data-state={row.getIsSelected() && "selected"}
-                      className="bg-muted/30 h-14"
-                    >
-                      {row.getVisibleCells().map((cell) => (
-                        <TableCell
-                          key={cell.id}
-                          className="px-4 py-3"
-                          style={{ width: cell.column.getSize() }}
-                        >
-                          {flexRender(
-                            cell.column.columnDef.cell,
-                            cell.getContext(),
-                          )}
-                        </TableCell>
-                      ))}
-                    </TableRow>
-                  </Fragment>
+                  <UrlDataRow
+                    key={row.id}
+                    id={url.id}
+                    status={url.status}
+                    shortUrl={url.shortUrl}
+                    originalUrl={url.originalUrl}
+                    startingClicks={url.clicks}
+                    createdAt={url.createdAt}
+                    onCopy={handleCopy}
+                    onNavigateToAnalytics={handleNavigateToAnalytics}
+                    onDeleteClick={handleDeleteClick}
+                  />
                 );
               })}
               {/* Removed padding rows to avoid rendering empty rows */}

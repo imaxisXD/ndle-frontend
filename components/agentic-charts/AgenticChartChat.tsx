@@ -367,8 +367,13 @@ export function AgenticChartChat({ className }: AgenticChartChatProps) {
                             </JSONUIProvider>
                           </ChartQueryProvider>
                         ) : (
-                          <p className="text-sm text-zinc-500 italic">
-                            Generating chart...
+                          <p className="text-sm italic">
+                            <span
+                              className="t-shimmer"
+                              data-text="Generating chart..."
+                            >
+                              Generating chart...
+                            </span>
                           </p>
                         )}
                       </div>

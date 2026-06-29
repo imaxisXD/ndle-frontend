@@ -9,6 +9,7 @@ interface AddUrlsButtonProps {
   variant?: React.ComponentProps<typeof Button>["variant"];
   size?: React.ComponentProps<typeof Button>["size"];
   disabled?: boolean;
+  loading?: boolean;
 }
 
 export function AddUrlsButton({
@@ -18,6 +19,7 @@ export function AddUrlsButton({
   variant = "default",
   size = "default",
   disabled = false,
+  loading = false,
 }: AddUrlsButtonProps) {
   // Render using HotkeyButton so users can open with ⌘K / Ctrl+K
   return (
@@ -27,6 +29,7 @@ export function AddUrlsButton({
       variant={variant}
       size={size}
       disabled={disabled}
+      loading={loading}
     >
       {label}
     </HotkeyButton>

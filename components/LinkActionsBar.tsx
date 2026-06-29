@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Tooltip,
@@ -10,12 +10,12 @@ import {
 import { Badge } from "@/components/ui/badge";
 import {
   Copy,
-  Check,
   ShareAndroid,
   QrCode,
   OpenNewWindow,
   Download,
 } from "iconoir-react";
+import { cn } from "@/lib/utils";
 
 interface LinkActionsBarProps {
   shortUrl: string;
@@ -32,6 +32,29 @@ export function LinkActionsBar({
   onDownloadQR,
 }: LinkActionsBarProps) {
   const [copied, setCopied] = useState(false);
+  const checkWrapRef = useRef<HTMLSpanElement>(null);
+  const checkPathRef = useRef<SVGPathElement>(null);
+
+  // Calibrate the stroke-draw to this exact path once it's mounted.
+  useEffect(() => {
+    const path = checkPathRef.current;
+    if (!path) return;
+    const len = Math.ceil(path.getTotalLength());
+    path.style.strokeDasharray = String(len);
+    path.style.strokeDashoffset = String(len);
+  }, []);
+
+  // Play the celebratory success-check appear the moment `copied` flips true.
+  useEffect(() => {
+    if (!copied) return;
+    const node = checkWrapRef.current;
+    if (!node) return;
+
+    // Replay from an already-visible state: reset → reflow → run.
+    node.setAttribute("data-state", "out");
+    void node.offsetWidth; // force reflow so keyframes restart from offset 0
+    node.setAttribute("data-state", "in");
+  }, [copied]);
 
   const handleCopy = async () => {
     try {
@@ -101,20 +124,39 @@ export function LinkActionsBar({
                 onClick={handleCopy}
                 className="gap-1.5"
               >
-                {copied ? (
-                  <>
-                    <Check
-                      className="size-3.5 text-green-600"
-                      strokeWidth={2}
-                    />
-                    <span className="text-green-600">Copied!</span>
-                  </>
-                ) : (
-                  <>
+                {/* Icon slot: clipboard (a) cross-fades to the success
+                    check (b) when `copied` toggles. */}
+                <span
+                  className="t-icon-swap size-3.5"
+                  data-state={copied ? "b" : "a"}
+                >
+                  <span className="t-icon" data-icon="a" aria-hidden="true">
                     <Copy className="size-3.5" strokeWidth={1.8} />
-                    <span>Copy</span>
-                  </>
-                )}
+                  </span>
+                  <span className="t-icon" data-icon="b" aria-hidden="true">
+                    {/* success-check: plays the celebratory draw on `copied` */}
+                    <span
+                      ref={checkWrapRef}
+                      className="t-success-check size-3.5 text-green-600"
+                      data-state="out"
+                      aria-hidden="true"
+                    >
+                      <svg viewBox="0 0 24 24" fill="none" className="size-3.5">
+                        <path
+                          ref={checkPathRef}
+                          d="M5 12.5 L10 17.5 L19 6.5"
+                          stroke="currentColor"
+                          strokeWidth={2.5}
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                    </span>
+                  </span>
+                </span>
+                <span className={cn(copied && "text-green-600")}>
+                  {copied ? "Copied!" : "Copy"}
+                </span>
               </Button>
             }
           />

@@ -18,17 +18,7 @@ export function ShimmeringPhrases() {
   }, []);
 
   return (
-    // <Button
-    //   type="submit"
-    //   className="bg-accent hover:bg-accent/90 w-36 rounded-sm text-sm font-medium text-black drop-shadow-none transition-shadow duration-75 ease-out hover:drop-shadow-sm disabled:cursor-not-allowed disabled:opacity-70"
-    // >
-    //   {false ? (
-    //     <span className="flex items-center gap-3">
-    //       <CircleGridLoaderIcon className="size-3 text-black" />
-    //       Shortening
-    //     </span>
-    //   ) : (
-    <AnimatePresence mode="wait">
+    <AnimatePresence initial={false} mode="wait">
       <motion.div
         className="w-16 tabular-nums"
         key={currentIndex}
@@ -40,10 +30,10 @@ export function ShimmeringPhrases() {
         <ShimmeringText
           text={phrases[currentIndex]}
           className="font-doto roundness-100 font-black tabular-nums"
+          color="rgba(255,255,255,0.88)"
+          shimmerColor="rgba(255,255,255,1)"
         />
       </motion.div>
     </AnimatePresence>
-    //   )}
-    // </Button>
   );
 }

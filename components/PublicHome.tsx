@@ -1782,7 +1782,7 @@ export function PublicHome() {
               {/* Pulp tooltip: pronunciation cue */}
               <span
                 aria-hidden
-                className="font-sigmar pointer-events-none absolute top-full left-0 z-30 mt-1 translate-y-1 rounded-sm border border-[color:var(--pulp-ink)] bg-[color:var(--pulp-cream)] px-2 py-1 text-xs whitespace-nowrap text-[color:var(--pulp-ink)] italic opacity-0 shadow-[2px_2px_0_0_var(--pulp-orange)] transition-[opacity,transform] duration-200 group-hover:translate-y-0 group-hover:opacity-100"
+                className="font-sigmar pointer-events-none absolute top-full left-0 z-30 mt-1 origin-top translate-y-1 scale-[var(--scale-small)] rounded-sm border border-[color:var(--pulp-ink)] bg-[color:var(--pulp-cream)] px-2 py-1 text-xs whitespace-nowrap text-[color:var(--pulp-ink)] italic opacity-0 shadow-[2px_2px_0_0_var(--pulp-orange)] transition-[opacity,transform] duration-[var(--tt-out-dur)] ease-[var(--ease-out)] group-hover:translate-y-0 group-hover:scale-100 group-hover:opacity-100 group-hover:delay-[var(--tt-delay)] group-hover:duration-[var(--duration-quick)] motion-reduce:transition-none"
                 style={{ letterSpacing: "0.04em" }}
               >
                 /&apos;nuː·dəl/

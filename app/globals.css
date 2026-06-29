@@ -10,20 +10,22 @@
   --ink: oklch(0.14 0.008 85);
   --ink-deep: oklch(0.09 0.006 85);
   /* Pulp poster palette — electric blue, orange/yellow title, deep purple shadow, cream scenes */
-  --poster:      oklch(0.52 0.22 265);   /* electric blue */
-  --poster-deep: oklch(0.40 0.22 268);   /* deeper blue for gradients/hover */
-  --pulp-orange: oklch(0.71 0.17 45);    /* warm pulp orange */
-  --pulp-yellow: oklch(0.85 0.17 92);    /* butter yellow */
-  --pulp-ink:    oklch(0.15 0.01 85);    /* warm near-black — matches the dashboard ink, pairs with yellow accent */
-  --pulp-cream:  oklch(0.95 0.03 80);    /* warm cream for alternating scenes */
-  --cork:        oklch(0.62 0.09 62);    /* warm tan — the evidence board */
-  --cork-deep:   oklch(0.48 0.08 58);    /* deeper tan for inner shadow */
+  --poster: oklch(0.52 0.22 265); /* electric blue */
+  --poster-deep: oklch(0.4 0.22 268); /* deeper blue for gradients/hover */
+  --pulp-orange: oklch(0.71 0.17 45); /* warm pulp orange */
+  --pulp-yellow: oklch(0.85 0.17 92); /* butter yellow */
+  --pulp-ink: oklch(
+    0.15 0.01 85
+  ); /* warm near-black — matches the dashboard ink, pairs with yellow accent */
+  --pulp-cream: oklch(0.95 0.03 80); /* warm cream for alternating scenes */
+  --cork: oklch(0.62 0.09 62); /* warm tan — the evidence board */
+  --cork-deep: oklch(0.48 0.08 58); /* deeper tan for inner shadow */
   /* Telegram dispatch — period yellow paper, sepia typewriter ink, green letterhead, red stamp */
   --telegram-paper: oklch(0.93 0.07 92);
-  --telegram-edge:  oklch(0.84 0.09 88);
-  --telegram-ink:   oklch(0.28 0.06 55);
+  --telegram-edge: oklch(0.84 0.09 88);
+  --telegram-ink: oklch(0.28 0.06 55);
   --telegram-green: oklch(0.42 0.14 150);
-  --telegram-red:   oklch(0.52 0.22 28);
+  --telegram-red: oklch(0.52 0.22 28);
   --background: oklch(0.97 0 0); /* Light gray background like reference */
   --foreground: oklch(0.145 0 0); /* Black text */
   --card: oklch(0.985 0 0); /* Very light gray cards */
@@ -64,7 +66,8 @@
      elevated surfaces) PLUS a faint dark inner hairline — the hairline is what
      actually reads on near-white cards, giving a gentle raised edge with no
      cast shadow. Use on light surfaces; use --shadow-rim on dark ones. */
-  --shadow-rim-soft: inset 0 1px 0 rgba(255, 255, 255, 0.9),
+  --shadow-rim-soft:
+    inset 0 1px 0 rgba(255, 255, 255, 0.9),
     inset 0 0 0 1px rgba(17, 17, 17, 0.08);
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
@@ -95,6 +98,230 @@
   --chart-marker-foreground: var(--foreground);
   --chart-ring-background: var(--muted);
   --chart-label: var(--muted-foreground);
+  --chart-brush-border: var(--chart-grid);
+  --chart-scale-01: oklch(0.98 0.003 106);
+  --chart-scale-02: oklch(0.92 0.008 106);
+  --chart-scale-03: oklch(0.82 0.015 106);
+  --chart-scale-04: oklch(0.68 0.02 106);
+  --chart-scale-05: oklch(0.55 0.025 106);
+  --chart-scale-pattern-color: oklch(0.96 0.005 106);
+}
+
+/* ── transitions.dev — motion tokens + per-transition tunables ──────
+   Copied verbatim from the transitions-dev skill _root.css. Every
+   transition snippet (see the section at the END of this file) reads
+   from these semantic names. */
+:root {
+  /* ── Motion tokens — shared scale ──────────────────────────────
+     Reference these with var(--…) anywhere in your project. The
+     transitions below ship literal values so each snippet works on
+     its own; `transitions refine` maps hardcoded values back to
+     these tokens. */
+  /* Durations */
+  --duration-stagger: 40ms; /* per-item stagger offset */
+  --duration-micro: 80ms; /* tooltip/path delay, shake segment, large stagger */
+  --duration-quick: 150ms; /* modal/dropdown close, text swap, tooltip appear */
+  --duration-fast: 250ms; /* icon swap, dropdown/modal open, tabs sliding, page slide */
+  --duration-medium: 350ms; /* panel close, toast close */
+  --duration-slow: 400ms; /* panel open, skeleton content reveal, input clear */
+  --duration-very-slow: 500ms; /* emphasis moments, badge appear, text reveal, success check */
+  /* Easings */
+  --ease-smooth-out: cubic-bezier(
+    0.22,
+    1,
+    0.36,
+    1
+  ); /* modal/dropdown/panel open + close, page slide, resize, position change */
+  --ease-in-out: ease-in-out; /* icon swap, text swap, text reveal, skeleton reveal */
+  --ease-out: ease-out; /* tooltip open / close */
+  --ease-linear: linear; /* shimmer, skeleton pulse, spinner */
+  --ease-bounce: cubic-bezier(0.34, 1.36, 0.64, 1); /* badge pop open */
+  --ease-bounce-strong: cubic-bezier(
+    0.34,
+    3.85,
+    0.64,
+    1
+  ); /* bouncy hover-out (avatar return) */
+  /* Distances */
+  --distance-micro: 4px; /* text swap */
+  --distance-small: 6px; /* error shake (small segment) */
+  --distance-base: 8px; /* badge diagonal reveal, page slide, error shake (large segment) */
+  --distance-medium: 12px; /* text reveal */
+  --distance-large: 30px; /* check badge appear */
+  /* Scales */
+  --scale-large: 0.96; /* modal open / close */
+  --scale-medium: 0.97; /* dropdown open */
+  --scale-small: 0.98; /* tooltip open */
+  --scale-tiny: 0.99; /* dropdown close */
+  /* Blur */
+  --blur-small: 2px; /* panel reveal, icon swap, text swap, skeleton reveal, number pop-in */
+  --blur-medium: 3px; /* page slide, text reveal */
+  --blur-large: 8px; /* success check open */
+
+  /* Card resize */
+  --resize-dur: 300ms;
+  --resize-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  /* Number pop-in */
+  --digit-dur: 500ms;
+  --digit-distance: 8px;
+  --digit-stagger: 70ms;
+  --digit-blur: 2px;
+  --digit-ease: cubic-bezier(0.34, 1.45, 0.64, 1);
+  --digit-dir-x: 0;
+  --digit-dir-y: 1;
+  /* Notification badge */
+  --badge-slide-dur: 260ms;
+  --badge-pop-dur: 500ms;
+  --badge-pop-close-dur: 180ms;
+  --badge-fade-dur: 400ms;
+  --badge-fade-close-dur: 180ms;
+  --badge-blur: 2px;
+  --badge-offset-x: -8.2px;
+  --badge-offset-y: 12.4px;
+  --badge-slide-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --badge-pop-ease: cubic-bezier(0.34, 1.36, 0.64, 1);
+  --badge-close-ease: cubic-bezier(0.4, 0, 0.2, 1);
+  /* Text states swap */
+  --text-swap-dur: 150ms;
+  --text-swap-translate-y: 4px;
+  --text-swap-blur: 2px;
+  --text-swap-ease: ease-in-out;
+  /* Menu dropdown */
+  --dropdown-open-dur: 250ms;
+  --dropdown-close-dur: 150ms;
+  --dropdown-pre-scale: 0.97;
+  --dropdown-closing-scale: 0.99;
+  --dropdown-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  /* Modal open / close */
+  --modal-open-dur: 250ms;
+  --modal-close-dur: 150ms;
+  --modal-scale: 0.96;
+  --modal-scale-close: 0.96;
+  --modal-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  /* Panel reveal */
+  --panel-open-dur: 400ms;
+  --panel-close-dur: 350ms;
+  --panel-translate-y: 100px;
+  --panel-blur: 2px;
+  --panel-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  /* Page side-by-side */
+  --page-slide-dur: 250ms;
+  --page-fade-dur: 250ms;
+  --page-slide-distance: 8px;
+  --page-blur: 3px;
+  --page-stagger: 0ms;
+  --page-exit-enabled: 1;
+  --page-slide-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --page-fade-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  /* Icon swap */
+  --icon-swap-dur: 250ms;
+  --icon-swap-blur: 2px;
+  --icon-swap-start-scale: 0.25;
+  --icon-swap-ease: ease-in-out;
+  /* Success check */
+  --check-opacity-dur: 500ms;
+  --check-rotate-dur: 500ms;
+  --check-rotate-from: 80deg;
+  --check-bob-dur: 500ms;
+  --check-y-amount: 40px;
+  --check-blur-dur: 500ms;
+  --check-blur-from: 10px;
+  --check-path-dur: 500ms;
+  --check-path-delay: 80ms;
+  --check-ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --check-ease-opacity: cubic-bezier(0.22, 1, 0.36, 1);
+  --check-ease-rotate: cubic-bezier(0.22, 1, 0.36, 1);
+  --check-ease-bob: cubic-bezier(0.34, 1.35, 0.64, 1);
+  --check-ease-path: cubic-bezier(0.22, 1, 0.36, 1);
+  /* Avatar group hover */
+  --avatar-lift: -4px;
+  --avatar-dur: 320ms;
+  --avatar-scale: 1.05;
+  --avatar-falloff: 0.45;
+  --avatar-ease-in: cubic-bezier(0.22, 1, 0.36, 1);
+  --avatar-ease-out: cubic-bezier(0.34, 3.85, 0.64, 1);
+  /* Error state shake */
+  --shake-distance: 6px;
+  --shake-overshoot: 4px;
+  --shake-dur-a: 80ms;
+  --shake-dur-b: 60ms;
+  --shake-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --revert-hold: 3000ms;
+  --revert-dur: 280ms;
+  /* Input clear with dissolve */
+  --clear-dur: 1000ms;
+  --clear-out-dur: 400ms;
+  --clear-in-dur: 400ms;
+  --clear-out-fly: 12px;
+  --clear-in-fly: 12px;
+  --clear-out-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --clear-in-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --clear-blur: 2px;
+  --glow-delay: 50ms;
+  --glow-peak-at: 0.15;
+  --glow-opacity: 0.42;
+  --glow-spread: 1.5;
+  /* Skeleton loader and reveal */
+  --pulse-dur: 1000ms;
+  --pulse-count: 1;
+  --pulse-min: 0.5;
+  --reveal-dur: 400ms;
+  --reveal-blur: 2px;
+  --reveal-ease: ease-in-out;
+  /* Shimmer text */
+  --shimmer-dur: 2000ms;
+  --shimmer-base: #7c7c7c;
+  --shimmer-highlight: #0d0d0d;
+  --shimmer-band: 400%;
+  --shimmer-ease: linear;
+  /* Tabs sliding */
+  --tabs-dur: 250ms;
+  --tabs-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --tabs-text-muted: rgba(15, 15, 15, 0.8);
+  --tabs-text-active: #0f0f0f;
+  --tabs-bar-bg: #f1f1f1;
+  --tabs-pill-bg: #ffffff;
+  /* Tooltip open/close */
+  --tt-in-dur: 150ms;
+  --tt-out-dur: 50ms;
+  --tt-scale: 0.98;
+  --tt-delay: 80ms;
+  --tt-in-ease: ease-out;
+  --tt-out-ease: ease-out;
+  --tt-bg: #ffffff;
+  --tt-fg: #2f2f2f;
+  /* Texts reveal */
+  --stagger-dur: 500ms;
+  --stagger-distance: 12px;
+  --stagger-stagger: 40ms;
+  --stagger-blur: 3px;
+  --stagger-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  /* Card hover tilt */
+  --tilt-perspective: 1000px;
+  --tilt-return: 1000ms;
+  --tilt-return-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --tilt-follow: 400ms;
+  --tilt-follow-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --tilt-glare-opacity: 0.32;
+  --tilt-glare-fade: 300ms;
+  --tilt-glare-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  /* Plus to menu morph */
+  --morph-open-dur: 350ms;
+  --morph-close-dur: 250ms;
+  --morph-ease: cubic-bezier(0.34, 1.25, 0.64, 1);
+  --morph-close-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --morph-r-closed: 40px;
+  --morph-r-open: 20px;
+  --morph-fade-dur: 200ms;
+  --morph-slide: 40px;
+  --morph-rotate: 45deg;
+  --morph-scale: 0.97;
+  --morph-blur: 2px;
+  /* Accordion expand */
+  --acc-expand: 250ms;
+  --acc-collapse: 250ms;
+  --acc-chevron: 250ms;
+  --acc-ease: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 @theme inline {
@@ -183,6 +410,13 @@
   --color-chart-foreground-muted: var(--chart-foreground-muted);
   --color-chart-foreground: var(--chart-foreground);
   --color-chart-background: var(--chart-background);
+  --color-chart-scale-pattern-color: var(--chart-scale-pattern-color);
+  --color-chart-scale-05: var(--chart-scale-05);
+  --color-chart-scale-04: var(--chart-scale-04);
+  --color-chart-scale-03: var(--chart-scale-03);
+  --color-chart-scale-02: var(--chart-scale-02);
+  --color-chart-scale-01: var(--chart-scale-01);
+  --color-chart-brush-border: var(--chart-brush-border);
 }
 
 /* Rim-light elevation utility — depth from a 1px inner highlight instead of a
@@ -327,6 +561,42 @@
   .animate-scan {
     animation: scan-sweep 3.6s cubic-bezier(0.4, 0, 0.2, 1) infinite;
   }
+
+  .animated-metric-roll {
+    position: relative;
+    display: inline-grid;
+    min-width: var(--animated-metric-min-width, 2ch);
+    height: 1.2em;
+    overflow: hidden;
+    vertical-align: -0.12em;
+  }
+
+  .animated-metric-roll-value {
+    grid-area: 1 / 1;
+    display: block;
+    line-height: 1.2;
+    will-change: transform, opacity;
+  }
+
+  .animated-metric-roll-old-up {
+    animation: animated-metric-old-up 260ms cubic-bezier(0.16, 1, 0.3, 1)
+      forwards;
+  }
+
+  .animated-metric-roll-new-up {
+    animation: animated-metric-new-up 260ms cubic-bezier(0.16, 1, 0.3, 1)
+      forwards;
+  }
+
+  .animated-metric-roll-old-down {
+    animation: animated-metric-old-down 260ms cubic-bezier(0.16, 1, 0.3, 1)
+      forwards;
+  }
+
+  .animated-metric-roll-new-down {
+    animation: animated-metric-new-down 260ms cubic-bezier(0.16, 1, 0.3, 1)
+      forwards;
+  }
 }
 
 @keyframes live-blip {
@@ -362,18 +632,83 @@
   }
 }
 
+@keyframes animated-metric-old-up {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-85%);
+  }
+}
+
+@keyframes animated-metric-new-up {
+  from {
+    opacity: 0;
+    transform: translateY(85%);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes animated-metric-old-down {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(85%);
+  }
+}
+
+@keyframes animated-metric-new-down {
+  from {
+    opacity: 0;
+    transform: translateY(-85%);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 @keyframes led-flicker {
-  0%, 92%, 100% { opacity: 1; }
-  94% { opacity: 0.55; }
-  96% { opacity: 1; }
-  97% { opacity: 0.7; }
-  98% { opacity: 1; }
+  0%,
+  92%,
+  100% {
+    opacity: 1;
+  }
+  94% {
+    opacity: 0.55;
+  }
+  96% {
+    opacity: 1;
+  }
+  97% {
+    opacity: 0.7;
+  }
+  98% {
+    opacity: 1;
+  }
 }
 
 @keyframes scan-sweep {
-  0% { transform: translateX(-100%); opacity: 0; }
-  15%, 85% { opacity: 1; }
-  100% { transform: translateX(100%); opacity: 0; }
+  0% {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+  15%,
+  85% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(100%);
+    opacity: 0;
+  }
 }
 
 /* ── Footer marquee — ndle wordmark as a flickering billboard sign ── */
@@ -382,15 +717,42 @@
    dim glow → blink → off → blink → off → tease → FULL ON.
    Plays ONCE per trigger, stays on (forwards fill). */
 @keyframes bulb-switch {
-  0%   { opacity: 0.18; filter: brightness(0.2); }    /* cold start, dim */
-  8%   { opacity: 0.72; filter: brightness(0.75); }   /* first blink on */
-  14%  { opacity: 0.12; filter: brightness(0.15); }   /* first blink off */
-  26%  { opacity: 0.78; filter: brightness(0.82); }   /* second blink on */
-  32%  { opacity: 0.08; filter: brightness(0.1); }    /* second blink off */
-  44%  { opacity: 0.35; filter: brightness(0.35); }   /* brief tease */
-  60%  { opacity: 1;    filter: brightness(1.1); }    /* full on — overshoot */
-  72%  { opacity: 0.92; filter: brightness(0.92); }   /* settle */
-  100% { opacity: 1;    filter: brightness(1); }
+  0% {
+    opacity: 0.18;
+    filter: brightness(0.2);
+  } /* cold start, dim */
+  8% {
+    opacity: 0.72;
+    filter: brightness(0.75);
+  } /* first blink on */
+  14% {
+    opacity: 0.12;
+    filter: brightness(0.15);
+  } /* first blink off */
+  26% {
+    opacity: 0.78;
+    filter: brightness(0.82);
+  } /* second blink on */
+  32% {
+    opacity: 0.08;
+    filter: brightness(0.1);
+  } /* second blink off */
+  44% {
+    opacity: 0.35;
+    filter: brightness(0.35);
+  } /* brief tease */
+  60% {
+    opacity: 1;
+    filter: brightness(1.1);
+  } /* full on — overshoot */
+  72% {
+    opacity: 0.92;
+    filter: brightness(0.92);
+  } /* settle */
+  100% {
+    opacity: 1;
+    filter: brightness(1);
+  }
 }
 .animate-bulb-switch {
   animation: bulb-switch 1s cubic-bezier(0.25, 1, 0.5, 1) forwards;
@@ -401,6 +763,14 @@
 @media (prefers-reduced-motion: reduce) {
   .animate-bulb-switch {
     animation: none;
+  }
+
+  .animated-metric-roll-value {
+    animation: none;
+  }
+
+  .animated-metric-roll-value:first-child:not(:last-child) {
+    display: none;
   }
 }
 
@@ -480,8 +850,10 @@
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background-image:
-    radial-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+  background-image: radial-gradient(
+    rgba(255, 255, 255, 0.05) 1px,
+    transparent 1px
+  );
   background-size: 3px 3px;
   mix-blend-mode: overlay;
   opacity: 0.6;
@@ -517,4 +889,541 @@
   --chart-marker-foreground: var(--foreground);
   --chart-ring-background: var(--muted);
   --chart-label: var(--muted-foreground);
+  --chart-1: oklch(1 0 none);
+  --chart-2: oklch(0.73 0 none);
+  --chart-3: oklch(0.51 0 none);
+  --chart-4: oklch(0.39 0 none);
+  --chart-5: oklch(0.32 0 none);
+  --chart-brush-border: var(--chart-grid);
+  --chart-scale-01: oklch(0.28 0.03 270);
+  --chart-scale-02: oklch(0.38 0.04 270);
+  --chart-scale-03: oklch(0.48 0.05 270);
+  --chart-scale-04: oklch(0.58 0.06 270);
+  --chart-scale-05: oklch(0.68 0.07 270);
+  --chart-scale-pattern-color: oklch(0.145 0 0);
+}
+
+/* ── transitions.dev ──────────────────────────────────────────────────
+   Production-ready CSS transitions copied VERBATIM from the
+   transitions-dev skill reference files. Motion tokens + every
+   per-transition tunable variable already live in the :root block near
+   the top of this file (copied from _root.css), so the per-snippet
+   :root blocks documented in each reference file are intentionally NOT
+   duplicated here.
+
+   Each block below is the CSS section of one reference file, unchanged:
+   selectors, longhand transitions, will-change, and the required
+   @media (prefers-reduced-motion: reduce) guards are all preserved.
+
+   Project dark-theme note: this project uses a class-based dark variant
+   (.dark, see @custom-variant at the top), NOT html[data-theme="dark"].
+   The shimmer / tabs / tooltip transitions ship hardcoded light-mode
+   color tokens; the reference files instruct installers to override
+   those color tokens per theme. Those theme overrides are provided
+   below, rewritten to target .dark.
+   ──────────────────────────────────────────────────────────────────── */
+
+/* ── Success check (10-success-check.md) ──────────────────────────── */
+
+/* Wrapper drives the appear animation; it doesn't own any
+   sizing or color so you can drop in any icon. */
+.t-success-check {
+  display: inline-block;
+  transform-origin: center;
+  opacity: 0;
+  will-change: transform, opacity, filter;
+}
+/* overflow: visible keeps the stroke from clipping while it
+   draws; display: block kills the inline whitespace under SVGs. */
+.t-success-check svg {
+  display: block;
+  overflow: visible;
+}
+/* Stroke-draw setup. Replace 20 with the result of
+   path.getTotalLength() for your path; round caps mean any
+   sub-pixel overshoot is invisible. */
+.t-success-check svg path {
+  stroke-dasharray: 20;
+  stroke-dashoffset: 20;
+}
+
+.t-success-check[data-state="in"] {
+  animation:
+    t-check-fade var(--check-opacity-dur) var(--check-ease-opacity) forwards,
+    t-check-rotate var(--check-rotate-dur) var(--check-ease-rotate) forwards,
+    t-check-blur var(--check-blur-dur) var(--check-ease-out) forwards,
+    t-check-bob var(--check-bob-dur) var(--check-ease-bob) forwards;
+}
+.t-success-check[data-state="in"] svg path {
+  animation: t-check-draw var(--check-path-dur) var(--check-ease-path)
+    var(--check-path-delay, 0ms) forwards;
+}
+
+@keyframes t-check-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes t-check-rotate {
+  from {
+    transform: rotate(var(--check-rotate-from));
+  }
+  to {
+    transform: rotate(0deg);
+  }
+}
+@keyframes t-check-blur {
+  from {
+    filter: blur(var(--check-blur-from));
+  }
+  to {
+    filter: blur(0);
+  }
+}
+@keyframes t-check-bob {
+  from {
+    translate: 0 var(--check-y-amount);
+  }
+  to {
+    translate: 0 0;
+  }
+}
+@keyframes t-check-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .t-success-check {
+    animation: none !important;
+    opacity: 1;
+  }
+  .t-success-check svg path {
+    animation: none !important;
+    stroke-dashoffset: 0 !important;
+  }
+}
+
+/* ── Icon swap (09-icon-swap.md) ──────────────────────────────────── */
+
+.t-icon-swap {
+  position: relative;
+  display: inline-grid;
+}
+.t-icon-swap .t-icon {
+  grid-area: 1 / 1;
+  transition:
+    opacity var(--icon-swap-dur) var(--icon-swap-ease),
+    filter var(--icon-swap-dur) var(--icon-swap-ease),
+    transform var(--icon-swap-dur) var(--icon-swap-ease);
+  will-change: opacity, filter, transform;
+}
+.t-icon-swap[data-state="a"] .t-icon[data-icon="a"],
+.t-icon-swap[data-state="b"] .t-icon[data-icon="b"] {
+  opacity: 1;
+  filter: blur(0);
+  transform: scale(1);
+}
+.t-icon-swap[data-state="a"] .t-icon[data-icon="b"],
+.t-icon-swap[data-state="b"] .t-icon[data-icon="a"] {
+  opacity: 0;
+  filter: blur(var(--icon-swap-blur));
+  transform: scale(var(--icon-swap-start-scale));
+}
+/* Keep the swapped icons block-level: an inline svg / inline-block wrapper
+   reserves font-descender space, which makes the grid slot taller than the
+   glyph and rides the icon ~2-3px high off the optical centre. */
+.t-icon-swap .t-icon > *,
+.t-icon-swap .t-icon svg {
+  display: block;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .t-icon-swap .t-icon {
+    transition: none !important;
+  }
+}
+
+/* ── Error state shake (12-error-state-shake.md) ──────────────────── */
+
+/* Border-color tween. Define your input's default / focused
+   / error border-color in your own component CSS — this rule
+   only owns the interpolation. Use a constant border-width
+   across states so the tween never shifts inner content. */
+.t-input {
+  transition: border-color 150ms ease-out;
+  will-change: transform;
+}
+.t-input.is-error {
+  /* Error border auto-reverts on the hold timer, so the
+     fade-out uses the slower revert duration (matches the
+     message fade). */
+  transition: border-color var(--revert-dur, 280ms) ease-out;
+}
+
+/* Error message reveal. Visibility is delayed by --revert-dur
+   on hide so the message stays painted for the full opacity
+   fade-out. Entering .is-error drops the delay to 0 so the
+   message becomes visible immediately. */
+.t-error-msg {
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity var(--revert-dur, 280ms) ease-out,
+    visibility 0s linear var(--revert-dur, 280ms);
+}
+.t-input-wrap.is-error .t-error-msg {
+  opacity: 1;
+  visibility: visible;
+  transition:
+    opacity var(--revert-dur, 280ms) ease-out,
+    visibility 0s linear 0s;
+}
+
+/* Multi-segment keyframe with per-stop easing so each leg
+   of the shake follows its own cubic-bezier independently.
+   %-stops are cumulative durations as a fraction of the
+   total (80, 60, 80, 60 = 280ms): 28.57%, 57.14%, 78.57%,
+   100%. Recompute if any segment duration changes. */
+.t-input.is-shaking {
+  animation: t-input-shake calc(var(--shake-dur-a) * 2 + var(--shake-dur-b) * 2)
+    linear;
+}
+@keyframes t-input-shake {
+  0% {
+    transform: translateX(0);
+    animation-timing-function: var(--shake-ease);
+  }
+  28.57% {
+    transform: translateX(var(--shake-distance));
+    animation-timing-function: var(--shake-ease);
+  }
+  57.14% {
+    transform: translateX(calc(var(--shake-distance) * -1));
+    animation-timing-function: var(--shake-ease);
+  }
+  78.57% {
+    transform: translateX(var(--shake-overshoot));
+    animation-timing-function: var(--shake-ease);
+  }
+  100% {
+    transform: translateX(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .t-input {
+    animation: none !important;
+    transform: none !important;
+  }
+}
+
+/* ── Notification badge (03-notification-badge.md) ────────────────── */
+
+@keyframes t-badge-slide-in {
+  from {
+    transform: translate(var(--badge-offset-x), var(--badge-offset-y));
+  }
+  to {
+    transform: translate(0, 0);
+  }
+}
+
+/* .t-badge is the absolutely-positioned wrapper for the dot.
+   Adjust top/right (or left/bottom) to anchor it on your trigger. */
+.t-badge {
+  position: absolute;
+  top: -6px;
+  right: -8px;
+  pointer-events: none;
+  will-change: transform;
+}
+.t-badge[data-open="true"] {
+  animation: t-badge-slide-in var(--badge-slide-dur) var(--badge-slide-ease);
+}
+
+.t-badge-dot {
+  display: block;
+  transform-origin: center;
+  transform: scale(1);
+  opacity: 1;
+  filter: blur(0);
+  transition:
+    transform var(--badge-pop-dur) var(--badge-pop-ease),
+    opacity var(--badge-fade-dur) var(--badge-pop-ease),
+    filter var(--badge-pop-dur) var(--badge-pop-ease);
+  will-change: transform, opacity, filter;
+}
+.t-badge[data-open="false"] .t-badge-dot {
+  transform: scale(0);
+  opacity: 0;
+  filter: blur(var(--badge-blur));
+  transition:
+    transform var(--badge-pop-close-dur) var(--badge-close-ease),
+    opacity var(--badge-fade-close-dur) var(--badge-close-ease),
+    filter var(--badge-pop-close-dur) var(--badge-close-ease);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .t-badge,
+  .t-badge-dot {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+/* ── Tabs sliding (16-tabs-sliding.md) ────────────────────────────── */
+
+/* The bar is just a flex container with padding for the pill
+   to sit inside. Tabs sit on z-index: 1, the pill on z-index: 0,
+   so labels read above the pill background. */
+.t-tabs {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 3px;
+  border-radius: 48px;
+  background: var(--tabs-bar-bg);
+}
+.t-tab {
+  position: relative;
+  appearance: none;
+  border: 0;
+  background: transparent;
+  height: 30px;
+  padding: 4px 12px;
+  color: var(--tabs-text-muted);
+  cursor: pointer;
+  border-radius: 48px;
+  z-index: 1;
+  transition: color var(--tabs-dur) var(--tabs-ease);
+}
+.t-tab:not([aria-selected="true"]):hover,
+.t-tab[aria-selected="true"] {
+  color: var(--tabs-text-active);
+}
+
+/* The pill: width + transform are written inline by JS so
+   the transition tweens between the previous and next
+   measured positions. */
+.t-tabs-pill {
+  position: absolute;
+  top: 3px;
+  left: 0;
+  height: 30px;
+  width: 0;
+  background: var(--tabs-pill-bg);
+  border-radius: 48px;
+  transform: translateX(0);
+  transition:
+    transform var(--tabs-dur) var(--tabs-ease),
+    width var(--tabs-dur) var(--tabs-ease);
+  will-change: transform, width;
+  z-index: 0;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .t-tabs-pill,
+  .t-tab {
+    transition: none !important;
+  }
+}
+
+/* ── Tooltip open/close (17-tooltip.md) ───────────────────────────── */
+
+.t-tt-wrap {
+  position: relative;
+  display: inline-block;
+}
+.t-tt {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translate(-50%, 0) scale(var(--tt-scale));
+  transform-origin: 50% 100%;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: var(--tt-bg);
+  color: var(--tt-fg);
+  white-space: nowrap;
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.06),
+    0 2px 6px 0 rgba(0, 0, 0, 0.05),
+    0 4px 42px 0 rgba(0, 0, 0, 0.06);
+  opacity: 0;
+  pointer-events: none;
+  /* Default rule controls the LEAVE state. transition-delay
+     stays unset so leaving plays without delay. */
+  transition:
+    opacity var(--tt-out-dur) var(--tt-out-ease),
+    transform var(--tt-out-dur) var(--tt-out-ease);
+}
+/* The 50ms delay belongs ONLY to the hover rule so leaving
+   the trigger snaps the delay back to 0 and the disappear
+   plays immediately. */
+.t-tt-wrap:hover .t-tt,
+.t-tt-trigger:focus-visible + .t-tt {
+  opacity: 1;
+  transform: translate(-50%, 0) scale(1);
+  transition-duration: var(--tt-in-dur);
+  transition-timing-function: var(--tt-in-ease);
+  transition-delay: var(--tt-delay);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .t-tt {
+    transition: none !important;
+  }
+}
+
+/* ── Shimmer text (15-shimmer-text.md) ────────────────────────────── */
+
+/* Two-layer construction:
+   1. The base text renders normally in --shimmer-base.
+   2. ::before duplicates it via content: attr(data-text),
+      paints a transparent → highlight → transparent gradient
+      onto it, and clips that gradient to the glyphs via
+      background-clip: text. Animating background-position
+      sweeps the band across the text. */
+.t-shimmer {
+  position: relative;
+  display: inline-block;
+  color: var(--shimmer-base);
+}
+.t-shimmer::before {
+  content: attr(data-text);
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: linear-gradient(
+    90deg,
+    transparent 0%,
+    transparent 40%,
+    var(--shimmer-highlight) 50%,
+    transparent 60%,
+    transparent 100%
+  );
+  background-size: var(--shimmer-band) 100%;
+  background-repeat: no-repeat;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+  animation: t-shimmer var(--shimmer-dur) var(--shimmer-ease) infinite;
+}
+@keyframes t-shimmer {
+  0% {
+    background-position: 100% 0;
+  }
+  100% {
+    background-position: 0% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .t-shimmer::before {
+    animation: none !important;
+  }
+}
+
+/* ── Skeleton loader and reveal (14-skeleton-reveal.md) ───────────── */
+
+/* The wrap stacks two layers on the same coordinates. The
+   skeleton owns the cold pulse + the fade-out side of the
+   reveal; the content owns the fade-in side. They share the
+   same duration / ease so the swap reads as one motion. */
+.t-skel {
+  position: relative;
+}
+.t-skel-skeleton,
+.t-skel-content {
+  position: absolute;
+  inset: 0;
+}
+
+.t-skel-skeleton {
+  z-index: 1;
+  opacity: 1;
+  filter: blur(0);
+  transition:
+    opacity var(--reveal-dur) var(--reveal-ease),
+    filter var(--reveal-dur) var(--reveal-ease);
+}
+.t-skel-content {
+  z-index: 2;
+  opacity: 0;
+  filter: blur(var(--reveal-blur));
+  transition:
+    opacity var(--reveal-dur) var(--reveal-ease),
+    filter var(--reveal-dur) var(--reveal-ease);
+}
+.t-skel.is-revealed .t-skel-skeleton {
+  opacity: 0;
+  filter: blur(var(--reveal-blur));
+}
+.t-skel.is-revealed .t-skel-content {
+  opacity: 1;
+  filter: blur(0);
+}
+/* Snap-back when replaying: kill transitions so the reverse
+   (revealed → skeleton) is instant. Drop `.is-resetting`
+   after a forced reflow and the next reveal animates again. */
+.t-skel.is-resetting .t-skel-skeleton,
+.t-skel.is-resetting .t-skel-content {
+  transition: none !important;
+}
+
+/* Pulse: place the animation on the bar/avatar children, not
+   on the skeleton itself, so the skeleton's opacity / filter
+   stay free for the cross-fade transition above. */
+.t-skel-skeleton.is-pulsing > * {
+  animation: t-skel-pulse var(--pulse-dur) ease-in-out var(--pulse-count);
+}
+@keyframes t-skel-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: var(--pulse-min);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .t-skel-skeleton,
+  .t-skel-content {
+    transition: none !important;
+  }
+  .t-skel-skeleton.is-pulsing > * {
+    animation: none !important;
+  }
+}
+
+/* ── transitions.dev — dark-theme color overrides ─────────────────────
+   The shimmer / tabs / tooltip transitions ship hardcoded light-mode
+   color tokens. The reference files (and SKILL.md) document that these
+   color tokens must be overridden per theme. This project uses the
+   class-based .dark variant, so the documented html[data-theme="dark"]
+   overrides are rewritten to target .dark and re-pointed at sensible
+   dark-mode values. (Non-color motion tunables are unchanged.)
+   ──────────────────────────────────────────────────────────────────── */
+.dark .t-shimmer {
+  --shimmer-base: #5c5c5c;
+  --shimmer-highlight: #f2f2f2;
+}
+.dark .t-tabs {
+  --tabs-text-muted: rgba(245, 245, 245, 0.6);
+  --tabs-text-active: #f5f5f5;
+  --tabs-bar-bg: #1f1f1f;
+  --tabs-pill-bg: #3a3a3a;
+}
+.dark .t-tt {
+  --tt-bg: #2a2a2a;
+  --tt-fg: #f2f2f2;
 }

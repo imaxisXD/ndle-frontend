@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useCallback } from "react";
+import { useMemo, useCallback, useEffect, useRef } from "react";
 import { useWatch, type UseFormReturn } from "react-hook-form";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
@@ -57,6 +57,78 @@ function VariantRow({
 
   const { faviconUrl } = useFavicon(validatedUrl);
 
+  // error-state-shake: when the duplicate error appears (false -> true)
+  // add the error treatment (.is-error on wrap + bordered input) and
+  // replay the shake (.is-shaking on the input). .is-shaking is kept
+  // orthogonal to .is-error so the shake can replay via
+  // remove -> reflow -> re-add without flickering the error border. The
+  // error treatment auto-reverts after --revert-hold via the CSS tween.
+  const wrapRef = useRef<HTMLDivElement>(null);
+  const inputBorderRef = useRef<HTMLDivElement>(null);
+  const prevHasErrorRef = useRef(false);
+  const revertTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => {
+    const wasError = prevHasErrorRef.current;
+    prevHasErrorRef.current = !!hasDuplicateError;
+    if (!hasDuplicateError || wasError) return;
+
+    const wrap = wrapRef.current;
+    const input = inputBorderRef.current;
+    if (!wrap || !input) return;
+
+    const cs = getComputedStyle(document.documentElement);
+    const ms = (name: string, fb: number) => {
+      const v = parseFloat(cs.getPropertyValue(name));
+      return Number.isFinite(v) ? v : fb;
+    };
+
+    // .is-error drives the error border (input) + message visibility (wrap).
+    wrap.classList.add("is-error");
+    input.classList.add("is-error");
+
+    // Replay the shake from a clean baseline.
+    input.classList.remove("is-shaking");
+    void input.offsetWidth; // force reflow so the animation restarts
+    input.classList.add("is-shaking");
+
+    const shakeMs = ms("--shake-dur-a", 80) * 2 + ms("--shake-dur-b", 60) * 2;
+    const shakeTimer = setTimeout(
+      () => input.classList.remove("is-shaking"),
+      shakeMs + 20,
+    );
+
+    // Auto-revert: hold long enough to read the message, then fade
+    // border + message back to neutral via the CSS transitions.
+    if (revertTimerRef.current) clearTimeout(revertTimerRef.current);
+    const hold = ms("--revert-hold", 3000);
+    revertTimerRef.current = setTimeout(() => {
+      revertTimerRef.current = null;
+      wrap.classList.remove("is-error");
+      input.classList.remove("is-error");
+    }, shakeMs + hold);
+
+    return () => clearTimeout(shakeTimer);
+  }, [hasDuplicateError]);
+
+  // Clear the error treatment as soon as the duplicate resolves, and on
+  // unmount, so the auto-revert timer never fires against a stale node.
+  useEffect(() => {
+    if (hasDuplicateError) return;
+    if (revertTimerRef.current) {
+      clearTimeout(revertTimerRef.current);
+      revertTimerRef.current = null;
+    }
+    wrapRef.current?.classList.remove("is-error");
+    inputBorderRef.current?.classList.remove("is-error");
+  }, [hasDuplicateError]);
+
+  useEffect(
+    () => () => {
+      if (revertTimerRef.current) clearTimeout(revertTimerRef.current);
+    },
+    [],
+  );
+
   return (
     <div className="flex items-start gap-3">
       {/* URL Input with Favicon */}
@@ -70,37 +142,44 @@ function VariantRow({
                 {variantLabel}
               </FormLabel>
               <FormControl>
-                <div className="relative">
-                  {/* Favicon overlay */}
-                  <div
-                    className={cn(
-                      "absolute top-1/2 left-3 -translate-y-1/2 transition-all duration-200",
-                      faviconUrl ? "opacity-100" : "opacity-0",
-                    )}
-                  >
-                    {faviconUrl && (
-                      <Image
-                        src={faviconUrl}
-                        alt=""
-                        width={16}
-                        height={16}
-                        className="size-4 rounded"
-                        unoptimized
-                      />
-                    )}
+                {/* .t-input-wrap: .is-error here drives the error
+                    message reveal; the bordered .t-input inside owns
+                    the shake + error border. */}
+                <div ref={wrapRef} className="t-input-wrap">
+                  <div ref={inputBorderRef} className="t-input relative">
+                    {/* Favicon overlay */}
+                    <div
+                      className={cn(
+                        "absolute top-1/2 left-3 -translate-y-1/2 transition-all duration-200",
+                        faviconUrl ? "opacity-100" : "opacity-0",
+                      )}
+                    >
+                      {faviconUrl && (
+                        <Image
+                          src={faviconUrl}
+                          alt=""
+                          width={16}
+                          height={16}
+                          className="size-4 rounded"
+                          unoptimized
+                        />
+                      )}
+                    </div>
+                    {/* Border color is the component's responsibility
+                        (here via aria-invalid + the .t-input.is-error
+                        ring); globals.css owns only the revert tween. */}
+                    <Input
+                      placeholder="https://example.com/variant"
+                      className={cn(
+                        "transition-all duration-200",
+                        faviconUrl ? "pl-9" : "pl-3",
+                        "[.t-input.is-error_&]:border-destructive [.t-input.is-error_&]:ring-destructive/30 [.t-input.is-error_&]:ring-[3px]",
+                      )}
+                      aria-invalid={fieldState.invalid || hasDuplicateError}
+                      {...field}
+                      onBlur={field.onBlur}
+                    />
                   </div>
-                  <Input
-                    placeholder="https://example.com/variant"
-                    className={cn(
-                      "transition-all duration-200",
-                      faviconUrl ? "pl-9" : "pl-3",
-                      hasDuplicateError &&
-                        "border-destructive focus-visible:ring-destructive/30",
-                    )}
-                    aria-invalid={fieldState.invalid || hasDuplicateError}
-                    {...field}
-                    onBlur={field.onBlur}
-                  />
                 </div>
               </FormControl>
               <FormMessage />

@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -84,8 +84,28 @@ export function NotificationCenter() {
   const [isOpen, setIsOpen] = useState(false);
   const [notifications, setNotifications] = useState(mockNotifications);
   const containerRef = useRef<HTMLDivElement>(null);
+  const badgeRef = useRef<HTMLSpanElement>(null);
+  const prevHadUnreadRef = useRef(false);
 
   const unreadCount = notifications.filter((n) => !n.read).length;
+  const hasUnread = unreadCount > 0;
+  const badgeDisplay = unreadCount > 9 ? "9+" : String(unreadCount);
+
+  // Replay the badge slide-in only on a 0 -> >0 transition. The slide-in is a
+  // keyframe animation, so re-running it requires removing the data-open="true"
+  // state, forcing a reflow, then re-applying it.
+  useEffect(() => {
+    const becameUnread = hasUnread && !prevHadUnreadRef.current;
+    prevHadUnreadRef.current = hasUnread;
+
+    if (becameUnread && badgeRef.current) {
+      const el = badgeRef.current;
+      el.setAttribute("data-open", "false");
+      // Force reflow so the browser registers the reset before re-opening.
+      void el.offsetWidth;
+      el.setAttribute("data-open", "true");
+    }
+  }, [hasUnread]);
 
   const markAsRead = (id: string) => {
     setNotifications(
@@ -126,11 +146,27 @@ export function NotificationCenter() {
               className="group text-muted-foreground hover:bg-accent hover:text-foreground relative rounded-md p-2 transition-colors"
               aria-label="Open notifications"
             >
-              {unreadCount > 0 ? (
-                <BellNotificationSolid className="h-5 w-5 text-red-500 transition-colors group-hover:text-black" />
-              ) : (
-                <Bell className="h-5 w-5 transition-colors" strokeWidth={1.5} />
-              )}
+              <span
+                className="t-icon-swap"
+                data-state={hasUnread ? "b" : "a"}
+              >
+                <span className="t-icon" data-icon="a">
+                  <Bell className="h-5 w-5 transition-colors" strokeWidth={1.5} />
+                </span>
+                <span className="t-icon" data-icon="b">
+                  <BellNotificationSolid className="h-5 w-5 text-red-500 transition-colors group-hover:text-black" />
+                </span>
+              </span>
+              <span
+                ref={badgeRef}
+                className="t-badge"
+                data-open={hasUnread ? "true" : "false"}
+                aria-hidden="true"
+              >
+                <span className="t-badge-dot flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-semibold leading-none text-white">
+                  {badgeDisplay}
+                </span>
+              </span>
             </button>
           }
         />

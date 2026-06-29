@@ -1,5 +1,6 @@
 "use client";
 
+import { useCallback, useMemo } from "react";
 import { toast } from "sonner";
 
 export type ToastType =
@@ -21,7 +22,7 @@ export interface ToastOptions {
  * Preserves the same API as the previous Base UI implementation: add({ type, title, description })
  */
 export function useToast() {
-  const add = (options: ToastOptions) => {
+  const add = useCallback((options: ToastOptions) => {
     const { type = "default", title, description } = options;
 
     // Map type to corresponding Sonner toast method
@@ -44,7 +45,7 @@ export function useToast() {
       default:
         toast(title, { description });
     }
-  };
+  }, []);
 
-  return { add };
+  return useMemo(() => ({ add }), [add]);
 }

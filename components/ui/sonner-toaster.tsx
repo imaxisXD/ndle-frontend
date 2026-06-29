@@ -1,7 +1,7 @@
 "use client";
 
 import { Toaster as SonnerToaster } from "sonner";
-import { CircleGridLoaderIcon } from "../icons";
+import { DotmatrixLoaderIcon } from "@/components/ui/dotmatrix-loader-icon";
 
 /**
  * Custom Sonner Toaster component styled to match the existing Base UI toast design.
@@ -20,7 +20,7 @@ export function Toaster() {
       closeButton
       gap={8}
       icons={{
-        loading: <CircleGridLoaderIcon className="size-3" />,
+        loading: <DotmatrixLoaderIcon size={12} />,
         success: <div className="h-4 w-1.5 rounded-full bg-green-600" />,
         error: <div className="h-4 w-1.5 rounded-full bg-red-500" />,
         info: <div className="h-4 w-1.5 rounded-full bg-blue-500" />,

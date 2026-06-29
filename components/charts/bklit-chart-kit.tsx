@@ -8,15 +8,15 @@ import {
   type ReactNode,
 } from "react";
 import { createPortal } from "react-dom";
-
-import { CircleGridLoaderIcon } from "@/components/icons";
+import { Background } from "@/components/charts/background";
+import { DotmatrixLoaderIcon } from "@/components/ui/dotmatrix-loader-icon";
 import { Area } from "@/components/charts/area";
 import { AreaChart } from "@/components/charts/area-chart";
 import { Bar } from "@/components/charts/bar";
 import { BarChart } from "@/components/charts/bar-chart";
+import { BarChartLoading } from "@/components/charts/bar-chart-loading";
 import { BarXAxis } from "@/components/charts/bar-x-axis";
 import { BarYAxis } from "@/components/charts/bar-y-axis";
-import { Grid } from "@/components/charts/grid";
 import { Line } from "@/components/charts/line";
 import { LineChart } from "@/components/charts/line-chart";
 import { LiveLine } from "@/components/charts/live-line";
@@ -91,6 +91,7 @@ function ChartStateFrame({
   loadingTitle = "Loading analytics",
   emptyTitle,
   emptyDescription,
+  loadingFallback,
   style,
   children,
 }: {
@@ -100,14 +101,17 @@ function ChartStateFrame({
   loadingTitle?: string;
   emptyTitle?: string;
   emptyDescription?: string;
+  loadingFallback?: ReactNode;
   style?: CSSProperties;
   children: ReactNode;
 }) {
   return (
     <div className={cn("relative w-full", heightClassName)} style={style}>
-      {isLoading ? (
+      {isLoading && loadingFallback ? (
+        <div className="absolute inset-0">{loadingFallback}</div>
+      ) : isLoading ? (
         <div className="absolute inset-0 grid place-items-center">
-          <CircleGridLoaderIcon title={loadingTitle} className="text-primary" />
+          <DotmatrixLoaderIcon title={loadingTitle} />
         </div>
       ) : isEmpty ? (
         <div className="absolute inset-0 grid place-items-center">
@@ -238,6 +242,12 @@ export function BklitHorizontalBarChart<T extends object>({
       }),
     [data, labelFormatter, labelKey, labelWidth],
   );
+  const chartMargin = {
+    top: 14,
+    right: showValueLabels ? 40 : 12,
+    bottom: 18,
+    left: effectiveLabelWidth,
+  };
 
   return (
     <ChartStateFrame
@@ -246,6 +256,13 @@ export function BklitHorizontalBarChart<T extends object>({
       heightClassName={heightClassName}
       isEmpty={data.length === 0}
       isLoading={isLoading}
+      loadingFallback={
+        <BarChartLoading
+          aspectRatio="auto"
+          className="h-full w-full"
+          margin={chartMargin}
+        />
+      }
       loadingTitle={loadingTitle}
       style={style}
     >
@@ -254,21 +271,11 @@ export function BklitHorizontalBarChart<T extends object>({
         barWidth={barWidth}
         className="h-full w-full"
         data={chartData}
-        margin={{
-          top: 14,
-          right: showValueLabels ? 40 : 12,
-          bottom: 18,
-          left: effectiveLabelWidth,
-        }}
+        margin={chartMargin}
         orientation="horizontal"
         xDataKey={labelKey}
       >
-        <Grid
-          horizontal={false}
-          stroke="var(--border)"
-          strokeDasharray="5"
-          vertical
-        />
+        <Background pattern="dots" opacity={0.85} />
         <Bar dataKey={valueKey} fill={color} lineCap={4} stroke={color} />
         <BarYAxis
           labelFormatter={(value, item) => labelFormatter(value, item as T)}
@@ -341,6 +348,7 @@ export function BklitVerticalBarChart<T extends object>({
 }) {
   const chartData = data as ChartRecord[];
   const total = useMemo(() => chartTotal(data, valueKey), [data, valueKey]);
+  const chartMargin = { top: 18, right: 16, bottom: 36, left: 18 };
 
   return (
     <ChartStateFrame
@@ -349,6 +357,13 @@ export function BklitVerticalBarChart<T extends object>({
       heightClassName={heightClassName}
       isEmpty={data.length === 0}
       isLoading={isLoading}
+      loadingFallback={
+        <BarChartLoading
+          aspectRatio="auto"
+          className="h-full w-full"
+          margin={chartMargin}
+        />
+      }
       style={style}
     >
       <BarChart
@@ -356,10 +371,10 @@ export function BklitVerticalBarChart<T extends object>({
         barGap={0.28}
         className="h-full w-full"
         data={chartData}
-        margin={{ top: 18, right: 16, bottom: 36, left: 18 }}
+        margin={chartMargin}
         xDataKey={labelKey}
       >
-        <Grid horizontal stroke="var(--border)" strokeDasharray="5" />
+        <Background pattern="dots" opacity={0.85} />
         <Bar dataKey={valueKey} fill={color} lineCap={4} stroke={color} />
         <BarXAxis maxLabels={8} />
         <ChartTooltip
@@ -440,7 +455,7 @@ export function BklitLineSeriesChart<T extends object>({
         margin={{ top: 18, right: 40, bottom: 36, left: 18 }}
         xDataKey={dateKey}
       >
-        <Grid horizontal stroke="var(--border)" strokeDasharray="5" />
+        <Background pattern="dots" opacity={0.85} />
         <Line
           dataKey={valueKey}
           showMarkers={data.length <= 12}
@@ -514,7 +529,7 @@ export function BklitAreaSeriesChart<T extends object>({
         margin={{ top: 18, right: 40, bottom: 36, left: 18 }}
         xDataKey={dateKey}
       >
-        <Grid horizontal stroke="var(--border)" strokeDasharray="5" />
+        <Background pattern="dots" opacity={0.85} />
         <Area
           dataKey={valueKey}
           fill={color}
@@ -584,7 +599,7 @@ export function BklitLiveClickLineChart({
         value={value}
         window={windowSeconds}
       >
-        <Grid horizontal stroke="var(--border)" strokeDasharray="5" />
+        <Background pattern="dots" opacity={0.85} />
         <LiveLine dataKey="value" stroke={color} />
         <ChartTooltip
           content={({ point }) => (

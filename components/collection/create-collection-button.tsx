@@ -201,6 +201,7 @@ export function CreateCollectionButton({
               </Button>
               <HotkeyButton
                 type="submit"
+                loading={form.formState.isSubmitting}
                 disabled={
                   form.formState.isSubmitting ||
                   !form.watch("name")?.trim() ||

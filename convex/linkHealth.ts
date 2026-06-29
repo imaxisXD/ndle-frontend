@@ -37,12 +37,14 @@ export const getAllUrlsQuery = internalQuery({
       numItems,
     });
 
-    const urls = paginatedResults.page.map((url) => ({
-      urlId: url._id,
-      userId: url.userTableId,
-      shortUrl: url.slugAssigned ?? "",
-      longUrl: url.fullurl,
-    })).filter((url) => !!url.userId) as UrlData[];
+    const urls = paginatedResults.page
+      .map((url) => ({
+        urlId: url._id,
+        userId: url.userTableId,
+        shortUrl: url.slugAssigned ?? "",
+        longUrl: url.fullurl,
+      }))
+      .filter((url) => !!url.userId) as UrlData[];
 
     return {
       urls,
@@ -465,7 +467,6 @@ export const getHealthChecksWithStats = query({
           ...check,
           uptime: total > 0 ? Math.round((healthy / total) * 1000) / 10 : 100,
           incidents,
-          dailySummaries: summaries,
         };
       }),
     );

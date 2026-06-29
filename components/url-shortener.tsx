@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import Image from "next/image";
 
-import { CircleGridLoaderIcon } from "./icons";
+import { DotmatrixLoaderIcon } from "@/components/ui/dotmatrix-loader-icon";
 import {
   Card,
   CardHeader,
@@ -684,13 +684,14 @@ export function UrlShortener() {
               <HotkeyButton
                 hotkey={isSubmitting ? "" : "meta + enter"}
                 type="submit"
+                loading={isSubmitting}
                 onClick={() => form.handleSubmit(onSubmit, onInvalid)()}
                 disabled={!mainUrl || isSubmitting || hasAbDuplicateError}
                 className="bg-accent hover:bg-accent/90 w-36 rounded-sm text-sm font-medium text-black drop-shadow-none transition-shadow duration-75 ease-out hover:drop-shadow-sm disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {isSubmitting ? (
                   <span className="flex w-full items-center gap-3">
-                    <CircleGridLoaderIcon className="size-3 text-black" />
+                    <DotmatrixLoaderIcon size={12} />
                     <ShimmeringPhrases />
                   </span>
                 ) : (

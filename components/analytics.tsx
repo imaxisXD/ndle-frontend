@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useState, useEffect, type ElementType } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { useAnalyticsV2 } from "@/hooks/useAnalyticsV2";
 import { useColdAnalytics } from "@/hooks/use-cold-analytics";
@@ -23,6 +23,43 @@ import { UTMAnalyticsPanel } from "@/components/UTMAnalyticsPanel";
 import type { UTMAnalyticsData } from "@/types/utm-analytics";
 import { AgenticChartChat } from "@/components/agentic-charts";
 import { EmptyStateImage } from "@/components/empty-state-image";
+
+const analyticsOverviewStats = [
+  {
+    label: "Total Links",
+    value: 24,
+    icon: LinkIcon,
+    change: "[+3] this week",
+  },
+  {
+    label: "Auto-Healed",
+    value: 8,
+    icon: ShieldCheckIcon,
+    change: "[3] active",
+  },
+] as const;
+
+const freeTimeRangeOptions = [
+  {
+    value: "24h",
+    label: "Last 24 hours",
+    displayValue: "Last 24 hours",
+  },
+  { value: "7d", label: "Last 7 days", displayValue: "Last 7 days" },
+  {
+    value: "30d",
+    label: "Last 30 days",
+    displayValue: "Last 30 days",
+  },
+] satisfies Array<{ value: string; label: string; displayValue: string }>;
+
+const defaultFilterOptions = {
+  country: [{ value: "all", label: "All Countries" }],
+  device: [{ value: "all", label: "All Devices" }],
+  browser: [{ value: "all", label: "All Browsers" }],
+  os: [{ value: "all", label: "All OS" }],
+  link: [{ value: "all", label: "All Links" }],
+} satisfies Record<string, Array<{ value: string; label: string }>>;
 
 function TotalClicksCard() {
   const totalClicksFromConvex = useQuery(api.urlAnalytics.getUsersTotalClicks);
@@ -47,6 +84,65 @@ function TotalClicksCard() {
         </div>
       </CardContent>
     </Card>
+  );
+}
+
+function OverviewStatCard({
+  label,
+  value,
+  change,
+  Icon,
+  showSkeleton,
+}: {
+  label: string;
+  value: number;
+  change: string;
+  Icon: ElementType<{ className?: string }>;
+  showSkeleton: boolean;
+}) {
+  return (
+    <Card>
+      <CardContent className="p-6">
+        <div className="flex items-start justify-between">
+          <div className="flex-1">
+            <p className="text-muted-foreground text-xs">{label}</p>
+            <div className="mt-2 text-2xl font-medium">
+              {showSkeleton ? (
+                <Skeleton className="h-8 w-16" />
+              ) : (
+                <NumberFlow value={value} />
+              )}
+            </div>
+            <div className="text-muted-foreground mt-1 text-xs">{change}</div>
+          </div>
+          <div className="bg-muted rounded-lg p-3">
+            <Icon className="text-muted-foreground h-5 w-5" />
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function AnalyticsOverviewCards({
+  showSkeleton,
+}: {
+  showSkeleton: boolean;
+}) {
+  return (
+    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      {analyticsOverviewStats.map((stat) => (
+        <OverviewStatCard
+          change={stat.change}
+          Icon={stat.icon}
+          key={stat.label}
+          label={stat.label}
+          showSkeleton={showSkeleton}
+          value={stat.value}
+        />
+      ))}
+      <TotalClicksCard />
+    </div>
   );
 }
 
@@ -246,29 +342,9 @@ export function Analytics() {
     : null;
 
   // Get filter options from data
-  const filterOptions = analyticsData?.filterOptions ?? {
-    country: [{ value: "all", label: "All Countries" }],
-    device: [{ value: "all", label: "All Devices" }],
-    browser: [{ value: "all", label: "All Browsers" }],
-    os: [{ value: "all", label: "All OS" }],
-    link: [{ value: "all", label: "All Links" }],
-  };
+  const filterOptions = analyticsData?.filterOptions ?? defaultFilterOptions;
 
-  const timeRangeOptions = isPro
-    ? undefined
-    : [
-        {
-          value: "24h",
-          label: "Last 24 hours",
-          displayValue: "Last 24 hours",
-        },
-        { value: "7d", label: "Last 7 days", displayValue: "Last 7 days" },
-        {
-          value: "30d",
-          label: "Last 30 days",
-          displayValue: "Last 30 days",
-        },
-      ];
+  const timeRangeOptions = isPro ? undefined : freeTimeRangeOptions;
 
   useEffect(() => {
     if (isPro) {
@@ -372,23 +448,6 @@ export function Analytics() {
     console.error("Cold analytics error:", coldError);
   }
 
-  const stats = [
-    {
-      label: "Total Links",
-      value: "24",
-      icon: LinkIcon,
-      change: "[+3] this week",
-      trend: "up",
-    },
-    {
-      label: "Auto-Healed",
-      value: "8",
-      icon: ShieldCheckIcon,
-      change: "[3] active",
-      trend: "neutral",
-    },
-  ];
-
   const chartAiLockMessage = !isDevMode
     ? "This works only in dev mode right now."
     : "This is locked for free users. Use a Pro account in dev mode.";
@@ -418,33 +477,7 @@ export function Analytics() {
       />
 
       {/* Stats Grid */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {stats.map((stat) => (
-          <Card key={stat.label}>
-            <CardContent className="p-6">
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <p className="text-muted-foreground text-xs">{stat.label}</p>
-                  <div className="mt-2 text-2xl font-medium">
-                    {showSkeleton ? (
-                      <Skeleton className="h-8 w-16" />
-                    ) : (
-                      <NumberFlow value={Number(stat.value)} />
-                    )}
-                  </div>
-                  <div className="text-muted-foreground mt-1 text-xs">
-                    {stat.change}
-                  </div>
-                </div>
-                <div className="bg-muted rounded-lg p-3">
-                  <stat.icon className="text-muted-foreground h-5 w-5" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-        <TotalClicksCard />
-      </div>
+      <AnalyticsOverviewCards showSkeleton={showSkeleton} />
 
       {/* Charts Section */}
       <div className="grid gap-6 lg:grid-cols-2">
