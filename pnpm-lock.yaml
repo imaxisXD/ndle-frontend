@@ -55,7 +55,7 @@ importers:
         specifier: ^0.2.0
         version: 0.2.1(convex@1.42.0(@clerk/react@6.11.1(react-dom@19.2.7(react@19.2.7))(react@19.2.7))(react@19.2.7))
       '@duckdb/duckdb-wasm':
-        specifier: ^1.33.1-dev57.0
+        specifier: 1.33.1-dev57.0
         version: 1.33.1-dev57.0
       '@hookform/resolvers':
         specifier: ^5.4.0

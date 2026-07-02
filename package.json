@@ -25,7 +25,7 @@
     "@clerk/nextjs": "7.5.9",
     "@convex-dev/eslint-plugin": "^2.0.0",
     "@convex-dev/sharded-counter": "^0.2.0",
-    "@duckdb/duckdb-wasm": "^1.33.1-dev57.0",
+    "@duckdb/duckdb-wasm": "1.33.1-dev57.0",
     "@hookform/resolvers": "^5.4.0",
     "@json-render/core": "^0.19.0",
     "@json-render/react": "^0.19.0",
