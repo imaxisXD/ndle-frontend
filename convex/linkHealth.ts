@@ -1,14 +1,64 @@
 import { v } from "convex/values";
 import { internalAction, internalQuery, mutation } from "./_generated/server";
 import { internal } from "./_generated/api";
+import type { Id } from "./_generated/dataModel";
 import { getOwnerSnapshot } from "./ownership";
 
 const BATCH_SIZE = 100;
+const PRODUCTION_MONITORING_INTERVAL_MS = 30 * 60 * 1000;
+
+const monitoringActionResultValidator = v.union(
+  v.object({
+    success: v.literal(true),
+    status: v.union(
+      v.literal("registered"),
+      v.literal("unregistered"),
+      v.literal("disabled_for_development"),
+    ),
+  }),
+  v.object({
+    success: v.literal(false),
+    error: v.string(),
+  }),
+);
+
+const recordHealthCheckResultValidator = v.union(
+  v.object({
+    success: v.literal(true),
+  }),
+  v.object({
+    success: v.literal(false),
+    reason: v.literal("url_not_found"),
+  }),
+);
+
+function getMonitoringEnvironment(): "dev" | "prod" {
+  return process.env.ENVIRONMENT === "prod" ? "prod" : "dev";
+}
+
+type MonitoringActionResult =
+  | {
+      success: true;
+      status:
+        | "registered"
+        | "unregistered"
+        | "disabled_for_development";
+    }
+  | {
+      success: false;
+      error: string;
+    };
+
+type SyncMonitoringResult = {
+  success: true;
+  totalSynced: number;
+  batchCount: number;
+};
 
 // Type for URL data returned from the query
 type UrlData = {
-  urlId: string;
-  userId: string;
+  urlId: Id<"urls">;
+  userId: Id<"users">;
   shortUrl: string;
   longUrl: string;
 };
@@ -27,6 +77,18 @@ export const getAllUrlsQuery = internalQuery({
     cursor: v.optional(v.union(v.string(), v.null())),
     numItems: v.optional(v.number()),
   },
+  returns: v.object({
+    urls: v.array(
+      v.object({
+        urlId: v.id("urls"),
+        userId: v.id("users"),
+        shortUrl: v.string(),
+        longUrl: v.string(),
+      }),
+    ),
+    continueCursor: v.union(v.string(), v.null()),
+    isDone: v.boolean(),
+  }),
   handler: async (ctx, args) => {
     const numItems = args.numItems ?? BATCH_SIZE;
 
@@ -60,10 +122,22 @@ export const getAllUrlsQuery = internalQuery({
  */
 export const syncAllUrlsToMonitoringService = internalAction({
   args: {},
-  handler: async (ctx) => {
+  returns: v.object({
+    success: v.literal(true),
+    totalSynced: v.number(),
+    batchCount: v.number(),
+  }),
+  handler: async (ctx): Promise<SyncMonitoringResult> => {
+    const environment = getMonitoringEnvironment();
+    if (environment === "dev") {
+      console.log(
+        "[Link Monitoring] Continuous development monitoring is disabled",
+      );
+      return { success: true, totalSynced: 0, batchCount: 0 };
+    }
+
     const monitoringServiceUrl = process.env.MONITOR_SERVICE_URL;
     const monitoringApiSecret = process.env.MONITORING_API_SECRET;
-    const environment = process.env.ENVIRONMENT;
 
     if (!monitoringServiceUrl) {
       throw new Error("MONITORING_SERVICE_URL environment variable is not set");
@@ -99,8 +173,7 @@ export const syncAllUrlsToMonitoringService = internalAction({
         convexUserId: url.userId,
         shortUrl: url.shortUrl,
         longUrl: url.longUrl,
-        environment,
-        intervalMs: 300000,
+        intervalMs: PRODUCTION_MONITORING_INTERVAL_MS,
       }));
 
       if (links.length > 0) {
@@ -110,7 +183,7 @@ export const syncAllUrlsToMonitoringService = internalAction({
             "Content-Type": "application/json",
             Authorization: `Bearer ${monitoringApiSecret}`,
           },
-          body: JSON.stringify({ links }),
+          body: JSON.stringify({ environment, links }),
         });
 
         if (!response.ok) {
@@ -146,15 +219,20 @@ export const syncAllUrlsToMonitoringService = internalAction({
  */
 export const registerUrlWithMonitoringService = internalAction({
   args: {
-    convexUrlId: v.string(),
-    convexUserId: v.string(),
+    convexUrlId: v.id("urls"),
+    convexUserId: v.id("users"),
     longUrl: v.string(),
     shortUrl: v.string(),
   },
-  handler: async (_ctx, args) => {
+  returns: monitoringActionResultValidator,
+  handler: async (_ctx, args): Promise<MonitoringActionResult> => {
+    const environment = getMonitoringEnvironment();
+    if (environment === "dev") {
+      return { success: true, status: "disabled_for_development" };
+    }
+
     const monitoringServiceUrl = process.env.MONITOR_SERVICE_URL;
     const monitoringApiSecret = process.env.MONITORING_API_SECRET;
-    const environment = process.env.ENVIRONMENT ?? "prod";
 
     if (!monitoringServiceUrl) {
       console.error(
@@ -185,7 +263,7 @@ export const registerUrlWithMonitoringService = internalAction({
             longUrl: args.longUrl,
             shortUrl: args.shortUrl,
             environment,
-            intervalMs: 300000, // 5 minutes default
+            intervalMs: PRODUCTION_MONITORING_INTERVAL_MS,
           }),
         },
       );
@@ -198,11 +276,66 @@ export const registerUrlWithMonitoringService = internalAction({
         return { success: false, error: errorText };
       }
 
-      const result = await response.json();
       console.log(`[Link Monitoring] URL registered: ${args.shortUrl}`);
-      return { success: true, linkId: result.linkId };
+      return { success: true, status: "registered" };
     } catch (error) {
       console.error("[Link Monitoring] Registration error:", error);
+      return { success: false, error: String(error) };
+    }
+  },
+});
+
+export const unregisterUrlFromMonitoringService = internalAction({
+  args: {
+    convexUrlId: v.id("urls"),
+  },
+  returns: monitoringActionResultValidator,
+  handler: async (_ctx, args): Promise<MonitoringActionResult> => {
+    const monitoringServiceUrl = process.env.MONITOR_SERVICE_URL;
+    const monitoringApiSecret = process.env.MONITORING_API_SECRET;
+    const environment = getMonitoringEnvironment();
+
+    if (!monitoringServiceUrl) {
+      return {
+        success: false,
+        error: "MONITOR_SERVICE_URL not configured",
+      } as const;
+    }
+
+    if (!monitoringApiSecret) {
+      return {
+        success: false,
+        error: "MONITORING_API_SECRET not configured",
+      } as const;
+    }
+
+    try {
+      const response = await fetch(
+        `${monitoringServiceUrl}/monitors/unregister`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${monitoringApiSecret}`,
+          },
+          body: JSON.stringify({
+            convexUrlId: args.convexUrlId,
+            environment,
+          }),
+        },
+      );
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error(
+          `[Link Monitoring] Unregister failed: ${response.status} - ${errorText}`,
+        );
+        return { success: false, error: errorText };
+      }
+
+      return { success: true, status: "unregistered" } as const;
+    } catch (error) {
+      console.error("[Link Monitoring] Unregister error:", error);
       return { success: false, error: String(error) };
     }
   },
@@ -211,8 +344,7 @@ export const registerUrlWithMonitoringService = internalAction({
 export const recordHealthCheck = mutation({
   args: {
     sharedSecret: v.string(),
-    urlId: v.string(),
-    userId: v.optional(v.string()),
+    urlId: v.id("urls"),
     shortUrl: v.string(),
     longUrl: v.string(),
     statusCode: v.number(),
@@ -226,6 +358,7 @@ export const recordHealthCheck = mutation({
     errorMessage: v.optional(v.string()),
     checkedAt: v.number(),
   },
+  returns: recordHealthCheckResultValidator,
   handler: async (ctx, args) => {
     const {
       sharedSecret,
@@ -250,22 +383,16 @@ export const recordHealthCheck = mutation({
       throw new Error("[Link Monitoring] | Invalid shared secret");
     }
 
-    const normalizedUrl = ctx.db.normalizeId("urls", urlId);
-    if (!normalizedUrl) {
-      console.error("[Link Monitoring] | Invalid URL ID");
-      throw new Error("[Link Monitoring] | Invalid URL ID");
-    }
-
-    const urlDoc = await ctx.db.get(normalizedUrl);
+    const urlDoc = await ctx.db.get(urlId);
     if (!urlDoc) {
-      throw new Error("[Link Monitoring] | URL not found");
+      return { success: false, reason: "url_not_found" } as const;
     }
     const owner = getOwnerSnapshot(urlDoc);
 
     // 1. Get previous check to detect status changes
     const previousCheck = await ctx.db
       .query("linkHealthChecks")
-      .withIndex("by_url_id", (q) => q.eq("urlId", normalizedUrl))
+      .withIndex("by_url_id", (q) => q.eq("urlId", urlId))
       .unique();
 
     const previousStatus = previousCheck?.healthStatus;
@@ -287,7 +414,7 @@ export const recordHealthCheck = mutation({
       });
     } else {
       await ctx.db.insert("linkHealthChecks", {
-        urlId: normalizedUrl,
+        urlId,
         userId: owner.userId,
         guestId: owner.guestId,
         analyticsOwnerKey: owner.analyticsOwnerKey,
@@ -309,7 +436,7 @@ export const recordHealthCheck = mutation({
     const existingSummary = await ctx.db
       .query("linkHealthDailySummary")
       .withIndex("by_url_and_date", (q) =>
-        q.eq("urlId", normalizedUrl).eq("date", today),
+        q.eq("urlId", urlId).eq("date", today),
       )
       .unique();
 
@@ -330,7 +457,7 @@ export const recordHealthCheck = mutation({
       });
     } else {
       await ctx.db.insert("linkHealthDailySummary", {
-        urlId: normalizedUrl,
+        urlId,
         userId: owner.userId,
         guestId: owner.guestId,
         analyticsOwnerKey: owner.analyticsOwnerKey,
@@ -390,7 +517,7 @@ export const recordHealthCheck = mutation({
         : getUserFriendlyMessage();
 
       await ctx.db.insert("linkIncidents", {
-        urlId: normalizedUrl,
+        urlId,
         userId: owner.userId,
         guestId: owner.guestId,
         analyticsOwnerKey: owner.analyticsOwnerKey,
@@ -402,7 +529,7 @@ export const recordHealthCheck = mutation({
     } else if (statusRecovered) {
       // Status RECOVERED
       await ctx.db.insert("linkIncidents", {
-        urlId: normalizedUrl,
+        urlId,
         userId: owner.userId,
         guestId: owner.guestId,
         analyticsOwnerKey: owner.analyticsOwnerKey,
@@ -413,7 +540,7 @@ export const recordHealthCheck = mutation({
       });
     }
 
-    return { success: true };
+    return { success: true } as const;
   },
 });
 

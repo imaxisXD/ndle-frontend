@@ -362,6 +362,14 @@ async function syncUrlToRedis(
 }
 
 async function deleteUrlRecord(ctx: MutationCtx, url: Doc<"urls">) {
+  await ctx.scheduler.runAfter(
+    0,
+    internal.linkHealth.unregisterUrlFromMonitoringService,
+    {
+      convexUrlId: url._id,
+    },
+  );
+
   await ctx.scheduler.runAfter(0, internal.redisAction.deleteFromRedis, {
     slugAssigned: url.slugAssigned ?? url.shortUrl,
   });
