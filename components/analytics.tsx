@@ -21,6 +21,7 @@ import { UTMAnalyticsPanel } from "@/components/UTMAnalyticsPanel";
 import type { UTMAnalyticsData } from "@/types/utm-analytics";
 import { AgenticChartChat } from "@/components/agentic-charts";
 import { EmptyStateImage } from "@/components/empty-state-image";
+import { getAnalyticsTopLinks } from "@/lib/analytics-top-links";
 
 const freeTimeRangeOptions = [
   {
@@ -195,8 +196,8 @@ export function Analytics() {
   const showSkeleton = isPending && !serverData;
   const analyticsData = serverData ?? null;
   const isLoading = showSkeleton;
-  const topSlugs = useMemo(() => Object.entries(analyticsData?.linkCounts ?? {})
-    .sort(([, left], [, right]) => right - left).slice(0, 5).map(([slug]) => slug), [analyticsData?.linkCounts]);
+  const topSlugs = useMemo(() => getAnalyticsTopLinks(analyticsData?.linkCounts ?? {})
+    .map(link => link.url), [analyticsData?.linkCounts]);
   const topLinkDetails = useQuery(api.urlMainFuction.getLinkDetailsBySlugs, { slugs: topSlugs });
   const urlsLoading = showSkeleton || topLinkDetails === undefined;
 
@@ -297,11 +298,9 @@ export function Analytics() {
       }));
   }, [analyticsData?.countryCounts]);
 
-  const topLinks = useMemo(() => topSlugs.map(slug => {
-    const detail = topLinkDetails?.find(url => url.slugAssigned === slug || url.shortUrl === slug);
-    return { url: slug, originalUrl: detail?.fullurl ?? "Deleted link", clicks: analyticsData?.linkCounts[slug] ?? 0,
-      change: "", createdAt: detail?._creationTime ?? 0, customDomain: detail?.customDomain ?? null };
-  }), [topSlugs, topLinkDetails, analyticsData?.linkCounts]);
+  const topLinks = useMemo(() => getAnalyticsTopLinks(
+    analyticsData?.linkCounts ?? {}, topLinkDetails ?? [],
+  ), [topLinkDetails, analyticsData?.linkCounts]);
 
   if (isError) {
     console.error("Analytics failed to load:", error);
