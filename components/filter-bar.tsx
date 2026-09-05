@@ -60,7 +60,7 @@ export function FilterBar({
   timeRange = "30d",
   onTimeRangeChange,
   timeRangeOptions = [
-    { value: "24h", label: "Last 24 hours", displayValue: "Last 24 hours" },
+    { value: "24h", label: "Today (UTC)", displayValue: "Today (UTC)" },
     { value: "7d", label: "Last 7 days", displayValue: "Last 7 days" },
     { value: "30d", label: "Last 30 days", displayValue: "Last 30 days" },
     { value: "3m", label: "Last 3 months", displayValue: "Last 3 months" },

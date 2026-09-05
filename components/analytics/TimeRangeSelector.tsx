@@ -27,7 +27,7 @@ export function TimeRangeSelector({
         <SelectValue placeholder="Select range" />
       </SelectTrigger>
       <SelectContent className="gap-2 text-xs">
-        <SelectItem value="24h">Last 24 hours</SelectItem>
+        <SelectItem value="24h">Today (UTC)</SelectItem>
         <SelectItem value="7d">Last 7 days</SelectItem>
         <SelectItem value="30d">Last 30 days</SelectItem>
         <SelectItem value="3mo">Last 3 months</SelectItem>

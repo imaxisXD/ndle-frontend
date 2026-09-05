@@ -358,6 +358,92 @@ It does not claim every account lost clicks. The notice appears in dashboard
 and link-detail reports, including empty results. Requests entirely after the
 cutoff do not receive the notice.
 
+### Further event safeguards
+
+Ingest `94103f0` and Worker `98964a3` add a second recovery path for future
+tracked events. Ingest writes the original canonical event to an immutable R2
+object and a pending marker before returning HTTP 202. A retry uses the same
+event ID; a different payload under that ID is rejected. Database receipts
+remain the authority for whether an event has already been counted.
+
+The repair loop checks pending markers without depending on Redis. A separate
+startup and daily scan checks all new recovery objects against the database,
+including records whose markers were already cleared before an older database
+snapshot was restored. Each scan has bounded work and separate progress. Failed
+records remain visible for investigation while other records can progress.
+
+The failed Cloudflare queue now has a consumer that saves the original message
+and an unresolved marker to R2 before acknowledging it. Emptying that queue
+does not clear its warning. The recovery CLI preserves the original archive and
+requires a matching saved analytics receipt and a terminal Convex result before
+resolving a tracked event. Invalid messages require an explicit operator and
+reason. Disabled tracking cannot be used to bypass a valid tracked event.
+
+The benefit is recovery from process failure, Redis loss, duplicate delivery and
+an older database restore without inventing new event IDs. This is not an
+unlimited guarantee: before R2 acceptance, delivery still depends on the
+Cloudflare queue's 14-day retention; recovery depends on retaining the R2
+objects and access to them. A full raw scan can take several bounded passes as
+the archive grows. Schema and payload changes still need compatible migrations
+and tests. Monitoring identifies blocked or overdue repair and unresolved
+failures; the alert service can itself be unavailable.
+
+#### Tests and production evidence
+
+- Ingest CI [33988322951](https://github.com/imaxisXD/ndle-ingest-service/actions/runs/33988322951)
+  passed 49 tests with 264 assertions, including real subprocess and Redis tests
+  for graceful restart, termination after acceptance, complete test-queue loss,
+  recovery from an older database snapshot and duplicate suppression. The
+  integration tests use isolated data and do not damage production to simulate
+  failure. The first Linux CI run hit the existing five-second database-reset
+  hook after the 100,000-event benchmark; only that cleanup hook was given a
+  30-second deadline, and the complete next run passed.
+- Worker CI [33988360514](https://github.com/imaxisXD/ndle-worker/actions/runs/33988360514)
+  passed 41 tests with 97 assertions plus 42 actual workerd, R2 and CLI transport
+  scenarios. These cover failed writes, conflicting archives, retry bounds,
+  exact replay bodies, invalid resolution and proof before clearing warnings.
+  Type checks, formatting, generated bindings and production/development
+  deployment dry-runs passed. Production Worker version
+  `4e598317-0b71-4c80-bea9-913a1b9bc86a` contains the runtime changes; `98964a3`
+  subsequently corrects the operator CLI's HTTP message encoding and tests it.
+- Coolify deployed ingest `94103f0` on the same persistent volume and verified
+  database path. The old process stopped cleanly before the new process started.
+  Counts remained 2,236 receipts, daily clicks and dimension clicks, with ten
+  owner aliases. Consistent container names select stop-before-start deployment;
+  the configured shutdown allowance is 180 seconds. Automatic deployment was
+  restored after the handover. The queue resumed and drained.
+- A real isolated guest redirect produced event
+  `0e201e08-c910-4874-9477-5482246f0d7e`. Its immutable R2 event, saved database
+  receipt and Convex receipt matched. Two additional deliveries of that exact
+  message were logged as duplicates. The link stayed at one Convex click and
+  global analytics stayed at 2,237 in all three totals. The test link was then
+  deleted through the existing removal function, its destination returned 404,
+  and its receipt was retained. No current account received those test clicks.
+- A deliberately invalid failed-queue fixture was archived with its original
+  body and SHA-256, then resolved with a recorded explanation. Live readback
+  confirmed the archive remains, its resolution receipt exists and its
+  unresolved marker is absent. The fixture created no click. Both queue
+  backlogs were zero, and the live operations run at 20:05:29 UTC reported no
+  issues or exceptions.
+- The post-deployment R2 backup at
+  `snapshots/duckdb/2026-09-05T20-07-28.313Z-85ca6e9f-ec9b-49fc-91e3-94264456fba0/analytics.duckdb`
+  was downloaded, checksum-verified and opened independently, without opening
+  the live database in a second process. SHA-256:
+  `dbea9ce83f7bea3d735badfc80bc3533c37bc96c5c0f53b15b09748d74294975`.
+  The restored file had all 2,237 receipts and matching daily/dimension totals,
+  plus ten aliases. The temporary restore file was removed; protected backups
+  and recovery evidence remain.
+
+Live dashboard and link-detail checks confirmed the historical notice appears
+on old ranges, including empty results, while remaining separate from retrieval
+coverage. Checking after local midnight also exposed a dashboard date bug:
+India's September 6 date was sent while the API still used September 5 UTC,
+creating an invalid range after the API clamp. Dashboard date windows now use
+UTC, and failed requests keep the filter controls available. The calendar-day
+option is named “Today (UTC)” to describe its existing date-only behavior.
+Focused tests cover the actual proxy rejection and corrected request, timezone
+parity, inclusive date windows and the rendered error controls.
+
 ### Verification limits
 
 - Production disables the AI chart/export interface. Positive authenticated

@@ -3,7 +3,7 @@
 import { useMemo, useState, useEffect, type ElementType } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { useAnalyticsV2 } from "@/hooks/useAnalyticsV2";
-import { format, subDays, startOfDay, endOfDay } from "date-fns";
+import { getAnalyticsDateWindow } from "@/lib/analytics-date-window";
 import { Skeleton } from "@/components/ui/skeleton";
 import { CountryChart } from "@/components/charts/country-chart";
 import { ReferrerChart } from "@/components/charts/referrer-chart";
@@ -27,8 +27,8 @@ import { AnalyticsHistoryNotice } from "@/components/analytics-history-notice";
 const freeTimeRangeOptions = [
   {
     value: "24h",
-    label: "Last 24 hours",
-    displayValue: "Last 24 hours",
+    label: "Today (UTC)",
+    displayValue: "Today (UTC)",
   },
   { value: "7d", label: "Last 7 days", displayValue: "Last 7 days" },
   {
@@ -137,49 +137,7 @@ export function Analytics() {
   const [osFilter, setOSFilter] = useState("all");
   const [linkFilter, setLinkFilter] = useState("all");
 
-  // Calculate start/end dates based on time range selection
-  const { start, end } = useMemo(() => {
-    const now = new Date();
-    const end = endOfDay(now);
-    let start = startOfDay(subDays(now, 29)); // Default: inclusive 30-day window
-
-    switch (timeRange) {
-      case "24h":
-        start = startOfDay(now);
-        break;
-      case "7d":
-        start = startOfDay(subDays(now, 6));
-        break;
-      case "30d":
-        start = startOfDay(subDays(now, 29));
-        break;
-      case "3m":
-        start = startOfDay(subDays(now, 89));
-        break;
-      case "12m":
-        start = startOfDay(subDays(now, 364));
-        break;
-      case "mtd":
-        start = startOfDay(new Date(now.getFullYear(), now.getMonth(), 1));
-        break;
-      case "qtd": {
-        const quarter = Math.floor(now.getMonth() / 3);
-        start = startOfDay(new Date(now.getFullYear(), quarter * 3, 1));
-        break;
-      }
-      case "ytd":
-        start = startOfDay(new Date(now.getFullYear(), 0, 1));
-        break;
-      case "all":
-        start = startOfDay(new Date(2020, 0, 1));
-        break;
-    }
-
-    return {
-      start: format(start, "yyyy-MM-dd"),
-      end: format(end, "yyyy-MM-dd"),
-    };
-  }, [timeRange]);
+  const { start, end } = getAnalyticsDateWindow(timeRange);
 
   // Fetch V2 API data - pre-aggregated from server
   const {
@@ -303,22 +261,48 @@ export function Analytics() {
     analyticsData?.linkCounts ?? {}, topLinkDetails ?? [],
   ), [topLinkDetails, analyticsData?.linkCounts]);
 
+  const filterBar = (
+    <FilterBar
+      timeRange={timeRange}
+      onTimeRangeChange={setTimeRange}
+      timeRangeOptions={timeRangeOptions}
+      linkFilter={linkFilter}
+      onLinkFilterChange={setLinkFilter}
+      linkOptions={filterOptions.link}
+      countryFilter={countryFilter}
+      onCountryFilterChange={setCountryFilter}
+      countryOptions={filterOptions.country}
+      deviceFilter={deviceFilter}
+      onDeviceFilterChange={setDeviceFilter}
+      deviceOptions={filterOptions.device}
+      browserFilter={browserFilter}
+      onBrowserFilterChange={setBrowserFilter}
+      browserOptions={filterOptions.browser}
+      osFilter={osFilter}
+      onOSFilterChange={setOSFilter}
+      osOptions={filterOptions.os}
+    />
+  );
+
   if (isError) {
     console.error("Analytics failed to load:", error);
 
     return (
-      <div className="flex flex-col items-center px-6 py-12 text-center">
-        <EmptyStateImage
-          alt=""
-          className="mb-5 w-full max-w-[680px]"
-          name="errorAnalytics"
-        />
-        <h3 className="text-foreground text-sm font-medium">
-          Analytics could not load
-        </h3>
-        <p className="text-muted-foreground mt-2 max-w-md text-xs">
-          Try refreshing the page. Your links are safe.
-        </p>
+      <div className="space-y-6">
+        {filterBar}
+        <div className="flex flex-col items-center px-6 py-12 text-center">
+          <EmptyStateImage
+            alt=""
+            className="mb-5 w-full max-w-[680px]"
+            name="errorAnalytics"
+          />
+          <h3 className="text-foreground text-sm font-medium">
+            Analytics could not load
+          </h3>
+          <p className="text-muted-foreground mt-2 max-w-md text-xs">
+            Try another date range or refresh the page. Your links are safe.
+          </p>
+        </div>
       </div>
     );
   }
@@ -329,27 +313,7 @@ export function Analytics() {
 
   return (
     <div className="space-y-6">
-      {/* Filter Bar */}
-      <FilterBar
-        timeRange={timeRange}
-        onTimeRangeChange={setTimeRange}
-        timeRangeOptions={timeRangeOptions}
-        linkFilter={linkFilter}
-        onLinkFilterChange={setLinkFilter}
-        linkOptions={filterOptions.link}
-        countryFilter={countryFilter}
-        onCountryFilterChange={setCountryFilter}
-        countryOptions={filterOptions.country}
-        deviceFilter={deviceFilter}
-        onDeviceFilterChange={setDeviceFilter}
-        deviceOptions={filterOptions.device}
-        browserFilter={browserFilter}
-        onBrowserFilterChange={setBrowserFilter}
-        browserOptions={filterOptions.browser}
-        osFilter={osFilter}
-        onOSFilterChange={setOSFilter}
-        osOptions={filterOptions.os}
-      />
+      {filterBar}
 
       <AnalyticsHistoryNotice history={serverData?.meta.history} />
       {serverData && <p className="text-muted-foreground text-xs">
