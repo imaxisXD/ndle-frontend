@@ -10,6 +10,18 @@ import {
 import { AnalyticsRange } from "@/lib/analyticsRanges";
 import { Calendar } from "iconoir-react";
 
+const timeRanges: { value: AnalyticsRange; label: string }[] = [
+  { value: "24h", label: "Today (UTC)" },
+  { value: "7d", label: "Last 7 days" },
+  { value: "30d", label: "Last 30 days" },
+  { value: "3mo", label: "Last 3 months" },
+  { value: "12mo", label: "Last 12 months" },
+  { value: "mtd", label: "Month to Date" },
+  { value: "qtd", label: "Quarter to Date" },
+  { value: "ytd", label: "Year to Date" },
+  { value: "all", label: "All time" },
+];
+
 export function TimeRangeSelector({
   value,
   onChange,
@@ -18,7 +30,11 @@ export function TimeRangeSelector({
   onChange: (v: AnalyticsRange) => void;
 }) {
   return (
-    <Select value={value} onValueChange={(v) => onChange(v as AnalyticsRange)}>
+    <Select
+      items={timeRanges}
+      value={value}
+      onValueChange={(v) => onChange(v as AnalyticsRange)}
+    >
       <SelectTrigger
         size="md"
         className="bg-background flex items-center justify-between gap-2 font-medium shadow-xs drop-shadow-xs"
@@ -27,15 +43,11 @@ export function TimeRangeSelector({
         <SelectValue placeholder="Select range" />
       </SelectTrigger>
       <SelectContent className="gap-2 text-xs">
-        <SelectItem value="24h">Today (UTC)</SelectItem>
-        <SelectItem value="7d">Last 7 days</SelectItem>
-        <SelectItem value="30d">Last 30 days</SelectItem>
-        <SelectItem value="3mo">Last 3 months</SelectItem>
-        <SelectItem value="12mo">Last 12 months</SelectItem>
-        <SelectItem value="mtd">Month to Date</SelectItem>
-        <SelectItem value="qtd">Quarter to Date</SelectItem>
-        <SelectItem value="ytd">Year to Date</SelectItem>
-        <SelectItem value="all">All time</SelectItem>
+        {timeRanges.map((range) => (
+          <SelectItem key={range.value} value={range.value}>
+            {range.label}
+          </SelectItem>
+        ))}
       </SelectContent>
     </Select>
   );
