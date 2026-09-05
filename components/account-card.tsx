@@ -59,7 +59,7 @@ export function AccountCard() {
           </div>
         </CardTitle>
         <CardToolbar>
-          <SignOutButton>
+          <SignOutButton redirectUrl="/">
             <Button variant="destructive" type="button">
               Sign out
             </Button>

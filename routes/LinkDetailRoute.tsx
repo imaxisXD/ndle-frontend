@@ -296,7 +296,7 @@ export default function LinkDetailRoute() {
 
   const handleDelete = async () => {
     await deleteUrl({ urlSlug: slug });
-    navigate("/");
+    navigate("/dashboard");
     add({
       type: "success",
       title: "Link deleted",

@@ -12,11 +12,9 @@ export default function SignInComponent() {
       switchLabel="Create one"
     >
       <SignIn
-        forceRedirectUrl="/static-app-shell"
-        fallbackRedirectUrl="/static-app-shell"
+        fallbackRedirectUrl="/dashboard"
         signUpUrl="/sign-up"
-        signUpForceRedirectUrl="/static-app-shell"
-        signUpFallbackRedirectUrl="/static-app-shell"
+        signUpFallbackRedirectUrl="/dashboard"
         appearance={authClerkAppearance}
       />
     </AuthScreen>

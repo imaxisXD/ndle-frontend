@@ -25,7 +25,7 @@ export default function App() {
             <div className="flex w-full max-w-6xl flex-col space-y-8 px-6 py-8">
               <ScrollToTop />
               <Routes>
-                <Route path="/" element={<HomeRoute />} />
+                <Route path="/dashboard" element={<HomeRoute />} />
                 <Route
                   path="/urls"
                   element={

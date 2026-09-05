@@ -22,7 +22,7 @@ export default clerkMiddleware(async (auth, req) => {
       req.nextUrl.pathname === "/static-app-shell" ||
       req.nextUrl.pathname.startsWith("/static-app-shell/")
     ) {
-      return NextResponse.redirect(new URL("/", req.nextUrl));
+      return NextResponse.redirect(new URL("/dashboard", req.nextUrl));
     }
     return;
   }

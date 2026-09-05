@@ -7,13 +7,11 @@ export default async function Page({
 }: {
   params: Promise<{ path?: string[] }>;
 }) {
-  const { isAuthenticated, redirectToSignIn } = await auth();
+  const { path } = await params;
+  if (!path?.length) return <PublicHome />;
 
-  if (!isAuthenticated) {
-    const { path } = await params;
-    if (path?.length) return redirectToSignIn();
-    return <PublicHome />;
-  }
+  const { isAuthenticated, redirectToSignIn } = await auth();
+  if (!isAuthenticated) return redirectToSignIn();
 
   return <StaticAppShell />;
 }

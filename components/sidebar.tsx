@@ -26,7 +26,8 @@ export function Sidebar() {
           <TooltipTrigger
             render={
               <NavLink
-                to="/"
+                to="/dashboard"
+                aria-label="Dashboard"
                 className={({ isActive }) =>
                   `flex h-10 w-10 items-center justify-center rounded-md transition-colors ${
                     isActive
@@ -45,7 +46,7 @@ export function Sidebar() {
               </NavLink>
             }
           ></TooltipTrigger>
-          <TooltipContent side="right">Home</TooltipContent>
+          <TooltipContent side="right">Dashboard</TooltipContent>
         </Tooltip>
 
         <Tooltip>

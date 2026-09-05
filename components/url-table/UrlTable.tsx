@@ -985,16 +985,17 @@ export function UrlTable({
     selectedCollectionId ? { collectionId: selectedCollectionId } : {},
     { initialNumItems: 25 },
   );
-  const totalLinks = useQuery(
-    api.urlLists.getUrlListCount,
-    selectedCollectionId ? { collectionId: selectedCollectionId } : {},
-  );
   const collectionIsUpdating =
     !!selectedCollectionData && !selectedCollectionData.membersReady;
   const isLoading = pageStatus === "LoadingFirstPage";
   const hasLoadProblem =
     !!selectedCollectionId && selectedCollectionData === null;
   const isEmpty = !isLoading && urls.length === 0 && !collectionIsUpdating;
+  const showLoadMoreLinks =
+    showPagination &&
+    (pageStatus === "CanLoadMore" || pageStatus === "LoadingMore");
+  const showLoadMoreCollections =
+    showFiltersPanel && !collectionId && collectionPageStatus !== "Exhausted";
 
   const filteredUrls = useMemo(() => {
     if (!Array.isArray(urls) || urls.length === 0) {
@@ -1462,14 +1463,9 @@ export function UrlTable({
         )}
       </div>
 
-      {!isLoading && (
+      {!isLoading && (showLoadMoreLinks || showLoadMoreCollections) && (
         <div className="flex flex-wrap items-center justify-between gap-3 px-6 py-4">
-          <output className="text-muted-foreground text-xs">
-            {collectionIsUpdating
-              ? "Updating your saved collection. Its links will appear when the update finishes."
-              : `${urls.length}${totalLinks == null ? "" : ` of ${totalLinks}`} links loaded. Search, sorting and status filters apply to loaded links.`}
-          </output>
-          {pageStatus !== "Exhausted" && (
+          {showLoadMoreLinks && (
             <Button
               variant="outline"
               onClick={() => loadMore(25)}
@@ -1478,19 +1474,17 @@ export function UrlTable({
               {pageStatus === "LoadingMore" ? "Loading…" : "Load more links"}
             </Button>
           )}
-          {showFiltersPanel &&
-            !collectionId &&
-            collectionPageStatus !== "Exhausted" && (
-              <Button
-                variant="ghost"
-                onClick={() => loadMoreCollections(50)}
-                disabled={collectionPageStatus !== "CanLoadMore"}
-              >
-                {collectionPageStatus === "CanLoadMore"
-                  ? "Load more collections"
-                  : "Loading collections…"}
-              </Button>
-            )}
+          {showLoadMoreCollections && (
+            <Button
+              variant="ghost"
+              onClick={() => loadMoreCollections(50)}
+              disabled={collectionPageStatus !== "CanLoadMore"}
+            >
+              {collectionPageStatus === "CanLoadMore"
+                ? "Load more collections"
+                : "Loading collections…"}
+            </Button>
+          )}
         </div>
       )}
 

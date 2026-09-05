@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useAuth } from "@clerk/nextjs";
 import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import { motion, useInView } from "motion/react";
 import { useMutation } from "convex/react";
@@ -1524,7 +1525,7 @@ function AlertEmailSection() {
               size="lg"
               className="gap-2 border-2 border-[color:var(--pulp-ink)] bg-[oklch(0.7_0.24_145)] text-[color:var(--pulp-ink)] shadow-[4px_4px_0_0_var(--pulp-ink)] transition-all hover:translate-x-0.5 hover:translate-y-0.5 hover:bg-[oklch(0.65_0.24_145)] hover:text-[color:var(--pulp-ink)] hover:shadow-[2px_2px_0_0_var(--pulp-ink)]"
             >
-              <Link href="/sign-up?redirect_url=/">
+              <Link href="/sign-up?redirect_url=/dashboard">
                 Start watching for free
                 <ArrowRightIcon className="size-4" />
               </Link>
@@ -1596,6 +1597,7 @@ function FooterWordmark() {
 }
 
 export function PublicHome() {
+  const { isSignedIn } = useAuth();
   const [url, setUrl] = useState("");
   const [stage, setStage] = useState(0);
   const [yourLink, setYourLink] = useState<YourLink>(null);
@@ -1801,21 +1803,27 @@ export function PublicHome() {
               >
                 vs. Bitly
               </a>
-              <Button
-                asChild
-                variant="ghost"
-                size="sm"
-                className="text-[color:var(--pulp-cream)] hover:bg-[color:var(--pulp-cream)]/10 hover:text-[color:var(--pulp-cream)]"
-              >
-                <Link href="/sign-in?redirect_url=/">Sign in</Link>
-              </Button>
+              {!isSignedIn && (
+                <Button
+                  asChild
+                  variant="ghost"
+                  size="sm"
+                  className="text-[color:var(--pulp-cream)] hover:bg-[color:var(--pulp-cream)]/10 hover:text-[color:var(--pulp-cream)]"
+                >
+                  <Link href="/sign-in?redirect_url=/dashboard">Sign in</Link>
+                </Button>
+              )}
               <Button
                 asChild
                 size="sm"
                 className="gap-1.5 bg-[color:var(--pulp-yellow)] text-[color:var(--pulp-ink)] hover:bg-[color:var(--pulp-yellow)]/90"
               >
-                <Link href="/sign-up?redirect_url=/">
-                  Get ndle
+                <Link
+                  href={
+                    isSignedIn ? "/dashboard" : "/sign-up?redirect_url=/dashboard"
+                  }
+                >
+                  {isSignedIn ? "Dashboard" : "Get ndle"}
                   <ArrowRightIcon className="size-3.5" />
                 </Link>
               </Button>
@@ -2004,7 +2012,7 @@ export function PublicHome() {
               size="lg"
               className="h-14 gap-2 border-2 border-[color:var(--pulp-ink)] bg-[color:var(--pulp-yellow)] px-8 text-sm font-bold tracking-[0.18em] text-[color:var(--pulp-ink)] uppercase shadow-[6px_6px_0_0_var(--pulp-ink)] transition-all hover:translate-x-0.5 hover:translate-y-0.5 hover:bg-[color:var(--pulp-yellow)] hover:text-[color:var(--pulp-ink)] hover:shadow-[3px_3px_0_0_var(--pulp-ink)]"
             >
-              <Link href="/sign-up?redirect_url=/">
+              <Link href="/sign-up?redirect_url=/dashboard">
                 buy a ticket (it&apos;s free)
                 <ArrowRightIcon className="size-4" />
               </Link>
@@ -2048,7 +2056,7 @@ export function PublicHome() {
                 The Verdict
               </Link>
               <Link
-                href="/sign-up?redirect_url=/"
+                href="/sign-up?redirect_url=/dashboard"
                 className="block opacity-80 hover:opacity-100"
               >
                 Get ndle
@@ -2056,13 +2064,13 @@ export function PublicHome() {
             </div>
             <div className="space-y-2 text-[11px] font-bold tracking-[0.22em] uppercase">
               <Link
-                href="/sign-in?redirect_url=/"
+                href="/sign-in?redirect_url=/dashboard"
                 className="block opacity-80 hover:opacity-100"
               >
                 Sign in
               </Link>
               <Link
-                href="/sign-up?redirect_url=/"
+                href="/sign-up?redirect_url=/dashboard"
                 className="block opacity-80 hover:opacity-100"
               >
                 Sign up
