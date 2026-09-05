@@ -1,37 +1,26 @@
 "use client";
 
-import {
-  Authenticated,
-  AuthLoading,
-  Unauthenticated,
-  useMutation,
-  useQuery,
-} from "convex/react";
+import { useMutation, useQuery } from "convex/react";
 import dynamic from "next/dynamic";
 import { useCallback, useEffect, useRef } from "react";
 import { api } from "@/convex/_generated/api";
 import { useSession, useUser } from "@clerk/nextjs";
 import { identifyUser } from "@/lib/posthog";
-import { PublicHome } from "@/components/PublicHome";
+import { AppAccess, AppLoading } from "./app-access";
 import { ensureGuestSession, setClaimedLinkCount } from "@/lib/guest";
 import { toast } from "sonner";
 
-const App = dynamic(() => import("@/app/static-app-shell/app"), { ssr: false });
+const App = dynamic(() => import("@/app/static-app-shell/app"), {
+  ssr: false,
+  loading: AppLoading,
+});
 
 export default function StaticAppShell() {
   return (
-    <>
-      <AuthLoading>
-        <App />
-      </AuthLoading>
-      <Authenticated>
-        <StoreUser />
-        <App />
-      </Authenticated>
-      <Unauthenticated>
-        <PublicHome />
-      </Unauthenticated>
-    </>
+    <AppAccess>
+      <StoreUser />
+      <App />
+    </AppAccess>
   );
 }
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { ClerkProvider, useAuth } from "@clerk/nextjs";
+import { useAuth } from "@clerk/nextjs";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ConvexReactClient } from "convex/react";
 import { ConvexProviderWithClerk } from "convex/react-clerk";
@@ -30,9 +30,9 @@ function AccountBoundary({ children }: { children: ReactNode }) {
 }
 
 export default function ConvexClientProvider({ children }: { children: ReactNode }) {
-  return <ClerkProvider>
+  return (
     <ConvexProviderWithClerk client={convex} useAuth={useAuth}>
       <AccountBoundary>{children}</AccountBoundary>
     </ConvexProviderWithClerk>
-  </ClerkProvider>;
+  );
 }
