@@ -12,7 +12,7 @@ import { AnalyticsSection } from "@/components/AnalyticsSection";
 import { DeleteLinkCard } from "@/components/DeleteLinkCard";
 import { LinkSettingsPanel } from "@/components/LinkSettingsPanel";
 import { LinkActivityLog } from "@/components/LinkActivityLog";
-import { LinkAIChatPanel } from "@/components/LinkAIChatPanel";
+import { LinkNotesPanel } from "@/components/LinkNotesPanel";
 import { LinkHealthPanel } from "@/components/LinkHealthPanel";
 import {
   useTimeseries,
@@ -27,7 +27,7 @@ import {
   TabsTrigger,
   TabsContent,
 } from "@/components/ui/base-tabs";
-import { GraphUp, Settings, List, MagicWand, ShieldCheck } from "iconoir-react";
+import { GraphUp, Settings, List, Bookmark, ShieldCheck } from "iconoir-react";
 
 export default function LinkDetailRoute() {
   const params = useParams();
@@ -333,9 +333,9 @@ export default function LinkDetailRoute() {
             <List className="size-4" />
             Activity
           </TabsTrigger>
-          <TabsTrigger value="ai-chat">
-            <MagicWand className="size-4" />
-            AI Chat
+          <TabsTrigger value="notes">
+            <Bookmark className="size-4" />
+            Notes
           </TabsTrigger>
           <TabsTrigger value="health">
             <ShieldCheck className="size-4" />
@@ -392,9 +392,9 @@ export default function LinkDetailRoute() {
           <LinkActivityLog linkSlug={String(slug)} />
         </TabsContent>
 
-        {/* AI Chat Tab */}
-        <TabsContent value="ai-chat">
-          <LinkAIChatPanel shortUrl={shortUrl} fullUrl={url?.fullurl || ""} />
+        {/* Notes Tab */}
+        <TabsContent value="notes">
+          <LinkNotesPanel shortUrl={shortUrl} fullUrl={url?.fullurl || ""} />
         </TabsContent>
 
         {/* Health Tab */}

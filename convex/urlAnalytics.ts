@@ -93,11 +93,6 @@ export const mutateUrlAnalytics = mutation({
     const key = `url:${normalisedUrlId}`;
     await counter.inc(ctx, key);
 
-    // Increment user total clicks only for signed-in owners.
-    if (url.userTableId) {
-      await counter.inc(ctx, `user:${url.userTableId}`);
-    }
-
     // Increment collection total clicks for every owned collection that contains the link.
     const collections = url.userTableId
       ? (
@@ -118,7 +113,6 @@ export const mutateUrlAnalytics = mutation({
         updatedAt: Date.now(),
         urlStatusMessage: args.urlStatusMessage,
         urlStatusCode: args.urlStatusCode,
-        lastProcessedRequestId: args.requestId,
       });
       return { processed: true, message: "Analytics created" };
     } else {
@@ -132,14 +126,9 @@ export const mutateUrlAnalytics = mutation({
           updatedAt: Date.now(),
           urlStatusMessage: args.urlStatusMessage,
           urlStatusCode: args.urlStatusCode,
-          lastProcessedRequestId: args.requestId,
         });
         return { processed: true, message: "Analytics updated" };
       }
-      // Even if we don't update the analytics, we still need to update the requestId
-      await ctx.db.patch(urlAnalytics._id, {
-        lastProcessedRequestId: args.requestId,
-      });
       return {
         processed: true,
         message: "Request processed, no analytics update needed",

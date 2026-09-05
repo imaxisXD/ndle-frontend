@@ -1,5 +1,5 @@
 import { ConvexError } from "convex/values";
-import type { Doc, Id } from "./_generated/dataModel";
+import type { Doc } from "./_generated/dataModel";
 
 export const GUEST_LINK_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 export const GUEST_LINKS_PER_DAY = 5;
@@ -81,43 +81,6 @@ export function ensureGuestId(guestId: string | undefined) {
   return value;
 }
 
-export function ensureUserOwnsUrl(
-  userId: Id<"users">,
-  url: Doc<"urls"> | null,
-): Doc<"urls"> {
-  if (!url || url.userTableId !== userId) {
-    throw new ConvexError("You do not have access to this link");
-  }
-  return url;
-}
-
 export function getGuestExpiry() {
   return Date.now() + GUEST_LINK_TTL_MS;
-}
-
-export function getPlanLimits(plan: ViewerPlan) {
-  if (plan === "pro") {
-    return {
-      activeLinkLimit: null,
-      analyticsDays: null,
-      canUsePaidOptions: true,
-      canUseCustomLogoQr: true,
-    };
-  }
-
-  if (plan === "free") {
-    return {
-      activeLinkLimit: FREE_ACTIVE_LINK_LIMIT,
-      analyticsDays: FREE_ANALYTICS_RANGE_DAYS,
-      canUsePaidOptions: false,
-      canUseCustomLogoQr: false,
-    };
-  }
-
-  return {
-    activeLinkLimit: GUEST_LINKS_PER_DAY,
-    analyticsDays: FREE_ANALYTICS_RANGE_DAYS,
-    canUsePaidOptions: false,
-    canUseCustomLogoQr: false,
-  };
 }

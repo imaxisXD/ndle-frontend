@@ -19,7 +19,6 @@ import type * as linkHealth from "../linkHealth.js";
 import type * as ownership from "../ownership.js";
 import type * as redisAction from "../redisAction.js";
 import type * as redisProjection from "../redisProjection.js";
-import type * as triggerFuctions from "../triggerFuctions.js";
 import type * as urlAnalytics from "../urlAnalytics.js";
 import type * as urlMainFuction from "../urlMainFuction.js";
 import type * as users from "../users.js";
@@ -44,7 +43,6 @@ declare const fullApi: ApiFromModules<{
   ownership: typeof ownership;
   redisAction: typeof redisAction;
   redisProjection: typeof redisProjection;
-  triggerFuctions: typeof triggerFuctions;
   urlAnalytics: typeof urlAnalytics;
   urlMainFuction: typeof urlMainFuction;
   users: typeof users;

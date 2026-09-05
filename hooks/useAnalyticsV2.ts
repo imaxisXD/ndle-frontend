@@ -12,7 +12,11 @@ interface UseAnalyticsV2Props {
  * Returns pre-aggregated data directly from the server.
  * User identity is determined server-side from JWT claims.
  */
-export function useAnalyticsV2({ start, end }: UseAnalyticsV2Props) {
+export function useAnalyticsV2({
+  start,
+  end,
+  pollingInterval = 12000,
+}: UseAnalyticsV2Props) {
   return useQuery({
     queryKey: ["analytics-v2", start, end],
     queryFn: async (): Promise<AnalyticsV2Response> => {
@@ -52,7 +56,7 @@ export function useAnalyticsV2({ start, end }: UseAnalyticsV2Props) {
       return data;
     },
     placeholderData: keepPreviousData,
-    refetchInterval: 12000,
+    refetchInterval: pollingInterval,
     staleTime: 0,
     gcTime: 0,
     refetchOnMount: true,
