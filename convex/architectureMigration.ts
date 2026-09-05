@@ -17,7 +17,7 @@ export const advance = internalMutation({
     const users = await ctx.db.query("users").withIndex("by_externalSyncReady", q => q.eq("externalSyncReady", undefined)).take(25);
     for (const user of users) {
       await queueServiceSync(ctx, `owner:${user._id}`, { kind: "owner", userId: user._id, ownerKeys: [user._id, makeUserOwnerKey(user._id)] });
-      const clerkUserId = user.tokenIdentifier.split("|").at(-1);
+      const clerkUserId = user.tokenIdentifier.split("|").pop();
       if (clerkUserId?.startsWith("user_")) await queueServiceSync(ctx, `clerk:${user._id}`, { kind: "clerk", userId: user._id, clerkUserId });
       await ctx.db.patch(user._id, { externalSyncReady: true });
     }

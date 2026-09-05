@@ -281,7 +281,7 @@ describe("saved service updates", () => {
     const request = vi.mocked(fetch).mock.calls[0][1];
     const sent = JSON.parse(String(request?.body));
     const command = (Array.isArray(sent[0]) ? sent[0] : sent) as string[];
-    expect(JSON.parse(command.at(-1)!)).toMatchObject({
+    expect(JSON.parse(command[command.length - 1])).toMatchObject({
       link_id: replacementId,
       destination: "https://example.com/replacement",
     });
