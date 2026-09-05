@@ -5,6 +5,7 @@ import {
   AuthLoading,
   Unauthenticated,
   useMutation,
+  useQuery,
 } from "convex/react";
 import dynamic from "next/dynamic";
 import { useCallback, useEffect, useRef } from "react";
@@ -44,10 +45,12 @@ function StoreUser() {
   const { user } = useUser();
   const { session } = useSession();
   const storeUser = useMutation(api.users.store);
-  const initializedRef = useRef(false);
+  const initializedRef = useRef<string | null>(null);
+  const refreshedAtRef = useRef<number | undefined>(undefined);
+  const accountSync = useQuery(api.users.getAccountSyncState);
 
   const initializeUser = useCallback(async () => {
-    if (!user || initializedRef.current) return;
+    if (!user || initializedRef.current === user.id) return;
 
     try {
       // 1. Create/get Convex user - returns { id, metadataUpdated }
@@ -56,18 +59,6 @@ function StoreUser() {
         guestId: guestSession?.guestId,
         guestToken: guestSession?.guestToken,
       });
-
-      // 2. If metadata was updated (new user), refresh the Clerk session
-      //    to get the new JWT with convex_user_id claim
-      if (result.metadataUpdated) {
-        // Force Clerk to fetch fresh user data with updated public_metadata
-        await user.reload();
-        // Force new session token to be issued with the updated claims
-        // skipCache: true ensures we don't use a cached token
-        if (session) {
-          await session.getToken({ skipCache: true });
-        }
-      }
 
       // 3. Identify user in PostHog for analytics tracking
       identifyUser(user.id, {
@@ -79,20 +70,37 @@ function StoreUser() {
         plan: result.membership,
       });
 
+      await ensureGuestSession(true);
       if (result.claimedLinkCount > 0) {
         setClaimedLinkCount(result.claimedLinkCount);
         toast.success(`Moved ${result.claimedLinkCount} guest links to your account.`);
       }
 
-      initializedRef.current = true;
+      initializedRef.current = user.id;
     } catch (error) {
       console.error("[StoreUser] Error initializing user:", error);
     }
-  }, [user, session, storeUser]);
+  }, [user, storeUser]);
 
   useEffect(() => {
     initializeUser();
   }, [initializeUser]);
+
+  useEffect(() => {
+    const syncedAt = accountSync?.metadataSyncedAt;
+    if (!user || !syncedAt || refreshedAtRef.current === syncedAt) return;
+    let canceled = false;
+    void (async () => {
+      try {
+        await user.reload();
+        await session?.getToken({ skipCache: true });
+        if (!canceled) refreshedAtRef.current = syncedAt;
+      } catch (error) {
+        console.error("[StoreUser] Could not refresh the account session", error);
+      }
+    })();
+    return () => { canceled = true; };
+  }, [accountSync?.metadataSyncedAt, user, session]);
 
   return null;
 }

@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { useQuery } from "convex-helpers/react/cache/hooks";
 import { api } from "@/convex/_generated/api";
 import {
@@ -25,7 +26,7 @@ import {
 import { UptimeHistory } from "./UptimeHistory";
 import {
   formatRelativeTimeCompact,
-  mapHealthStatusToUI,
+  getMonitoringStatus,
   getResponseTimeColor,
   getUptimeColor,
 } from "@/lib/utils";
@@ -36,9 +37,14 @@ interface LinkHealthPanelProps {
 }
 
 export function LinkHealthPanel({ urlId }: LinkHealthPanelProps) {
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const timer = window.setInterval(() => setNow(Date.now()), 60_000);
+    return () => window.clearInterval(timer);
+  }, []);
   const healthData = useQuery(
     api.linkHealth.getHealthandIncidentsDataForUrl,
-    urlId ? { urlId } : "skip",
+    urlId ? { urlId, now: Math.floor(now / 86400_000) * 86400_000 } : "skip",
   );
 
   // Loading when urlId exists but query hasn't returned yet
@@ -58,15 +64,18 @@ export function LinkHealthPanel({ urlId }: LinkHealthPanelProps) {
   // Calculate uptime from the visible last-30-day window.
   const calculateUptime = () => {
     if (!healthData?.dailySummaries || healthData.dailySummaries.length === 0) {
-      return 100; // Default to 100% if no data
+      return null;
     }
     const visibleDates = new Set(getLast30DateStrings());
     const summaries = healthData.dailySummaries.filter((summary) =>
       visibleDates.has(summary.date),
     );
-    const total = summaries.reduce((s, r) => s + r.totalChecks, 0);
+    const total = summaries.reduce(
+      (s, r) => s + r.totalChecks - (r.unknownChecks ?? 0),
+      0,
+    );
     const healthy = summaries.reduce((s, r) => s + r.healthyChecks, 0);
-    return total > 0 ? Math.round((healthy / total) * 1000) / 10 : 100;
+    return total > 0 ? Math.round((healthy / total) * 1000) / 10 : null;
   };
 
   const uptime = calculateUptime();
@@ -81,10 +90,9 @@ export function LinkHealthPanel({ urlId }: LinkHealthPanelProps) {
         return "unknown";
       }
 
-      const uptimePercent =
-        summary.totalChecks > 0
-          ? (summary.healthyChecks / summary.totalChecks) * 100
-          : 100;
+      const knownChecks = summary.totalChecks - (summary.unknownChecks ?? 0);
+      if (knownChecks <= 0) return "unknown";
+      const uptimePercent = (summary.healthyChecks / knownChecks) * 100;
       if (uptimePercent >= 99) {
         return "healthy";
       }
@@ -95,7 +103,7 @@ export function LinkHealthPanel({ urlId }: LinkHealthPanelProps) {
     });
   };
 
-  const getStatusIcon = (status: UIStatus) => {
+  const getStatusIcon = (status: UIStatus | "overdue" | "pending") => {
     switch (status) {
       case "healthy":
         return (
@@ -108,6 +116,10 @@ export function LinkHealthPanel({ urlId }: LinkHealthPanelProps) {
             weight="duotone"
           />
         );
+      case "unknown":
+      case "overdue":
+      case "pending":
+        return <Clock className="text-muted-foreground size-5" />;
       case "error":
         return (
           <ShieldSlashIcon className="size-5 text-red-600" weight="duotone" />
@@ -200,7 +212,11 @@ export function LinkHealthPanel({ urlId }: LinkHealthPanelProps) {
     );
   }
 
-  const status = mapHealthStatusToUI(healthData.healthData.healthStatus);
+  const status = getMonitoringStatus(
+    healthData.healthData.healthStatus,
+    healthData.healthData.checkedAt,
+    now,
+  );
   const uptimeBars = getUptimeBars();
 
   return (
@@ -213,7 +229,11 @@ export function LinkHealthPanel({ urlId }: LinkHealthPanelProps) {
             Link Health Status
           </CardTitle>
           <CardDescription className="mt-0.5">
-            Real-time monitoring for this link
+            {status === "overdue"
+              ? "Check overdue. The last result is no longer current."
+              : status === "unknown"
+                ? "The last check could not confirm access to this destination."
+                : "Checked about every 30 minutes"}
           </CardDescription>
         </CardHeader>
         <CardContent className="rounded-sm [&:last-child]:rounded-b-sm">
@@ -224,9 +244,9 @@ export function LinkHealthPanel({ urlId }: LinkHealthPanelProps) {
                 <span className="text-muted-foreground text-xs">Uptime</span>
               </div>
               <p
-                className={`mt-2 text-2xl font-medium ${getUptimeColor(uptime)}`}
+                className={`mt-2 text-2xl font-medium ${uptime === null ? "text-muted-foreground" : getUptimeColor(uptime)}`}
               >
-                [{uptime}%]
+                {uptime === null ? "No recent checks" : `[${uptime}%]`}
               </p>
               <p className="text-muted-foreground mt-1 text-xs">Last 30 days</p>
             </div>
@@ -279,7 +299,7 @@ export function LinkHealthPanel({ urlId }: LinkHealthPanelProps) {
             Incident History
           </CardTitle>
           <CardDescription className="text-sm">
-            Recent alerts and resolved issues
+            Latest alerts and resolved issues
           </CardDescription>
         </CardHeader>
         <CardContent className="px-0 py-1">
@@ -328,7 +348,9 @@ export function LinkHealthPanel({ urlId }: LinkHealthPanelProps) {
           )}
         </CardContent>
         <CardFooter className="text-muted-foreground flex items-center justify-center text-xs">
-          Total Incidents: [{healthData.incidentData?.length}]
+          {healthData.hasMoreIncidents
+            ? "Showing the latest 100 incidents"
+            : `Incidents shown: ${healthData.incidentData.length}`}
         </CardFooter>
       </Card>
     </div>

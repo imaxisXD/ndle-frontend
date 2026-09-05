@@ -125,7 +125,12 @@ export default function CollectionDetailRoute() {
         <h2 className="sr-only" id="collection-links-heading">
           Collection Links
         </h2>
-        {collection.urls.length === 0 ? (
+        {!collection.membersReady ? (
+          <output className="text-muted-foreground block py-8 text-sm">
+            Updating your saved collection. Its links will appear here when the
+            update finishes.
+          </output>
+        ) : (collection.linkCount ?? 0) === 0 ? (
           <div className="border-border from-muted/60 mt-6 flex flex-col gap-10 rounded-lg border-2 border-dashed bg-gradient-to-t to-white/10 p-10 text-center">
             <h3 className="text-sm font-medium">
               ndle is ready to help you organize your links
@@ -171,7 +176,7 @@ export default function CollectionDetailRoute() {
             showFilters={true}
             showPagination={true}
             defaultPageSize={10}
-            headerTitle={collection.name + ` [${collection.urls.length}]`}
+            headerTitle={collection.name + ` [${collection.linkCount ?? 0}]`}
             headerDescription={collection.description}
             collectionId={collection._id as Id<"collections">}
           />

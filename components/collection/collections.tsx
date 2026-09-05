@@ -283,9 +283,13 @@ export function Collections({
                         </span>
                       </Badge>
                       <Badge variant="default">
-                        [{collection.totalClickCount}]{" "}
+                        [{collection.totalClickCount ?? "Updating"}]{" "}
                         <span className="text-muted-foreground pl-1 text-xs">
-                          {collection.totalClickCount > 1 ? "clicks" : "click"}
+                          {collection.totalClickCount === null
+                            ? "click total"
+                            : collection.totalClickCount === 1
+                              ? "click"
+                              : "clicks"}
                         </span>
                       </Badge>
                     </div>

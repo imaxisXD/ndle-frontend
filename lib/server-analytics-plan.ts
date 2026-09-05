@@ -4,41 +4,38 @@ type GetClerkToken = (options: {
   template?: "convex";
   skipCache?: boolean;
 }) => Promise<string | null>;
-
-type ViewerStateResponse = {
-  status: "success" | "error";
-  value?: {
-    membership?: unknown;
-  };
-  errorMessage?: string;
+export type SignedInAnalyticsViewer = {
+  userId: string;
+  plan: AnalyticsViewerPlan;
 };
+export const ANALYTICS_READ_TIMEOUT_MS = 10_000;
 
-function parseViewerPlan(value: unknown): AnalyticsViewerPlan | null {
-  return value === "free" || value === "pro" || value === "guest"
-    ? value
-    : null;
-}
-
-export async function getSignedInUserPlan(
+/** Resolve the account from the authenticated identity, without waiting for Clerk metadata sync. */
+export async function getSignedInAnalyticsViewer(
   getToken: GetClerkToken,
-): Promise<AnalyticsViewerPlan | null> {
+): Promise<SignedInAnalyticsViewer | null> {
   const convexUrl = process.env.NEXT_PUBLIC_CONVEX_URL;
-  if (!convexUrl) {
-    console.error("[Analytics] Missing NEXT_PUBLIC_CONVEX_URL");
-    return null;
-  }
-
-  const token = await getToken({ template: "convex" });
-  if (!token) {
-    return null;
-  }
-
+  if (!convexUrl) return null;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 5_000);
+  const stopped = new Promise<never>((_, reject) => {
+    controller.signal.addEventListener(
+      "abort",
+      () => reject(new Error("Account lookup timed out")),
+      { once: true },
+    );
+  });
   try {
-    const response = await fetch(`${convexUrl}/api/query`, {
+    const token = await Promise.race([
+      getToken({ template: "convex" }),
+      stopped,
+    ]);
+    if (!token) return null;
+    const response = await fetch(`${convexUrl.replace(/\/$/, "")}/api/query`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Convex-Client": "ndle-worker-plan-check",
+        "Convex-Client": "ndle-analytics-viewer",
         Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify({
@@ -47,22 +44,34 @@ export async function getSignedInUserPlan(
         format: "json",
       }),
       cache: "no-store",
+      signal: controller.signal,
     });
-
-    if (!response.ok) {
-      console.error("[Analytics] Failed to read user plan:", await response.text());
+    if (!response.ok) return null;
+    const result = (await response.json()) as {
+      status?: unknown;
+      value?: { userId?: unknown; membership?: unknown };
+    };
+    const userId = result.value?.userId;
+    const plan = result.value?.membership;
+    if (
+      result.status !== "success" ||
+      typeof userId !== "string" ||
+      !userId ||
+      userId.length > 256 ||
+      !["free", "pro", "guest"].includes(String(plan))
+    )
       return null;
-    }
-
-    const result = (await response.json()) as ViewerStateResponse;
-    if (result.status !== "success") {
-      console.error("[Analytics] Failed to read user plan:", result.errorMessage);
-      return null;
-    }
-
-    return parseViewerPlan(result.value?.membership);
-  } catch (error) {
-    console.error("[Analytics] Failed to read user plan:", error);
+    return { userId, plan: plan as AnalyticsViewerPlan };
+  } catch {
     return null;
+  } finally {
+    clearTimeout(timer);
   }
+}
+
+/** Compatibility for callers that only need the current plan. */
+export async function getSignedInUserPlan(
+  getToken: GetClerkToken,
+): Promise<AnalyticsViewerPlan | null> {
+  return (await getSignedInAnalyticsViewer(getToken))?.plan ?? null;
 }

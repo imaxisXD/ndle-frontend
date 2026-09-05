@@ -1,6 +1,6 @@
 "use client";
 
-import { memo, useMemo, useState } from "react";
+import { memo, useMemo, useState, useEffect } from "react";
 import {
   type Column,
   type ColumnDef,
@@ -11,6 +11,8 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import { useQuery } from "convex-helpers/react/cache/hooks";
+import { usePaginatedQuery } from "convex/react";
+import { Button } from "@ui/button";
 import type { FunctionReturnType } from "convex/server";
 import { api } from "@/convex/_generated/api";
 import { Badge } from "@ui/badge";
@@ -22,7 +24,7 @@ import {
   cn,
   formatRelativeTimeCompact,
   getResponseTimeColor,
-  mapHealthStatusToUI,
+  getMonitoringStatus,
 } from "@/lib/utils";
 import { LinkWithFavicon } from "./ui/link-with-favicon";
 import { EmptyStateImage } from "@/components/empty-state-image";
@@ -44,10 +46,10 @@ type HealthChecksWithStats = FunctionReturnType<
 type RecentIncidentsResponse = FunctionReturnType<
   typeof api.linkHealth.getRecentIncidents
 >;
-type MonitoringStatus = ReturnType<typeof mapHealthStatusToUI>;
+type MonitoringStatus = ReturnType<typeof getMonitoringStatus>;
 
 type MonitoringTableRow = {
-  checkedAt: number;
+  checkedAt: number | null;
   checkedLabel: string;
   id: string;
   incidents: number;
@@ -55,7 +57,7 @@ type MonitoringTableRow = {
   originalUrl: string;
   shortUrl: string;
   status: MonitoringStatus;
-  uptime: number;
+  uptime: number | null;
 };
 
 type OverviewStat = {
@@ -63,7 +65,7 @@ type OverviewStat = {
   formatValue?: (value: number) => string;
   id: string;
   label: string;
-  value: number;
+  value: number | null;
 };
 
 const monitoringColumnSize = {
@@ -78,7 +80,10 @@ const monitoringColumnSize = {
 const statusRank: Record<MonitoringStatus, number> = {
   error: 0,
   warning: 1,
-  healthy: 2,
+  healthy: 5,
+  unknown: 2,
+  pending: 3,
+  overdue: 4,
 };
 
 const uptimeFormatter = new Intl.NumberFormat("en-US", {
@@ -97,7 +102,8 @@ function formatLatencyMetric(value: number) {
 function getStatusBadgeVariant(status: MonitoringStatus) {
   if (status === "healthy") return "green";
   if (status === "warning") return "yellow";
-  return "red";
+  if (status === "error") return "red";
+  return "default";
 }
 
 function MonitoringSortHeader({
@@ -183,16 +189,22 @@ const monitoringColumns: ColumnDef<MonitoringTableRow>[] = [
   },
 ];
 
-function getMonitoringRows(healthData: HealthChecksWithStats | undefined) {
+function getMonitoringRows(
+  healthData: HealthChecksWithStats | undefined,
+  now: number,
+) {
   return (healthData ?? []).map((check) => ({
     checkedAt: check.checkedAt,
-    checkedLabel: formatRelativeTimeCompact(check.checkedAt),
+    checkedLabel:
+      check.checkedAt === null
+        ? "No checks yet"
+        : formatRelativeTimeCompact(check.checkedAt),
     id: check._id,
     incidents: check.incidents,
     latencyMs: check.latencyMs,
     originalUrl: check.longUrl,
     shortUrl: `https://${shortDomain}/${check.shortUrl}`,
-    status: mapHealthStatusToUI(check.healthStatus),
+    status: getMonitoringStatus(check.healthStatus, check.checkedAt, now),
     uptime: check.uptime,
   }));
 }
@@ -201,12 +213,10 @@ function getOverviewStats(links: MonitoringTableRow[]): OverviewStat[] {
   const healthyCount = links.filter((link) => link.status === "healthy").length;
   const warningCount = links.filter((link) => link.status === "warning").length;
   const errorCount = links.filter((link) => link.status === "error").length;
-  const avgUptime =
-    links.length > 0
-      ? (
-          links.reduce((sum, link) => sum + link.uptime, 0) / links.length
-        ).toFixed(1)
-      : "100.0";
+  const measured = links.filter((link) => link.uptime !== null);
+  const avgUptime = measured.length
+    ? measured.reduce((sum, link) => sum + link.uptime!, 0) / measured.length
+    : null;
 
   return [
     {
@@ -231,7 +241,7 @@ function getOverviewStats(links: MonitoringTableRow[]): OverviewStat[] {
       formatValue: formatUptimeMetric,
       id: "average-uptime",
       label: "Avg Uptime",
-      value: Number(avgUptime),
+      value: avgUptime,
       color: "text-blue-500",
     },
   ];
@@ -334,13 +344,17 @@ const MonitoringDataRow = memo(function MonitoringDataRow({
         className="px-5 py-5"
         style={{ width: monitoringColumnSize.uptime }}
       >
-        <MetricCell
-          animationKey={`monitoring:${id}:uptime`}
-          formatValue={formatUptimeMetric}
-          label="Uptime"
-          minWidthCh={5}
-          value={uptime}
-        />
+        {uptime === null ? (
+          <TextMetricCell label="Uptime" value="No recent checks" />
+        ) : (
+          <MetricCell
+            animationKey={`monitoring:${id}:uptime`}
+            formatValue={formatUptimeMetric}
+            label="Uptime"
+            minWidthCh={5}
+            value={uptime}
+          />
+        )}
       </TableCell>
 
       <TableCell
@@ -488,12 +502,16 @@ const MonitoringStats = memo(function MonitoringStats({
                 {/* minWidthCh=0 so the value shrink-wraps and the brackets
                     hug the number ([0] not [0 ]). These cards each own their
                     column, so no inter-card width-stability is needed. */}
-                <AnimatedMetricNumber
-                  animationKey={`monitoring-stat:${stat.id}`}
-                  formatValue={stat.formatValue}
-                  minWidthCh={0}
-                  value={stat.value}
-                />
+                {stat.value === null ? (
+                  "No recent checks"
+                ) : (
+                  <AnimatedMetricNumber
+                    animationKey={`monitoring-stat:${stat.id}`}
+                    formatValue={stat.formatValue}
+                    minWidthCh={0}
+                    value={stat.value}
+                  />
+                )}
                 ]
               </p>
             </div>
@@ -592,19 +610,35 @@ function MonitoringSkeleton() {
 }
 
 export function LinkMonitoring() {
-  const healthData = useQuery(api.linkHealth.getHealthChecksWithStats);
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const timer = window.setInterval(() => setNow(Date.now()), 60_000);
+    return () => window.clearInterval(timer);
+  }, []);
+  const {
+    results: healthData,
+    status: pageStatus,
+    loadMore,
+  } = usePaginatedQuery(
+    api.linkHealth.getMonitoringPage,
+    { now: Math.floor(now / 86400_000) * 86400_000 },
+    { initialNumItems: 25 },
+  );
   const recentIncidents = useQuery(api.linkHealth.getRecentIncidents, {
     limit: 10,
   });
 
-  const links = useMemo(() => getMonitoringRows(healthData), [healthData]);
+  const links = useMemo(
+    () => getMonitoringRows(healthData, now),
+    [healthData, now],
+  );
   const stats = useMemo(() => getOverviewStats(links), [links]);
   const incidents = useMemo(
     () => getIncidentRows(recentIncidents),
     [recentIncidents],
   );
 
-  if (healthData === undefined) {
+  if (pageStatus === "LoadingFirstPage") {
     return <MonitoringSkeleton />;
   }
 
@@ -612,7 +646,25 @@ export function LinkMonitoring() {
     <div className="relative min-h-screen space-y-8 pb-10">
       <MonitoringStats stats={stats} />
 
+      <p className="text-muted-foreground text-sm" aria-live="polite">
+        {links.length} links shown. Statistics cover these links.{" "}
+        {
+          links.filter((link) =>
+            ["pending", "overdue", "unknown"].includes(link.status),
+          ).length
+        }{" "}
+        have no current confirmed result.
+      </p>
       <MonitoredLinksTable links={links} />
+      {pageStatus !== "Exhausted" && (
+        <Button
+          variant="outline"
+          disabled={pageStatus === "LoadingMore"}
+          onClick={() => loadMore(25)}
+        >
+          {pageStatus === "LoadingMore" ? "Loading links…" : "Show more links"}
+        </Button>
+      )}
 
       <div className="pt-4">
         <RecentIncidents incidents={incidents} />

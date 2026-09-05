@@ -13,12 +13,8 @@ import { Toaster } from "@/components/ui/sonner-toaster";
 import ScrollToTop from "@/components/scroll-to-top";
 import { RouteStateBoundary } from "@/components/route-state-boundary";
 import { ConvexQueryCacheProvider } from "convex-helpers/react/cache/provider";
-import { api } from "@/convex/_generated/api";
-import { useQuery } from "convex/react";
 
 export default function App() {
-  const collections = useQuery(api.collectionMangament.getUserCollections);
-
   return (
     <ConvexQueryCacheProvider>
       <BrowserRouter>
@@ -75,7 +71,7 @@ export default function App() {
                       imageName="errorCollections"
                       title="Collections could not load"
                     >
-                      <CollectionsRoute collections={collections} />
+                      <CollectionsRoute />
                     </RouteStateBoundary>
                   }
                 />

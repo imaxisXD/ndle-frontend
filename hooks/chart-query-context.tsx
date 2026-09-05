@@ -18,6 +18,7 @@ import React, {
 import { useDuckDB } from "./use-duckdb";
 import { useAuth } from "@clerk/nextjs";
 import type { ColdFile } from "@/types/analytics-v2";
+import { loadCompleteChartFiles } from "@/lib/chart-files";
 
 interface ChartQueryContextValue {
   execute: (query: string) => Promise<Array<Record<string, unknown>>>;
@@ -50,7 +51,7 @@ const FILE_PROXY_WORKER_URL =
 const EMPTY_SCOPE_FILTERS: ChartScopeFilters = {};
 
 // Cache for registered files (global to avoid re-registering)
-const registeredFiles = new Map<string, string>();
+const registeredFilesByDatabase = new WeakMap<object, Map<string, string>>();
 
 function getStableFileName(key: string): string {
   let hash = 0;
@@ -140,6 +141,7 @@ interface ChartQueryProviderProps {
   children: React.ReactNode;
   coldFiles?: ColdFile[];
   hotFile?: ColdFile | null;
+  filesExpireAt?: number;
   scopeFilters?: ChartScopeFilters;
   scopeDateRange?: ChartScopeDateRange;
 }
@@ -148,15 +150,23 @@ export function ChartQueryProvider({
   children,
   coldFiles = [],
   hotFile,
+  filesExpireAt,
   scopeFilters = EMPTY_SCOPE_FILTERS,
   scopeDateRange,
 }: ChartQueryProviderProps) {
   const { db, loading: dbLoading, error: dbError } = useDuckDB();
+  const registeredFiles = useMemo(() => {
+    if (!db) return new Map<string, string>();
+    let files = registeredFilesByDatabase.get(db);
+    if (!files) { files = new Map(); registeredFilesByDatabase.set(db, files); }
+    return files;
+  }, [db]);
   const { getToken } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<Error | null>(dbError);
   const [filesVersion, setFilesVersion] = useState(0);
   const allFilesRef = useRef<ColdFile[]>([]);
+  const expiresAtRef = useRef(filesExpireAt ?? 0);
   const filesSignatureRef = useRef("");
   const scopeSignature = useMemo(
     () =>
@@ -184,6 +194,7 @@ export function ChartQueryProvider({
       files.push(hotFile);
     }
     applyFiles(files);
+    expiresAtRef.current = filesExpireAt ?? 0;
     console.log(
       "[ChartQueryContext] Files updated - cold:",
       coldFiles.length,
@@ -192,7 +203,7 @@ export function ChartQueryProvider({
       "total:",
       files.length,
     );
-  }, [applyFiles, coldFiles, hotFile]);
+  }, [applyFiles, coldFiles, hotFile, filesExpireAt]);
 
   const setFiles = useCallback((files: ColdFile[]) => {
     applyFiles(files);
@@ -210,61 +221,18 @@ export function ChartQueryProvider({
       setError(null);
 
       try {
-        // If files are not yet populated, try hydrating them from the same
-        // analytics request used by the dashboard for the active time range.
-        if (
-          query.includes("{DATA}") &&
-          allFilesRef.current.length === 0 &&
-          scopeDateRange?.start &&
-          scopeDateRange?.end
-        ) {
-          try {
-            const params = new URLSearchParams({
-              start: scopeDateRange.start,
-              end: scopeDateRange.end,
-            });
-            const response = await fetch(`/api/analytics/v2?${params.toString()}`);
-            if (response.ok) {
-              const payload = (await response.json()) as {
-                cold?: ColdFile[];
-                hot?: ColdFile | null;
-              };
-              const hydratedFiles = [...(payload.cold ?? [])];
-              if (payload.hot) {
-                hydratedFiles.push(payload.hot);
-              }
-              if (hydratedFiles.length > 0) {
-                applyFiles(hydratedFiles);
-              }
-            } else {
-              console.warn(
-                "[ChartQueryContext] Failed to hydrate files:",
-                response.status,
-              );
-            }
-          } catch (hydrateError) {
-            console.warn(
-              "[ChartQueryContext] File hydration request failed:",
-              hydrateError,
-            );
-          }
-        }
-
-        // Avoid executing invalid SQL when data files are not ready yet.
-        // Returning [] allows charts to render "No data available" instead
-        // of throwing binder errors against a dummy schema.
-        if (query.includes("{DATA}") && allFilesRef.current.length === 0) {
-          console.log(
-            "[ChartQueryContext] No parquet files available yet; skipping query",
-          );
-          return [];
+        if (query.includes("{DATA}") && (!allFilesRef.current.length || expiresAtRef.current <= Date.now() + 30_000)) {
+          if (!scopeDateRange?.start || !scopeDateRange?.end) throw new Error("Refresh chart data before running this chart.");
+          const snapshot = await loadCompleteChartFiles(scopeDateRange.start, scopeDateRange.end);
+          applyFiles(snapshot.files);
+          expiresAtRef.current = snapshot.expiresAt;
         }
 
         const conn = await db.connect();
 
         try {
           // Get token for fetching parquet files
-          const token = await getToken();
+          const token = await getToken({ template: "convex", skipCache: true });
           if (!token) {
             throw new Error("Authentication required");
           }
@@ -292,17 +260,15 @@ export function ChartQueryProvider({
               }
 
               // Fetch the parquet file
-              const proxyUrl = `${FILE_PROXY_WORKER_URL}/file/${encodeURIComponent(file.key)}`;
+              const proxyUrl = `${FILE_PROXY_WORKER_URL}/file/${encodeURIComponent(file.key)}?accessVersion=2`;
               const response = await fetch(proxyUrl, {
                 method: "GET",
                 headers: { Authorization: `Bearer ${token}` },
               });
 
               if (!response.ok) {
-                console.error(
-                  `Failed to fetch ${file.key}: ${response.status}`,
-                );
-                continue;
+                if (response.status === 401 || response.status === 403) expiresAtRef.current = 0;
+                throw new Error(`Chart data could not load (${response.status}). Try again.`);
               }
 
               const buffer = await response.arrayBuffer();
@@ -316,15 +282,6 @@ export function ChartQueryProvider({
               registeredFiles.set(file.key, stableFileName);
               parquetParts.push(`'${stableFileName}'`);
             }
-          }
-
-          // If all file fetches failed, avoid binding queries to an invalid
-          // dummy table that doesn't contain expected analytics columns.
-          if (query.includes("{DATA}") && parquetParts.length === 0) {
-            console.warn(
-              "[ChartQueryContext] Failed to register parquet files; returning empty result",
-            );
-            return [];
           }
 
           // Build the data source
@@ -405,7 +362,7 @@ export function ChartQueryProvider({
         setIsLoading(false);
       }
     },
-    [applyFiles, db, getToken, queryEpoch, scopeDateRange, scopeFilters],
+    [applyFiles, db, getToken, queryEpoch, registeredFiles, scopeDateRange, scopeFilters],
   );
 
   const isReady = !!db && !dbLoading;

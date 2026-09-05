@@ -22,7 +22,7 @@ import { useTableSortingURL } from "../../hooks/use-table-sorting-url";
 import { NavLink, useNavigate } from "react-router";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery } from "convex-helpers/react/cache/hooks";
-import { useMutation } from "convex/react";
+import { useMutation, usePaginatedQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { FunctionReturnType } from "convex/server";
 import { Id } from "@/convex/_generated/dataModel";
@@ -74,7 +74,7 @@ import {
   DialogClose,
 } from "../ui/base-dialog";
 import { type DisplayUrl } from "./types";
-import { formatRelative, cn, mapHealthStatusToUI } from "@/lib/utils";
+import { formatRelative, cn, getMonitoringStatus } from "@/lib/utils";
 import { DotmatrixLoaderIcon } from "@/components/ui/dotmatrix-loader-icon";
 import { EmptyStateImage } from "@/components/empty-state-image";
 import { AnimatedMetricNumber } from "@/components/animated-metric-number";
@@ -84,7 +84,6 @@ import { makeShortLinkWithDomain } from "@/lib/config";
 import { ChartBarIcon, CopyIcon, TrashIcon } from "@phosphor-icons/react";
 import { LinkWithFavicon } from "../ui/link-with-favicon";
 import { trackUrlCopied, trackUrlDeleted } from "@/lib/posthog";
-import type { HealthStatus } from "@/lib/utils";
 interface UrlTableProps {
   showSearch?: boolean;
   showFilters?: boolean;
@@ -100,12 +99,9 @@ interface UrlTableProps {
   collectionId?: Id<"collections">;
 }
 
-type UserUrlsResponse = NonNullable<
-  | FunctionReturnType<typeof api.urlMainFuction.getUserUrlsWithAnalytics>
-  | FunctionReturnType<
-      typeof api.urlMainFuction.getUserUrlsWithAnalyticsByCollection
-    >
->;
+type UserUrlsResponse = FunctionReturnType<
+  typeof api.urlLists.getUserUrlsPage
+>["page"];
 
 function SortableHeader({
   column,
@@ -620,8 +616,9 @@ const statusFilterOptions = [
   "healthy",
   "warning",
   "error",
-  "checking",
-  "healed",
+  "pending",
+  "unknown",
+  "overdue",
 ] as const;
 
 // Search and filters do not use live click counts, so they should stay out of
@@ -768,7 +765,7 @@ const UrlTableFilters = memo(function UrlTableFilters({
             <span className="text-muted-foreground text-xs font-medium">
               Status:
             </span>
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               {statusFilterOptions.map((status) => (
                 <button
                   type="button"
@@ -855,46 +852,17 @@ const UrlTableFilters = memo(function UrlTableFilters({
   );
 });
 
-function getDisplayStatus(doc: UserUrlsResponse[number]) {
-  const healthStatus = doc.latestHealthCheck?.healthStatus as
-    | HealthStatus
-    | undefined;
-
-  if (healthStatus) {
-    return mapHealthStatusToUI(healthStatus);
-  }
-
-  const savedStatus = (
-    doc.analytics?.urlStatusMessage ??
-    doc.urlStatusMessage ??
-    ""
-  )
-    .trim()
-    .toLowerCase();
-
-  switch (savedStatus) {
-    case "success":
-    case "healthy":
-      return "healthy";
-    case "failed":
-    case "error":
-      return "error";
-    case "warning":
-    case "degraded":
-      return "warning";
-    case "healed":
-      return "healed";
-    case "creating":
-    case "checking":
-    case "no traffic":
-    case "":
-      return "checking";
-    default:
-      return savedStatus;
-  }
+function getDisplayStatus(doc: UserUrlsResponse[number], now: number) {
+  return getMonitoringStatus(
+    doc.latestHealthCheck?.healthStatus ?? null,
+    doc.latestHealthCheck?.checkedAt ?? null,
+    now,
+  );
 }
 
-function getStatusBadgeVariant(status: string): "green" | "yellow" | "red" {
+function getStatusBadgeVariant(
+  status: string,
+): "green" | "yellow" | "red" | "default" {
   if (status === "healthy" || status === "healed") {
     return "green";
   }
@@ -903,7 +871,7 @@ function getStatusBadgeVariant(status: string): "green" | "yellow" | "red" {
     return "red";
   }
 
-  return "yellow";
+  return status === "warning" ? "yellow" : "default";
 }
 
 export function UrlTable({
@@ -917,9 +885,13 @@ export function UrlTable({
   headerDescription = "",
   footerContent = "",
   searchPlaceholder = "Search links by Link, content, or notes...",
-  queryArgs,
   collectionId,
 }: UrlTableProps) {
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const timer = setInterval(() => setNow(Date.now()), 60_000);
+    return () => clearInterval(timer);
+  }, []);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string | "all">("all");
   const [collectionFilter, setCollectionFilter] = useState<string | "all">(
@@ -960,7 +932,15 @@ export function UrlTable({
   }, []);
 
   // Fetch collections for the filter
-  const collections = useQuery(api.collectionMangament.getUserCollections, {});
+  const {
+    results: collections,
+    status: collectionPageStatus,
+    loadMore: loadMoreCollections,
+  } = usePaginatedQuery(
+    api.collectionMangament.getCollectionsPage,
+    showFilters && !collectionId ? {} : "skip",
+    { initialNumItems: 50 },
+  );
 
   const collectionOptions = useMemo<CollectionFilterOption[]>(() => {
     if (!collections) {
@@ -974,10 +954,14 @@ export function UrlTable({
     }));
   }, [collections]);
 
-  // Fetch the selected collection with URLs for filtering
+  const selectedCollectionId =
+    collectionId ??
+    (collectionFilter === "all"
+      ? undefined
+      : (collectionFilter as Id<"collections">));
   const selectedCollectionData = useQuery(
     api.collectionMangament.getCollectionById,
-    collectionFilter !== "all" ? { collectionId: collectionFilter } : "skip",
+    selectedCollectionId ? { collectionId: selectedCollectionId } : "skip",
   );
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [urlToDelete, setUrlToDelete] = useState<{
@@ -992,22 +976,25 @@ export function UrlTable({
   const { add } = useToast();
   const deleteUrl = useMutation(api.urlMainFuction.deleteUrl);
 
-  const urls = useQuery(
-    collectionId
-      ? api.urlMainFuction.getUserUrlsWithAnalyticsByCollection
-      : api.urlMainFuction.getUserUrlsWithAnalytics,
-    collectionId
-      ? ({ collectionId } as never)
-      : queryArgs
-        ? (queryArgs as never)
-        : undefined,
+  const {
+    results: urls,
+    status: pageStatus,
+    loadMore,
+  } = usePaginatedQuery(
+    api.urlLists.getUserUrlsPage,
+    selectedCollectionId ? { collectionId: selectedCollectionId } : {},
+    { initialNumItems: 25 },
   );
-  const isLoading = urls === undefined;
-  const hasLoadProblem = urls === null;
-  const isEmpty = Array.isArray(urls) && urls.length === 0;
-
-  // Destructure stable values from the query result to use in dependency arrays
-  const selectedCollectionUrls = selectedCollectionData?.urls;
+  const totalLinks = useQuery(
+    api.urlLists.getUrlListCount,
+    selectedCollectionId ? { collectionId: selectedCollectionId } : {},
+  );
+  const collectionIsUpdating =
+    !!selectedCollectionData && !selectedCollectionData.membersReady;
+  const isLoading = pageStatus === "LoadingFirstPage";
+  const hasLoadProblem =
+    !!selectedCollectionId && selectedCollectionData === null;
+  const isEmpty = !isLoading && urls.length === 0 && !collectionIsUpdating;
 
   const filteredUrls = useMemo(() => {
     if (!Array.isArray(urls) || urls.length === 0) {
@@ -1026,7 +1013,7 @@ export function UrlTable({
             )
         : "";
 
-      const status = getDisplayStatus(doc);
+      const status = getDisplayStatus(doc, now);
 
       return {
         id: doc._id,
@@ -1054,38 +1041,8 @@ export function UrlTable({
       filtered = filtered.filter((url) => url.status === statusFilter);
     }
 
-    // Filter by collection
-    if (collectionFilter !== "all" && selectedCollectionUrls) {
-      // Get URL IDs from the original urls data to match with collection.urls
-      const urlIdMap = new Map<string, string>();
-      (urls as UserUrlsResponse).forEach((doc) => {
-        const slugSource = doc.slugAssigned ?? doc.shortUrl;
-        const formattedShortUrl = slugSource
-          ? /^https?:\/\//i.test(slugSource)
-            ? slugSource
-            : makeShortLinkWithDomain(
-                slugSource.replace(/^\/+/, ""),
-                doc.customDomain,
-              )
-          : "";
-        urlIdMap.set(formattedShortUrl || doc.shortUrl, doc._id);
-      });
-
-      filtered = filtered.filter((url) => {
-        const docId = urlIdMap.get(url.shortUrl);
-        // Check if the URL's _id is in the collection's urls array
-        return docId && selectedCollectionUrls.includes(docId as Id<"urls">);
-      });
-    }
-
     return filtered;
-  }, [
-    urls,
-    searchQuery,
-    statusFilter,
-    collectionFilter,
-    selectedCollectionUrls,
-  ]);
+  }, [urls, searchQuery, statusFilter, now]);
 
   const sortedUrls = useMemo(() => {
     if (!Array.isArray(filteredUrls) || filteredUrls.length === 0) {
@@ -1385,6 +1342,15 @@ export function UrlTable({
               Please wait while we load your links
             </p>
           </Skeleton>
+        ) : collectionIsUpdating ? (
+          <output className="block px-6 py-12 text-center">
+            <span className="block text-sm font-medium">
+              Updating collection
+            </span>
+            <span className="text-muted-foreground mt-2 block text-xs">
+              Your saved links will appear here when the update finishes.
+            </span>
+          </output>
         ) : hasLoadProblem || isEmpty || filteredUrls.length === 0 ? (
           <Table style={{ tableLayout: "fixed", width: "100%" }}>
             <TableHeader className="bg-card sticky top-0">
@@ -1427,7 +1393,11 @@ export function UrlTable({
                     <p className="text-muted-foreground mt-2 max-w-sm text-xs">
                       {hasLoadProblem
                         ? "Try refreshing the page. Your saved links stay safe."
-                        : "Create your first shortened link to get started"}
+                        : urls.length > 0
+                          ? "No loaded links match these filters. Try another search or load more links."
+                          : pageStatus !== "Exhausted"
+                            ? "Load more links to continue."
+                            : "Create your first shortened link to get started"}
                     </p>
                   </div>
                 </TableCell>
@@ -1491,6 +1461,38 @@ export function UrlTable({
           </Table>
         )}
       </div>
+
+      {!isLoading && (
+        <div className="flex flex-wrap items-center justify-between gap-3 px-6 py-4">
+          <output className="text-muted-foreground text-xs">
+            {collectionIsUpdating
+              ? "Updating your saved collection. Its links will appear when the update finishes."
+              : `${urls.length}${totalLinks == null ? "" : ` of ${totalLinks}`} links loaded. Search, sorting and status filters apply to loaded links.`}
+          </output>
+          {pageStatus !== "Exhausted" && (
+            <Button
+              variant="outline"
+              onClick={() => loadMore(25)}
+              disabled={pageStatus === "LoadingMore"}
+            >
+              {pageStatus === "LoadingMore" ? "Loading…" : "Load more links"}
+            </Button>
+          )}
+          {showFiltersPanel &&
+            !collectionId &&
+            collectionPageStatus !== "Exhausted" && (
+              <Button
+                variant="ghost"
+                onClick={() => loadMoreCollections(50)}
+                disabled={collectionPageStatus !== "CanLoadMore"}
+              >
+                {collectionPageStatus === "CanLoadMore"
+                  ? "Load more collections"
+                  : "Loading collections…"}
+              </Button>
+            )}
+        </div>
+      )}
 
       {/* Pagination Section */}
       {showPagination && (

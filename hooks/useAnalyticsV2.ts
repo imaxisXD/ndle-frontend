@@ -1,65 +1,30 @@
-import { useQuery, keepPreviousData } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
+import { useAuth } from "@clerk/nextjs";
 import type { AnalyticsV2Response } from "@/types/analytics-v2";
 
-interface UseAnalyticsV2Props {
-  start: string;
-  end: string;
-  pollingInterval?: number;
+export interface AnalyticsFilters {
+  country?: string; device?: string; browser?: string; os?: string; link?: string; excludeBots?: boolean;
 }
+interface UseAnalyticsV2Props { start: string; end: string; filters?: AnalyticsFilters; pollingInterval?: number }
 
-/**
- * Hook to fetch analytics data from the V2 API.
- * Returns pre-aggregated data directly from the server.
- * User identity is determined server-side from JWT claims.
- */
-export function useAnalyticsV2({
-  start,
-  end,
-  pollingInterval = 12000,
-}: UseAnalyticsV2Props) {
+export function useAnalyticsV2({ start, end, filters = {}, pollingInterval = 12000 }: UseAnalyticsV2Props) {
+  const { userId, isSignedIn } = useAuth();
   return useQuery({
-    queryKey: ["analytics-v2", start, end],
-    queryFn: async (): Promise<AnalyticsV2Response> => {
-      const params = new URLSearchParams({
-        start,
-        end,
-      });
-
-      const response = await fetch(`/api/analytics/v2?${params.toString()}`);
-
+    queryKey: ["analytics-v2", userId, start, end, filters],
+    enabled: !!isSignedIn,
+    queryFn: async ({ signal }): Promise<AnalyticsV2Response> => {
+      const params = new URLSearchParams({ start, end });
+      for (const [key, value] of Object.entries(filters)) {
+        if (value !== undefined && value !== "all") params.set(key, String(value));
+      }
+      const response = await fetch(`/api/analytics/v2?${params}`, { signal, cache: "no-store" });
       if (!response.ok) {
-        let errorMsg = `Failed to fetch analytics: ${response.status} ${response.statusText}`;
-
-        try {
-          const errorData = await response.json();
-          console.error("Analytics API Error Response:", errorData);
-
-          if (errorData.error) {
-            errorMsg = errorData.error;
-          }
-        } catch (e) {
-          console.error("Failed to parse error JSON:", e);
-        }
-
-        throw new Error(errorMsg);
+        const body = await response.json().catch(() => null);
+        throw new Error(body?.error || `Analytics could not load (${response.status})`);
       }
-
-      const data = await response.json();
-      if (process.env.NODE_ENV === "development") {
-        console.log("[AnalyticsV2] Data received:", {
-          totalClicks: data.totalClicks,
-          days: Object.keys(data.clicksByDay).length,
-          countries: Object.keys(data.countryCounts).length,
-          coldFiles: data.cold?.length ?? 0,
-        });
-      }
-      return data;
+      return response.json();
     },
-    placeholderData: keepPreviousData,
-    refetchInterval: pollingInterval,
-    staleTime: 0,
-    gcTime: 0,
-    refetchOnMount: true,
-    refetchOnWindowFocus: true,
+    refetchInterval: pollingInterval, staleTime: 0, gcTime: 0,
+    refetchOnMount: true, refetchOnWindowFocus: true,
   });
 }

@@ -44,14 +44,8 @@ const FILE_PROXY_WORKER_URL =
   process.env.NEXT_PUBLIC_FILE_PROXY_URL ||
   "https://proxy-file-worker.sunny735084.workers.dev";
 
-// LRU Cache for parquet files
 const MAX_CACHED_FILES = 30;
-const parquetFileCache = new Map<string, ArrayBuffer>();
-const registeredInDuckDB = new Map<string, string>();
-const lruOrder: string[] = [];
-
-// Track DuckDB instance to detect when registrations become stale
-let lastDbInstance: unknown = null;
+const caches = new WeakMap<object, { parquetFileCache: Map<string, ArrayBuffer>; registeredInDuckDB: Map<string, string>; lruOrder: string[] }>();
 
 function getStableFileName(key: string): string {
   let hash = 0;
@@ -61,25 +55,6 @@ function getStableFileName(key: string): string {
     hash = hash & hash;
   }
   return `parquet_${Math.abs(hash).toString(36)}.parquet`;
-}
-
-function touchLRU(key: string): void {
-  const idx = lruOrder.indexOf(key);
-  if (idx > -1) lruOrder.splice(idx, 1);
-  lruOrder.push(key);
-}
-
-function evictLRUIfNeeded(): string | null {
-  if (parquetFileCache.size >= MAX_CACHED_FILES && lruOrder.length > 0) {
-    const evictKey = lruOrder.shift()!;
-    parquetFileCache.delete(evictKey);
-    registeredInDuckDB.delete(evictKey);
-    if (process.env.NODE_ENV === "development") {
-      console.log(`[LRU] Evicted: ${evictKey.slice(-30)}`);
-    }
-    return evictKey;
-  }
-  return null;
 }
 
 // Helper to run analytics queries on a unified table
@@ -274,7 +249,36 @@ export function useColdAnalytics(
   timezoneOffset: number = 0,
 ) {
   const { db, loading: dbLoading, error: dbError } = useDuckDB();
-  const { getToken } = useAuth();
+  const { getToken, userId } = useAuth();
+
+  const cache = useMemo(() => {
+    const empty = { parquetFileCache: new Map<string, ArrayBuffer>(), registeredInDuckDB: new Map<string, string>(), lruOrder: [] as string[] };
+    if (!db) return empty;
+    const cached = caches.get(db);
+    if (cached) return cached;
+    caches.set(db, empty);
+    return empty;
+  }, [db]);
+  const { parquetFileCache, registeredInDuckDB, lruOrder } = cache;
+
+function touchLRU(key: string): void {
+  const idx = lruOrder.indexOf(key);
+  if (idx > -1) lruOrder.splice(idx, 1);
+  lruOrder.push(key);
+}
+
+function evictLRUIfNeeded(): string | null {
+  if (parquetFileCache.size >= MAX_CACHED_FILES && lruOrder.length > 0) {
+    const evictKey = lruOrder.shift()!;
+    parquetFileCache.delete(evictKey);
+    registeredInDuckDB.delete(evictKey);
+    if (process.env.NODE_ENV === "development") {
+      console.log(`[LRU] Evicted: ${evictKey.slice(-30)}`);
+    }
+    return evictKey;
+  }
+  return null;
+}
 
   const fileKeys = useMemo(() => files.map((file) => file.key), [files]);
   const hasFiles = fileKeys.length > 0;
@@ -302,7 +306,7 @@ export function useColdAnalytics(
   const coldQueryEnabled = !!db && !dbLoading && !dbError && hasFiles;
 
   const coldResult = useQuery<ColdAnalyticsData, Error>({
-    queryKey: ["analytics-cold", fileKeys, filters, start, end, timezoneOffset],
+    queryKey: ["analytics-cold", userId, fileKeys, filters, start, end, timezoneOffset],
     enabled: coldQueryEnabled,
     placeholderData: keepPreviousData,
     staleTime: 0,
@@ -317,16 +321,7 @@ export function useColdAnalytics(
 
       if (!db) throw new Error("DuckDB is not initialized");
 
-      // Clear registeredInDuckDB if DB instance changed (registrations are stale)
-      if (lastDbInstance !== db) {
-        if (process.env.NODE_ENV === "development") {
-          console.log("[ColdPerf] DB instance changed, clearing file registry");
-        }
-        registeredInDuckDB.clear();
-        lastDbInstance = db;
-      }
-
-      const token = await getToken();
+      const token = await getToken({ template: "convex", skipCache: true });
       if (!token) throw new Error("Authentication required");
 
       const conn = await db.connect();
@@ -343,7 +338,7 @@ export function useColdAnalytics(
             }
 
             evictLRUIfNeeded();
-            const proxyUrl = `${FILE_PROXY_WORKER_URL}/file/${encodeURIComponent(f.key)}`;
+            const proxyUrl = `${FILE_PROXY_WORKER_URL}/file/${encodeURIComponent(f.key)}?accessVersion=2`;
 
             if (process.env.NODE_ENV === "development") {
               // console.log(`[ColdPerf] 📡 Requesting ${f.key}`);

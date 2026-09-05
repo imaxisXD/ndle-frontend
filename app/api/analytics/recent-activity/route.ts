@@ -1,3 +1,7 @@
+import {
+  getSignedInAnalyticsViewer,
+  ANALYTICS_READ_TIMEOUT_MS,
+} from "@/lib/server-analytics-plan";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { auth } from "@clerk/nextjs/server";
@@ -17,7 +21,7 @@ const schema = z.object({
 export async function GET(req: NextRequest) {
   try {
     const rateLimit = getRateLimit();
-    const { userId: clerkUserId, sessionClaims } = await auth();
+    const { userId: clerkUserId, getToken } = await auth();
     const { searchParams } = new URL(req.url);
 
     const parsed = schema.safeParse({
@@ -37,16 +41,6 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // Extract convex_user_id from session claims
-    const convexUserId = (sessionClaims as Record<string, unknown>)
-      ?.convex_user_id as string | undefined;
-    if (!convexUserId) {
-      return NextResponse.json(
-        { error: "Session not configured. Please log out and log back in." },
-        { status: 401 },
-      );
-    }
-
     const identifier = `recent-activity:${clerkUserId}:${link_slug}`;
     const {
       success,
@@ -60,6 +54,17 @@ export async function GET(req: NextRequest) {
       );
     }
 
+    const viewer = await getSignedInAnalyticsViewer(getToken);
+    if (!viewer)
+      return NextResponse.json(
+        {
+          error:
+            "Your account is still being prepared. Please try again shortly.",
+        },
+        { status: 503 },
+      );
+    const convexUserId = viewer.userId;
+
     // Build backend URL
     const backendUrl = new URL(`${INTERNAL_API_URL}/analytics/unified`);
     backendUrl.searchParams.set("endpoint", "recent-activity");
@@ -70,10 +75,11 @@ export async function GET(req: NextRequest) {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
-        "x-user-id": convexUserId || "",
+        "x-user-id": convexUserId,
         Authorization: `Bearer ${API_SECRET}`,
       },
       cache: "no-store",
+      signal: AbortSignal.timeout(ANALYTICS_READ_TIMEOUT_MS),
     });
 
     if (!response.ok) {
@@ -89,9 +95,12 @@ export async function GET(req: NextRequest) {
     const res = NextResponse.json({ data: result.data });
     res.headers.set("Cache-Control", "private, no-store");
     return res;
-  } catch (e: unknown) {
+  } catch {
     return NextResponse.json(
-      { error: e instanceof Error ? e.message : "Server error" },
+      {
+        error:
+          "Analytics is temporarily unavailable. Please try again shortly.",
+      },
       { status: 502 },
     );
   }

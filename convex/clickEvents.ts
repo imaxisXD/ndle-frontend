@@ -33,7 +33,7 @@ export const getRecentByLinkSlug = query({
       .query("clickEvents")
       .withIndex("by_url", (q) => q.eq("urlId", link._id))
       .order("desc")
-      .take(limit);
+      .take(Math.min(100, Math.max(1, Math.floor(limit))));
 
     return events;
   },
@@ -52,7 +52,7 @@ export const getRecentByUser = internalQuery({
       .query("clickEvents")
       .withIndex("by_user", (q) => q.eq("userId", userId))
       .order("desc")
-      .take(limit);
+      .take(Math.min(100, Math.max(1, Math.floor(limit))));
 
     return events;
   },

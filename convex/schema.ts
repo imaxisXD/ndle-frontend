@@ -1,5 +1,6 @@
 import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
+import { serviceSyncTarget } from "./serviceSyncTypes";
 
 export default defineSchema({
   users: defineTable({
@@ -7,7 +8,10 @@ export default defineSchema({
     membership: v.string(),
     email: v.string(),
     tokenIdentifier: v.string(),
-  }).index("by_token", ["tokenIdentifier"]),
+    metadataSyncedAt: v.optional(v.number()),
+    countersReady: v.optional(v.boolean()),
+    externalSyncReady: v.optional(v.boolean()),
+  }).index("by_token", ["tokenIdentifier"]).index("by_externalSyncReady", ["externalSyncReady"]),
   guest_sessions: defineTable({
     guestId: v.string(),
     email: v.optional(v.string()),
@@ -15,10 +19,12 @@ export default defineSchema({
     createdAt: v.number(),
     updatedAt: v.number(),
     claimedAt: v.optional(v.number()),
+    ownerAliasSynced: v.optional(v.boolean()),
   })
     .index("by_guest_id", ["guestId"])
     .index("by_email", ["email"])
-    .index("by_claimed_user", ["claimedUserId"]),
+    .index("by_claimed_user", ["claimedUserId"])
+    .index("by_ownerAliasSynced", ["ownerAliasSynced"]),
   urls: defineTable({
     fullurl: v.string(),
     shortUrl: v.string(),
@@ -78,6 +84,7 @@ export default defineSchema({
 
     // Stable Link ID (for analytics correlation)
     linkId: v.optional(v.string()),
+    accountCountersIncluded: v.optional(v.boolean()),
   })
     .index("by_slug", ["slugAssigned"])
     .index("by_user", ["userTableId"])
@@ -87,7 +94,9 @@ export default defineSchema({
     .index("by_guest_url", ["guestId", "fullurl"])
     .index("by_user_slug", ["userTableId", "slugAssigned"])
     .index("by_guest_slug", ["guestId", "slugAssigned"])
-    .index("by_owner_key", ["analyticsOwnerKey"]),
+    .index("by_owner_key", ["analyticsOwnerKey"])
+    .index("by_accountCountersIncluded", ["accountCountersIncluded"])
+    .index("by_user_and_accountCountersIncluded", ["userTableId", "accountCountersIncluded"]),
   urlAnalytics: defineTable({
     urlId: v.id("urls"),
     urlStatusCode: v.optional(v.number()),
@@ -101,8 +110,27 @@ export default defineSchema({
     createdAt: v.number(),
   })
     .index("by_request_id", ["requestId"])
-    .index("by_url", ["urlId"]),
+    .index("by_url", ["urlId"])
+    .index("by_createdAt", ["createdAt"]),
+  serviceSyncJobs: defineTable({
+    key: v.string(),
+    target: serviceSyncTarget,
+    version: v.number(),
+    status: v.union(v.literal("pending"), v.literal("running"), v.literal("complete")),
+    runningVersion: v.optional(v.number()),
+    attempts: v.number(),
+    nextAttemptAt: v.number(),
+    updatedAt: v.number(),
+    lastError: v.optional(v.string()),
+  }).index("by_key", ["key"]).index("by_status_and_nextAttemptAt", ["status", "nextAttemptAt"]),
+  processedHealthChecks: defineTable({
+    checkId: v.string(),
+    urlId: v.id("urls"),
+    checkedAt: v.number(),
+    createdAt: v.number(),
+  }).index("by_checkId", ["checkId"]).index("by_createdAt", ["createdAt"]).index("by_urlId", ["urlId"]),
   linkHealthChecks: defineTable({
+    lastKnownHealthStatus: v.optional(v.union(v.literal("up"), v.literal("down"), v.literal("degraded"))),
     urlId: v.id("urls"),
     userId: v.optional(v.id("users")),
     guestId: v.optional(v.string()),
@@ -116,7 +144,10 @@ export default defineSchema({
       v.literal("up"),
       v.literal("down"),
       v.literal("degraded"),
+      v.literal("unknown"),
     ),
+    checkId: v.optional(v.string()),
+    monitoringVersion: v.optional(v.number()),
     errorMessage: v.optional(v.string()),
     checkedAt: v.number(),
   })
@@ -134,6 +165,7 @@ export default defineSchema({
     date: v.string(), // "2024-12-13" format
     totalChecks: v.number(),
     healthyChecks: v.number(),
+    unknownChecks: v.optional(v.number()),
     avgLatencyMs: v.number(),
     incidentCount: v.number(),
   })
@@ -172,10 +204,21 @@ export default defineSchema({
     shareExpiresAt: v.optional(v.number()),
     shareCreatedAt: v.optional(v.number()),
     shareUpdatedAt: v.optional(v.number()),
+    membersReady: v.optional(v.boolean()),
+    memberMigrationOffset: v.optional(v.number()),
+    linkCount: v.optional(v.number()),
   })
     .index("by_urls", ["urls"])
     .index("by_user", ["userTableId"])
-    .index("by_user_and_normalizedName", ["userTableId", "normalizedName"]),
+    .index("by_user_and_normalizedName", ["userTableId", "normalizedName"])
+    .index("by_membersReady", ["membersReady"]),
+  collectionLinks: defineTable({
+    collectionId: v.id("collections"),
+    urlId: v.id("urls"),
+    userId: v.id("users"),
+    clicksIncluded: v.optional(v.boolean()),
+    countedClicks: v.optional(v.number()),
+  }).index("by_urlId", ["urlId"]).index("by_collectionId_and_urlId", ["collectionId", "urlId"]),
 
   custom_domains: defineTable({
     userId: v.id("users"),
@@ -228,5 +271,6 @@ export default defineSchema({
     .index("by_link_slug", ["linkSlug", "occurredAt"])
     .index("by_user", ["userId", "occurredAt"])
     .index("by_guest", ["guestId", "occurredAt"])
-    .index("by_url", ["urlId", "occurredAt"]),
+    .index("by_url", ["urlId", "occurredAt"])
+    .index("by_occurredAt", ["occurredAt"]),
 });

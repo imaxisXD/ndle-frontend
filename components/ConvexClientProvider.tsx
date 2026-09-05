@@ -4,61 +4,35 @@ import { ClerkProvider, useAuth } from "@clerk/nextjs";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ConvexReactClient } from "convex/react";
 import { ConvexProviderWithClerk } from "convex/react-clerk";
-import type { ReactNode } from "react";
-import { DuckDBPrefetch } from "./DuckDBPrefetch";
+import { useEffect, useState, type ReactNode } from "react";
+import { releaseDuckDB } from "@/hooks/use-duckdb";
 
-if (!process.env.NEXT_PUBLIC_CONVEX_URL) {
-  throw new Error("Missing NEXT_PUBLIC_CONVEX_URL in your .env file");
+if (!process.env.NEXT_PUBLIC_CONVEX_URL) throw new Error("Missing NEXT_PUBLIC_CONVEX_URL in your .env file");
+const convex = new ConvexReactClient(process.env.NEXT_PUBLIC_CONVEX_URL);
+
+function AccountQueryCache({ children, account }: { children: ReactNode; account: string }) {
+  const [queryClient] = useState(() => new QueryClient({ defaultOptions: { queries: {
+    gcTime: 5 * 60_000, staleTime: 60_000, refetchOnWindowFocus: false,
+  } } }));
+  useEffect(() => () => {
+    void queryClient.cancelQueries();
+    queryClient.clear();
+    releaseDuckDB(account);
+  }, [queryClient, account]);
+  return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
 }
 
-const convex = new ConvexReactClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
-
-// Singleton QueryClient - created once and reused
-let browserQueryClient: QueryClient | undefined = undefined;
-
-function getQueryClient() {
-  if (typeof window === "undefined") {
-    // Server: always create a new QueryClient
-    return new QueryClient({
-      defaultOptions: {
-        queries: {
-          staleTime: 60 * 1000, // 1 minute for SSR
-        },
-      },
-    });
-  }
-  // Browser: use singleton
-  if (!browserQueryClient) {
-    browserQueryClient = new QueryClient({
-      defaultOptions: {
-        queries: {
-          gcTime: 1000 * 60 * 60, // 1 hour in memory
-          staleTime: 1000 * 60 * 5, // 5 minutes
-          refetchOnWindowFocus: false,
-          refetchOnMount: true,
-          refetchOnReconnect: true,
-        },
-      },
-    });
-  }
-  return browserQueryClient;
+function AccountBoundary({ children }: { children: ReactNode }) {
+  const { userId, isLoaded } = useAuth();
+  // Changing accounts replaces the complete private query tree before it can render old data.
+  const account = isLoaded ? userId ?? "guest" : "loading";
+  return <AccountQueryCache key={account} account={account}>{children}</AccountQueryCache>;
 }
 
-export default function ConvexClientProvider({
-  children,
-}: {
-  children: ReactNode;
-}) {
-  const queryClient = getQueryClient();
-
-  return (
-    <QueryClientProvider client={queryClient}>
-      <ClerkProvider>
-        <ConvexProviderWithClerk client={convex} useAuth={useAuth}>
-          <DuckDBPrefetch />
-          {children}
-        </ConvexProviderWithClerk>
-      </ClerkProvider>
-    </QueryClientProvider>
-  );
+export default function ConvexClientProvider({ children }: { children: ReactNode }) {
+  return <ClerkProvider>
+    <ConvexProviderWithClerk client={convex} useAuth={useAuth}>
+      <AccountBoundary>{children}</AccountBoundary>
+    </ConvexProviderWithClerk>
+  </ClerkProvider>;
 }

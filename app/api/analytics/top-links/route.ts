@@ -4,7 +4,10 @@ import { auth } from "@clerk/nextjs/server";
 import { getRateLimit } from "@/lib/rateLimit";
 import { AnalyticsRange, getUtcRange } from "@/lib/analyticsRanges";
 import { getRangeAccessError } from "@/lib/analytics-access";
-import { getSignedInUserPlan } from "@/lib/server-analytics-plan";
+import {
+  getSignedInAnalyticsViewer,
+  ANALYTICS_READ_TIMEOUT_MS,
+} from "@/lib/server-analytics-plan";
 
 // Strip /analytics/v2 suffix to get base URL
 const INTERNAL_API_URL = (process.env.INTERNAL_API_URL || "").replace(
@@ -33,7 +36,7 @@ const schema = z.object({
 export async function GET(req: NextRequest) {
   try {
     const rateLimit = getRateLimit();
-    const { userId: clerkUserId, sessionClaims, getToken } = await auth();
+    const { userId: clerkUserId, getToken } = await auth();
     if (!clerkUserId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
@@ -46,16 +49,6 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "Invalid params" }, { status: 400 });
     }
     const { range, limit } = parsed.data;
-
-    // Extract convex_user_id from session claims
-    const convexUserId = (sessionClaims as Record<string, unknown>)
-      ?.convex_user_id as string | undefined;
-    if (!convexUserId) {
-      return NextResponse.json(
-        { error: "Session not configured. Please log out and log back in." },
-        { status: 401 },
-      );
-    }
 
     const identifier = `toplinks:${clerkUserId}`;
     const {
@@ -70,11 +63,18 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    let rangeError = getRangeAccessError(range);
-    if (rangeError) {
-      const viewerPlan = await getSignedInUserPlan(getToken);
-      rangeError = getRangeAccessError(range, viewerPlan);
-    }
+    const viewer = await getSignedInAnalyticsViewer(getToken);
+    if (!viewer)
+      return NextResponse.json(
+        {
+          error:
+            "Your account is still being prepared. Please try again shortly.",
+        },
+        { status: 503 },
+      );
+    const convexUserId = viewer.userId;
+
+    const rangeError = getRangeAccessError(range, viewer.plan);
     if (rangeError) {
       return NextResponse.json({ error: rangeError }, { status: 403 });
     }
@@ -99,6 +99,7 @@ export async function GET(req: NextRequest) {
         Authorization: `Bearer ${API_SECRET}`,
       },
       cache: "no-store",
+      signal: AbortSignal.timeout(ANALYTICS_READ_TIMEOUT_MS),
     });
 
     if (!response.ok) {
@@ -114,9 +115,12 @@ export async function GET(req: NextRequest) {
     const res = NextResponse.json({ data: result.data });
     res.headers.set("Cache-Control", "private, no-store");
     return res;
-  } catch (e: unknown) {
+  } catch {
     return NextResponse.json(
-      { error: e instanceof Error ? e.message : "Server error" },
+      {
+        error:
+          "Analytics is temporarily unavailable. Please try again shortly.",
+      },
       { status: 502 },
     );
   }
