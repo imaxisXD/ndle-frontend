@@ -45,8 +45,8 @@ describe("account access", () => {
       isLoading: false,
       isAuthenticated: true,
     },
-  ])("never renders private content while $name", (state) => {
-    vi.mocked(useAuth).mockReturnValue(state as ReturnType<typeof useAuth>);
+  ] as const)("never renders private content while $name", (state) => {
+    vi.mocked(useAuth, { partial: true }).mockReturnValue(state);
     vi.mocked(useConvexAuth).mockReturnValue({ ...state, isRefreshing: false });
 
     expect(renderPage()).toContain("Loading your account");
@@ -54,10 +54,10 @@ describe("account access", () => {
   });
 
   test("keeps a failed Convex check separate from signing out", () => {
-    vi.mocked(useAuth).mockReturnValue({
+    vi.mocked(useAuth, { partial: true }).mockReturnValue({
       isLoaded: true,
       isSignedIn: true,
-    } as ReturnType<typeof useAuth>);
+    });
     vi.mocked(useConvexAuth).mockReturnValue({
       isLoading: false,
       isAuthenticated: false,
@@ -71,10 +71,10 @@ describe("account access", () => {
   });
 
   test("renders private content only after both checks pass", () => {
-    vi.mocked(useAuth).mockReturnValue({
+    vi.mocked(useAuth, { partial: true }).mockReturnValue({
       isLoaded: true,
       isSignedIn: true,
-    } as ReturnType<typeof useAuth>);
+    });
     vi.mocked(useConvexAuth).mockReturnValue({
       isLoading: false,
       isAuthenticated: true,
