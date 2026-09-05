@@ -9,6 +9,7 @@ import LinkDetailSkeleton from "@/components/skeleton-routes/link-detail-skeleto
 import { makeShortLinkWithDomain } from "@/lib/config";
 import { LinkHeader } from "@/components/LinkHeader";
 import { AnalyticsSection } from "@/components/AnalyticsSection";
+import { AnalyticsHistoryNotice } from "@/components/analytics-history-notice";
 import { DeleteLinkCard } from "@/components/DeleteLinkCard";
 import { LinkSettingsPanel } from "@/components/LinkSettingsPanel";
 import { LinkActivityLog } from "@/components/LinkActivityLog";
@@ -341,7 +342,10 @@ export default function LinkDetailRoute() {
         </TabsList>
 
         {/* Analytics Tab */}
-        <TabsContent value="analytics">
+        <TabsContent value="analytics" className="space-y-6">
+          <AnalyticsHistoryNotice
+            history={timeseries.data?.meta?.history ?? trafficSummary.data?.meta.history}
+          />
           <AnalyticsSection
             clicksTimelineData={derived.clicksTimelineData}
             browserData={derived.browserData}

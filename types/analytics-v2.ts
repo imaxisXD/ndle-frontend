@@ -47,6 +47,7 @@ export interface ColdFile {
 
 /** Response metadata */
 export interface AnalyticsMeta {
+  history?: { status: "unverified"; before: string };
   analyticsVersion?: number;
   coverage?: { start: string; end: string; complete: boolean; source: string };
   freshness?: { lastCommittedAt: number | string | null; bufferedEvents: number; queuedEvents?: number };

@@ -341,6 +341,23 @@ production secrets and the user's Cloudflare authorization remain. Temporary
 alert-key transfer files were also removed after the installed secrets were
 verified; the restricted production sender key remains active.
 
+### Historical data qualification
+
+The remaining historical difference is not a verified set of missing events.
+The old aggregate reported 5,543 non-stress account/guest clicks, while 624
+distinct records could be recovered and verified. The difference of 4,919
+cannot be assigned to specific clicks from the preserved evidence. No guessed
+events or adjusted totals have been inserted.
+
+Reports that include the period before September 5, 2026 at 17:09:12 UTC now
+support a visible historical-data notice. The backend setting
+`HISTORICAL_DATA_UNVERIFIED_BEFORE` supplies the cutoff; date comparisons use
+UTC regardless of the server timezone. This qualifies old collection while
+keeping coverage metadata specific to whether all available records were read.
+It does not claim every account lost clicks. The notice appears in dashboard
+and link-detail reports, including empty results. Requests entirely after the
+cutoff do not receive the notice.
+
 ### Verification limits
 
 - Production disables the AI chart/export interface. Positive authenticated
