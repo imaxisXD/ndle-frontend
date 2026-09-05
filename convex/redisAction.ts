@@ -2,7 +2,7 @@ import { Redis } from "@upstash/redis";
 import { v } from "convex/values";
 import { internalAction } from "./_generated/server";
 import { internal } from "./_generated/api";
-import { buildRedirectProjection } from "./redisProjection";
+import { REDIRECT_SYNC_SCRIPT } from "./serviceSync";
 
 const redis = new Redis({
   url: process.env.UPSTASH_REDIS_REST_URL,
@@ -41,45 +41,9 @@ export const insertIntoRedis = internalAction({
     overwrite: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
-    const redisValueObject = buildRedirectProjection({
-      fullUrl: args.fullUrl,
-      docId: args.docId,
-      analyticsOwnerKey: args.analytics_owner_key,
-      convexUserId: args.convex_user_id,
-      trackingEnabled: args.trackingEnabled,
-      expiresAt: args.expiresAt,
-      utmSource: args.utmSource,
-      utmMedium: args.utmMedium,
-      utmCampaign: args.utmCampaign,
-      utmTerm: args.utmTerm,
-      utmContent: args.utmContent,
-      abEnabled: args.abEnabled,
-      abVariants: args.abVariants,
-      abDistribution: args.abDistribution,
-    });
-
-    const result = args.overwrite
-      ? await redis.json.set(
-          args.slugAssigned,
-          "$",
-          redisValueObject as unknown as Record<string, unknown>,
-        )
-      : await redis.json.set(
-          args.slugAssigned,
-          "$",
-          redisValueObject as unknown as Record<string, unknown>,
-          {
-            nx: true,
-          },
-        );
-
-    await ctx.runMutation(internal.urlMainFuction.updateUrlStatus, {
-      docId: args.docId,
-      redisStatus: result ?? "failed",
-      urlStatusMessage: result ? "success" : "failed",
-    });
-
-    return result;
+    await ctx.runMutation(internal.serviceSync.enqueue, { key: `redirect:${args.slugAssigned}`,
+      target: { kind: "redirect", urlId: args.docId, slug: args.slugAssigned } });
+    return null;
   },
 });
 
@@ -88,14 +52,8 @@ export const deleteFromRedis = internalAction({
     slugAssigned: v.string(),
   },
   handler: async (_, args) => {
-    try {
-      const result = await redis.json.del(args.slugAssigned);
-      console.log("redis json delete result", result);
-      return true;
-    } catch (error) {
-      const result = await redis.del(args.slugAssigned);
-      console.log("redis delete result", result);
-      console.error(error);
-    }
+    // Only pre-migration jobs call this. A current revision always takes priority.
+    await redis.eval(REDIRECT_SYNC_SCRIPT, [args.slugAssigned, `ndle:sync:${args.slugAssigned}`], ["0", ""]);
+    return null;
   },
 });

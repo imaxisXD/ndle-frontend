@@ -4,7 +4,10 @@ import { auth } from "@clerk/nextjs/server";
 import { getRateLimit } from "@/lib/rateLimit";
 import { AnalyticsRange, getUtcRange } from "@/lib/analyticsRanges";
 import { getRangeAccessError } from "@/lib/analytics-access";
-import { getSignedInUserPlan } from "@/lib/server-analytics-plan";
+import {
+  getSignedInAnalyticsViewer,
+  ANALYTICS_READ_TIMEOUT_MS,
+} from "@/lib/server-analytics-plan";
 
 // Strip /analytics/v2 suffix to get base URL if present, but we specifically need /analytics/v2 here
 // process.env.INTERNAL_API_URL is typically http://host:port/api or http://host:port/api/analytics/v2
@@ -29,14 +32,18 @@ const schema = z.object({
       z.literal("all"),
     ])
     .default("7d"),
-  link_id: z.string().min(1).max(128).regex(/^[A-Za-z0-9_-]+$/),
+  link_id: z
+    .string()
+    .min(1)
+    .max(128)
+    .regex(/^[A-Za-z0-9_-]+$/),
   endpoint: z.enum(["performance", "timeseries"]).default("performance"),
 });
 
 export async function GET(req: NextRequest) {
   try {
     const rateLimit = getRateLimit();
-    const { userId: clerkUserId, sessionClaims, getToken } = await auth();
+    const { userId: clerkUserId, getToken } = await auth();
     const { searchParams } = new URL(req.url);
 
     const parsed = schema.safeParse({
@@ -55,17 +62,6 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // Extract convex_user_id from session claims
-    const convexUserId = (sessionClaims as Record<string, unknown>)
-      ?.convex_user_id as string | undefined;
-
-    if (!convexUserId) {
-      return NextResponse.json(
-        { error: "Session not configured. Please log out and log back in." },
-        { status: 401 },
-      );
-    }
-
     const identifier = `variants:${clerkUserId}:${link_id}`;
     const {
       success,
@@ -80,11 +76,18 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    let rangeError = getRangeAccessError(range);
-    if (rangeError) {
-      const viewerPlan = await getSignedInUserPlan(getToken);
-      rangeError = getRangeAccessError(range, viewerPlan);
-    }
+    const viewer = await getSignedInAnalyticsViewer(getToken);
+    if (!viewer)
+      return NextResponse.json(
+        {
+          error:
+            "Your account is still being prepared. Please try again shortly.",
+        },
+        { status: 503 },
+      );
+    const convexUserId = viewer.userId;
+
+    const rangeError = getRangeAccessError(range, viewer.plan);
     if (rangeError) {
       return NextResponse.json({ error: rangeError }, { status: 403 });
     }
@@ -113,10 +116,11 @@ export async function GET(req: NextRequest) {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
-        "x-user-id": convexUserId || "",
+        "x-user-id": convexUserId,
         Authorization: `Bearer ${API_SECRET}`,
       },
       cache: "no-store",
+      signal: AbortSignal.timeout(ANALYTICS_READ_TIMEOUT_MS),
     });
 
     if (!response.ok) {
@@ -135,7 +139,13 @@ export async function GET(req: NextRequest) {
   } catch (e: unknown) {
     console.error("Variant analytics error:", e);
     if (e instanceof Error) {
-      return NextResponse.json({ error: e.message }, { status: 502 });
+      return NextResponse.json(
+        {
+          error:
+            "Analytics is temporarily unavailable. Please try again shortly.",
+        },
+        { status: 502 },
+      );
     }
     return NextResponse.json({ error: "Server error" }, { status: 502 });
   }

@@ -1,6 +1,7 @@
 import { ConvexError } from "convex/values";
 
 const GUEST_TOKEN_MAX_AGE_MS = 8 * 24 * 60 * 60 * 1000;
+export const GUEST_CREDENTIAL_COOKIE = "ndle_guest_credential";
 
 type GuestTokenPayload = {
   v: 1;
@@ -53,6 +54,27 @@ async function signPayload(payload: string): Promise<string> {
   return encodeBase64Url(signature);
 }
 
+export async function createGuestSessionToken(guestId: string) {
+  const issuedAt = Date.now();
+  const expiresAt = issuedAt + GUEST_TOKEN_MAX_AGE_MS;
+  const payload = new TextEncoder().encode(JSON.stringify({ v: 1, guestId, issuedAt, expiresAt }));
+  const payloadPart = encodeBase64Url(payload.buffer);
+  return { guestId, guestToken: `${payloadPart}.${await signPayload(payloadPart)}`, expiresAt };
+}
+
+export async function readGuestSessionToken(token: string) {
+  const parts = token.split(".");
+  if (parts.length !== 2) throw new ConvexError("Guest session is invalid");
+  let guestId: unknown;
+  try {
+    guestId = (JSON.parse(decodeBase64Url(parts[0])) as GuestTokenPayload).guestId;
+  } catch {
+    throw new ConvexError("Guest session is invalid");
+  }
+  if (typeof guestId !== "string") throw new ConvexError("Guest session is invalid");
+  return verifyGuestSessionToken(guestId, token);
+}
+
 function constantTimeEqual(left: string, right: string): boolean {
   if (left.length !== right.length) {
     return false;
@@ -73,8 +95,8 @@ export async function verifyGuestSessionToken(
     throw new ConvexError("Guest session is required");
   }
 
-  const [payloadPart, signature] = token.split(".");
-  if (!payloadPart || !signature) {
+  const [payloadPart, signature, extraPart] = token.split(".");
+  if (!payloadPart || !signature || extraPart !== undefined) {
     throw new ConvexError("Guest session is invalid");
   }
 
@@ -93,6 +115,10 @@ export async function verifyGuestSessionToken(
   const now = Date.now();
   if (
     payload.v !== 1 ||
+    !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(payload.guestId) ||
+    !Number.isFinite(payload.issuedAt) ||
+    !Number.isFinite(payload.expiresAt) ||
+    payload.expiresAt <= payload.issuedAt ||
     payload.guestId !== guestId ||
     payload.expiresAt < now ||
     payload.issuedAt > now + 60_000 ||

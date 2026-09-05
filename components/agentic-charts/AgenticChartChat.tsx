@@ -27,6 +27,7 @@ import { useDuckDB } from "@/hooks/use-duckdb";
 import { getTableSchema } from "@/hooks/use-chart-query";
 import { ChartQueryProvider } from "@/hooks/chart-query-context";
 import type { ColdFile } from "@/types/analytics-v2";
+import { loadCompleteChartFiles } from "@/lib/chart-files";
 import { useUIStream, Renderer, JSONUIProvider } from "@json-render/react";
 import type { Spec } from "@json-render/react";
 import { chartRegistry } from "./chart-registry";
@@ -50,6 +51,8 @@ export function AgenticChartChat({ className }: AgenticChartChatProps) {
   const [tableSchema, setTableSchema] = useState<string>("");
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [chartColdFiles, setChartColdFiles] = useState<ColdFile[]>([]);
+  const [filesExpireAt, setFilesExpireAt] = useState(0);
+  const [chartDateRange] = useState(() => ({ start: "2020-01-01", end: new Date().toISOString().slice(0, 10) }));
   const [chartHotFile, setChartHotFile] = useState<ColdFile | null>(null);
   const [isDataSourceLoading, setIsDataSourceLoading] = useState(true);
   const [dataSourceError, setDataSourceError] = useState<string | null>(null);
@@ -70,23 +73,10 @@ export function AgenticChartChat({ className }: AgenticChartChatProps) {
     setIsDataSourceLoading(true);
     setDataSourceError(null);
     try {
-      const end = new Date().toISOString().slice(0, 10);
-      const params = new URLSearchParams({
-        start: "2020-01-01",
-        end,
-      });
-      const response = await fetch(`/api/analytics/v2?${params.toString()}`);
-      if (!response.ok) {
-        throw new Error(
-          `Failed to load chart data source: ${response.status} ${response.statusText}`,
-        );
-      }
-      const payload = (await response.json()) as {
-        cold?: ColdFile[];
-        hot?: ColdFile | null;
-      };
-      setChartColdFiles(payload.cold || []);
-      setChartHotFile(payload.hot || null);
+      const snapshot = await loadCompleteChartFiles(chartDateRange.start, chartDateRange.end);
+      setChartColdFiles(snapshot.files);
+      setChartHotFile(null);
+      setFilesExpireAt(snapshot.expiresAt);
     } catch (error) {
       const message =
         error instanceof Error ? error.message : "Failed to load chart data";
@@ -96,7 +86,7 @@ export function AgenticChartChat({ className }: AgenticChartChatProps) {
     } finally {
       setIsDataSourceLoading(false);
     }
-  }, []);
+  }, [chartDateRange]);
 
   useEffect(() => {
     void loadChartDataSource();
@@ -340,6 +330,8 @@ export function AgenticChartChat({ className }: AgenticChartChatProps) {
                                 <ChartQueryProvider
                                   coldFiles={chartColdFiles}
                                   hotFile={chartHotFile}
+                            filesExpireAt={filesExpireAt}
+                            scopeDateRange={chartDateRange}
                                 >
                                   <JSONUIProvider registry={chartRegistry}>
                                     <Renderer
@@ -357,6 +349,8 @@ export function AgenticChartChat({ className }: AgenticChartChatProps) {
                           <ChartQueryProvider
                             coldFiles={chartColdFiles}
                             hotFile={chartHotFile}
+                            filesExpireAt={filesExpireAt}
+                            scopeDateRange={chartDateRange}
                           >
                             <JSONUIProvider registry={chartRegistry}>
                               <Renderer

@@ -12,4 +12,34 @@ crons.interval(
   internal.customDomains.checkAllPendingDomains,
 );
 
+crons.interval(
+  "adopt-existing-custom-domains",
+  { hours: 24 },
+  internal.domainSync.bootstrapDomains,
+  { cursor: null },
+);
+
+crons.interval(
+  "retry-service-updates",
+  { minutes: 1 },
+  internal.serviceSync.reconcile,
+);
+
+crons.interval(
+  "backfill-architecture-records",
+  { minutes: 1 },
+  internal.architectureMigration.advance,
+);
+crons.interval(
+  "trim-live-click-history",
+  { minutes: 1 },
+  internal.architectureMigration.trimLiveHistory,
+);
+
+crons.interval(
+  "backfill-collection-members",
+  { minutes: 1 },
+  internal.collectionMangament.migrateCollectionMembers,
+);
+
 export default crons;

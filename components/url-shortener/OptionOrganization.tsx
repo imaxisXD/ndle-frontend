@@ -1,6 +1,5 @@
 import { useMemo, useState } from "react";
-import { useMutation } from "convex/react";
-import { useQuery } from "convex-helpers/react/cache/hooks";
+import { useMutation, usePaginatedQuery } from "convex/react";
 import { UseFormReturn, useWatch } from "react-hook-form";
 import { api } from "@/convex/_generated/api";
 import { Badge } from "@/components/ui/badge";
@@ -59,7 +58,15 @@ export function OptionOrganization({
 }: {
   form: UseFormReturn<UrlFormValues>;
 }) {
-  const collections = useQuery(api.collectionMangament.getUserCollections);
+  const {
+    results: collections,
+    status: collectionStatus,
+    loadMore,
+  } = usePaginatedQuery(
+    api.collectionMangament.getCollectionsPage,
+    {},
+    { initialNumItems: 50 },
+  );
   const createCollection = useMutation(
     api.collectionMangament.createCollection,
   );
@@ -243,7 +250,7 @@ export function OptionOrganization({
           <ComboboxContent className="pt-0">
             <div className="p-2">
               <ComboboxInput
-                placeholder="Search collections"
+                placeholder="Search loaded collections"
                 value={searchValue}
                 onChange={(e) => setSearchValue(e.target.value)}
                 variant="md"
@@ -257,7 +264,7 @@ export function OptionOrganization({
               )}
               {filteredOptions.length === 0 && searchValue.trim() && (
                 <div className="text-muted-foreground px-3 py-2 text-xs">
-                  No collections match &ldquo;{searchValue.trim()}&rdquo;
+                  No loaded collections match &ldquo;{searchValue.trim()}&rdquo;
                 </div>
               )}
               {filteredOptions.map((opt) => (
@@ -328,6 +335,19 @@ export function OptionOrganization({
                 </ComboboxItem>
               )}
             </ComboboxList>
+            {collectionStatus !== "Exhausted" && (
+              <Button
+                type="button"
+                variant="ghost"
+                className="m-2"
+                onClick={() => loadMore(50)}
+                disabled={collectionStatus !== "CanLoadMore"}
+              >
+                {collectionStatus === "CanLoadMore"
+                  ? "Load more collections"
+                  : "Loading…"}
+              </Button>
+            )}
           </ComboboxContent>
           {nameError && (
             <p className="text-destructive mt-2 text-xs leading-tight">
@@ -457,7 +477,6 @@ export function OptionOrganization({
           </Card>
         )}
       </div>
-
     </div>
   );
 }

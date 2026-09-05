@@ -10,6 +10,8 @@ import {
 import { internal } from "./_generated/api";
 import { getClaimableGuestSessions } from "./guestSessions";
 import { verifyGuestSessionToken } from "./guestTokens";
+import { queueServiceSync, queueUrlSync } from "./serviceSync";
+import { transferGuestLinkToAccount } from "./accountCounters";
 import {
   FREE_ACTIVE_LINK_LIMIT,
   FREE_ANALYTICS_RANGE_DAYS,
@@ -20,8 +22,7 @@ import {
 
 /**
  * Store or update user on login.
- * Returns { id, metadataUpdated } - metadataUpdated is true for new users
- * so the frontend knows to refresh the Clerk session token.
+ * Metadata delivery is confirmed separately by getAccountSyncState.
  */
 export const store = mutation({
   args: {
@@ -48,7 +49,7 @@ export const store = mutation({
       .unique();
 
     if (existingUser !== null) {
-      if (existingUser.name !== identity.name) {
+      if (typeof identity.name === "string" && existingUser.name !== identity.name) {
         await ctx.db.patch(existingUser._id, { name: identity.name });
       }
       const claimedLinkCount = await claimGuestLinksForUser(
@@ -58,9 +59,10 @@ export const store = mutation({
         args.guestToken,
       );
 
-      await ctx.scheduler.runAfter(0, internal.users.syncOwnerAliasesToIngest, {
-        accountUserId: existingUser._id,
-        ownerKeys: [existingUser._id, makeUserOwnerKey(existingUser._id)],
+      await queueServiceSync(ctx, `owner:${existingUser._id}`, { kind: "owner", userId: existingUser._id,
+        ownerKeys: [existingUser._id, makeUserOwnerKey(existingUser._id)] });
+      if (!existingUser.metadataSyncedAt) await queueServiceSync(ctx, `clerk:${existingUser._id}`, {
+        kind: "clerk", userId: existingUser._id, clerkUserId: identity.subject,
       });
 
       return {
@@ -79,6 +81,7 @@ export const store = mutation({
       membership,
       email: identity.email ?? "",
       tokenIdentifier: identity.tokenIdentifier,
+      countersReady: true,
     });
 
     const newUser = await ctx.db.get(userId);
@@ -89,12 +92,7 @@ export const store = mutation({
     // Extract Clerk user ID from identity.subject (this is the raw Clerk user_xxx ID)
     const clerkUserId = identity.subject;
 
-    // Schedule action to update Clerk metadata with convex_user_id
-    await ctx.scheduler.runAfter(0, internal.users.syncMetadataToClerk, {
-      convexUserId: userId,
-      clerkUserId: clerkUserId,
-      membership,
-    });
+    await queueServiceSync(ctx, `clerk:${userId}`, { kind: "clerk", userId, clerkUserId });
 
     const claimedLinkCount = await claimGuestLinksForUser(
       ctx,
@@ -103,116 +101,51 @@ export const store = mutation({
       args.guestToken,
     );
 
-    await ctx.scheduler.runAfter(0, internal.users.syncOwnerAliasesToIngest, {
-      accountUserId: userId,
-      ownerKeys: [userId, makeUserOwnerKey(userId)],
-    });
+    await queueServiceSync(ctx, `owner:${userId}`, { kind: "owner", userId,
+      ownerKeys: [userId, makeUserOwnerKey(userId)] });
 
     return {
       id: userId,
-      metadataUpdated: true,
+      metadataUpdated: false,
       membership,
       claimedLinkCount,
     };
   },
 });
 
-/**
- * Internal action to call Clerk Backend API and set public_metadata.convex_user_id
- */
+/** Compatibility for actions already scheduled before the migration. */
 export const syncMetadataToClerk = internalAction({
-  args: {
-    convexUserId: v.id("users"),
-    clerkUserId: v.string(),
-    membership: v.string(),
+  args: { convexUserId: v.id("users"), clerkUserId: v.string(), membership: v.string() },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    await ctx.runMutation(internal.serviceSync.enqueue, { key: `clerk:${args.convexUserId}`,
+      target: { kind: "clerk", userId: args.convexUserId, clerkUserId: args.clerkUserId } });
+    return null;
   },
-  handler: async (ctx, { convexUserId, clerkUserId, membership }) => {
-    const clerkSecretKey = process.env.CLERK_SECRET_KEY;
-    if (!clerkSecretKey) {
-      console.error("[syncMetadataToClerk] CLERK_SECRET_KEY not set");
-      return { success: false, error: "CLERK_SECRET_KEY not set" };
-    }
-
-    try {
-      const plan = getViewerPlan(membership);
-      const response = await fetch(
-        `https://api.clerk.com/v1/users/${clerkUserId}/metadata`,
-        {
-          method: "PATCH",
-          headers: {
-            Authorization: `Bearer ${clerkSecretKey}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            public_metadata: {
-              convex_user_id: convexUserId,
-              membership: plan === "pro" ? "pro" : "free",
-              plan: plan === "pro" ? "pro" : "free",
-            },
-          }),
-        },
-      );
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error(
-          `[syncMetadataToClerk] Failed for ${clerkUserId}:`,
-          response.status,
-          errorText,
-        );
-        return { success: false, error: errorText };
-      }
-
-      console.log(
-        `[syncMetadataToClerk] Success: ${clerkUserId} -> ${convexUserId}`,
-      );
-      return { success: true };
-    } catch (error) {
-      console.error("[syncMetadataToClerk] Error:", error);
-      return { success: false, error: String(error) };
-    }
+});
+export const syncOwnerAliasesToIngest = internalAction({
+  args: { accountUserId: v.id("users"), ownerKeys: v.array(v.string()) },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    await ctx.runMutation(internal.serviceSync.enqueue, { key: `owner:${args.accountUserId}`,
+      target: { kind: "owner", userId: args.accountUserId, ownerKeys: args.ownerKeys } });
+    return null;
   },
 });
 
-export const syncOwnerAliasesToIngest = internalAction({
-  args: {
-    accountUserId: v.string(),
-    ownerKeys: v.array(v.string()),
-  },
-  handler: async (_ctx, { accountUserId, ownerKeys }) => {
-    const internalApiUrl = process.env.INTERNAL_API_URL;
-    const apiSecret = process.env.API_SECRET;
-
-    if (!internalApiUrl || !apiSecret || ownerKeys.length === 0) {
-      return { success: false, skipped: true };
-    }
-
-    const baseUrl = internalApiUrl.replace(/\/analytics\/v2$/, "");
-    const response = await fetch(`${baseUrl}/internal/owner-aliases`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiSecret}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        accountUserId,
-        ownerKeys,
-      }),
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error("[syncOwnerAliasesToIngest] Failed:", errorText);
-      return { success: false, error: errorText };
-    }
-
-    return { success: true };
+export const getAccountSyncState = query({
+  args: {},
+  returns: v.union(v.null(), v.object({ userId: v.id("users"), metadataSyncedAt: v.optional(v.number()) })),
+  handler: async (ctx) => {
+    const user = await getCurrentUser(ctx);
+    return user ? { userId: user._id, metadataSyncedAt: user.metadataSyncedAt } : null;
   },
 });
 
 export const getViewerState = query({
   args: {},
   returns: v.object({
+    userId: v.optional(v.id("users")),
     isSignedIn: v.boolean(),
     membership: v.union(v.literal("free"), v.literal("pro"), v.literal("guest")),
     analyticsDays: v.optional(v.number()),
@@ -235,6 +168,7 @@ export const getViewerState = query({
 
     const plan = getViewerPlan(user.membership);
     return {
+      userId: user._id,
       isSignedIn: true,
       membership: (plan === "pro" ? "pro" : "free") as "free" | "pro",
       analyticsDays: plan === "pro" ? undefined : FREE_ANALYTICS_RANGE_DAYS,
@@ -314,7 +248,9 @@ async function claimGuestLinksForUser(
         continue;
       }
 
+      if (url.userTableId === user._id) continue;
       claimedLinkCount += 1;
+      await transferGuestLinkToAccount(ctx, url, user._id);
 
       await ctx.db.patch(url._id, {
         userTableId: user._id,
@@ -323,88 +259,23 @@ async function claimGuestLinksForUser(
         claimedAt: now,
       });
 
-      const clickEvents = await ctx.db
-        .query("clickEvents")
-        .withIndex("by_url", (q) => q.eq("urlId", url._id))
-        .collect();
-      for (const event of clickEvents) {
-        await ctx.db.patch(event._id, {
-          userId: user._id,
-        });
-      }
+      const claimedUrl = await ctx.db.get(url._id);
+      if (claimedUrl) await queueUrlSync(ctx, claimedUrl);
 
-      const healthCheck = await ctx.db
-        .query("linkHealthChecks")
-        .withIndex("by_url_id", (q) => q.eq("urlId", url._id))
-        .unique();
-      if (healthCheck) {
-        await ctx.db.patch(healthCheck._id, {
-          userId: user._id,
-        });
-      }
-
-      const summaries = await ctx.db
-        .query("linkHealthDailySummary")
-        .withIndex("by_url_id", (q) => q.eq("urlId", url._id))
-        .collect();
-      for (const summary of summaries) {
-        await ctx.db.patch(summary._id, {
-          userId: user._id,
-        });
-      }
-
-      const incidents = await ctx.db
-        .query("linkIncidents")
-        .withIndex("by_url_id", (q) => q.eq("urlId", url._id))
-        .collect();
-      for (const incident of incidents) {
-        await ctx.db.patch(incident._id, {
-          userId: user._id,
-        });
-      }
-
-      await ctx.scheduler.runAfter(0, internal.redisAction.insertIntoRedis, {
-        fullUrl: url.fullurl,
-        slugAssigned: url.slugAssigned ?? url.shortUrl,
-        docId: url._id,
-        analytics_owner_key: makeUserOwnerKey(user._id),
-        convex_user_id: user._id,
-        trackingEnabled: url.trackingEnabled,
-        expiresAt: url.expiresAt,
-        utmSource: url.utmSource,
-        utmMedium: url.utmMedium,
-        utmCampaign: url.utmCampaign,
-        utmTerm: url.utmTerm,
-        utmContent: url.utmContent,
-        overwrite: true,
-      });
-
-      await ctx.scheduler.runAfter(
-        0,
-        internal.linkHealth.registerUrlWithMonitoringService,
-        {
-          convexUrlId: url._id,
-          convexUserId: user._id,
-          longUrl: url.fullurl,
-          shortUrl: url.slugAssigned ?? url.shortUrl,
-        },
-      );
     }
   }
 
   for (const session of sessions) {
     await ctx.db.patch(session._id, {
       claimedUserId: user._id,
+      ownerAliasSynced: true,
       claimedAt: now,
       updatedAt: now,
     });
   }
 
   if (ownerKeys.length > 0) {
-    await ctx.scheduler.runAfter(0, internal.users.syncOwnerAliasesToIngest, {
-      accountUserId: user._id,
-      ownerKeys,
-    });
+    for (const ownerKey of ownerKeys) await queueServiceSync(ctx, `owner:${user._id}:${ownerKey}`, { kind: "owner", userId: user._id, ownerKeys: [ownerKey] });
   }
 
   return claimedLinkCount;

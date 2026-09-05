@@ -5,6 +5,7 @@ const isPublicRoute = createRouteMatcher([
   "/",
   "/api/favicon(.*)",
   "/api/getFavicon(.*)",
+  "/api/guest-session",
   "/sign-in(.*)",
   "/sign-up(.*)",
 ]);

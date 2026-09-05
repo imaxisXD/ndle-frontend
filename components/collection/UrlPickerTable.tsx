@@ -1,6 +1,5 @@
 import { useMemo, useState } from "react";
-import { useMutation } from "convex/react";
-import { useQuery } from "convex-helpers/react/cache/hooks";
+import { useMutation, usePaginatedQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
 import {
@@ -25,9 +24,14 @@ interface UrlPickerTableProps {
 
 export function UrlPickerTable({ collectionId, onClose }: UrlPickerTableProps) {
   const { add } = useToast();
-  const availableUrls = useQuery(
-    api.collectionMangament.getUserUrlsNotInCollection,
+  const {
+    results: availableUrls,
+    status,
+    loadMore,
+  } = usePaginatedQuery(
+    api.urlLists.getAvailableUrlsPage,
     { collectionId },
+    { initialNumItems: 25 },
   );
   const addUrlToCollection = useMutation(
     api.collectionMangament.addUrlToCollection,
@@ -105,7 +109,7 @@ export function UrlPickerTable({ collectionId, onClose }: UrlPickerTableProps) {
     }
   };
 
-  if (availableUrls === undefined) {
+  if (status === "LoadingFirstPage") {
     return (
       <div className="py-8 text-center">
         <p className="text-sm font-medium">Loading URLs…</p>
@@ -116,7 +120,7 @@ export function UrlPickerTable({ collectionId, onClose }: UrlPickerTableProps) {
     );
   }
 
-  if (!availableUrls || availableUrls.length === 0) {
+  if (availableUrls.length === 0 && status === "Exhausted") {
     return (
       <div className="border-border bg-muted/30 rounded-lg border border-dashed p-8 text-center">
         <LinkIcon className="text-muted-foreground mx-auto mb-4 h-8 w-8" />
@@ -152,7 +156,8 @@ export function UrlPickerTable({ collectionId, onClose }: UrlPickerTableProps) {
       <div className="px-1">
         <input
           className="border-input bg-background focus:ring-foreground/20 w-full rounded-md border px-3 py-2 text-sm focus:ring-2 focus:outline-none"
-          placeholder="Search by short or original URL…"
+          aria-label="Search loaded links"
+          placeholder="Search loaded links…"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
@@ -209,6 +214,21 @@ export function UrlPickerTable({ collectionId, onClose }: UrlPickerTableProps) {
             })}
           </TableBody>
         </Table>
+      </div>
+      <div className="flex items-center justify-between gap-3">
+        <p className="text-muted-foreground text-xs">
+          {availableUrls.length} available links loaded. Search applies to
+          loaded links.
+        </p>
+        {status !== "Exhausted" && (
+          <Button
+            variant="outline"
+            onClick={() => loadMore(25)}
+            disabled={status === "LoadingMore"}
+          >
+            {status === "LoadingMore" ? "Loading…" : "Load more links"}
+          </Button>
+        )}
       </div>
     </div>
   );

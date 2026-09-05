@@ -20,6 +20,9 @@ import {
   makeUserOwnerKey,
 } from "./ownership";
 import { getCurrentUser } from "./users";
+import { queueServiceSync } from "./serviceSync";
+import { includeLinkInAccount, removeLinkFromAccount } from "./accountCounters";
+import { addLinkToCollection, removeLinkFromCollections } from "./collectionMangament";
 import { createSlug, isValidHttpUrl, VALIDATION_ERRORS } from "./utils";
 
 const counter = new ShardedCounter(components.shardedCounter);
@@ -244,7 +247,7 @@ async function ensureBelowUserLimit(ctx: MutationCtx, user: Doc<"users">) {
   const activeUrls = await ctx.db
     .query("urls")
     .withIndex("by_user", (q) => q.eq("userTableId", user._id))
-    .collect();
+    .take(FREE_ACTIVE_LINK_LIMIT);
 
   if (activeUrls.length >= FREE_ACTIVE_LINK_LIMIT) {
     throw new ConvexError(
@@ -341,37 +344,13 @@ async function syncUrlToRedis(
     overwrite?: boolean;
   },
 ) {
-  await ctx.scheduler.runAfter(0, internal.redisAction.insertIntoRedis, {
-    docId: args.docId,
-    fullUrl: args.fullUrl,
-    slugAssigned: args.slugAssigned,
-    analytics_owner_key: args.analyticsOwnerKey,
-    convex_user_id: args.convexUserId,
-    trackingEnabled: args.trackingEnabled,
-    expiresAt: args.expiresAt,
-    utmSource: args.utmSource,
-    utmMedium: args.utmMedium,
-    utmCampaign: args.utmCampaign,
-    utmTerm: args.utmTerm,
-    utmContent: args.utmContent,
-    abEnabled: args.abEnabled,
-    abVariants: args.abVariants,
-    abDistribution: "deterministic",
-    overwrite: args.overwrite,
-  });
+  await queueServiceSync(ctx, `redirect:${args.slugAssigned}`, { kind: "redirect", urlId: args.docId, slug: args.slugAssigned });
 }
 
 async function deleteUrlRecord(ctx: MutationCtx, url: Doc<"urls">) {
-  await ctx.scheduler.runAfter(
-    0,
-    internal.linkHealth.unregisterUrlFromMonitoringService,
-    {
-      convexUrlId: url._id,
-    },
-  );
-
-  await ctx.scheduler.runAfter(0, internal.redisAction.deleteFromRedis, {
-    slugAssigned: url.slugAssigned ?? url.shortUrl,
+  await queueServiceSync(ctx, `monitor:${url._id}`, { kind: "monitor", urlId: url._id });
+  await queueServiceSync(ctx, `redirect:${url.slugAssigned ?? url.shortUrl}`, {
+    kind: "redirect", urlId: url._id, slug: url.slugAssigned ?? url.shortUrl,
   });
 
   const analytics = await ctx.db
@@ -383,6 +362,8 @@ async function deleteUrlRecord(ctx: MutationCtx, url: Doc<"urls">) {
     await ctx.db.delete(analytics._id);
   }
 
+  await removeLinkFromCollections(ctx, url._id);
+  await removeLinkFromAccount(ctx, url);
   await ctx.db.delete(url._id);
 }
 
@@ -489,6 +470,9 @@ export const createUrl = mutation({
       abVariants: abVariantsWithIds?.map(({ url, weight }) => ({ url, weight })),
     });
 
+    const savedUrl = await ctx.db.get(docId);
+    if (savedUrl) await includeLinkInAccount(ctx, savedUrl);
+
     await ctx.db.insert("urlAnalytics", {
       urlId: docId,
       updatedAt: Date.now(),
@@ -524,21 +508,10 @@ export const createUrl = mutation({
       if (!collection || collection.userTableId !== user._id) {
         throw new ConvexError("Collection not found or access denied");
       }
-      await ctx.db.patch(args.collectionId, {
-        urls: [...collection.urls, docId],
-      });
+      await addLinkToCollection(ctx, args.collectionId, docId);
     }
 
-    await ctx.scheduler.runAfter(
-      0,
-      internal.linkHealth.registerUrlWithMonitoringService,
-      {
-        convexUrlId: docId,
-        convexUserId: user._id,
-        longUrl: normalizedUrl,
-        shortUrl: slug,
-      },
-    );
+    await queueServiceSync(ctx, `monitor:${docId}`, { kind: "monitor", urlId: docId });
 
     return { docId, slug };
   },
@@ -597,6 +570,9 @@ export const createGuestUrl = mutation({
       abVariants: undefined,
     });
 
+    const savedUrl = await ctx.db.get(docId);
+    if (savedUrl) await includeLinkInAccount(ctx, savedUrl);
+
     await ctx.db.insert("urlAnalytics", {
       urlId: docId,
       updatedAt: Date.now(),
@@ -629,6 +605,7 @@ export const updateUrlStatus = internalMutation({
   },
   returns: v.null(),
   async handler(ctx, args) {
+    if (!await ctx.db.get(args.docId)) return null;
     await ctx.db.patch(args.docId, {
       urlStatusMessage: args.urlStatusMessage,
       redisStatus: args.redisStatus,
@@ -652,95 +629,33 @@ export const deleteUrlById = internalMutation({
   },
 });
 
-export const getUserUrls = query({
-  args: {},
-  handler: async (ctx) => {
-    const user = await getCurrentUser(ctx);
-    if (!user) {
-      return null;
-    }
-    return await ctx.db
-      .query("urls")
-      .withIndex("by_user", (q) => q.eq("userTableId", user._id))
-      .collect();
-  },
-});
-
-export const getUserUrlsWithAnalytics = query({
-  args: {},
-  handler: async (ctx) => {
-    const user = await getCurrentUser(ctx);
-    if (!user) {
-      return null;
-    }
-    const urls = await ctx.db
-      .query("urls")
-      .withIndex("by_user", (q) => q.eq("userTableId", user._id))
-      .order("desc")
-      .collect();
-    const healthChecks = await ctx.db
-      .query("linkHealthChecks")
-      .withIndex("by_user_id", (q) => q.eq("userId", user._id))
-      .collect();
-    const healthCheckByUrlId = new Map(
-      healthChecks.map((check) => [check.urlId, check]),
-    );
-    return await Promise.all(
-      urls.map(async (url) => {
-        const analytics = await ctx.db
-          .query("urlAnalytics")
-          .withIndex("by_url", (q) => q.eq("urlId", url._id))
-          .unique();
-        const totalClickCounts = await counter.count(ctx, `url:${url._id}`);
-        return {
-          ...url,
-          analytics: analytics ? { ...analytics, totalClickCounts } : null,
-          latestHealthCheck: healthCheckByUrlId.get(url._id) ?? null,
-        };
-      }),
-    );
-  },
-});
-
+/** Compatibility endpoints reject oversized results; current callers use urlLists pagination. */
+async function enrichLegacyUrls(ctx: import("./_generated/server").QueryCtx, urls: Doc<"urls">[]) {
+  if (urls.length > 100) throw new ConvexError("This list needs pagination. Use the updated links page.");
+  return Promise.all(urls.map(async url => {
+    const analytics = await ctx.db.query("urlAnalytics").withIndex("by_url", q => q.eq("urlId", url._id)).unique();
+    const latestHealthCheck = await ctx.db.query("linkHealthChecks").withIndex("by_url_id", q => q.eq("urlId", url._id)).unique();
+    return { ...url, analytics: analytics ? { ...analytics, totalClickCounts: await counter.count(ctx, `url:${url._id}`) } : null, latestHealthCheck };
+  }));
+}
+export const getUserUrls = query({ args: {}, handler: async ctx => {
+  const user = await getCurrentUser(ctx); if (!user) return null;
+  const urls = await ctx.db.query("urls").withIndex("by_user", q => q.eq("userTableId", user._id)).take(101);
+  if (urls.length > 100) throw new ConvexError("This list needs pagination. Use the updated links page.");
+  return urls;
+} });
+export const getUserUrlsWithAnalytics = query({ args: {}, handler: async ctx => {
+  const user = await getCurrentUser(ctx); if (!user) return null;
+  return enrichLegacyUrls(ctx, await ctx.db.query("urls").withIndex("by_user", q => q.eq("userTableId", user._id)).order("desc").take(101));
+} });
 export const getUserUrlsWithAnalyticsByCollection = query({
-  args: {
-    collectionId: v.id("collections"),
-  },
-  handler: async (ctx, args) => {
-    const user = await getCurrentUser(ctx);
-    if (!user) {
-      return null;
-    }
-
-    const collection = await ctx.db.get(args.collectionId);
-    if (!collection || collection.userTableId !== user._id) {
-      return null;
-    }
-
-    const urls = await Promise.all(collection.urls.map((urlId) => ctx.db.get(urlId)));
-    const validUrls = urls.filter((url): url is Doc<"urls"> => url !== null);
-    const healthChecks = await ctx.db
-      .query("linkHealthChecks")
-      .withIndex("by_user_id", (q) => q.eq("userId", user._id))
-      .collect();
-    const healthCheckByUrlId = new Map(
-      healthChecks.map((check) => [check.urlId, check]),
-    );
-
-    return await Promise.all(
-      validUrls.map(async (url) => {
-        const analytics = await ctx.db
-          .query("urlAnalytics")
-          .withIndex("by_url", (q) => q.eq("urlId", url._id))
-          .unique();
-        const totalClickCounts = await counter.count(ctx, `url:${url._id}`);
-        return {
-          ...url,
-          analytics: analytics ? { ...analytics, totalClickCounts } : null,
-          latestHealthCheck: healthCheckByUrlId.get(url._id) ?? null,
-        };
-      }),
-    );
+  args: { collectionId: v.id("collections") }, handler: async (ctx, { collectionId }) => {
+    const user = await getCurrentUser(ctx); const collection = await ctx.db.get(collectionId);
+    if (!user || collection?.userTableId !== user._id) return null;
+    const ids = collection.membersReady ? (await ctx.db.query("collectionLinks").withIndex("by_collectionId_and_urlId", q => q.eq("collectionId", collectionId)).take(101)).map(member => member.urlId) : collection.urls;
+    if (ids.length > 100) throw new ConvexError("This list needs pagination. Use the updated links page.");
+    const urls = await Promise.all(ids.map(id => ctx.db.get(id)));
+    return enrichLegacyUrls(ctx, urls.filter((url): url is Doc<"urls"> => !!url && url.userTableId === user._id));
   },
 });
 
@@ -785,3 +700,15 @@ export const isUrlOwner = async (
     isOwner: url.userTableId === user._id,
   };
 };
+
+/** Resolve only the few links already selected by the analytics service. */
+export const getLinkDetailsBySlugs = query({
+  args: { slugs: v.array(v.string()) },
+  handler: async (ctx, { slugs }) => {
+    const user = await getCurrentUser(ctx);
+    if (!user) return [];
+    if (slugs.length > 20) throw new ConvexError("Request up to 20 links at a time");
+    const links = await Promise.all(slugs.map(slug => ctx.db.query("urls").withIndex("by_user_slug", q => q.eq("userTableId", user._id).eq("slugAssigned", slug)).unique()));
+    return links.filter((link): link is Doc<"urls"> => !!link);
+  },
+});

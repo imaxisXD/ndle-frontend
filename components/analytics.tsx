@@ -3,7 +3,6 @@
 import { useMemo, useState, useEffect, type ElementType } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { useAnalyticsV2 } from "@/hooks/useAnalyticsV2";
-import { useColdAnalytics } from "@/hooks/use-cold-analytics";
 import { format, subDays, startOfDay, endOfDay } from "date-fns";
 import { Skeleton } from "@/components/ui/skeleton";
 import { CountryChart } from "@/components/charts/country-chart";
@@ -17,27 +16,11 @@ import { FilterBar } from "@/components/filter-bar";
 import {
   CursorClickIcon,
   LinkIcon,
-  ShieldCheckIcon,
 } from "@phosphor-icons/react";
 import { UTMAnalyticsPanel } from "@/components/UTMAnalyticsPanel";
 import type { UTMAnalyticsData } from "@/types/utm-analytics";
 import { AgenticChartChat } from "@/components/agentic-charts";
 import { EmptyStateImage } from "@/components/empty-state-image";
-
-const analyticsOverviewStats = [
-  {
-    label: "Total Links",
-    value: 24,
-    icon: LinkIcon,
-    change: "[+3] this week",
-  },
-  {
-    label: "Auto-Healed",
-    value: 8,
-    icon: ShieldCheckIcon,
-    change: "[3] active",
-  },
-] as const;
 
 const freeTimeRangeOptions = [
   {
@@ -63,7 +46,7 @@ const defaultFilterOptions = {
 
 function TotalClicksCard() {
   const totalClicksFromConvex = useQuery(api.urlAnalytics.getUsersTotalClicks);
-  const totalClicks = totalClicksFromConvex ?? 0;
+  const totalClicks = totalClicksFromConvex;
 
   return (
     <Card>
@@ -71,10 +54,10 @@ function TotalClicksCard() {
         <div className="flex items-start justify-between">
           <div className="flex-1">
             <p className="text-muted-foreground text-xs">
-              Total Clicks (All Time)
+              Clicks on Active Links
             </p>
             <div className="mt-2 text-2xl font-medium">
-              <NumberFlow value={totalClicks} />
+              {totalClicks == null ? <Skeleton className="h-8 w-16" /> : <NumberFlow value={totalClicks} />}
             </div>
             <div className="text-muted-foreground mt-1 text-xs">Real-time</div>
           </div>
@@ -129,18 +112,11 @@ function AnalyticsOverviewCards({
 }: {
   showSkeleton: boolean;
 }) {
+  const linkCount = useQuery(api.urlAnalytics.getUsersLinkCount);
   return (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-      {analyticsOverviewStats.map((stat) => (
-        <OverviewStatCard
-          change={stat.change}
-          Icon={stat.icon}
-          key={stat.label}
-          label={stat.label}
-          showSkeleton={showSkeleton}
-          value={stat.value}
-        />
-      ))}
+    <div className="grid gap-4 md:grid-cols-2">
+      <OverviewStatCard label="Total Links" value={linkCount ?? 0} change="Active links in your account"
+        Icon={LinkIcon} showSkeleton={showSkeleton || linkCount == null} />
       <TotalClicksCard />
     </div>
   );
@@ -158,14 +134,6 @@ export function Analytics() {
   const [browserFilter, setBrowserFilter] = useState("all");
   const [osFilter, setOSFilter] = useState("all");
   const [linkFilter, setLinkFilter] = useState("all");
-
-  // Check if any dimension filter is active
-  const hasActiveFilters =
-    countryFilter !== "all" ||
-    deviceFilter !== "all" ||
-    browserFilter !== "all" ||
-    osFilter !== "all" ||
-    linkFilter !== "all";
 
   // Calculate start/end dates based on time range selection
   const { start, end } = useMemo(() => {
@@ -220,90 +188,18 @@ export function Analytics() {
   } = useAnalyticsV2({
     start,
     end,
+    filters: { country: countryFilter, device: deviceFilter, browser: browserFilter, os: osFilter, link: linkFilter },
     pollingInterval: 10000,
   });
 
-  // DuckDB-WASM for complex queries when filters are active
-  // Loads cold parquet files for client-side SQL processing
-  const {
-    data: coldData,
-    loading: coldLoading,
-    error: coldError,
-  } = useColdAnalytics(
-    serverData?.cold || [],
-    {
-      country: countryFilter,
-      device: deviceFilter,
-      browser: browserFilter,
-      os: osFilter,
-      link: linkFilter,
-    },
-    start,
-    end,
-    -new Date().getTimezoneOffset(),
-  );
-
-  // Only show skeleton on FIRST load
   const showSkeleton = isPending && !serverData;
+  const analyticsData = serverData ?? null;
+  const isLoading = showSkeleton;
+  const topSlugs = useMemo(() => Object.entries(analyticsData?.linkCounts ?? {})
+    .sort(([, left], [, right]) => right - left).slice(0, 5).map(([slug]) => slug), [analyticsData?.linkCounts]);
+  const topLinkDetails = useQuery(api.urlMainFuction.getLinkDetailsBySlugs, { slugs: topSlugs });
+  const urlsLoading = showSkeleton || topLinkDetails === undefined;
 
-  // Progressive data loading:
-  // 1. Show server data immediately (pre-aggregated)
-  // 2. If filters active and cold files exist, use WASM-processed data
-  const analyticsData = useMemo(() => {
-    // If filters are active and cold data is complete, use it
-    if (hasActiveFilters && coldData && !coldData.isPartialData) {
-      return coldData;
-    }
-    // Default: use server pre-aggregated data
-    if (serverData) {
-      return {
-        clicksByDay: serverData.clicksByDay,
-        countryCounts: serverData.countryCounts,
-        linkCounts: serverData.linkCounts,
-        totalClicks: serverData.totalClicks,
-        filterOptions: serverData.filterOptions,
-        utmSourceCounts: serverData.utmSourceCounts,
-        utmMediumCounts: serverData.utmMediumCounts,
-        utmCampaignCounts: serverData.utmCampaignCounts,
-        utmTermCounts: serverData.utmTermCounts,
-        utmContentCounts: serverData.utmContentCounts,
-        utmMatrixCounts: serverData.utmMatrixCounts,
-        utmWithCount: serverData.utmWithCount,
-        utmWithoutCount: serverData.utmWithoutCount,
-        refererCounts: serverData.refererCounts,
-        isPartialData: false,
-      };
-    }
-    return null;
-  }, [serverData, coldData, hasActiveFilters]);
-
-  // Loading state
-  const isLoading =
-    showSkeleton || (hasActiveFilters && coldLoading && !coldData);
-
-  // Development logging
-  useEffect(() => {
-    if (process.env.NODE_ENV !== "development") return;
-    if (serverData) {
-      console.log(`[Analytics] Server data:`, {
-        totalClicks: serverData.totalClicks,
-        coldFiles: serverData.cold?.length ?? 0,
-      });
-    }
-    if (coldData && hasActiveFilters) {
-      console.log(`[Analytics] WASM data (filtered):`, {
-        totalClicks: coldData.totalClicks,
-      });
-    }
-  }, [serverData, coldData, hasActiveFilters]);
-
-  // Fetch URLs with analytics from Convex for Top Links
-  const urlsWithAnalytics = useQuery(
-    api.urlMainFuction.getUserUrlsWithAnalytics,
-  );
-  const urlsLoading = urlsWithAnalytics === undefined;
-
-  // Derive UTM panel data
   const utmData: UTMAnalyticsData | null = analyticsData
     ? {
         sourceData: Object.entries(analyticsData.utmSourceCounts || {})
@@ -401,28 +297,11 @@ export function Analytics() {
       }));
   }, [analyticsData?.countryCounts]);
 
-  // Top Links from Convex
-  const topLinks = useMemo(() => {
-    if (!urlsWithAnalytics) return [];
-    return urlsWithAnalytics
-      .filter(
-        (url) => url.slugAssigned && (url.analytics?.totalClickCounts ?? 0) > 0,
-      )
-      .sort(
-        (a, b) =>
-          (b.analytics?.totalClickCounts ?? 0) -
-          (a.analytics?.totalClickCounts ?? 0),
-      )
-      .slice(0, 5)
-      .map((url) => ({
-        url: url.slugAssigned as string,
-        originalUrl: url.fullurl,
-        clicks: url.analytics?.totalClickCounts ?? 0,
-        change: "0%",
-        createdAt: url._creationTime,
-        customDomain: url.customDomain ?? null,
-      }));
-  }, [urlsWithAnalytics]);
+  const topLinks = useMemo(() => topSlugs.map(slug => {
+    const detail = topLinkDetails?.find(url => url.slugAssigned === slug || url.shortUrl === slug);
+    return { url: slug, originalUrl: detail?.fullurl ?? "Deleted link", clicks: analyticsData?.linkCounts[slug] ?? 0,
+      change: "", createdAt: detail?._creationTime ?? 0, customDomain: detail?.customDomain ?? null };
+  }), [topSlugs, topLinkDetails, analyticsData?.linkCounts]);
 
   if (isError) {
     console.error("Analytics failed to load:", error);
@@ -442,10 +321,6 @@ export function Analytics() {
         </p>
       </div>
     );
-  }
-
-  if (coldError) {
-    console.error("Cold analytics error:", coldError);
   }
 
   const chartAiLockMessage = !isDevMode
@@ -475,6 +350,11 @@ export function Analytics() {
         onOSFilterChange={setOSFilter}
         osOptions={filterOptions.os}
       />
+
+      {serverData && <p className="text-muted-foreground text-xs">
+        {serverData.meta.coverage?.complete ? "Includes recent and archived clicks." : "Analytics coverage is being checked."}
+        {serverData.meta.freshness?.lastCommittedAt ? ` Last received ${new Date(serverData.meta.freshness.lastCommittedAt).toLocaleString()}.` : ""}
+      </p>}
 
       {/* Stats Grid */}
       <AnalyticsOverviewCards showSkeleton={showSkeleton} />
@@ -509,101 +389,6 @@ export function Analytics() {
         </p>
         <UTMAnalyticsPanel data={utmData} isLoading={isLoading} />
       </div>
-
-      {/* Healing Activity - STATIC FOR NOW -- TODO */}
-      {/* <div className="grid gap-6 lg:grid-cols-2">
-        <Card>
-          <CardContent className="p-6">
-            <div className="mb-6">
-              <h3 className="text-base font-medium">Healing Activity</h3>
-              <p className="text-muted-foreground mt-1 text-xs">
-                Self-healing link statistics
-              </p>
-            </div>
-
-            <div className="space-y-4">
-              <div className="flex items-center justify-between rounded-lg border border-green-200 bg-green-50 p-4">
-                <div>
-                  <p className="text-sm font-medium text-green-900">
-                    Successfully Healed
-                  </p>
-                  <p className="mt-1 text-xs text-green-700">
-                    Links automatically fixed
-                  </p>
-                </div>
-                <p className="text-2xl font-medium text-green-900">8</p>
-              </div>
-
-              <div className="flex items-center justify-between rounded-lg border border-yellow-200 bg-yellow-50 p-4">
-                <div>
-                  <p className="text-sm font-medium text-yellow-900">
-                    Currently Checking
-                  </p>
-                  <p className="mt-1 text-xs text-yellow-700">
-                    Links being monitored
-                  </p>
-                </div>
-                <p className="text-2xl font-medium text-yellow-900">3</p>
-              </div>
-
-              <div className="flex items-center justify-between rounded-lg border border-blue-200 bg-blue-50 p-4">
-                <div>
-                  <p className="text-sm font-medium text-blue-900">
-                    Archived Backups
-                  </p>
-                  <p className="mt-1 text-xs text-blue-700">
-                    Wayback Machine saves
-                  </p>
-                </div>
-                <p className="text-2xl font-medium text-blue-900">12</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="mb-6">
-              <h3 className="text-base font-medium">AI Usage</h3>
-              <p className="text-muted-foreground mt-1 text-xs">
-                AI-powered features activity
-              </p>
-            </div>
-
-            <div className="space-y-4">
-              <div className="bg-background border-border flex items-center justify-between rounded-lg border p-4">
-                <div>
-                  <p className="text-sm font-medium">Summaries Generated</p>
-                  <p className="text-muted-foreground mt-1 text-xs">
-                    AI content summaries
-                  </p>
-                </div>
-                <p className="text-2xl font-medium">24</p>
-              </div>
-
-              <div className="bg-background border-border flex items-center justify-between rounded-lg border p-4">
-                <div>
-                  <p className="text-sm font-medium">Chat Conversations</p>
-                  <p className="text-muted-foreground mt-1 text-xs">
-                    AI chat interactions
-                  </p>
-                </div>
-                <p className="text-2xl font-medium">45</p>
-              </div>
-
-              <div className="bg-background border-border flex items-center justify-between rounded-lg border p-4">
-                <div>
-                  <p className="text-sm font-medium">Memory Entries</p>
-                  <p className="text-muted-foreground mt-1 text-xs">
-                    Saved context & notes
-                  </p>
-                </div>
-                <p className="text-2xl font-medium">18</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div> */}
 
       {/* AI Chart Generation Chat */}
       <div className="mt-8">

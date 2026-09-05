@@ -4,6 +4,8 @@ import { getCurrentUser } from "./users";
 import { ShardedCounter } from "@convex-dev/sharded-counter";
 import { components } from "./_generated/api";
 import { getOwnerSnapshot } from "./ownership";
+import { accountCounter, accountCountsReady } from "./accountCounters";
+import { incrementCollectionClicks } from "./collectionMangament";
 
 export const counter = new ShardedCounter(components.shardedCounter);
 
@@ -31,22 +33,21 @@ export const mutateUrlAnalytics = mutation({
   returns: v.object({
     processed: v.boolean(),
     message: v.string(),
+    outcome: v.union(v.literal("recorded"), v.literal("duplicate"), v.literal("link_deleted"), v.literal("tracking_disabled"), v.literal("too_old")),
   }),
   handler: async (ctx, args) => {
-    if (args.sharedSecret !== process.env.SHARED_SECRET) {
-      console.error("Invalid shared secret");
+    if (!process.env.SHARED_SECRET || args.sharedSecret !== process.env.SHARED_SECRET) {
       throw new ConvexError("Invalid shared secret");
     }
+    if (!args.requestId.trim() || args.requestId.length > 200) throw new ConvexError("Invalid click ID");
+    const occurredAt = args.clickEvent?.occurredAt ?? Date.now();
+    if (!Number.isFinite(occurredAt) || occurredAt > Date.now() + 300_000) throw new ConvexError("Invalid click time");
+    if (occurredAt < Date.now() - 35 * 86_400_000) return { processed: false, message: "Click is outside the live update window", outcome: "too_old" as const };
     const normalisedUrlId = ctx.db.normalizeId("urls", args.urlId);
-    if (!normalisedUrlId) {
-      console.error("Invalid URL ID");
-      throw new ConvexError("Invalid URL ID");
-    }
+    if (!normalisedUrlId) throw new ConvexError("Invalid URL ID");
     const url = await ctx.db.get(normalisedUrlId);
-    if (!url) {
-      console.error("URL not found");
-      throw new ConvexError("URL not found");
-    }
+    if (!url) return { processed: false, message: "Link was deleted", outcome: "link_deleted" as const };
+    if (!url.trackingEnabled) return { processed: false, message: "Tracking is disabled", outcome: "tracking_disabled" as const };
 
     const existingRequest = await ctx.db
       .query("processedClickRequests")
@@ -54,10 +55,7 @@ export const mutateUrlAnalytics = mutation({
       .first();
 
     if (existingRequest) {
-      console.log(
-        `Duplicate request detected for requestId: ${args.requestId}, urlId: ${normalisedUrlId}`,
-      );
-      return { processed: false, message: "Request already processed" };
+      return { processed: false, message: "Request already processed", outcome: "duplicate" as const };
     }
 
     await ctx.db.insert("processedClickRequests", {
@@ -67,7 +65,7 @@ export const mutateUrlAnalytics = mutation({
     });
 
     // Insert click event if provided
-    if (args.clickEvent) {
+    if (args.clickEvent && occurredAt >= Date.now() - 30 * 86_400_000) {
       const owner = getOwnerSnapshot(url);
       await ctx.db.insert("clickEvents", {
         linkSlug: args.clickEvent.linkSlug,
@@ -85,55 +83,13 @@ export const mutateUrlAnalytics = mutation({
       });
     }
 
-    const urlAnalytics = await ctx.db
-      .query("urlAnalytics")
-      .withIndex("by_url", (q) => q.eq("urlId", normalisedUrlId))
-      .unique();
+    await counter.inc(ctx, `url:${normalisedUrlId}`);
+    if (url.userTableId && url.accountCountersIncluded) await accountCounter.inc(ctx, `user-clicks:${url.userTableId}`);
 
-    const key = `url:${normalisedUrlId}`;
-    await counter.inc(ctx, key);
+    await incrementCollectionClicks(ctx, normalisedUrlId);
 
-    // Increment collection total clicks for every owned collection that contains the link.
-    const collections = url.userTableId
-      ? (
-          await ctx.db
-            .query("collections")
-            .withIndex("by_user", (q) => q.eq("userTableId", url.userTableId!))
-            .collect()
-        ).filter((collection) => collection.urls.includes(normalisedUrlId))
-      : [];
-
-    for (const collection of collections) {
-      await counter.inc(ctx, `collection:${collection._id}`);
-    }
-
-    if (!urlAnalytics) {
-      await ctx.db.insert("urlAnalytics", {
-        urlId: normalisedUrlId,
-        updatedAt: Date.now(),
-        urlStatusMessage: args.urlStatusMessage,
-        urlStatusCode: args.urlStatusCode,
-      });
-      return { processed: true, message: "Analytics created" };
-    } else {
-      // Update only when urlStatusMessage or urlStatusCode is changed or updatedAt is older than 1 hour
-      if (
-        urlAnalytics.urlStatusMessage !== args.urlStatusMessage ||
-        urlAnalytics.urlStatusCode !== args.urlStatusCode ||
-        urlAnalytics.updatedAt < Date.now() - 1000 * 60 * 60 // 1 hour
-      ) {
-        await ctx.db.patch(urlAnalytics._id, {
-          updatedAt: Date.now(),
-          urlStatusMessage: args.urlStatusMessage,
-          urlStatusCode: args.urlStatusCode,
-        });
-        return { processed: true, message: "Analytics updated" };
-      }
-      return {
-        processed: true,
-        message: "Request processed, no analytics update needed",
-      };
-    }
+    // Redirect delivery is not a destination health check. Monitoring owns health state.
+    return { processed: true, message: "Click recorded", outcome: "recorded" as const };
   },
 });
 
@@ -196,15 +152,17 @@ export const getUsersTotalClicks = query({
     if (!user) {
       return 0;
     }
-    const urls = await ctx.db
-      .query("urls")
-      .withIndex("by_user", (q) => q.eq("userTableId", user._id))
-      .collect();
+    if (!await accountCountsReady(ctx, user._id)) return null;
+    return await accountCounter.count(ctx, `user-clicks:${user._id}`);
+  },
+});
 
-    let total = 0;
-    for (const url of urls) {
-      total += await counter.count(ctx, `url:${url._id}`);
-    }
-    return total;
+export const getUsersLinkCount = query({
+  args: {}, returns: v.union(v.number(), v.null()),
+  handler: async ctx => {
+    const user = await getCurrentUser(ctx);
+    if (!user) return 0;
+    if (!await accountCountsReady(ctx, user._id)) return null;
+    return await accountCounter.count(ctx, `user-links:${user._id}`);
   },
 });

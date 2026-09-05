@@ -5,7 +5,7 @@
  * registers parquet files, and executes against them.
  */
 
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useMemo, useRef } from "react";
 import { useDuckDB } from "./use-duckdb";
 import { useAuth } from "@clerk/nextjs";
 import type { ColdFile } from "@/types/analytics-v2";
@@ -23,7 +23,7 @@ const FILE_PROXY_WORKER_URL =
   "https://proxy-file-worker.sunny735084.workers.dev";
 
 // Cache for registered files
-const registeredFiles = new Map<string, string>();
+const registeredFilesByDatabase = new WeakMap<object, Map<string, string>>();
 
 function getStableFileName(key: string): string {
   let hash = 0;
@@ -40,6 +40,12 @@ function getStableFileName(key: string): string {
  */
 export function useChartQuery(): UseChartQueryResult {
   const { db, loading: dbLoading, error: dbError } = useDuckDB();
+  const registeredFiles = useMemo(() => {
+    if (!db) return new Map<string, string>();
+    let files = registeredFilesByDatabase.get(db);
+    if (!files) { files = new Map(); registeredFilesByDatabase.set(db, files); }
+    return files;
+  }, [db]);
   const { getToken } = useAuth();
   const [data, setData] = useState<Array<Record<string, unknown>> | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -64,7 +70,7 @@ export function useChartQuery(): UseChartQueryResult {
 
         try {
           // Get token for fetching parquet files
-          const token = await getToken();
+          const token = await getToken({ template: "convex", skipCache: true });
           if (!token) {
             throw new Error("Authentication required");
           }
@@ -82,17 +88,14 @@ export function useChartQuery(): UseChartQueryResult {
               }
 
               // Fetch the parquet file
-              const proxyUrl = `${FILE_PROXY_WORKER_URL}/file/${encodeURIComponent(file.key)}`;
+              const proxyUrl = `${FILE_PROXY_WORKER_URL}/file/${encodeURIComponent(file.key)}?accessVersion=2`;
               const response = await fetch(proxyUrl, {
                 method: "GET",
                 headers: { Authorization: `Bearer ${token}` },
               });
 
               if (!response.ok) {
-                console.error(
-                  `Failed to fetch ${file.key}: ${response.status}`,
-                );
-                continue;
+                throw new Error(`Chart data could not load (${response.status})`);
               }
 
               const buffer = await response.arrayBuffer();
@@ -156,7 +159,7 @@ export function useChartQuery(): UseChartQueryResult {
         setIsLoading(false);
       }
     },
-    [db, getToken],
+    [db, getToken, registeredFiles],
   );
 
   return {

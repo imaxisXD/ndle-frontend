@@ -1,75 +1,54 @@
-import * as duckdb from "@duckdb/duckdb-wasm";
+import type * as duckdb from "@duckdb/duckdb-wasm";
+import { useAuth } from "@clerk/nextjs";
 import { useEffect, useState } from "react";
 
-// Singleton promise to prevent multiple initializations
-let dbPromise: Promise<duckdb.AsyncDuckDB> | null = null;
+let database: { account: string; promise: Promise<duckdb.AsyncDuckDB> } | null = null;
 
-export async function initDuckDB() {
-  if (dbPromise) {
-    if (process.env.NODE_ENV === "development") {
-      console.log("[DuckDB] Returning cached instance");
-    }
-    return dbPromise;
-  }
-  dbPromise = (async () => {
-    if (process.env.NODE_ENV === "development") {
-      console.log("[DuckDB] Starting initialization...");
-    }
+export function releaseDuckDB(account: string) {
+  if (database?.account !== account) return;
+  const previous = database;
+  database = null;
+  void previous.promise.then(db => db.terminate()).catch(() => {});
+}
 
-    const JSDELIVR_BUNDLES = duckdb.getJsDelivrBundles();
-    const bundle = await duckdb.selectBundle(JSDELIVR_BUNDLES);
-
-    const worker_url = URL.createObjectURL(
-      new Blob([`importScripts("${bundle.mainWorker}");`], {
-        type: "text/javascript",
-      }),
-    );
-
+export function initDuckDB(account = "guest"): Promise<duckdb.AsyncDuckDB> {
+  if (database?.account === account) return database.promise;
+  if (database) releaseDuckDB(database.account);
+  const promise = (async () => {
+    const runtime = await import("@duckdb/duckdb-wasm");
+    const bundle = await runtime.selectBundle(runtime.getJsDelivrBundles());
+    const workerUrl = URL.createObjectURL(new Blob([`importScripts("${bundle.mainWorker}");`], { type: "text/javascript" }));
+    const worker = new Worker(workerUrl);
     try {
-      const worker = new Worker(worker_url);
-      // Use ConsoleLogger only in development
-      const logger =
-        process.env.NODE_ENV === "development"
-          ? new duckdb.ConsoleLogger()
-          : new duckdb.VoidLogger();
-
-      const db = new duckdb.AsyncDuckDB(logger, worker);
+      const db = new runtime.AsyncDuckDB(new runtime.VoidLogger(), worker);
       await db.instantiate(bundle.mainModule, bundle.pthreadWorker);
-
-      if (process.env.NODE_ENV === "development") {
-        console.log("[DuckDB] Initialization complete!");
-      }
       return db;
+    } catch (error) {
+      worker.terminate();
+      throw error;
     } finally {
-      URL.revokeObjectURL(worker_url);
+      URL.revokeObjectURL(workerUrl);
     }
   })();
-
-  try {
-    return await dbPromise;
-  } catch (error) {
-    dbPromise = null;
-    throw error;
-  }
+  database = { account, promise };
+  void promise.catch(() => { if (database?.promise === promise) database = null; });
+  return promise;
 }
 
 export function useDuckDB() {
+  const { userId, isLoaded } = useAuth();
   const [db, setDb] = useState<duckdb.AsyncDuckDB | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
-
   useEffect(() => {
-    initDuckDB()
-      .then((instance) => {
-        setDb(instance);
-        setLoading(false);
-      })
-      .catch((err) => {
-        console.error("Failed to initialize DuckDB:", err);
-        setError(err);
-        setLoading(false);
-      });
-  }, []);
-
+    if (!isLoaded || !userId) return;
+    let canceled = false;
+    initDuckDB(userId).then(instance => {
+      if (!canceled) { setDb(instance); setLoading(false); }
+    }).catch(error => {
+      if (!canceled) { setError(error); setLoading(false); }
+    });
+    return () => { canceled = true; };
+  }, [userId, isLoaded]);
   return { db, loading, error };
 }

@@ -17,6 +17,7 @@ export async function upsertGuestSession(
     .unique();
 
   if (existing) {
+    if (existing.claimedUserId) throw new ConvexError("These guest links were moved to an account. Start a new guest session.");
     await ctx.db.patch(existing._id, {
       email: normalizedEmail ?? existing.email,
       updatedAt: Date.now(),

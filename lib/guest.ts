@@ -58,7 +58,7 @@ export function readGuestSession(): GuestSession | null {
   return { guestId, guestToken, expiresAt: 0 };
 }
 
-export async function ensureGuestSession(): Promise<GuestSession> {
+export async function ensureGuestSession(startNew = false): Promise<GuestSession> {
   if (typeof window === "undefined") {
     throw new Error("Guest sessions are only available in the browser");
   }
@@ -67,12 +67,19 @@ export async function ensureGuestSession(): Promise<GuestSession> {
   const response = await fetch("/api/guest-session", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ guestId: existingGuestId || undefined }),
+    body: JSON.stringify({
+      startNew,
+      guestId: existingGuestId || undefined,
+      guestToken: window.localStorage.getItem(GUEST_TOKEN_STORAGE_KEY) || undefined,
+    }),
     cache: "no-store",
   });
 
   if (!response.ok) {
     const error = await response.json().catch(() => null);
+    if (response.status === 401 && error?.code === "guest_session_expired" && !startNew) {
+      return ensureGuestSession(true);
+    }
     throw new Error(error?.error || "Guest session could not be created");
   }
 

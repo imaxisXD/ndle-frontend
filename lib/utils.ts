@@ -117,12 +117,12 @@ export function formatRelativeDate(timestamp: number): string {
 /**
  * API health status from the backend monitoring system.
  */
-export type HealthStatus = "up" | "down" | "degraded";
+export type HealthStatus = "up" | "down" | "degraded" | "unknown";
 
 /**
  * UI-friendly health status for display purposes.
  */
-export type UIStatus = "healthy" | "warning" | "error";
+export type UIStatus = "healthy" | "warning" | "error" | "unknown";
 
 /**
  * Maps backend health status to UI-friendly status.
@@ -138,7 +138,19 @@ export function mapHealthStatusToUI(status: HealthStatus): UIStatus {
       return "warning";
     case "down":
       return "error";
+    case "unknown":
+      return "unknown";
   }
+}
+
+export function getMonitoringStatus(
+  status: HealthStatus | null,
+  checkedAt: number | null,
+  now: number,
+): UIStatus | "pending" | "overdue" {
+  if (checkedAt === null || status === null) return "pending";
+  if (now - checkedAt > 45 * 60_000) return "overdue";
+  return mapHealthStatusToUI(status);
 }
 
 /**
