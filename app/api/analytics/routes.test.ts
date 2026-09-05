@@ -24,9 +24,13 @@ beforeEach(() => {
             value: { userId: "verified-account", membership: "free" },
           }),
         )
-      : new Response(
-          JSON.stringify({ data: [{ time: "2026-01-03", clicks: 3 }] }),
-        ),
+      : new Response(JSON.stringify({ data: [
+          url.includes("endpoint=breakdown")
+            ? { country: "IN", clicks: 3 }
+            : url.includes("endpoint=traffic-sources")
+              ? { source: "ndle.app", clicks: 3 }
+              : { time: "2026-01-03", clicks: 3 },
+        ] })),
   );
   vi.stubGlobal("fetch", request);
 });
@@ -110,4 +114,31 @@ it("reports account setup as retryable without asking the user to sign in again"
     (await GET(new NextRequest("https://app.example/api/analytics/live")))
       .status,
   ).toBe(503);
+});
+
+it.each([
+  { route: "breakdown" as const, dimension: "country", row: { country: "IN", clicks: 1 }, aliases: { label: "IN" } },
+  { route: "breakdown" as const, dimension: "browser", row: { browser: "Chrome", clicks: 1 }, aliases: { label: "Chrome" } },
+  { route: "breakdown" as const, dimension: "device", row: { device: "desktop", clicks: 1 }, aliases: { label: "desktop" } },
+  { route: "breakdown" as const, dimension: "os", row: { os: "macOS", clicks: 1 }, aliases: { label: "macOS" } },
+  { route: "traffic-sources" as const, dimension: "", row: { source: "ndle.app", clicks: 1 }, aliases: { referer_domain: "ndle.app" } },
+  { route: "timeseries" as const, dimension: "", row: { time: "2026-08-08", clicks: 1 }, aliases: { bucket_start: "2026-08-08" } },
+])("$route $dimension preserves service data and supplies chart fields", async ({ route, dimension, row, aliases }) => {
+  request.mockImplementation(async (url: string) => Response.json(
+    url.includes("convex.example")
+      ? { status: "success", value: { userId: "verified-account", membership: "free" } }
+      : { data: [row], meta: { coverage: { complete: true } } },
+  ));
+  const { GET } = await routes[route]();
+  const response = await GET(new NextRequest(`https://app.example/api/analytics/${route}?range=30d&dimension=${dimension}&link_slug=elevenricelaugh`));
+  expect(response.status).toBe(200);
+  const body = await response.json();
+  expect(body.data).toEqual([{ ...row, ...aliases }]);
+  expect(body.meta.coverage.complete).toBe(true);
+  if (route === "timeseries") {
+    expect(body.granularity).toBe("day");
+    expect(new Date(body.data[0].bucket_start).toISOString()).toBe("2026-08-08T00:00:00.000Z");
+    expect(body.data[0]).not.toHaveProperty("human_clicks");
+    expect(body.data[0]).not.toHaveProperty("bot_clicks");
+  }
 });

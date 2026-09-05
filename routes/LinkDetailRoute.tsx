@@ -21,6 +21,7 @@ import {
   useVariantPerformance,
 } from "@/hooks/useAnalytics";
 import { getUtcRange } from "@/lib/analyticsRanges";
+import { useAnalyticsV2 } from "@/hooks/useAnalyticsV2";
 import {
   Tabs,
   TabsList,
@@ -94,6 +95,13 @@ export default function LinkDetailRoute() {
     linkSlug: String(slug),
     scope: "link",
   });
+  const trafficRange = getUtcRange(range);
+  const trafficSummary = useAnalyticsV2({
+    start: trafficRange.start.toISOString().slice(0, 10),
+    end: trafficRange.end.toISOString().slice(0, 10),
+    filters: { link: String(slug) },
+    pollingInterval: 60_000,
+  });
 
   // A/B Test Variant Performance
   const variantPerf = useVariantPerformance({
@@ -112,10 +120,6 @@ export default function LinkDetailRoute() {
       const mm = String(d.getUTCMonth() + 1).padStart(2, "0");
       const dd = String(d.getUTCDate()).padStart(2, "0");
       return `${yyyy}-${mm}-${dd}`;
-    };
-    const formatHour = (s: string) => {
-      const d = new Date(s);
-      return String(d.getUTCHours()).padStart(2, "0") + ":00";
     };
 
     // Build day -> clicks map for zero-filling
@@ -152,28 +156,15 @@ export default function LinkDetailRoute() {
       }
     }
 
-    // Hourly activity
-    const hourToClicks = new Map<string, number>();
-    for (const r of tsRows) {
-      const hh = formatHour(r.bucket_start);
-      hourToClicks.set(hh, (hourToClicks.get(hh) ?? 0) + r.clicks);
-    }
-    const hourlyActivityData = Array.from({ length: 24 }, (_, i) => {
-      const hh = String(i).padStart(2, "0") + ":00";
-      return { hour: hh, clicks: hourToClicks.get(hh) ?? 0 };
-    });
-
-    // Bot/human pie
-    let totalHuman = 0;
-    let totalBot = 0;
-    for (const r of tsRows) {
-      totalHuman += r.human_clicks ?? r.clicks;
-      totalBot += r.bot_clicks ?? 0;
-    }
-    const botHumanData = [
-      { name: "Human", value: totalHuman, color: "#22c55e" },
-      { name: "Bot", value: totalBot, color: "#ef4444" },
-    ];
+    // Daily totals cannot reveal the hour of a click or whether it was a bot.
+    const hourlyActivityData = null;
+    const traffic = trafficSummary.data?.bot_traffic;
+    const botHumanData = traffic && Number.isFinite(traffic.human) && Number.isFinite(traffic.bot)
+      ? [
+          { name: "Human", value: traffic.human, color: "#22c55e" },
+          { name: "Bot", value: traffic.bot, color: "#ef4444" },
+        ]
+      : null;
 
     // Latency buckets (placeholder)
     const latencyBuckets = [
@@ -260,6 +251,7 @@ export default function LinkDetailRoute() {
     devices.data,
     os.data,
     referers.data,
+    trafficSummary.data,
     variantPerf.data,
     range,
     url,
@@ -272,6 +264,7 @@ export default function LinkDetailRoute() {
     os.isLoading ||
     countries.isLoading ||
     referers.isLoading ||
+    trafficSummary.isLoading ||
     variantPerf.isLoading;
 
   // Build shortUrl using custom domain if available (after url is defined)

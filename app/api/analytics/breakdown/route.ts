@@ -4,6 +4,7 @@ import { auth } from "@clerk/nextjs/server";
 import { getRateLimit } from "@/lib/rateLimit";
 import { AnalyticsRange, getUtcRange } from "@/lib/analyticsRanges";
 import { getRangeAccessError } from "@/lib/analytics-access";
+import { normalizeAnalyticsBreakdown } from "@/lib/analytics-response";
 import {
   getSignedInAnalyticsViewer,
   ANALYTICS_READ_TIMEOUT_MS,
@@ -120,7 +121,10 @@ export async function GET(req: NextRequest) {
     }
 
     const result = await response.json();
-    const res = NextResponse.json({ data: result.data });
+    const res = NextResponse.json({
+      ...result,
+      data: normalizeAnalyticsBreakdown(result.data, dimension),
+    });
     res.headers.set("Cache-Control", "private, no-store");
     return res;
   } catch (e: unknown) {
