@@ -4,7 +4,7 @@ import { useMutation, useQuery } from "convex/react";
 import dynamic from "next/dynamic";
 import { useCallback, useEffect, useRef } from "react";
 import { api } from "@/convex/_generated/api";
-import { useSession, useUser } from "@clerk/nextjs";
+import { useUser } from "@clerk/nextjs";
 import { identifyUser } from "@/lib/posthog";
 import { AppAccess, AppLoading } from "./app-access";
 import { ensureGuestSession, setClaimedLinkCount } from "@/lib/guest";
@@ -32,10 +32,9 @@ export default function StaticAppShell() {
  */
 function StoreUser() {
   const { user } = useUser();
-  const { session } = useSession();
   const storeUser = useMutation(api.users.store);
   const initializedRef = useRef<string | null>(null);
-  const refreshedAtRef = useRef<number | undefined>(undefined);
+  const sessionRefreshKeyRef = useRef<string | null>(null);
   const accountSync = useQuery(api.users.getAccountSyncState);
 
   const initializeUser = useCallback(async () => {
@@ -77,19 +76,19 @@ function StoreUser() {
 
   useEffect(() => {
     const syncedAt = accountSync?.metadataSyncedAt;
-    if (!user || !syncedAt || refreshedAtRef.current === syncedAt) return;
-    let canceled = false;
-    void (async () => {
-      try {
-        await user.reload();
-        await session?.getToken({ skipCache: true });
-        if (!canceled) refreshedAtRef.current = syncedAt;
-      } catch (error) {
-        console.error("[StoreUser] Could not refresh the account session", error);
-      }
-    })();
-    return () => { canceled = true; };
-  }, [accountSync?.metadataSyncedAt, user, session]);
+    if (!user || !syncedAt) return;
+
+    const refreshKey = `${user.id}:${syncedAt}`;
+    if (sessionRefreshKeyRef.current === refreshKey) return;
+
+    // Mark this sync version before starting the request. user.reload() updates
+    // both the User object and the session token, which can re-render this
+    // effect before the request continuation runs.
+    sessionRefreshKeyRef.current = refreshKey;
+    void user.reload().catch((error) => {
+      console.error("[StoreUser] Could not refresh the account session", error);
+    });
+  }, [accountSync?.metadataSyncedAt, user]);
 
   return null;
 }

@@ -12,14 +12,9 @@ import {
   CardHeading,
   CardFooter,
 } from "@ui/card";
-import {
-  Folder,
-  MoreVertCircle,
-  BinMinusIn,
-  Page,
-  KeyCommand,
-} from "iconoir-react";
+import { MoreVertCircle, BinMinusIn, Page, KeyCommand } from "iconoir-react";
 import { CreateCollectionButton } from "./create-collection-button";
+import { CollectionFolder, isHexColor } from "./collection-folder";
 import { COLLECTION_COLORS } from "./colors";
 import { NavLink, useNavigate } from "react-router";
 import { CollectionsType } from "@/routes/CollectionsRoute";
@@ -142,6 +137,92 @@ function CollectionMenuCell({
   );
 }
 
+function CollectionCard({
+  collection,
+  fallbackColor,
+  onView,
+  onDeleteClick,
+}: {
+  collection: CollectionsType[number];
+  fallbackColor: string;
+  onView: (collectionId: string) => void;
+  onDeleteClick: (collectionId: string, collectionName: string) => void;
+}) {
+  const [hovered, setHovered] = useState(false);
+  // The picker can store "transparent"; the folder needs a real color.
+  const collectionColor = isHexColor(collection.collectionColor)
+    ? collection.collectionColor
+    : fallbackColor;
+  const href = `/collection/${collection.id}`;
+
+  return (
+    <Card
+      variant="accent"
+      className="group hover:border-accent border-border cursor-pointer border transition-all duration-100 ease-in-out hover:border-dashed hover:shadow-[0px_0px_0px_4px_#ffca0026]"
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+    >
+      <NavLink to={href} tabIndex={-1} aria-hidden className="block pt-6">
+        <CollectionFolder
+          previewUrls={collection.previewUrls}
+          color={collectionColor}
+          size="xs"
+          hovered={hovered}
+          open={false}
+          className="h-36"
+        />
+      </NavLink>
+      <CardHeader className="flex items-center">
+        <NavLink to={href} tabIndex={0} className="flex-1">
+          <CardHeading className="flex items-center gap-2">
+            <span
+              aria-hidden
+              className="size-2.5 shrink-0 rounded-full"
+              style={{ backgroundColor: collectionColor }}
+            />
+            <CardTitle className="font-medium">{collection.name}</CardTitle>
+          </CardHeading>
+        </NavLink>
+        <CardToolbar>
+          <CollectionMenuCell
+            collection={collection}
+            onView={onView}
+            onDeleteClick={onDeleteClick}
+          />
+        </CardToolbar>
+      </CardHeader>
+
+      <NavLink to={href} tabIndex={-1} className="block">
+        <CardContent className="px-5 pb-0.5">
+          <CardDescription className="mb-5 line-clamp-2 h-[2lh] text-xs">
+            {collection.description || "No description given"}
+          </CardDescription>
+        </CardContent>
+        <CardFooter>
+          <div className="flex flex-wrap gap-2">
+            <Badge variant="default">
+              [{collection.urlCount}]{" "}
+              <span className="text-muted-foreground pl-1 text-xs">
+                {collection.urlCount === 1 ? "link" : "links"}
+              </span>
+            </Badge>
+            <Badge variant="default">
+              [{collection.totalClickCount ?? "Updating"}]{" "}
+              <span className="text-muted-foreground pl-1 text-xs">
+                {collection.totalClickCount === null
+                  ? "click total"
+                  : collection.totalClickCount === 1
+                    ? "click"
+                    : "clicks"}
+              </span>
+            </Badge>
+          </div>
+        </CardFooter>
+      </NavLink>
+    </Card>
+  );
+}
+
 export function Collections({
   collections,
 }: {
@@ -223,81 +304,17 @@ export function Collections({
         </div>
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {collections?.map((collection, index) => {
-            const fallbackIndex = index % COLLECTION_COLORS.length;
-            const collectionColor =
-              collection.collectionColor || COLLECTION_COLORS[fallbackIndex];
-
-            return (
-              <Card
-                variant="accent"
-                key={collection.id}
-                className="group hover:border-accent border-border cursor-pointer border transition-all duration-100 ease-in-out hover:border-dashed hover:shadow-[0px_0px_0px_4px_#ffca0026]"
-              >
-                <CardHeader className="flex items-center">
-                  <NavLink
-                    to={`/collection/${collection.id}`}
-                    tabIndex={0}
-                    className="flex-1"
-                  >
-                    <CardHeading className="flex items-center gap-2">
-                      <div
-                        className="flex h-10 w-10 items-center justify-center rounded-lg"
-                        style={{ backgroundColor: collectionColor + "20" }}
-                      >
-                        <Folder
-                          className="h-5 w-5"
-                          style={{ color: collectionColor }}
-                        />
-                      </div>
-                      <CardTitle className="font-medium">
-                        {collection.name}
-                      </CardTitle>
-                    </CardHeading>
-                  </NavLink>
-                  <CardToolbar>
-                    <CollectionMenuCell
-                      collection={collection}
-                      onView={handleView}
-                      onDeleteClick={handleDeleteClick}
-                    />
-                  </CardToolbar>
-                </CardHeader>
-
-                <NavLink
-                  to={`/collection/${collection.id}`}
-                  tabIndex={0}
-                  className="block"
-                >
-                  <CardContent className="px-5 pb-0.5">
-                    <CardDescription className="mb-5 line-clamp-2 h-[2lh] text-xs">
-                      {collection.description || "No description given"}
-                    </CardDescription>
-                  </CardContent>
-                  <CardFooter>
-                    <div className="flex flex-wrap gap-2">
-                      <Badge variant="default">
-                        [{collection.urlCount}]{" "}
-                        <span className="text-muted-foreground pl-1 text-xs">
-                          {collection.urlCount > 1 ? "links" : "link"}
-                        </span>
-                      </Badge>
-                      <Badge variant="default">
-                        [{collection.totalClickCount ?? "Updating"}]{" "}
-                        <span className="text-muted-foreground pl-1 text-xs">
-                          {collection.totalClickCount === null
-                            ? "click total"
-                            : collection.totalClickCount === 1
-                              ? "click"
-                              : "clicks"}
-                        </span>
-                      </Badge>
-                    </div>
-                  </CardFooter>
-                </NavLink>
-              </Card>
-            );
-          })}
+          {collections?.map((collection, index) => (
+            <CollectionCard
+              key={collection.id}
+              collection={collection}
+              fallbackColor={
+                COLLECTION_COLORS[index % COLLECTION_COLORS.length]
+              }
+              onView={handleView}
+              onDeleteClick={handleDeleteClick}
+            />
+          ))}
         </div>
       )}
 

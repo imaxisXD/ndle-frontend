@@ -87,6 +87,8 @@ describe("collection membership", () => {
     )[0];
     expect(summary.urlCount).toBe(106);
     expect(summary.totalClickCount).toBe(218);
+    expect(summary.previewUrls).toHaveLength(3);
+    expect(summary.previewUrls[0]).toBe("https://example.test/new");
     const first = await client.query(api.urlLists.getUserUrlsPage, {
       collectionId,
       paginationOpts: { cursor: null, numItems: 50 },

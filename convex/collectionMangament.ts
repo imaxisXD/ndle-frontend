@@ -29,6 +29,7 @@ const collectionSummary = v.object({
   creationTime: v.number(),
   totalClickCount: v.union(v.number(), v.null()),
   isUpdating: v.boolean(),
+  previewUrls: v.array(v.string()),
 });
 const pickerRow = v.object({
   _id: v.id("urls"),
@@ -224,6 +225,25 @@ export const getCollectionById = query({
   },
 });
 
+const PREVIEW_COUNT = 3;
+
+/** Full URLs of the most recently added members, newest first, for favicon previews. */
+async function previewUrls(ctx: QueryCtx, collection: Doc<"collections">) {
+  const urlIds = collection.membersReady
+    ? (
+        await ctx.db
+          .query("collectionLinks")
+          .withIndex("by_collectionId_and_urlId", (q) =>
+            q.eq("collectionId", collection._id),
+          )
+          .order("desc")
+          .take(PREVIEW_COUNT)
+      ).map((member) => member.urlId)
+    : collection.urls.slice(-PREVIEW_COUNT).reverse();
+  const urls = await Promise.all(urlIds.map((id) => ctx.db.get(id)));
+  return urls.flatMap((url) => (url ? [url.fullurl] : []));
+}
+
 async function summarize(ctx: QueryCtx, collections: Doc<"collections">[]) {
   return Promise.all(
     collections.map(async (collection) => ({
@@ -240,6 +260,7 @@ async function summarize(ctx: QueryCtx, collections: Doc<"collections">[]) {
         ? await counter.count(ctx, `collection-v2:${collection._id}`)
         : null,
       isUpdating: !collection.membersReady,
+      previewUrls: await previewUrls(ctx, collection),
     })),
   );
 }
