@@ -9,9 +9,8 @@ import { api } from "@/convex/_generated/api";
 import { ensureGuestSession, type GuestSession } from "@/lib/guest";
 import { makeShortLink } from "@/lib/config";
 import { Button } from "@/components/ui/button";
-import { CountingNumber } from "@/components/ui/counting-number";
 import { NdleDotMatrix } from "@/components/ndle-dot-matrix";
-import { Matrix, pulse, wave, snake } from "@/components/ui/matrix";
+import { DoodleGitHub, DoodleLinkedIn, DoodleX } from "@/components/doodle-icons";
 import { QRCodeSVG } from "qrcode.react";
 import {
   ArrowRightIcon,
@@ -89,29 +88,25 @@ type Pillar = {
   kicker: string;
   title: string;
   body: string;
-  anim: typeof pulse;
   anchor?: { href: string; label: string };
 };
 
 const pillars: Pillar[] = [
   {
     kicker: "FEATURE I",
-    title: "It pings your links every minute.",
-    body: "The moment a destination 500s, 404s, or redirects somewhere weird — you know. Your competitors only tell you clicks. We tell you when clicks break.",
-    anim: pulse,
-    anchor: { href: "#incident", label: "see it at 3:04 am below" },
+    title: "It checks your links every minute.",
+    body: "If a destination returns a 500, a 404, or a bad redirect, you get an email within a minute. Other shorteners count clicks. ndle tells you when clicks break.",
+    anchor: { href: "#incident", label: "see a sample alert" },
   },
   {
     kicker: "FEATURE II",
     title: "Chat with your links.",
-    body: "Ask ‘which campaigns spiked this week?’ and get a chart. Ask ‘what broke last Tuesday?’ and get a timeline. Agentic analytics, not dashboards you have to decode.",
-    anim: wave,
+    body: "Ask which campaigns spiked this week and get a chart. Ask what broke last Tuesday and get a timeline. No dashboard to decode.",
   },
   {
     kicker: "FEATURE III",
     title: "One custom domain, free.",
-    body: "Bitly charges $35/month for what we give away. Bring short.yoursite.com on day one. Zero ceremony, zero credit card.",
-    anim: snake,
+    body: "Bring short.yoursite.com on the free plan. No credit card, no upgrade required.",
   },
 ];
 
@@ -156,7 +151,7 @@ const comparisonRows: Array<{
     highlight: true,
   },
   {
-    label: "AI chat w/ analytics",
+    label: "Chat with analytics",
     ndle: true,
     bitly: false,
     dub: "partial",
@@ -175,12 +170,12 @@ function RatingStamp() {
       </div>
       <div className="flex flex-col justify-between py-1.5">
         <span className="border-b border-[color:var(--pulp-ink)] px-2.5 py-0.5 text-[8px] font-bold tracking-[0.2em] uppercase">
-          ndle live
+          link monitor
         </span>
         <span className="px-2.5 py-0.5 text-[8px] font-semibold tracking-[0.15em] uppercase">
-          a watchdog for every
+          checked every 60s
           <br />
-          link you ever ship
+          from 4 regions
         </span>
       </div>
     </div>
@@ -215,19 +210,6 @@ function OvalStamp({
 }
 
 /* ───────── SHARED ATOMS ───────── */
-
-function ActEyebrow({ act, label }: { act: string; label: string }) {
-  return (
-    <div className="mb-4 flex items-center gap-3 text-[color:var(--pulp-ink)]">
-      <span className="inline-flex h-7 items-center border border-current px-2 text-[10px] font-bold tracking-[0.3em] uppercase">
-        {act}
-      </span>
-      <span className="text-[11px] font-bold tracking-[0.3em] uppercase opacity-80">
-        {label}
-      </span>
-    </div>
-  );
-}
 
 function Cell({ value }: { value: string | boolean }) {
   if (value === true)
@@ -354,7 +336,7 @@ const watchedLinks: WatchedLink[] = [
 
 function FlowChips({ inView }: { inView: boolean }) {
   const chips = [
-    { num: "01", title: "shorten", body: "long url → 8 chars" },
+    { num: "01", title: "shorten", body: "long URL to 8 characters" },
     { num: "02", title: "watch", body: "every 60s · 4 regions" },
     { num: "03", title: "alert", body: "email the moment it breaks" },
   ];
@@ -466,11 +448,9 @@ function SlugText({ slug, className = "" }: { slug: string; className?: string }
 function WatchListLedger({
   yourLink,
   inView,
-  caseNo,
 }: {
   yourLink: YourLink;
   inView: boolean;
-  caseNo: string;
 }) {
   const mat = "var(--poster)";
 
@@ -525,26 +505,13 @@ function WatchListLedger({
           style={{ backgroundColor: "var(--pulp-cream)" }}
         >
           {/* Title block */}
-          <header className="grid grid-cols-[1fr_auto] items-end gap-6 px-8 pt-6 pb-5">
-            <div>
-              <p className="font-mono text-[9px] font-bold tracking-[0.3em] uppercase opacity-55">
-                ndle monitoring dept. <span className="opacity-60">·</span> drawing
-              </p>
-              <h3 className="mt-1.5 font-sigmar text-4xl leading-[1] italic tracking-tight">
-                The Watch List
-              </h3>
-            </div>
-            <div className="text-right leading-tight">
-              <p className="font-mono text-[9px] font-bold tracking-[0.2em] uppercase opacity-55">
-                sheet
-              </p>
-              <p className="mt-0.5 font-sigmar text-2xl italic leading-none text-[color:var(--pulp-orange)]">
-                № {caseNo}
-              </p>
-              <p className="mt-1 font-mono text-[9px] tracking-[0.18em] uppercase opacity-45">
-                scale 1:1 · rev. a
-              </p>
-            </div>
+          <header className="px-8 pt-6 pb-5">
+            <p className="font-mono text-[9px] font-bold tracking-[0.3em] uppercase opacity-55">
+              ndle monitoring <span className="opacity-60">·</span> live
+            </p>
+            <h3 className="mt-1.5 font-sigmar text-4xl leading-[1] italic tracking-tight">
+              Monitored links
+            </h3>
           </header>
 
           {/* Double-rule divider — header → body */}
@@ -608,7 +575,7 @@ function WatchListLedger({
                   007
                 </span>
                 <SlugText slug={yourLink.slug} />
-                <span className="truncate opacity-70">← your link</span>
+                <span className="truncate opacity-70">your link</span>
                 <span className="inline-flex min-w-[3.75rem] items-center justify-center gap-1.5 rounded-sm bg-[color:var(--pulp-orange)]/20 px-1.5 py-0.5 text-[9.5px] font-bold tracking-[0.14em] uppercase text-[color:var(--pulp-orange)]">
                   <span className="animate-live-blip size-1.5 rounded-full bg-[color:var(--pulp-orange)]" />
                   NEW
@@ -627,11 +594,6 @@ function WatchListLedger({
               checking every 60s <span className="opacity-70">·</span> 4 regions
             </span>
             <span className="flex items-center gap-3">
-              <span aria-hidden className="inline-flex items-center gap-0 opacity-75">
-                <span className="h-2 w-4 border border-black/35 bg-black/10" />
-                <span className="h-2 w-4 border border-black/35" />
-                <span className="h-2 w-4 border border-black/35 bg-black/10" />
-              </span>
               us-east-1 <span className="opacity-60">·</span> eu-west-2{" "}
               <span className="opacity-60">·</span> ap-south-1{" "}
               <span className="opacity-60">·</span> us-west-2
@@ -655,7 +617,6 @@ function ActOne({
   copied,
   copyShortLink,
   urlLooksValid,
-  caseNo,
 }: {
   url: string;
   setUrl: (s: string) => void;
@@ -666,7 +627,6 @@ function ActOne({
   copied: boolean;
   copyShortLink: () => void;
   urlLooksValid: boolean;
-  caseNo: string;
 }) {
   const ref = useRef<HTMLElement>(null);
   const inView = useInView(ref, { once: true, margin: "-120px" });
@@ -680,16 +640,14 @@ function ActOne({
         {/* Header + form row */}
         <div className="mb-12 grid gap-10 lg:grid-cols-[1fr_1fr] lg:items-end">
           <div>
-            <ActEyebrow act="Act I" label="The Evidence Room" />
             <h2 className="font-sigmar text-pulp-sm text-5xl leading-[0.95] text-[color:var(--pulp-orange)] italic md:text-7xl">
-              Every link,
+              Shorten a link.
               <br />
-              on the board.
+              No sign-up.
             </h2>
             <p className="mt-5 max-w-xl text-sm leading-7 text-[color:var(--pulp-ink)]/80">
-              Paste a URL. We shorten it, pin it to the board, and watch the
-              destination every minute from four regions. The moment one breaks,
-              it gets stamped and a dispatch goes out.
+              Paste a URL. ndle shortens it and checks the destination every
+              minute from four regions. If it breaks, you get an email.
             </p>
           </div>
 
@@ -698,7 +656,6 @@ function ActOne({
             <form
               onSubmit={handleShorten}
               className="group relative flex w-full items-stretch overflow-hidden rounded-md border-2 border-[color:var(--pulp-ink)] bg-white shadow-[4px_4px_0_0_var(--pulp-ink)] transition-shadow focus-within:shadow-[6px_6px_0_0_var(--pulp-orange)]"
-              aria-invalid={formError ? true : undefined}
             >
               <span
                 aria-hidden
@@ -721,9 +678,10 @@ function ActOne({
                 type="text"
                 value={url}
                 onChange={(e) => setUrl(e.target.value)}
-                placeholder="paste a long url to shorten"
+                placeholder="https://example.com/a-long-page-url"
                 className="flex-1 bg-transparent py-3.5 pr-3 text-sm text-[color:var(--pulp-ink)] outline-none placeholder:text-[color:var(--pulp-ink)]/40"
                 aria-label="URL to shorten"
+                aria-invalid={formError ? true : undefined}
                 disabled={submitting}
               />
               <button
@@ -731,7 +689,7 @@ function ActOne({
                 disabled={submitting}
                 className="flex items-center gap-1.5 border-l-2 border-[color:var(--pulp-ink)] bg-[color:var(--pulp-orange)] px-5 text-xs font-bold tracking-[0.18em] text-[color:var(--pulp-cream)] uppercase transition-transform active:translate-x-px active:translate-y-px disabled:opacity-80"
               >
-                {submitting ? "pinning…" : "pin it up"}
+                {submitting ? "shortening…" : "shorten"}
                 {submitting ? (
                   <span
                     aria-hidden
@@ -760,7 +718,7 @@ function ActOne({
                 transition={{ type: "spring", stiffness: 420, damping: 28 }}
                 className="relative flex items-center justify-between gap-3 rounded-md border-2 border-[color:var(--pulp-orange)] bg-[color:var(--pulp-yellow)]/35 px-3 py-2.5"
               >
-                {/* STAMPED ink-slam overlay — plays once when the result card appears */}
+                {/* SHORTENED ink-slam overlay — plays once when the result card appears */}
                 <motion.span
                   aria-hidden
                   className="font-sigmar pointer-events-none absolute -top-3 -right-3 z-10 border-[3px] border-[color:var(--pulp-orange)] bg-[color:var(--pulp-cream)] px-2 py-0.5 text-sm text-[color:var(--pulp-orange)] italic select-none"
@@ -774,12 +732,12 @@ function ActOne({
                     delay: 0.18,
                   }}
                 >
-                  STAMPED
+                  SHORTENED
                 </motion.span>
 
                 <div className="min-w-0 flex-1">
                   <p className="text-[9px] font-bold tracking-[0.22em] text-[color:var(--pulp-ink)] uppercase">
-                    ● pinned · see it on the board below
+                    ● shortened · added to the monitored links below
                   </p>
                   <p className="font-sigmar truncate text-lg text-[color:var(--pulp-ink)] italic">
                     {yourLink.slug}
@@ -806,7 +764,7 @@ function ActOne({
                       }}
                       className="inline-flex items-center gap-1.5"
                     >
-                      <CheckIcon weight="bold" className="size-3" /> clipped
+                      <CheckIcon weight="bold" className="size-3" /> copied
                     </motion.span>
                   ) : (
                     <span className="inline-flex items-center gap-1.5">
@@ -840,11 +798,7 @@ function ActOne({
 
         {/* Watch list — real monitoring data in a pulp case-book ledger */}
         <div className="mt-10">
-          <WatchListLedger
-            yourLink={yourLink}
-            inView={inView}
-            caseNo={caseNo}
-          />
+          <WatchListLedger yourLink={yourLink} inView={inView} />
         </div>
       </div>
     </section>
@@ -902,6 +856,11 @@ function ActTwoBento() {
     "Team-ready",
   ];
 
+  const bigNumber =
+    "font-sigmar text-pulp-sm text-6xl leading-none text-[color:var(--pulp-orange)] italic";
+  const smallCaps =
+    "text-[10px] font-bold tracking-[0.18em] text-[color:var(--pulp-ink)]/60 uppercase";
+
   return (
     <section
       ref={ref}
@@ -909,27 +868,19 @@ function ActTwoBento() {
     >
       <div className="relative z-10 mx-auto max-w-7xl px-5 lg:px-8">
         <div className="mb-10 max-w-3xl">
-          <div className="mb-4 flex items-center gap-3 text-[color:var(--pulp-cream)]">
-            <span className="inline-flex h-7 items-center border border-current px-2 text-[10px] font-bold tracking-[0.3em] uppercase">
-              Act II
-            </span>
-            <span className="text-[11px] font-bold tracking-[0.3em] uppercase opacity-80">
-              the numbers
-            </span>
-          </div>
           <h2 className="font-sigmar text-pulp-sm text-5xl leading-[0.95] text-[color:var(--pulp-yellow)] italic md:text-7xl">
-            A board,
+            What the free
             <br />
-            not a brochure.
+            plan includes.
           </h2>
         </div>
 
-        <div className="grid grid-cols-1 gap-4 md:auto-rows-fr md:grid-cols-4 md:grid-rows-[auto_auto_auto]">
+        <div className="grid grid-cols-1 gap-4 md:auto-rows-fr md:grid-cols-4">
           {/* QR — 2x2 */}
           <BentoCell
             index={0}
             inView={inView}
-            className="flex flex-col justify-between md:col-span-2 md:col-start-1 md:row-span-2 md:row-start-1"
+            className="flex flex-col justify-between md:col-span-2 md:row-span-2"
           >
             <div className="flex items-center justify-between">
               <BentoStat label="QR · ndle.im/demo" />
@@ -948,102 +899,61 @@ function ActTwoBento() {
             </div>
             <div>
               <p className="font-sigmar text-3xl leading-tight text-[color:var(--pulp-orange)] italic">
-                A QR for every link.
+                A QR code for every link.
               </p>
               <p className="mt-1 text-sm text-[color:var(--pulp-ink)]/75">
-                Unlimited, tracked, free. Bitly gives you two a month.
+                Unlimited and tracked, on the free plan.
               </p>
             </div>
           </BentoCell>
 
-          {/* 99.97% */}
+          {/* 100 links */}
           <BentoCell
             index={1}
             inView={inView}
-            className="flex flex-col justify-between md:col-start-3 md:row-start-1"
+            className="flex flex-col justify-between"
           >
-            <BentoStat label="uptime" />
+            <BentoStat label="short links" />
             <div className="py-4">
-              <span className="font-sigmar text-pulp-sm text-6xl leading-none text-[color:var(--pulp-orange)] italic">
-                {inView ? (
-                  <CountingNumber
-                    from={0}
-                    to={99.97}
-                    duration={1.2}
-                    delay={200}
-                    startOnView={false}
-                    format={(v) => v.toFixed(2) + "%"}
-                  />
-                ) : (
-                  "0%"
-                )}
-              </span>
+              <span className={bigNumber}>100</span>
             </div>
-            <div className="flex items-center justify-between text-[10px] font-bold tracking-[0.2em] text-[color:var(--pulp-ink)]/60 uppercase">
-              <span>last 90 days</span>
-            </div>
+            <span className={smallCaps}>per month</span>
           </BentoCell>
 
-          {/* 7ms */}
+          {/* 1 domain */}
           <BentoCell
             index={2}
             inView={inView}
-            className="flex flex-col justify-between md:col-start-4 md:row-start-1"
+            className="flex flex-col justify-between"
           >
-            <BentoStat label="avg redirect" />
+            <BentoStat label="custom domain" />
             <div className="py-4">
-              <span className="font-sigmar text-pulp-sm text-6xl leading-none text-[color:var(--pulp-orange)] italic">
-                {inView ? (
-                  <CountingNumber
-                    from={0}
-                    to={7}
-                    duration={1.0}
-                    delay={280}
-                    startOnView={false}
-                    format={(v) => Math.round(v) + "ms"}
-                  />
-                ) : (
-                  "0ms"
-                )}
-              </span>
+              <span className={bigNumber}>1</span>
             </div>
-            <span className="text-[10px] font-bold tracking-[0.2em] text-[color:var(--pulp-ink)]/60 uppercase">
-              p50 · 4 regions
-            </span>
+            <span className={smallCaps}>bring your own</span>
           </BentoCell>
 
-          {/* 1,248 caught — the star — dark inverted cell */}
+          {/* monitoring — dark inverted cell */}
           <BentoCell
             index={3}
             inView={inView}
-            className="flex flex-col justify-between !border-[color:var(--pulp-ink)] !bg-[color:var(--pulp-ink)] text-[color:var(--pulp-cream)] md:col-span-2 md:col-start-3 md:row-start-2"
+            className="flex flex-col justify-between !border-[color:var(--pulp-ink)] !bg-[color:var(--pulp-ink)] text-[color:var(--pulp-cream)] md:col-span-2"
           >
             <span className="text-[10px] font-bold tracking-[0.22em] text-[color:var(--pulp-yellow)] uppercase">
               <span className="animate-live-blip mr-1">●</span>
-              what you&apos;d have missed
+              uptime monitoring
             </span>
             <div className="flex items-baseline gap-4 py-3">
               <span className="font-sigmar text-pulp-sm text-6xl leading-none text-[color:var(--pulp-yellow)] italic">
-                {inView ? (
-                  <CountingNumber
-                    from={0}
-                    to={1248}
-                    duration={1.4}
-                    delay={360}
-                    startOnView={false}
-                    format={(v) => Math.round(v).toLocaleString()}
-                  />
-                ) : (
-                  "0"
-                )}
+                60s
               </span>
               <span className="font-sigmar text-xl text-[color:var(--pulp-cream)]/70 italic">
-                broken links
+                between checks
               </span>
             </div>
             <p className="text-sm leading-6 text-[color:var(--pulp-cream)]/75">
-              Caught by ndle before your audience did. Every one of them was a
-              click that would&apos;ve hit a 404 on someone else.
+              Every destination is checked from four regions. If one fails, you
+              get an email.
             </p>
           </BentoCell>
 
@@ -1051,54 +961,20 @@ function ActTwoBento() {
           <BentoCell
             index={4}
             inView={inView}
-            className="flex flex-col justify-between md:col-start-1 md:row-start-3"
+            className="flex flex-col justify-between"
           >
             <BentoStat label="to start" />
             <div className="py-4">
-              <span className="font-sigmar text-pulp-sm text-6xl leading-none text-[color:var(--pulp-orange)] italic">
-                $0
-              </span>
+              <span className={bigNumber}>$0</span>
             </div>
-            <span className="text-[10px] font-bold tracking-[0.18em] text-[color:var(--pulp-ink)]/60 uppercase">
-              no card · no trial · no upsell
-            </span>
-          </BentoCell>
-
-          {/* 18.4K */}
-          <BentoCell
-            index={5}
-            inView={inView}
-            className="flex flex-col justify-between md:col-start-2 md:row-start-3"
-          >
-            <BentoStat label="links watched" />
-            <div className="py-4">
-              <span className="font-sigmar text-pulp-sm text-6xl leading-none text-[color:var(--pulp-orange)] italic">
-                {inView ? (
-                  <CountingNumber
-                    from={0}
-                    to={18442}
-                    duration={1.3}
-                    delay={440}
-                    startOnView={false}
-                    format={(v) =>
-                      (v / 1000).toFixed(1).replace(/\.0$/, "") + "K"
-                    }
-                  />
-                ) : (
-                  "0"
-                )}
-              </span>
-            </div>
-            <span className="text-[10px] font-bold tracking-[0.18em] text-[color:var(--pulp-ink)]/60 uppercase">
-              across 4 regions, every 60s
-            </span>
+            <span className={smallCaps}>no card · no trial</span>
           </BentoCell>
 
           {/* Chips */}
           <BentoCell
-            index={6}
+            index={5}
             inView={inView}
-            className="flex flex-col justify-between md:col-span-2 md:col-start-3 md:row-start-3"
+            className="flex flex-col justify-between md:col-span-3"
           >
             <BentoStat label="also included" />
             <ul className="flex flex-wrap gap-1.5 py-2">
@@ -1115,9 +991,7 @@ function ActTwoBento() {
                 </li>
               ))}
             </ul>
-            <span className="text-[10px] font-bold tracking-[0.18em] text-[color:var(--pulp-ink)]/60 uppercase">
-              every plan. every user.
-            </span>
+            <span className={smallCaps}>on every plan</span>
           </BentoCell>
         </div>
       </div>
@@ -1133,7 +1007,7 @@ function PillarsSection() {
 
   return (
     <section
-      id="watchdog"
+      id="features"
       ref={ref}
       className="relative z-10 border-y-4 border-[color:var(--pulp-ink)] bg-[color:var(--pulp-cream)] py-20 lg:py-28"
     >
@@ -1146,7 +1020,6 @@ function PillarsSection() {
           }
           transition={{ ...PILLARS.header.spring, delay: PILLARS.header.delay }}
         >
-          <ActEyebrow act="Act III" label="Three things nobody else does" />
           <h2 className="font-sigmar text-pulp-sm text-5xl leading-[0.95] text-[color:var(--pulp-orange)] italic md:text-7xl">
             The work a shortener
             <br />
@@ -1158,7 +1031,7 @@ function PillarsSection() {
           {pillars.map((p, i) => (
             <motion.article
               key={p.kicker}
-              className="group paper-grain relative flex flex-col overflow-hidden rounded-lg border-2 border-[color:var(--pulp-ink)] bg-[color:var(--poster)] p-7 text-[color:var(--pulp-cream)] shadow-[6px_6px_0_0_var(--pulp-orange)] md:p-8"
+              className="paper-grain relative flex flex-col overflow-hidden rounded-lg border-2 border-[color:var(--pulp-ink)] bg-[color:var(--poster)] p-7 text-[color:var(--pulp-cream)] shadow-[6px_6px_0_0_var(--pulp-orange)] md:p-8"
               initial={{
                 opacity: 0,
                 y: PILLARS.card.y,
@@ -1174,26 +1047,10 @@ function PillarsSection() {
                 delay: PILLARS.card.baseDelay + i * PILLARS.card.stagger,
               }}
             >
-              <div className="relative z-10 mb-6 flex items-start justify-between">
+              <div className="relative z-10 mb-6 flex items-start">
                 <span className="inline-flex h-7 items-center border border-current px-2 text-[10px] font-bold tracking-[0.3em] uppercase">
                   {p.kicker}
                 </span>
-                <div className="opacity-90 transition-transform group-hover:translate-x-1">
-                  <Matrix
-                    rows={7}
-                    cols={7}
-                    frames={p.anim}
-                    fps={12}
-                    autoplay
-                    loop
-                    size={4}
-                    gap={1.5}
-                    palette={{
-                      on: "var(--pulp-yellow)",
-                      off: "oklch(0.3 0.06 265)",
-                    }}
-                  />
-                </div>
               </div>
               <h3 className="font-sigmar relative z-10 text-2xl leading-tight text-[color:var(--pulp-yellow)] italic md:text-3xl">
                 {p.title}
@@ -1227,15 +1084,14 @@ function CompareSection() {
     >
       <div className="mx-auto max-w-7xl px-5 lg:px-8">
         <div className="mb-10 max-w-3xl">
-          <ActEyebrow act="Act IV" label="The verdict" />
           <h2 className="font-sigmar text-pulp-sm text-5xl leading-[0.95] text-[color:var(--pulp-orange)] italic md:text-7xl">
             Free plan,
             <br />
             compared.
           </h2>
           <p className="mt-4 max-w-md text-sm leading-6 text-[color:var(--pulp-ink)]/70">
-            Same dollar, wildly different ceilings. Competitor numbers pulled
-            from their public pricing pages, April 2026.
+            Free tiers side by side. Competitor numbers are from their public
+            pricing pages, April 2026.
           </p>
         </div>
 
@@ -1266,7 +1122,7 @@ function CompareSection() {
 
         <div className="mt-4 flex flex-wrap items-center justify-between gap-2 text-[10px] font-semibold tracking-[0.18em] text-[color:var(--pulp-ink)]/60 uppercase">
           <span>
-            ● highlighted rows: features only ndle ships on a free tier.
+            ● highlighted rows: only ndle includes these on a free plan.
           </span>
           <span>
             * Short.io caps at 50k tracked clicks/mo · public plans, April 2026
@@ -1310,10 +1166,10 @@ function Memo({ inView }: { inView: boolean }) {
         >
           <div className="flex items-center justify-between">
             <p className="text-[9px] font-bold tracking-[0.32em] uppercase">
-              ndle monitoring dept.
+              ndle monitoring
             </p>
             <p className="text-[9px] font-bold tracking-[0.32em] uppercase">
-              confidential
+              automated alert
             </p>
           </div>
           <h3 className="font-sigmar mt-2 text-3xl leading-none italic">
@@ -1375,7 +1231,7 @@ function Memo({ inView }: { inView: boolean }) {
             animate={inView ? { opacity: 1, y: 0 } : { opacity: 0, y: 4 }}
             transition={{ duration: 0.24, delay: 0.45, ease: "easeOut" }}
           >
-            Hi —
+            Hi,
           </motion.p>
 
           <motion.p
@@ -1400,8 +1256,8 @@ function Memo({ inView }: { inView: boolean }) {
               <li>
                 · Error: <strong>503 Service Unavailable</strong>
               </li>
-              <li>· Regions affected: 2 of 4 (us-east-1)</li>
-              <li>· Duration: 4m 12s and still counting</li>
+              <li>· Regions affected: 2 of 4 (us-east-1, eu-west-2)</li>
+              <li>· Duration: 4m 12s, ongoing</li>
             </ul>
           </motion.div>
 
@@ -1410,8 +1266,8 @@ function Memo({ inView }: { inView: boolean }) {
             animate={inView ? { opacity: 1, y: 0 } : { opacity: 0, y: 4 }}
             transition={{ duration: 0.24, delay: 0.95, ease: "easeOut" }}
           >
-            We&apos;ll keep checking every 60 seconds and send you another note
-            the moment it&apos;s back online.
+            We&apos;ll keep checking every 60 seconds and email you again when
+            it&apos;s back online.
           </motion.p>
 
           <motion.p
@@ -1431,7 +1287,7 @@ function Memo({ inView }: { inView: boolean }) {
             className="pt-3"
           >
             <p>
-              — the <strong>ndle</strong> watchdog
+              <strong>ndle</strong> monitoring
             </p>
             <p className="opacity-65">alerts@ndle.im</p>
           </motion.div>
@@ -1462,15 +1318,6 @@ function Memo({ inView }: { inView: boolean }) {
           </motion.span>
         </div>
 
-        {/* Footer */}
-        <div
-          className="mx-7 border-t"
-          style={{ borderColor: `${paperInk}40` }}
-        />
-        <div className="flex items-center justify-between px-7 py-3 font-mono text-[9px] font-bold tracking-[0.22em] uppercase opacity-65">
-          <span>cc: monitoring dept.</span>
-          <span>file: case no. 7777-A</span>
-        </div>
       </div>
     </motion.div>
   );
@@ -1495,14 +1342,6 @@ function AlertEmailSection() {
     >
       <div className="relative mx-auto grid max-w-7xl gap-10 px-5 py-20 lg:grid-cols-[1fr_1.1fr] lg:items-center lg:px-8 lg:py-24">
         <div className="space-y-6 text-[color:var(--pulp-ink)]">
-          <div className="flex items-center gap-3">
-            <span className="inline-flex h-7 items-center border border-[color:var(--pulp-ink)] bg-[color:var(--pulp-ink)]/10 px-2 text-[10px] font-bold tracking-[0.3em] uppercase">
-              Intermission
-            </span>
-            <span className="text-[11px] font-bold tracking-[0.3em] uppercase">
-              <span className="animate-live-blip">●</span> a scene we foresaw
-            </span>
-          </div>
           <h2
             className="font-sigmar text-pulp text-5xl leading-[0.95] italic md:text-7xl"
             style={{ color: "oklch(0.7 0.24 145)" }}
@@ -1514,10 +1353,9 @@ function AlertEmailSection() {
             starts failing.
           </h2>
           <p className="max-w-md text-sm leading-7 text-[color:var(--pulp-ink)]/85">
-            ndle&apos;s watchdog pings your destinations from four regions every
-            minute. The moment one breaks — SSL expired, backend 503,
-            destination deleted — we send the email on the right. Before the
-            first click hits a 404.
+            ndle checks your destinations from four regions every minute. If
+            one fails, whether from an expired SSL certificate, a 503, or a
+            deleted page, you get this email. Usually before anyone clicks.
           </p>
           <div className="flex flex-wrap gap-3">
             <Button
@@ -1541,10 +1379,6 @@ function AlertEmailSection() {
 
 /* ───────── PAGE ───────── */
 
-const onDotPaletteLight = {
-  on: "var(--pulp-cream)",
-  off: "oklch(0.42 0.22 268)",
-};
 const onDotPaletteDark = {
   on: "var(--pulp-yellow)",
   off: "oklch(0.3 0.06 320)",
@@ -1605,7 +1439,6 @@ export function PublicHome() {
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
-  const [caseNo, setCaseNo] = useState("7777");
   const createGuestUrl = useMutation(api.urlMainFuction.createGuestUrl);
 
   // Does the current input look like a URL we can shorten? Drives the ▸/✓ prompt affordance.
@@ -1643,52 +1476,6 @@ export function PublicHome() {
     };
   }, []);
 
-  /* ─── delight: pick a random case no. per session (client-only, avoids SSR mismatch) ─── */
-  useEffect(() => {
-    const n = 7000 + Math.floor(Math.random() * 1000);
-    setCaseNo(n.toString().padStart(4, "0"));
-  }, []);
-
-  /* ─── delight: change the tab title when the page goes out of focus ─── */
-  useEffect(() => {
-    if (typeof document === "undefined") return;
-    const original = document.title;
-    const away = "◉ come back · we're watching";
-    const onVisibility = () => {
-      document.title = document.hidden ? away : original;
-    };
-    document.addEventListener("visibilitychange", onVisibility);
-    return () => {
-      document.removeEventListener("visibilitychange", onVisibility);
-      document.title = original;
-    };
-  }, []);
-
-  /* ─── delight: console easter egg for the curious who open devtools ─── */
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    // Only log once per tab
-    if ((window as unknown as { __ndleGreeted?: boolean }).__ndleGreeted)
-      return;
-    (window as unknown as { __ndleGreeted?: boolean }).__ndleGreeted = true;
-    const banner = [
-      "",
-      "  ╔══════════════════════════════════╗",
-      "  ║   ndle · a link, in production   ║",
-      "  ╚══════════════════════════════════╝",
-      "",
-      "  pronounced:  /'nuː·dəl/",
-      "  thanks for peeking in.",
-      "  if you're reading this, we like your type.",
-      "  → hiring@ndle.app",
-      "",
-    ].join("\n");
-    console.log(
-      "%c" + banner,
-      "color: oklch(0.85 0.17 92); background: oklch(0.22 0.08 320); font-family: ui-monospace, monospace; font-size: 11px; padding: 6px;",
-    );
-  }, []);
-
   useEffect(() => {
     const timers: ReturnType<typeof setTimeout>[] = [];
     timers.push(setTimeout(() => setStage(1), HERO_TIMING.stamps));
@@ -1720,11 +1507,11 @@ export function PublicHome() {
         throw new Error("bad url");
       }
     } catch {
-      setFormError("that doesn't look like a valid URL.");
+      setFormError("enter a valid URL, like example.com/page.");
       return;
     }
     if (!guestSession) {
-      setFormError("something's not ready — try again in a moment.");
+      setFormError("still connecting. try again in a moment.");
       return;
     }
 
@@ -1754,7 +1541,7 @@ export function PublicHome() {
       setCopied(true);
       setTimeout(() => setCopied(false), 1500);
     } catch {
-      /* ignore */
+      setFormError("copy was blocked. select the link and copy it manually.");
     }
   };
 
@@ -1767,41 +1554,25 @@ export function PublicHome() {
           <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-5 lg:px-8">
             <Link
               href="/"
-              className="group relative flex items-center gap-3"
-              title="ndle · pronounced /'nuː·dəl/"
-              aria-label="ndle home · pronounced nuː·dəl"
+              className="flex items-center gap-3"
+              aria-label="ndle home"
             >
-              <NdleDotMatrix
-                rows={7}
-                cols={18}
-                size={3.5}
-                gap={1.5}
-                palette={onDotPaletteLight}
-              />
-              <span className="hidden text-[10px] font-bold tracking-[0.3em] text-[color:var(--pulp-cream)]/70 uppercase sm:inline">
-                / link monitor
-              </span>
-              {/* Pulp tooltip: pronunciation cue */}
-              <span
-                aria-hidden
-                className="font-sigmar pointer-events-none absolute top-full left-0 z-30 mt-1 origin-top translate-y-1 scale-[var(--scale-small)] rounded-sm border border-[color:var(--pulp-ink)] bg-[color:var(--pulp-cream)] px-2 py-1 text-xs whitespace-nowrap text-[color:var(--pulp-ink)] italic opacity-0 shadow-[2px_2px_0_0_var(--pulp-orange)] transition-[opacity,transform] duration-[var(--tt-out-dur)] ease-[var(--ease-out)] group-hover:translate-y-0 group-hover:scale-100 group-hover:opacity-100 group-hover:delay-[var(--tt-delay)] group-hover:duration-[var(--duration-quick)] motion-reduce:transition-none"
-                style={{ letterSpacing: "0.04em" }}
-              >
-                /&apos;nuː·dəl/
+              <span className="font-sigmar text-pulp-sm text-3xl leading-none text-[color:var(--pulp-yellow)] italic">
+                ndle
               </span>
             </Link>
             <nav className="flex items-center gap-1 sm:gap-3">
               <a
-                href="#watchdog"
+                href="#features"
                 className="hidden px-2 text-[11px] font-bold tracking-[0.2em] text-[color:var(--pulp-cream)]/80 uppercase hover:text-[color:var(--pulp-yellow)] sm:inline"
               >
-                Watchdog
+                Features
               </a>
               <a
                 href="#compare"
                 className="hidden px-2 text-[11px] font-bold tracking-[0.2em] text-[color:var(--pulp-cream)]/80 uppercase hover:text-[color:var(--pulp-yellow)] sm:inline"
               >
-                vs. Bitly
+                Compare
               </a>
               {!isSignedIn && (
                 <Button
@@ -1834,7 +1605,7 @@ export function PublicHome() {
         {/* Poster body */}
         <div className="relative mx-auto max-w-7xl px-5 pt-10 pb-20 lg:px-8 lg:pt-14 lg:pb-28">
           {/* Top ribbon: stamps + "AN NDLE PRODUCTION" */}
-          <div className="mb-14 grid grid-cols-3 items-start gap-4">
+          <div className="mb-14 flex items-start justify-between gap-4">
             <motion.div
               className="justify-self-start"
               initial={{ opacity: 0, y: HERO_STAMP.y }}
@@ -1850,21 +1621,6 @@ export function PublicHome() {
             </motion.div>
 
             <motion.div
-              className="self-center justify-self-center text-center"
-              initial={{ opacity: 0, y: -6 }}
-              animate={{ opacity: stage >= 2 ? 1 : 0, y: stage >= 2 ? 0 : -6 }}
-              transition={{ type: "spring", stiffness: 340, damping: 30 }}
-            >
-              <p className="text-[11px] font-bold tracking-[0.42em] text-[color:var(--pulp-cream)] uppercase">
-                a{" "}
-                <span className="font-sigmar text-[15px] tracking-normal text-[color:var(--pulp-yellow)] italic">
-                  ndle
-                </span>{" "}
-                production
-              </p>
-            </motion.div>
-
-            <motion.div
               className="justify-self-end"
               initial={{ opacity: 0, y: HERO_STAMP.y }}
               animate={{
@@ -1874,11 +1630,19 @@ export function PublicHome() {
               transition={{ ...HERO_STAMP.spring, delay: 0.08 }}
             >
               <div className="bg-[color:var(--pulp-cream)]/95 px-3 py-2">
-                <OvalStamp
-                  label="made by"
-                  center="abhishek"
-                  sub="x.com/abhishk_084"
-                />
+                <a
+                  href="https://x.com/abhishk_084"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="Abhishek on X"
+                  className="block transition-opacity hover:opacity-80"
+                >
+                  <OvalStamp
+                    label="made by"
+                    center="abhishek"
+                    sub="x.com/abhishk_084"
+                  />
+                </a>
               </div>
             </motion.div>
           </div>
@@ -1895,7 +1659,7 @@ export function PublicHome() {
               transition={HERO_LINE.spring}
             >
               <h1 className="font-sigmar text-pulp text-[clamp(2.5rem,8vw,5rem)] leading-[0.92] text-[color:var(--pulp-yellow)] italic">
-                The Fabulous
+                Short links,
               </h1>
             </motion.div>
             <motion.div
@@ -1912,9 +1676,9 @@ export function PublicHome() {
               transition={HERO_LINE.spring}
               className="-mt-2 md:-mt-4"
             >
-              <h2 className="font-sigmar text-pulp text-[clamp(4rem,15vw,10.5rem)] leading-[0.88] tracking-tight text-[color:var(--pulp-orange)] italic">
-                Link Monitor
-              </h2>
+              <p className="font-sigmar text-pulp text-[clamp(4rem,15vw,10.5rem)] leading-[0.88] tracking-tight text-[color:var(--pulp-orange)] italic">
+                watched.
+              </p>
             </motion.div>
           </div>
 
@@ -1942,13 +1706,13 @@ export function PublicHome() {
             className="mt-12 flex flex-col items-center gap-3"
           >
             <Link
-              href="#watchdog"
+              href="#features"
               className="inline-flex items-center gap-2 text-[11px] font-bold tracking-[0.3em] text-[color:var(--pulp-cream)]/70 uppercase hover:text-[color:var(--pulp-yellow)]"
             >
-              ↓ the show starts below
+              ↓ see how it works
             </Link>
             <span className="text-[10px] font-bold tracking-[0.3em] text-[color:var(--pulp-cream)]/50 uppercase">
-              rated N · 100 free links · no credit card
+              100 free links · no credit card
             </span>
           </motion.div>
         </div>
@@ -1965,7 +1729,6 @@ export function PublicHome() {
         copied={copied}
         copyShortLink={copyShortLink}
         urlLooksValid={urlLooksValid}
-        caseNo={caseNo}
       />
 
       {/* ───────── ACT II — The Numbers ───────── */}
@@ -1984,14 +1747,6 @@ export function PublicHome() {
       <section className="paper-grain relative z-10 overflow-hidden border-t-4 border-[color:var(--pulp-ink)] bg-[color:var(--poster)] py-20 lg:py-28">
         <div className="relative mx-auto flex max-w-7xl flex-col items-start gap-10 px-5 lg:flex-row lg:items-center lg:justify-between lg:px-8">
           <div className="max-w-3xl space-y-5">
-            <div className="inline-flex items-center gap-3 text-[color:var(--pulp-cream)]">
-              <span className="inline-flex h-7 items-center border border-current px-2 text-[10px] font-bold tracking-[0.3em] uppercase">
-                the final cut
-              </span>
-              <span className="text-[11px] font-bold tracking-[0.3em] uppercase opacity-80">
-                ready when you are
-              </span>
-            </div>
             <h2 className="font-sigmar text-pulp text-5xl leading-[0.92] text-[color:var(--pulp-yellow)] italic md:text-7xl">
               Stop guessing.
               <br />
@@ -2000,9 +1755,8 @@ export function PublicHome() {
               </span>
             </h2>
             <p className="max-w-lg text-sm leading-7 text-[color:var(--pulp-cream)]/85">
-              100 free links, one branded domain, uptime monitoring baked in.
-              Your future self — the one who didn&apos;t ship a broken link to
-              production — will thank you.
+              100 free links, one custom domain, and uptime monitoring on every
+              link.
             </p>
           </div>
 
@@ -2013,7 +1767,7 @@ export function PublicHome() {
               className="h-14 gap-2 border-2 border-[color:var(--pulp-ink)] bg-[color:var(--pulp-yellow)] px-8 text-sm font-bold tracking-[0.18em] text-[color:var(--pulp-ink)] uppercase shadow-[6px_6px_0_0_var(--pulp-ink)] transition-all hover:translate-x-0.5 hover:translate-y-0.5 hover:bg-[color:var(--pulp-yellow)] hover:text-[color:var(--pulp-ink)] hover:shadow-[3px_3px_0_0_var(--pulp-ink)]"
             >
               <Link href="/sign-up?redirect_url=/dashboard">
-                buy a ticket (it&apos;s free)
+                Get started free
                 <ArrowRightIcon className="size-4" />
               </Link>
             </Button>
@@ -2035,25 +1789,22 @@ export function PublicHome() {
                 short. sharp. smarter.
               </p>
             </div>
-            <span className="font-sigmar text-xl text-[color:var(--pulp-yellow)] italic md:text-2xl">
-              every link, on our watch.{" "}
-            </span>
           </div>
 
           {/* Credits grid */}
-          <div className="grid grid-cols-1 gap-8 border-t border-[color:var(--pulp-cream)]/15 pt-8 md:grid-cols-3 md:gap-10">
+          <div className="grid grid-cols-1 gap-8 border-t border-[color:var(--pulp-cream)]/15 pt-8 md:grid-cols-2 md:gap-10">
             <div className="space-y-2 text-[11px] font-bold tracking-[0.22em] uppercase">
               <Link
-                href="#watchdog"
+                href="#features"
                 className="block opacity-80 hover:opacity-100"
               >
-                Watchdog
+                Features
               </Link>
               <Link
                 href="#compare"
                 className="block opacity-80 hover:opacity-100"
               >
-                The Verdict
+                Compare
               </Link>
               <Link
                 href="/sign-up?redirect_url=/dashboard"
@@ -2076,16 +1827,33 @@ export function PublicHome() {
                 Sign up
               </Link>
             </div>
-            <div className="space-y-2 text-[11px] font-bold tracking-[0.22em] uppercase">
-              <span className="flex items-center gap-2">
-                <span className="size-1.5 rounded-full bg-[oklch(0.72_0.18_145)]" />
-                all systems nominal
-              </span>
-            </div>
           </div>
 
-          <div className="mt-10 flex items-center justify-between border-t border-[color:var(--pulp-cream)]/15 pt-6 text-[10px] font-semibold tracking-[0.28em] uppercase opacity-50">
-            <span>© abhishek · ndle</span>
+          <div className="mt-10 flex flex-wrap items-center justify-between gap-4 border-t border-[color:var(--pulp-cream)]/15 pt-6 text-[10px] font-semibold tracking-[0.28em] uppercase">
+            <span className="opacity-50">© abhishek · ndle</span>
+            <span className="flex items-center gap-3">
+              {[
+                { label: "X", href: "https://x.com/abhishk_084", Icon: DoodleX },
+                {
+                  label: "LinkedIn",
+                  href: "https://www.linkedin.com/in/abhishek-ichi/",
+                  Icon: DoodleLinkedIn,
+                },
+                { label: "GitHub", href: "https://github.com/imaxisXD", Icon: DoodleGitHub },
+              ].map(({ label, href, Icon }) => (
+                <a
+                  key={label}
+                  href={href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={`Abhishek on ${label}`}
+                  title={label}
+                  className="group inline-flex size-9 items-center justify-center rounded-sm border-2 border-[color:var(--pulp-cream)]/25 text-[color:var(--pulp-cream)]/70 transition-all hover:-rotate-3 hover:border-[color:var(--pulp-yellow)] hover:bg-[color:var(--pulp-yellow)] hover:text-[color:var(--pulp-ink)] hover:shadow-[3px_3px_0_0_var(--pulp-orange)] focus-visible:ring-2 focus-visible:ring-[color:var(--pulp-yellow)]/60 focus-visible:outline-none motion-reduce:hover:rotate-0"
+                >
+                  <Icon size={20} />
+                </a>
+              ))}
+            </span>
           </div>
         </div>
       </footer>
