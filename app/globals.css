@@ -329,6 +329,7 @@
   --font-mono: var(--font-geist-mono);
   --font-doto: var(--font-doto);
   --font-sigmar: var(--font-sigmar);
+  --font-hand: var(--font-caveat);
   --color-poster: var(--poster);
   --color-poster-deep: var(--poster-deep);
   --color-pulp-orange: var(--pulp-orange);

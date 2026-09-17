@@ -10,7 +10,15 @@ import { ensureGuestSession, type GuestSession } from "@/lib/guest";
 import { makeShortLink } from "@/lib/config";
 import { Button } from "@/components/ui/button";
 import { NdleDotMatrix } from "@/components/ndle-dot-matrix";
-import { DoodleGitHub, DoodleLinkedIn, DoodleX } from "@/components/doodle-icons";
+import {
+  DoodleArrow,
+  DoodleCurlArrow,
+  DoodleGitHub,
+  DoodleLinkedIn,
+  DoodleRing,
+  DoodleX,
+  Handwritten,
+} from "@/components/doodle-icons";
 import { QRCodeSVG } from "qrcode.react";
 import {
   ArrowRightIcon,
@@ -341,10 +349,16 @@ function FlowChips({ inView }: { inView: boolean }) {
     { num: "03", title: "alert", body: "email the moment it breaks" },
   ];
   return (
-    <div className="grid gap-3 sm:grid-cols-3">
+    <div className="grid gap-3 sm:grid-cols-[1fr_auto_1fr_auto_1fr] sm:items-center">
       {chips.map((c, i) => (
+        <Fragment key={c.num}>
+        {i > 0 && (
+          <DoodleArrow
+            width={40}
+            className="hidden text-[color:var(--pulp-orange)] sm:block"
+          />
+        )}
         <motion.div
-          key={c.num}
           className="flex items-center gap-3 rounded-md border-2 border-[color:var(--pulp-ink)] bg-[color:var(--pulp-cream)] px-4 py-3 shadow-[3px_3px_0_0_var(--pulp-ink)]"
           initial={{ opacity: 0, x: -8 }}
           animate={inView ? { opacity: 1, x: 0 } : { opacity: 0, x: -8 }}
@@ -362,6 +376,7 @@ function FlowChips({ inView }: { inView: boolean }) {
             </p>
           </div>
         </motion.div>
+        </Fragment>
       ))}
     </div>
   );
@@ -575,7 +590,12 @@ function WatchListLedger({
                   007
                 </span>
                 <SlugText slug={yourLink.slug} />
-                <span className="truncate opacity-70">your link</span>
+                <span className="flex items-center gap-1.5 truncate text-[color:var(--pulp-orange)]">
+                  <DoodleArrow direction="left" width={26} className="shrink-0" />
+                  <Handwritten className="text-lg" tilt={-2}>
+                    your link, just now
+                  </Handwritten>
+                </span>
                 <span className="inline-flex min-w-[3.75rem] items-center justify-center gap-1.5 rounded-sm bg-[color:var(--pulp-orange)]/20 px-1.5 py-0.5 text-[9.5px] font-bold tracking-[0.14em] uppercase text-[color:var(--pulp-orange)]">
                   <span className="animate-live-blip size-1.5 rounded-full bg-[color:var(--pulp-orange)]" />
                   NEW
@@ -652,7 +672,16 @@ function ActOne({
           </div>
 
           {/* Form — sits next to the header on lg, stacks below on sm */}
-          <div className="space-y-3">
+          <div className="relative space-y-3">
+            <div
+              aria-hidden
+              className="pointer-events-none absolute -top-12 right-2 hidden items-end gap-1 text-[color:var(--pulp-orange)] lg:flex"
+            >
+              <Handwritten className="mb-3 text-2xl" tilt={-4}>
+                paste anything
+              </Handwritten>
+              <DoodleCurlArrow width={56} />
+            </div>
             <form
               onSubmit={handleShorten}
               className="group relative flex w-full items-stretch overflow-hidden rounded-md border-2 border-[color:var(--pulp-ink)] bg-white shadow-[4px_4px_0_0_var(--pulp-ink)] transition-shadow focus-within:shadow-[6px_6px_0_0_var(--pulp-orange)]"
@@ -1061,9 +1090,16 @@ function PillarsSection() {
               {p.anchor && (
                 <Link
                   href={p.anchor.href}
-                  className="relative z-10 mt-5 inline-flex items-center gap-1.5 self-start border-b border-[color:var(--pulp-yellow)]/50 pb-0.5 font-mono text-[10px] font-bold tracking-[0.22em] text-[color:var(--pulp-yellow)] uppercase transition-colors hover:border-[color:var(--pulp-yellow)] hover:text-[color:var(--pulp-yellow)]"
+                  className="group relative z-10 mt-5 inline-flex items-center gap-2 self-start text-[color:var(--pulp-yellow)]"
                 >
-                  ↓ {p.anchor.label}
+                  <Handwritten className="text-xl underline decoration-[color:var(--pulp-yellow)]/40 decoration-wavy underline-offset-4 group-hover:decoration-[color:var(--pulp-yellow)]">
+                    {p.anchor.label}
+                  </Handwritten>
+                  <DoodleArrow
+                    direction="down"
+                    width={26}
+                    className="transition-transform group-hover:translate-y-0.5 motion-reduce:group-hover:translate-y-0"
+                  />
                 </Link>
               )}
             </motion.article>
@@ -1120,9 +1156,12 @@ function CompareSection() {
           </div>
         </div>
 
-        <div className="mt-4 flex flex-wrap items-center justify-between gap-2 text-[10px] font-semibold tracking-[0.18em] text-[color:var(--pulp-ink)]/60 uppercase">
-          <span>
-            ● highlighted rows: only ndle includes these on a free plan.
+        <div className="mt-4 flex flex-wrap items-start justify-between gap-2 text-[10px] font-semibold tracking-[0.18em] text-[color:var(--pulp-ink)]/60 uppercase">
+          <span className="flex items-start gap-2 text-[color:var(--pulp-orange)]">
+            <DoodleArrow direction="up" width={30} className="mt-1 shrink-0" />
+            <Handwritten className="text-xl" tilt={-2}>
+              highlighted rows: only ndle has these on a free plan
+            </Handwritten>
           </span>
           <span>
             * Short.io caps at 50k tracked clicks/mo · public plans, April 2026
@@ -1346,7 +1385,10 @@ function AlertEmailSection() {
             className="font-sigmar text-pulp text-5xl leading-[0.95] italic md:text-7xl"
             style={{ color: "oklch(0.7 0.24 145)" }}
           >
-            3:04 AM.
+            <span className="relative inline-block">
+              3:04 AM.
+              <DoodleRing className="pointer-events-none absolute -inset-x-5 -inset-y-3 h-[calc(100%+1.5rem)] w-[calc(100%+2.5rem)] text-[color:var(--pulp-orange)]" />
+            </span>
             <br />
             Your link
             <br />
@@ -1368,6 +1410,15 @@ function AlertEmailSection() {
                 <ArrowRightIcon className="size-4" />
               </Link>
             </Button>
+          </div>
+          <div
+            aria-hidden
+            className="hidden items-center gap-2 text-[color:var(--pulp-orange)] lg:flex"
+          >
+            <Handwritten className="text-2xl" tilt={-3}>
+              this lands in your inbox
+            </Handwritten>
+            <DoodleArrow width={56} />
           </div>
         </div>
 
@@ -1707,9 +1758,16 @@ export function PublicHome() {
           >
             <Link
               href="#features"
-              className="inline-flex items-center gap-2 text-[11px] font-bold tracking-[0.3em] text-[color:var(--pulp-cream)]/70 uppercase hover:text-[color:var(--pulp-yellow)]"
+              className="group inline-flex flex-col items-center gap-1 text-[color:var(--pulp-cream)]/80 transition-colors hover:text-[color:var(--pulp-yellow)]"
             >
-              ↓ see how it works
+              <Handwritten className="text-2xl" tilt={-3}>
+                see how it works
+              </Handwritten>
+              <DoodleArrow
+                direction="down"
+                width={40}
+                className="transition-transform group-hover:translate-y-1 motion-reduce:group-hover:translate-y-0"
+              />
             </Link>
             <span className="text-[10px] font-bold tracking-[0.3em] text-[color:var(--pulp-cream)]/50 uppercase">
               100 free links · no credit card
@@ -1771,8 +1829,11 @@ export function PublicHome() {
                 <ArrowRightIcon className="size-4" />
               </Link>
             </Button>
-            <span className="text-[10px] font-bold tracking-[0.28em] text-[color:var(--pulp-cream)]/60 uppercase">
-              no credit card · 60-second setup
+            <span className="flex items-start gap-2 text-[color:var(--pulp-yellow)]">
+              <DoodleArrow direction="up" width={30} className="mt-0.5 shrink-0" />
+              <Handwritten className="text-2xl" tilt={-3}>
+                no card, about a minute
+              </Handwritten>
             </span>
           </div>
         </div>

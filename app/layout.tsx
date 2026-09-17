@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { ClerkProvider } from "@clerk/nextjs";
 import Script from "next/script";
-import { Doto, Geist_Mono, Sigmar } from "next/font/google";
+import { Caveat, Doto, Geist_Mono, Sigmar } from "next/font/google";
 import {
   GeistPixelSquare,
   GeistPixelGrid,
@@ -28,6 +28,12 @@ const sigmar = Sigmar({
   variable: "--font-sigmar",
   subsets: ["latin"],
   weight: "400",
+});
+
+const caveat = Caveat({
+  variable: "--font-caveat",
+  subsets: ["latin"],
+  weight: ["500", "600", "700"],
 });
 
 export const metadata: Metadata = {
@@ -71,7 +77,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistMono.variable} ${doto.variable} ${sigmar.variable} ${GeistPixelSquare.variable} ${GeistPixelGrid.variable} ${GeistPixelCircle.variable} ${GeistPixelTriangle.variable} ${GeistPixelLine.variable} antialiased`}
+      className={`${geistMono.variable} ${doto.variable} ${sigmar.variable} ${caveat.variable} ${GeistPixelSquare.variable} ${GeistPixelGrid.variable} ${GeistPixelCircle.variable} ${GeistPixelTriangle.variable} ${GeistPixelLine.variable} antialiased`}
     >
       <body>
         <Script id="orange-replay" strategy="beforeInteractive">

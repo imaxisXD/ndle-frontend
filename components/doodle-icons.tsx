@@ -7,7 +7,7 @@
  * small sizes.
  */
 
-import type { SVGProps } from "react";
+import type { HTMLAttributes, SVGProps } from "react";
 
 type DoodleProps = SVGProps<SVGSVGElement> & { size?: number };
 
@@ -75,5 +75,132 @@ export function DoodleGitHub(props: DoodleProps) {
       {/* mouth */}
       <path d="M10.4 15.3c.5.7 1 .9 1.5.4.5.6 1.1.5 1.7-.3" strokeWidth={1.7} />
     </Frame>
+  );
+}
+
+/* ───────── annotation primitives ───────── */
+
+type Direction = "right" | "down" | "left" | "up";
+
+const ROTATE: Record<Direction, string> = {
+  right: "rotate(0deg)",
+  down: "rotate(90deg)",
+  left: "rotate(180deg)",
+  up: "rotate(-90deg)",
+};
+
+/**
+ * A marker-drawn arrow with a lazy S-curve in the shaft. Drawn pointing
+ * right; `direction` rotates it. Width is the long axis.
+ */
+export function DoodleArrow({
+  direction = "right",
+  width = 56,
+  className,
+  style,
+  ...rest
+}: Omit<SVGProps<SVGSVGElement>, "width" | "height"> & {
+  direction?: Direction;
+  width?: number;
+}) {
+  const h = Math.round(width * 0.6);
+  return (
+    <svg
+      viewBox="0 0 64 40"
+      width={width}
+      height={h}
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2.4}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+      focusable="false"
+      className={className}
+      style={{ transform: ROTATE[direction], ...style }}
+      {...rest}
+    >
+      {/* shaft: S-curve that levels out so the head sits square on its end */}
+      <path d="M4 26c9-11 19-15 30-9 7 4 14 1 24 1" />
+      {/* head: two arms mirrored about the shaft's final tangent, tip at (58,18) */}
+      <path d="M50 11c3 2.5 5.7 4.8 8 7-2.3 2.2-5 4.6-8 7" />
+    </svg>
+  );
+}
+
+/**
+ * An arrow that loops back on itself before heading off — the one you
+ * draw in a margin when you want someone to look at a specific thing.
+ * Drawn heading down-right; flip with `flip` to head down-left.
+ */
+export function DoodleCurlArrow({
+  width = 64,
+  flip = false,
+  className,
+  style,
+  ...rest
+}: Omit<SVGProps<SVGSVGElement>, "width" | "height"> & {
+  width?: number;
+  flip?: boolean;
+}) {
+  const h = Math.round(width * 0.75);
+  return (
+    <svg
+      viewBox="0 0 64 48"
+      width={width}
+      height={h}
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2.4}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+      focusable="false"
+      className={className}
+      style={{ transform: flip ? "scaleX(-1)" : undefined, ...style }}
+      {...rest}
+    >
+      <path d="M6 8c12-6 28-5 26 7-2 9-16 8-12-2 3-7 22-3 28 10 2 5 3 10 4 18" />
+      <path d="M44 34c3 3 6 6 8 8 2-3 5-6 8-9" />
+    </svg>
+  );
+}
+
+/** A quick hand-drawn ring, for circling a word or a number. */
+export function DoodleRing({
+  className,
+  ...rest
+}: SVGProps<SVGSVGElement>) {
+  return (
+    <svg
+      viewBox="0 0 100 40"
+      preserveAspectRatio="none"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2.8}
+      strokeLinecap="round"
+      aria-hidden
+      focusable="false"
+      className={className}
+      {...rest}
+    >
+      <path d="M52 5C26 3 6 10 5 21c-1 10 18 16 46 15 27-1 46-9 45-18C95 9 76 3 50 5c-6 .4-11 1.4-15 3" vectorEffect="non-scaling-stroke" />
+    </svg>
+  );
+}
+
+/** Handwritten annotation text: the marker font, a slight tilt, no tracking. */
+export function Handwritten({
+  tilt = -2,
+  className = "",
+  style,
+  ...rest
+}: HTMLAttributes<HTMLSpanElement> & { tilt?: number }) {
+  return (
+    <span
+      className={`font-hand inline-block leading-none font-semibold tracking-normal normal-case ${className}`}
+      style={{ transform: `rotate(${tilt}deg)`, ...style }}
+      {...rest}
+    />
   );
 }
