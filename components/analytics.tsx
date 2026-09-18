@@ -22,7 +22,6 @@ import type { UTMAnalyticsData } from "@/types/utm-analytics";
 import { AgenticChartChat } from "@/components/agentic-charts";
 import { EmptyStateImage } from "@/components/empty-state-image";
 import { getAnalyticsTopLinks } from "@/lib/analytics-top-links";
-import { AnalyticsHistoryNotice } from "@/components/analytics-history-notice";
 
 const freeTimeRangeOptions = [
   {
@@ -314,12 +313,6 @@ export function Analytics() {
   return (
     <div className="space-y-6">
       {filterBar}
-
-      <AnalyticsHistoryNotice history={serverData?.meta.history} />
-      {serverData && <p className="text-muted-foreground text-xs">
-        {serverData.meta.coverage?.complete ? "Includes recent and archived clicks." : "Analytics coverage is being checked."}
-        {serverData.meta.freshness?.lastCommittedAt ? ` Last received ${new Date(serverData.meta.freshness.lastCommittedAt).toLocaleString()}.` : ""}
-      </p>}
 
       {/* Stats Grid */}
       <AnalyticsOverviewCards showSkeleton={showSkeleton} />

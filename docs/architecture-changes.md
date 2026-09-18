@@ -349,14 +349,13 @@ distinct records could be recovered and verified. The difference of 4,919
 cannot be assigned to specific clicks from the preserved evidence. No guessed
 events or adjusted totals have been inserted.
 
-Reports that include the period before September 5, 2026 at 17:09:12 UTC now
-support a visible historical-data notice. The backend setting
+The backend retains historical-quality metadata for reports that include the
+period before September 5, 2026 at 17:09:12 UTC. The setting
 `HISTORICAL_DATA_UNVERIFIED_BEFORE` supplies the cutoff; date comparisons use
-UTC regardless of the server timezone. This qualifies old collection while
-keeping coverage metadata specific to whether all available records were read.
-It does not claim every account lost clicks. The notice appears in dashboard
-and link-detail reports, including empty results. Requests entirely after the
-cutoff do not receive the notice.
+UTC regardless of the server timezone. This metadata describes uncertainty in
+old collection separately from whether all available records were read.
+Historical recovery notices and internal coverage status text are not displayed
+in dashboard or link-detail reports.
 
 ### Further event safeguards
 
