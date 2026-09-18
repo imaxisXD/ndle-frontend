@@ -330,6 +330,7 @@
   --font-doto: var(--font-doto);
   --font-sigmar: var(--font-sigmar);
   --font-hand: var(--font-caveat);
+  --font-comic: var(--font-bangers);
   --color-poster: var(--poster);
   --color-poster-deep: var(--poster-deep);
   --color-pulp-orange: var(--pulp-orange);
@@ -834,6 +835,20 @@
     10px 10px 0 var(--pulp-ink);
 }
 
+/* Poster extrusion in a second colour: set --extrude on the element. */
+.text-extrude {
+  text-shadow:
+    1px 1px 0 var(--extrude),
+    2px 2px 0 var(--extrude),
+    3px 3px 0 var(--extrude),
+    4px 4px 0 var(--extrude),
+    5px 5px 0 var(--extrude),
+    6px 6px 0 var(--extrude),
+    7px 7px 0 var(--extrude),
+    8px 8px 0 var(--extrude),
+    9px 9px 0 var(--extrude),
+    10px 10px 0 var(--extrude);
+}
 .text-pulp-sm {
   text-shadow:
     1px 1px 0 var(--pulp-ink),

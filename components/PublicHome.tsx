@@ -1,9 +1,14 @@
 "use client";
 
+import Image from "next/image";
+import { preload } from "react-dom";
+import shortenScreenshot from "@/public/landing/stage-shorten-2x.jpg";
+import watchScreenshot from "@/public/landing/stage-watch-2x.jpg";
+import alertScreenshot from "@/public/landing/stage-alert-2x.jpg";
 import Link from "next/link";
 import { useAuth } from "@clerk/nextjs";
 import { Fragment, useEffect, useMemo, useRef, useState } from "react";
-import { motion, useInView } from "motion/react";
+import { AnimatePresence, motion, useInView, useReducedMotion } from "motion/react";
 import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { ensureGuestSession, type GuestSession } from "@/lib/guest";
@@ -19,6 +24,7 @@ import {
   DoodleX,
   Handwritten,
 } from "@/components/doodle-icons";
+import { ComicBurst, ComicDivider } from "@/components/comic";
 import { QRCodeSVG } from "qrcode.react";
 import {
   ArrowRightIcon,
@@ -89,8 +95,6 @@ const BENTO = {
 };
 
 /* ───────── DATA ───────── */
-
-type MonitorStatus = "OK" | "WARN" | "DOWN";
 
 type Pillar = {
   kicker: string;
@@ -271,357 +275,170 @@ function Row({
 
 type YourLink = { slug: string; latencyMs: number } | null;
 
-/* ───────── ACT I — DATA + COMPONENTS ───────── */
+/* ───── The showcase: one big real panel, three steps to drive it (shorten → watch → alert) ───── */
 
-type WatchedLink = {
-  slug: string;
-  destination: string;
-  status: MonitorStatus;
-  latencyMs: number | null;
-  lastCheckSec: number;
-  regionsOk: number; // of 4 total
-  uptime30d: number; // percentage, 0-100
-};
-
-const watchedLinks: WatchedLink[] = [
+const STAGES = [
   {
-    slug: "ndle.im/launch",
-    destination: "mysite.com/product-launch-2026",
-    status: "OK",
-    latencyMs: 47,
-    lastCheckSec: 12,
-    regionsOk: 4,
-    uptime30d: 99.87,
+    num: "01",
+    title: "Shorten",
+    note: "Paste a URL, pick a domain, done.",
+    src: shortenScreenshot,
+    alt: "The ndle dashboard's Shorten a Link form with domain and link-style options",
   },
   {
-    slug: "ndle.im/docs",
-    destination: "docs.mycompany.com/getting-started",
-    status: "OK",
-    latencyMs: 68,
-    lastCheckSec: 18,
-    regionsOk: 4,
-    uptime30d: 99.92,
+    num: "02",
+    title: "Watch",
+    note: "Every destination checked every 60 seconds from four regions.",
+    src: watchScreenshot,
+    alt: "The ndle Link Monitoring page showing healthy links, uptime, and latency per link",
   },
   {
-    slug: "ndle.im/blog",
-    destination: "blog.mycompany.com/latest-post",
-    status: "WARN",
-    latencyMs: 481,
-    lastCheckSec: 7,
-    regionsOk: 3,
-    uptime30d: 97.1,
-  },
-  {
-    slug: "ndle.im/pricing",
-    destination: "mysite.com/pricing",
-    status: "OK",
-    latencyMs: 32,
-    lastCheckSec: 22,
-    regionsOk: 4,
-    uptime30d: 99.99,
-  },
-  {
-    slug: "ndle.im/careers",
-    destination: "mysite.com/careers/senior-engineer",
-    status: "DOWN",
-    latencyMs: null,
-    lastCheckSec: 31,
-    regionsOk: 0,
-    uptime30d: 92.4,
-  },
-  {
-    slug: "ndle.im/changelog",
-    destination: "mysite.com/changelog",
-    status: "OK",
-    latencyMs: 19,
-    lastCheckSec: 15,
-    regionsOk: 4,
-    uptime30d: 99.8,
+    num: "03",
+    title: "Alert",
+    note: "A warning when it slows, an email when it breaks, a note when it recovers.",
+    src: alertScreenshot,
+    alt: "The ndle Recent Incidents list with a warning and two resolved alerts",
   },
 ];
 
-/* ───── 3-step flow chips (shorten → watch → alert) ───── */
+/* ─────────────────────────────────────────────────────────
+ * SHOWCASE STORYBOARD
+ *
+ *    0ms   step selected (click, or auto-advance)
+ *    0ms   outgoing panel fades, drifts up 8px
+ *  120ms   incoming panel fades in from 8px below
+ * 5000ms   next step, unless hovered/focused or reduced motion
+ * ───────────────────────────────────────────────────────── */
+const SHOWCASE = {
+  dwellMs: 5000,
+  swap: { type: "spring" as const, duration: 0.45, bounce: 0 },
+};
 
-function FlowChips({ inView }: { inView: boolean }) {
-  const chips = [
-    { num: "01", title: "shorten", body: "long URL to 8 characters" },
-    { num: "02", title: "watch", body: "every 60s · 4 regions" },
-    { num: "03", title: "alert", body: "email the moment it breaks" },
-  ];
-  return (
-    <div className="grid gap-3 sm:grid-cols-[1fr_auto_1fr_auto_1fr] sm:items-center">
-      {chips.map((c, i) => (
-        <Fragment key={c.num}>
-        {i > 0 && (
-          <DoodleArrow
-            width={40}
-            className="hidden text-[color:var(--pulp-orange)] sm:block"
-          />
-        )}
-        <motion.div
-          className="flex items-center gap-3 rounded-md border-2 border-[color:var(--pulp-ink)] bg-[color:var(--pulp-cream)] px-4 py-3 shadow-[3px_3px_0_0_var(--pulp-ink)]"
-          initial={{ opacity: 0, x: -8 }}
-          animate={inView ? { opacity: 1, x: 0 } : { opacity: 0, x: -8 }}
-          transition={{ duration: 0.28, delay: 0.1 + i * 0.1 }}
-        >
-          <span className="font-sigmar text-2xl leading-none text-[color:var(--pulp-orange)] italic">
-            {c.num}
-          </span>
-          <div>
-            <p className="font-sigmar text-base leading-none text-[color:var(--pulp-ink)] italic">
-              {c.title}
-            </p>
-            <p className="mt-0.5 font-mono text-[10px] tracking-[0.14em] text-[color:var(--pulp-ink)]/65 uppercase">
-              {c.body}
-            </p>
-          </div>
-        </motion.div>
-        </Fragment>
-      ))}
-    </div>
-  );
-}
+function StoryShowcase({ inView }: { inView: boolean }) {
+  const [active, setActive] = useState(0);
+  const [paused, setPaused] = useState(false);
+  const reduce = useReducedMotion();
+  const stage = STAGES[active];
 
-/* ───── Watch-list rendered on a self-healing cutting mat (rulers + two-level grid) ───── */
-
-// Ruler along the top edge — numbered markings every 5 units + tick marks between
-function RulerTop() {
-  // 8 major marks across the top (0, 5, 10, ... 35)
-  const majors = [0, 5, 10, 15, 20, 25, 30, 35];
-  // Ticks — 36 total, longer at every 5th
-  const ticks = Array.from({ length: 36 });
-  return (
-    <>
-      {/* Numbers */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute left-12 right-12 top-2 flex justify-between font-mono text-[9px] font-semibold text-white/55 tabular-nums"
-      >
-        {majors.map((n) => (
-          <span key={n}>{n}</span>
-        ))}
-      </div>
-      {/* Tick marks */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute left-12 right-12 top-[22px] flex justify-between"
-      >
-        {ticks.map((_, i) => (
-          <span
-            key={i}
-            className={`${i % 5 === 0 ? "h-2 w-px bg-white/50" : "h-1 w-px bg-white/30"}`}
-          />
-        ))}
-      </div>
-    </>
-  );
-}
-
-// Ruler along the left edge — numbered markings + tick marks down the side
-function RulerLeft() {
-  const majors = [0, 5, 10, 15, 20, 25, 30, 35];
-  const ticks = Array.from({ length: 36 });
-  return (
-    <>
-      <div
-        aria-hidden
-        className="pointer-events-none absolute left-2 top-12 bottom-12 flex flex-col justify-between font-mono text-[9px] font-semibold text-white/55 tabular-nums"
-      >
-        {majors.map((n) => (
-          <span key={n}>{n}</span>
-        ))}
-      </div>
-      <div
-        aria-hidden
-        className="pointer-events-none absolute left-[22px] top-12 bottom-12 flex flex-col justify-between"
-      >
-        {ticks.map((_, i) => (
-          <span
-            key={i}
-            className={`${i % 5 === 0 ? "h-px w-2 bg-white/50" : "h-px w-1 bg-white/30"}`}
-          />
-        ))}
-      </div>
-    </>
-  );
-}
-
-// Formatted slug — domain dimmed, slug-path bright.
-// "ndle.im/launch" → <span class="dim">ndle.im/</span><span>launch</span>
-function SlugText({ slug, className = "" }: { slug: string; className?: string }) {
-  const slashIdx = slug.indexOf("/");
-  const domain = slashIdx > -1 ? slug.slice(0, slashIdx + 1) : slug;
-  const path   = slashIdx > -1 ? slug.slice(slashIdx + 1) : "";
-  return (
-    <span className={`truncate ${className}`}>
-      <span className="opacity-55">{domain}</span>
-      <span className="font-bold">{path}</span>
-    </span>
-  );
-}
-
-function WatchListLedger({
-  yourLink,
-  inView,
-}: {
-  yourLink: YourLink;
-  inView: boolean;
-}) {
-  const mat = "var(--poster)";
-
-  // Status pill tuned for a warm-white paper card (dark ink on light pastel bg)
-  function whiteStatus(status: MonitorStatus) {
-    switch (status) {
-      case "OK":
-        return { label: "UP",   bg: "bg-[oklch(0.9_0.06_145)]", text: "text-[oklch(0.35_0.15_145)]", dot: "bg-[oklch(0.6_0.18_145)]" };
-      case "WARN":
-        return { label: "SLOW", bg: "bg-[oklch(0.93_0.07_75)]", text: "text-[oklch(0.42_0.15_60)]",  dot: "bg-[color:var(--pulp-orange)]" };
-      case "DOWN":
-        return { label: "DOWN", bg: "bg-[oklch(0.92_0.04_25)]", text: "text-[oklch(0.42_0.2_25)]",   dot: "bg-[oklch(0.55_0.22_25)]" };
+  // Warm direct static assets before the next slide is selected.
+  useEffect(() => {
+    if (!inView) return;
+    for (const item of STAGES) {
+      preload(item.src.src, { as: "image" });
     }
-  }
+  }, [inView]);
 
-  // Shared column grid — declared once, reused by header + rows for perfect alignment
-  const COLS = "grid grid-cols-[3rem_minmax(0,1.1fr)_minmax(0,1.3fr)_4.5rem_3.5rem_4.5rem] items-center gap-4";
+  // Auto-advance while the section is on screen and nobody is interacting.
+  useEffect(() => {
+    if (!inView || paused || reduce) return;
+    const id = setTimeout(() => setActive((a) => (a + 1) % STAGES.length), SHOWCASE.dwellMs);
+    return () => clearTimeout(id);
+  }, [active, inView, paused, reduce]);
 
   return (
-    <motion.div
-      className="relative"
-      initial={{ opacity: 0, y: 20, scale: 0.98 }}
-      animate={inView ? { opacity: 1, y: 0, scale: 1 } : { opacity: 0, y: 20, scale: 0.98 }}
-      transition={{ type: "spring", stiffness: 260, damping: 24 }}
+    <div
+      className="grid gap-8 lg:grid-cols-[minmax(0,17rem)_minmax(0,1fr)] lg:gap-12"
+      onMouseEnter={() => setPaused(true)}
+      onMouseLeave={() => setPaused(false)}
+      onFocusCapture={() => setPaused(true)}
+      onBlurCapture={() => setPaused(false)}
     >
-      {/* ─── Layer 1: Blue self-healing cutting mat (bg + rulers + grid) ─── */}
-      <div
-        className="relative overflow-hidden rounded-2xl shadow-[0_10px_24px_rgba(0,0,0,0.35),0_24px_50px_rgba(0,0,0,0.2)]"
-        style={{
-          backgroundColor: mat,
-          backgroundImage: `
-            /* Subtle 45° diagonal reference lines — classic cutting-mat detail */
-            linear-gradient( 45deg, transparent 49.7%, rgba(255,255,255,0.06) 49.7%, rgba(255,255,255,0.06) 50.3%, transparent 50.3%),
-            linear-gradient(-45deg, transparent 49.7%, rgba(255,255,255,0.06) 49.7%, rgba(255,255,255,0.06) 50.3%, transparent 50.3%),
-            /* Bold 5-unit grid */
-            linear-gradient(to right,  rgba(255,255,255,0.3) 1px, transparent 1px),
-            linear-gradient(to bottom, rgba(255,255,255,0.3) 1px, transparent 1px),
-            /* Fine 1-unit grid */
-            linear-gradient(to right,  rgba(255,255,255,0.12) 1px, transparent 1px),
-            linear-gradient(to bottom, rgba(255,255,255,0.12) 1px, transparent 1px)
-          `,
-          backgroundSize: "100% 100%, 100% 100%, 100px 100px, 100px 100px, 20px 20px, 20px 20px",
-        }}
-      >
-        {/* Rulers along top & left edges of the mat */}
-        <RulerTop />
-        <RulerLeft />
-
-        {/* ─── Layer 2: White paper card floating on the mat ─── */}
-        <div
-          className="relative ml-14 mr-8 mb-8 mt-12 overflow-hidden rounded-xl text-[color:var(--pulp-ink)] ring-1 ring-black/5 shadow-[0_6px_18px_rgba(0,0,0,0.18),0_2px_6px_rgba(0,0,0,0.08)]"
-          style={{ backgroundColor: "var(--pulp-cream)" }}
-        >
-          {/* Title block */}
-          <header className="px-8 pt-6 pb-5">
-            <p className="font-mono text-[9px] font-bold tracking-[0.3em] uppercase opacity-55">
-              ndle monitoring <span className="opacity-60">·</span> live
-            </p>
-            <h3 className="mt-1.5 font-sigmar text-4xl leading-[1] italic tracking-tight">
-              Monitored links
-            </h3>
-          </header>
-
-          {/* Double-rule divider — header → body */}
-          <div className="mx-8 border-t border-black/20" />
-          <div className="mx-8 border-t border-black/10" style={{ marginTop: "2px" }} />
-
-          {/* Column headers */}
-          <div
-            className={`${COLS} px-8 py-2.5 font-mono text-[9px] font-bold tracking-[0.18em] uppercase opacity-55`}
-          >
-            <span>№</span>
-            <span>slug</span>
-            <span>destination</span>
-            <span>status</span>
-            <span className="text-right">last</span>
-            <span className="text-right">uptime 30d</span>
-          </div>
-
-          {/* Rows */}
-          <ul className="divide-y divide-black/10">
-            {watchedLinks.map((d, i) => {
-              const s = whiteStatus(d.status);
-              return (
-                <motion.li
-                  key={d.slug}
-                  className={`${COLS} px-8 py-2.5 font-mono text-[12px] leading-none`}
-                  initial={{ opacity: 0, x: -6 }}
-                  animate={inView ? { opacity: 1, x: 0 } : { opacity: 0, x: -6 }}
-                  transition={{ duration: 0.22, delay: 0.3 + i * 0.07 }}
-                >
-                  <span className="font-bold tabular-nums opacity-45">
-                    {(i + 1).toString().padStart(3, "0")}
-                  </span>
-                  <SlugText slug={d.slug} />
-                  <span className="truncate opacity-65">{d.destination}</span>
-                  <span
-                    className={`inline-flex min-w-[3.75rem] items-center justify-center gap-1.5 rounded-sm ${s.bg} px-1.5 py-0.5 text-[9.5px] font-bold tracking-[0.14em] uppercase ${s.text}`}
-                  >
-                    <span className={`size-1.5 rounded-full ${s.dot}`} />
-                    {s.label}
-                  </span>
-                  <span className="text-right tabular-nums opacity-65">
-                    {d.lastCheckSec}s
-                  </span>
-                  <span className="text-right font-bold tabular-nums">
-                    {d.uptime30d.toFixed(2)}
-                    <span className="opacity-50">%</span>
-                  </span>
-                </motion.li>
-              );
-            })}
-
-            {yourLink && (
-              <motion.li
-                className={`${COLS} bg-[color:var(--pulp-yellow)]/35 px-8 py-3 font-mono text-[12px] leading-none ring-1 ring-[color:var(--pulp-orange)]/50 ring-inset`}
-                initial={{ opacity: 0, x: -20, scale: 0.98 }}
-                animate={{ opacity: 1, x: 0, scale: 1 }}
-                transition={{ type: "spring", stiffness: 360, damping: 20 }}
-              >
-                <span className="font-bold tabular-nums text-[color:var(--pulp-orange)]">
-                  007
+      {/* step rail */}
+      <div role="tablist" aria-label="How ndle works" className="flex gap-3 lg:flex-col lg:gap-0">
+        {STAGES.map((st, i) => {
+          const on = i === active;
+          return (
+            <button
+              key={st.num}
+              type="button"
+              role="tab"
+              aria-selected={on}
+              aria-controls="showcase-panel"
+              onClick={() => setActive(i)}
+              className={`group relative flex flex-1 items-start gap-4 border-l-[3px] py-4 pr-2 pl-4 text-left transition-[opacity,border-color] duration-200 active:scale-[0.96] motion-safe:transition-transform lg:flex-none lg:py-5 ${
+                on
+                  ? "border-[color:var(--poster)] opacity-100"
+                  : "border-[color:var(--pulp-ink)]/20 opacity-55 hover:opacity-85"
+              }`}
+            >
+              <span className="font-sigmar text-3xl leading-none text-[color:var(--poster)] italic">
+                {st.num}
+              </span>
+              <span className="min-w-0">
+                <span className="font-sigmar block text-lg leading-none text-[color:var(--pulp-ink)] italic">
+                  {st.title}
                 </span>
-                <SlugText slug={yourLink.slug} />
-                <span className="flex items-center gap-1.5 truncate text-[color:var(--pulp-orange)]">
-                  <DoodleArrow direction="left" width={26} className="shrink-0" />
-                  <Handwritten className="text-lg" tilt={-2}>
-                    your link, just now
-                  </Handwritten>
+                <span className="mt-1.5 hidden text-sm leading-6 text-[color:var(--pulp-ink)]/80 lg:block">
+                  {st.note}
                 </span>
-                <span className="inline-flex min-w-[3.75rem] items-center justify-center gap-1.5 rounded-sm bg-[color:var(--pulp-orange)]/20 px-1.5 py-0.5 text-[9.5px] font-bold tracking-[0.14em] uppercase text-[color:var(--pulp-orange)]">
-                  <span className="animate-live-blip size-1.5 rounded-full bg-[color:var(--pulp-orange)]" />
-                  NEW
-                </span>
-                <span className="text-right tabular-nums opacity-65">0s</span>
-                <span className="text-right font-bold tabular-nums">—</span>
-              </motion.li>
-            )}
-          </ul>
-
-          {/* Footer — info strip */}
-          <div className="mx-8 border-t border-black/20" />
-          <div className="mx-8 border-t border-black/10" style={{ marginTop: "2px" }} />
-          <div className="flex items-center justify-between gap-4 px-8 py-3 font-mono text-[9px] font-bold tracking-[0.2em] uppercase opacity-55">
-            <span>
-              checking every 60s <span className="opacity-70">·</span> 4 regions
-            </span>
-            <span className="flex items-center gap-3">
-              us-east-1 <span className="opacity-60">·</span> eu-west-2{" "}
-              <span className="opacity-60">·</span> ap-south-1{" "}
-              <span className="opacity-60">·</span> us-west-2
-            </span>
-          </div>
-        </div>
+              </span>
+              {/* dwell progress, only on the active step while auto-advancing */}
+              {on && inView && !paused && !reduce && (
+                <motion.span
+                  key={active}
+                  aria-hidden
+                  className="absolute -left-[3px] top-0 w-[3px] bg-[color:var(--pulp-orange)]"
+                  initial={{ height: "0%" }}
+                  animate={{ height: "100%" }}
+                  transition={{ duration: SHOWCASE.dwellMs / 1000, ease: "linear" }}
+                />
+              )}
+            </button>
+          );
+        })}
       </div>
-    </motion.div>
+
+      {/* the panel */}
+      <div
+        id="showcase-panel"
+        role="tabpanel"
+        className="relative -rotate-[0.6deg] rounded-sm border-[3px] border-[color:var(--pulp-ink)] bg-[color:var(--pulp-cream)] p-3 shadow-[10px_10px_0_0_var(--pulp-ink)] sm:p-4"
+      >
+        {/* caption box straddling the top border */}
+        <div className="absolute -top-4 left-5 z-10 inline-flex h-8 items-center gap-2 border-[3px] border-[color:var(--pulp-ink)] bg-[color:var(--poster)] px-3 shadow-[3px_3px_0_0_var(--pulp-ink)]">
+          <span className="font-sigmar text-base leading-none text-[color:var(--pulp-yellow)] italic">
+            {stage.num}
+          </span>
+          <span className="font-sigmar text-sm leading-none text-[color:var(--pulp-cream)] italic">
+            {stage.title}
+          </span>
+        </div>
+
+        <div className="relative aspect-[16/10] overflow-hidden rounded-[2px] bg-white outline outline-1 -outline-offset-1 outline-[oklch(0_0_0/0.1)]">
+          <AnimatePresence initial={false} mode="popLayout">
+            <motion.div
+              key={stage.src.src}
+              className="absolute inset-0"
+              initial={reduce ? false : { opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={reduce ? undefined : { opacity: 0, y: -8 }}
+              transition={SHOWCASE.swap}
+            >
+              <Image
+                src={stage.src}
+                alt={stage.alt}
+                fill
+                unoptimized
+                loading="eager"
+                sizes="(min-width: 1280px) 800px, (min-width: 1024px) 56vw, 100vw"
+                className="object-cover object-left-top"
+              />
+            </motion.div>
+          </AnimatePresence>
+        </div>
+
+        <ComicBurst
+          size={118}
+          rotate={12}
+          textSize={82}
+          cloud={false}
+          delay={0.4}
+          className="absolute -top-14 -right-9 z-10 hidden sm:block"
+        >
+          BZZT!
+        </ComicBurst>
+      </div>
+    </div>
   );
 }
 
@@ -654,13 +471,16 @@ function ActOne({
   return (
     <section
       ref={ref}
-      className="relative z-10 border-y-4 border-[color:var(--pulp-ink)] bg-[color:var(--pulp-cream)] py-20 lg:py-24"
+      className="paper-grain relative z-10 bg-[color:var(--pulp-yellow)] py-20 lg:py-24"
     >
       <div className="mx-auto max-w-7xl px-5 lg:px-8">
         {/* Header + form row */}
         <div className="mb-12 grid gap-10 lg:grid-cols-[1fr_1fr] lg:items-end">
           <div>
-            <h2 className="font-sigmar text-pulp-sm text-5xl leading-[0.95] text-[color:var(--pulp-orange)] italic md:text-7xl">
+            <h2
+              className="font-sigmar text-extrude origin-left -rotate-2 text-5xl leading-[0.95] text-[color:var(--poster)] italic md:text-7xl"
+              style={{ ["--extrude" as string]: "oklch(0.3 0.15 300)" } as React.CSSProperties}
+            >
               Shorten a link.
               <br />
               No sign-up.
@@ -675,7 +495,7 @@ function ActOne({
           <div className="relative space-y-3">
             <div
               aria-hidden
-              className="pointer-events-none absolute -top-12 right-2 hidden items-end gap-1 text-[color:var(--pulp-orange)] lg:flex"
+              className="pointer-events-none absolute -top-12 right-2 hidden items-end gap-1 text-[color:var(--poster)] lg:flex"
             >
               <Handwritten className="mb-3 text-2xl" tilt={-4}>
                 paste anything
@@ -804,7 +624,7 @@ function ActOne({
               </motion.div>
             )}
 
-            <div className="flex flex-wrap items-center gap-x-6 gap-y-2 pt-1 text-[10px] font-bold tracking-[0.2em] text-[color:var(--pulp-ink)]/60 uppercase">
+            <div className="flex flex-wrap items-center gap-x-6 gap-y-2 pt-1 text-[10px] font-bold tracking-[0.2em] text-[color:var(--pulp-ink)]/80 uppercase">
               {["no credit card", "100 free links", "1 custom domain"].map(
                 (label) => (
                   <span
@@ -820,14 +640,9 @@ function ActOne({
           </div>
         </div>
 
-        {/* Flow chips — teach the "shorten → watch → alert" loop */}
-        <div className="mt-14">
-          <FlowChips inView={inView} />
-        </div>
-
-        {/* Watch list — real monitoring data in a pulp case-book ledger */}
-        <div className="mt-10">
-          <WatchListLedger yourLink={yourLink} inView={inView} />
+        {/* The product, in three steps: one big real panel, driven by the rail */}
+        <div className="mt-20">
+          <StoryShowcase inView={inView} />
         </div>
       </div>
     </section>
@@ -1038,9 +853,20 @@ function PillarsSection() {
     <section
       id="features"
       ref={ref}
-      className="relative z-10 border-y-4 border-[color:var(--pulp-ink)] bg-[color:var(--pulp-cream)] py-20 lg:py-28"
+      className="paper-grain relative z-10 overflow-hidden py-20 lg:py-28"
+      style={{ backgroundColor: "oklch(0.7 0.2 145)" }}
     >
-      <div className="mx-auto max-w-7xl px-5 lg:px-8">
+      {/* Screentone: fine diagonal ink lines laid over the whole panel, the
+          zip-a-tone sheet inkers rubbed down for shading */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0"
+        style={{
+          backgroundImage:
+            "repeating-linear-gradient(-38deg, oklch(0.3 0.1 150 / 0.18) 0 1.2px, transparent 1.2px 7px)",
+        }}
+      />
+      <div className="relative mx-auto max-w-7xl px-5 lg:px-8">
         <motion.div
           className="mb-14 max-w-3xl"
           initial={{ opacity: 0, y: PILLARS.header.y }}
@@ -1049,18 +875,22 @@ function PillarsSection() {
           }
           transition={{ ...PILLARS.header.spring, delay: PILLARS.header.delay }}
         >
-          <h2 className="font-sigmar text-pulp-sm text-5xl leading-[0.95] text-[color:var(--pulp-orange)] italic md:text-7xl">
+          <h2
+            className="font-sigmar text-extrude origin-left -rotate-2 text-5xl leading-[0.95] text-[color:var(--pulp-orange)] italic md:text-7xl"
+            style={{ ["--extrude" as string]: "oklch(0.3 0.15 300)" } as React.CSSProperties}
+          >
             The work a shortener
             <br />
             should do.
           </h2>
         </motion.div>
 
-        <div className="grid gap-5 md:grid-cols-3">
+        <div className="grid gap-7 md:grid-cols-3">
           {pillars.map((p, i) => (
             <motion.article
               key={p.kicker}
-              className="paper-grain relative flex flex-col overflow-hidden rounded-lg border-2 border-[color:var(--pulp-ink)] bg-[color:var(--poster)] p-7 text-[color:var(--pulp-cream)] shadow-[6px_6px_0_0_var(--pulp-orange)] md:p-8"
+              className="relative flex flex-col rounded-sm border-[3px] border-[color:var(--pulp-ink)] bg-[color:var(--pulp-cream)] p-7 pt-9 text-[color:var(--pulp-ink)] shadow-[8px_8px_0_0_var(--pulp-ink)] md:p-8 md:pt-10"
+              style={{ rotate: i === 1 ? 0.7 : -0.7 }}
               initial={{
                 opacity: 0,
                 y: PILLARS.card.y,
@@ -1076,23 +906,37 @@ function PillarsSection() {
                 delay: PILLARS.card.baseDelay + i * PILLARS.card.stagger,
               }}
             >
-              <div className="relative z-10 mb-6 flex items-start">
-                <span className="inline-flex h-7 items-center border border-current px-2 text-[10px] font-bold tracking-[0.3em] uppercase">
-                  {p.kicker}
-                </span>
-              </div>
-              <h3 className="font-sigmar relative z-10 text-2xl leading-tight text-[color:var(--pulp-yellow)] italic md:text-3xl">
+              {/* halftone corner, the way a panel's shading is screened in */}
+              <div
+                aria-hidden
+                className="pointer-events-none absolute inset-0 rounded-[inherit]"
+                style={{
+                  backgroundImage:
+                    "radial-gradient(circle, oklch(0.71 0.17 45 / 0.5) 1.2px, transparent 1.4px)",
+                  backgroundSize: "8px 8px",
+                  maskImage: "radial-gradient(circle at 100% 100%, black 0%, transparent 48%)",
+                  WebkitMaskImage: "radial-gradient(circle at 100% 100%, black 0%, transparent 48%)",
+                }}
+              />
+              {/* caption box straddling the top border */}
+              <span className="absolute -top-4 left-6 inline-flex h-8 items-center border-[3px] border-[color:var(--pulp-ink)] bg-[color:var(--pulp-yellow)] px-3 font-mono text-[10px] font-bold tracking-[0.3em] uppercase shadow-[3px_3px_0_0_var(--pulp-ink)]">
+                {p.kicker}
+              </span>
+              <h3
+                className="font-sigmar relative z-10 text-2xl leading-tight text-[color:var(--poster)] italic md:text-3xl"
+                style={{ textShadow: "1.5px 1.5px 0 var(--pulp-orange), 3px 3px 0 var(--pulp-orange)" }}
+              >
                 {p.title}
               </h3>
-              <p className="relative z-10 mt-4 text-sm leading-6 text-[color:var(--pulp-cream)]/85">
+              <p className="relative z-10 mt-4 text-sm leading-6 text-[color:var(--pulp-ink)]/80">
                 {p.body}
               </p>
               {p.anchor && (
                 <Link
                   href={p.anchor.href}
-                  className="group relative z-10 mt-5 inline-flex items-center gap-2 self-start text-[color:var(--pulp-yellow)]"
+                  className="group relative z-10 mt-5 inline-flex items-center gap-2 self-start text-[color:var(--pulp-orange)]"
                 >
-                  <Handwritten className="text-xl underline decoration-[color:var(--pulp-yellow)]/40 decoration-wavy underline-offset-4 group-hover:decoration-[color:var(--pulp-yellow)]">
+                  <Handwritten className="text-xl underline decoration-[color:var(--pulp-orange)]/40 decoration-wavy underline-offset-4 group-hover:decoration-[color:var(--pulp-orange)]">
                     {p.anchor.label}
                   </Handwritten>
                   <DoodleArrow
@@ -1116,19 +960,36 @@ function CompareSection() {
   return (
     <section
       id="compare"
-      className="relative z-10 bg-[color:var(--pulp-cream)] py-20 lg:py-24"
+      className="paper-grain relative z-10 overflow-hidden pt-28 pb-20 lg:pt-32 lg:pb-24"
+      style={{
+        backgroundColor: "oklch(0.66 0.24 350)",
+        // comic sunburst: rays fan out from behind the table
+        backgroundImage:
+          "repeating-conic-gradient(from 0deg at 50% 62%, transparent 0deg 7deg, oklch(0.7 0.23 350) 7deg 14deg)",
+      }}
     >
-      <div className="mx-auto max-w-7xl px-5 lg:px-8">
+      <ComicDivider
+        overlay
+        from="var(--pulp-cream)"
+        to="transparent"
+        ink="oklch(0.32 0.22 268)"
+      />
+      {/* rays settle back to flat cream before the next tear */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 bottom-0 h-40"
+        style={{ background: "linear-gradient(to bottom, transparent, oklch(0.66 0.24 350))" }}
+      />
+      <div className="relative mx-auto max-w-7xl px-5 lg:px-8">
         <div className="mb-10 max-w-3xl">
-          <h2 className="font-sigmar text-pulp-sm text-5xl leading-[0.95] text-[color:var(--pulp-orange)] italic md:text-7xl">
+          <h2
+            className="font-sigmar text-extrude origin-left -rotate-2 text-5xl leading-[0.95] text-[color:var(--pulp-yellow)] italic md:text-7xl"
+            style={{ ["--extrude" as string]: "oklch(0.32 0.1 150)" } as React.CSSProperties}
+          >
             Free plan,
             <br />
             compared.
           </h2>
-          <p className="mt-4 max-w-md text-sm leading-6 text-[color:var(--pulp-ink)]/70">
-            Free tiers side by side. Competitor numbers are from their public
-            pricing pages, April 2026.
-          </p>
         </div>
 
         <div className="overflow-hidden rounded-lg border-2 border-[color:var(--pulp-ink)] shadow-[6px_6px_0_0_var(--pulp-ink)]">
@@ -1156,8 +1017,8 @@ function CompareSection() {
           </div>
         </div>
 
-        <div className="mt-4 flex flex-wrap items-start justify-between gap-2 text-[10px] font-semibold tracking-[0.18em] text-[color:var(--pulp-ink)]/60 uppercase">
-          <span className="flex items-start gap-2 text-[color:var(--pulp-orange)]">
+        <div className="mt-4 flex flex-wrap items-start justify-between gap-2 text-[10px] font-bold tracking-[0.18em] text-[color:var(--pulp-ink)] uppercase">
+          <span className="flex items-start gap-2 text-[color:var(--pulp-ink)]">
             <DoodleArrow direction="up" width={30} className="mt-1 shrink-0" />
             <Handwritten className="text-xl" tilt={-2}>
               highlighted rows: only ndle has these on a free plan
@@ -1188,6 +1049,16 @@ function Memo({ inView }: { inView: boolean }) {
       }
       transition={{ type: "spring", stiffness: 260, damping: 22 }}
     >
+      <ComicBurst
+        size={190}
+        rotate={10}
+        textSize={92}
+        variant="green"
+        delay={0.6}
+        className="absolute -top-20 -right-14 z-20"
+      >
+        PING!
+      </ComicBurst>
       <div
         className="relative overflow-hidden rounded-sm border border-[oklch(0.82_0.02_85)] shadow-[0_10px_24px_rgba(0,0,0,0.3),0_24px_50px_rgba(0,0,0,0.18)]"
         style={{
@@ -1206,9 +1077,6 @@ function Memo({ inView }: { inView: boolean }) {
           <div className="flex items-center justify-between">
             <p className="text-[9px] font-bold tracking-[0.32em] uppercase">
               ndle monitoring
-            </p>
-            <p className="text-[9px] font-bold tracking-[0.32em] uppercase">
-              automated alert
             </p>
           </div>
           <h3 className="font-sigmar mt-2 text-3xl leading-none italic">
@@ -1370,7 +1238,7 @@ function AlertEmailSection() {
     <section
       id="incident"
       ref={ref}
-      className="paper-grain relative z-10 scroll-mt-6 overflow-hidden border-y-4 border-[color:var(--pulp-ink)]"
+      className="paper-grain relative z-10 scroll-mt-6 overflow-hidden"
       // Pulp-cream card bg + cobalt "ink" override — cascades to text-pulp shadow, borders, small text, CTAs
       style={
         {
@@ -1699,7 +1567,17 @@ export function PublicHome() {
           </div>
 
           {/* Title */}
-          <div className="py-6 text-center md:py-10">
+          <div className="relative py-6 text-center md:py-10">
+            {stage >= 5 && (
+              <ComicBurst
+                size={210}
+                rotate={10}
+                textSize={96}
+                className="absolute -top-14 right-[4%] hidden lg:block xl:right-[13%]"
+              >
+                FREE!
+              </ComicBurst>
+            )}
             <motion.div
               initial={{ opacity: 0, y: HERO_LINE.y, scale: HERO_LINE.scale }}
               animate={{
@@ -1776,6 +1654,8 @@ export function PublicHome() {
         </div>
       </section>
 
+      <ComicDivider from="var(--poster)" to="var(--pulp-yellow)" />
+
       {/* ───────── ACT I — The Shortener ───────── */}
       <ActOne
         url={url}
@@ -1789,20 +1669,32 @@ export function PublicHome() {
         urlLooksValid={urlLooksValid}
       />
 
+      <ComicDivider from="var(--pulp-yellow)" to="var(--poster)" />
+
       {/* ───────── ACT II — The Numbers ───────── */}
       <ActTwoBento />
+
+      <ComicDivider from="var(--poster)" to="oklch(0.7 0.2 145)" />
 
       {/* ───────── ACT III — The Features (pillars) ───────── */}
       <PillarsSection />
 
+      <ComicDivider
+        from="oklch(0.7 0.2 145)"
+        to="var(--pulp-cream)"
+        ink="oklch(0.32 0.22 268)"
+      />
+
       {/* ───────── INTERMISSION — The Incident (proof of Pillar I, before the verdict) ───────── */}
       <AlertEmailSection />
 
-      {/* ───────── ACT IV — The Verdict ───────── */}
+      {/* ───────── ACT IV — The Verdict (carries its own overlaid divider) ───────── */}
       <CompareSection />
 
+      <ComicDivider from="oklch(0.66 0.24 350)" to="var(--poster)" />
+
       {/* ───────── THE FINAL CUT (CTA) ───────── */}
-      <section className="paper-grain relative z-10 overflow-hidden border-t-4 border-[color:var(--pulp-ink)] bg-[color:var(--poster)] py-20 lg:py-28">
+      <section className="paper-grain relative z-10 overflow-hidden bg-[color:var(--poster)] py-20 lg:py-28">
         <div className="relative mx-auto flex max-w-7xl flex-col items-start gap-10 px-5 lg:flex-row lg:items-center lg:justify-between lg:px-8">
           <div className="max-w-3xl space-y-5">
             <h2 className="font-sigmar text-pulp text-5xl leading-[0.92] text-[color:var(--pulp-yellow)] italic md:text-7xl">
@@ -1838,6 +1730,8 @@ export function PublicHome() {
           </div>
         </div>
       </section>
+
+      <ComicDivider from="var(--poster)" to="var(--pulp-ink)" ink="var(--pulp-orange)" />
 
       {/* ───────── END CREDITS (footer) ───────── */}
       <footer className="relative z-10 bg-[color:var(--pulp-ink)] text-[color:var(--pulp-cream)]/70">

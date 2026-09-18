@@ -1,0 +1,4 @@
+# Content-hashed Next.js assets, including landing screenshots.
+# https://developers.cloudflare.com/workers/static-assets/headers/
+/_next/static/*
+  Cache-Control: public, max-age=31536000, immutable
