@@ -18,8 +18,13 @@ export const VALIDATION_ERRORS = {
 // ndle's own domains - prevent redirect loops and abuse
 const SELF_DOMAINS = [
   "ndle.app",
+  "ndle.fyi",
+  "www.ndle.fyi",
   "ndle.im",
+  "www.ndle.im",
   "dev.ndle.app",
+  "dev.ndle.fyi",
+  "www.dev.ndle.fyi",
   "dev.ndle.im",
   "imp.ndle.app",
 ];

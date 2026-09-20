@@ -4,7 +4,7 @@ import { makeShortLinkWithDomain } from "./config";
 
 test("full URL and bare slug counts resolve to one current link before ranking", () => {
   const counts = {
-    "https://ndle.im/elevenricelaugh": 4,
+    "https://ndle.fyi/elevenricelaugh": 4,
     elevenricelaugh: 3,
     another: 6,
   };
@@ -30,8 +30,8 @@ test("a deleted link keeps its recorded custom domain without URL query or fragm
 
 test("malformed identifiers cannot become broken detail routes", () => {
   expect(getAnalyticsTopLinks({
-    "https://ndle.im/": 9,
-    "https://ndle.im/one/two": 8,
+    "https://ndle.fyi/": 9,
+    "https://ndle.fyi/one/two": 8,
     "javascript:alert(1)": 7,
     valid_slug: 1,
   }).map(link => link.url)).toEqual(["valid_slug"]);

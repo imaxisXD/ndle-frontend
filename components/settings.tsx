@@ -50,8 +50,8 @@ export function Settings() {
               Add a CNAME record pointing to{" "}
               <code className="bg-muted rounded px-1 py-0.5">
                 {process.env.NODE_ENV === "development"
-                  ? "dev.ndle.im"
-                  : "ndle.im"}
+                  ? "dev.ndle.fyi"
+                  : "ndle.fyi"}
               </code>
             </p>
           </div>
@@ -414,7 +414,7 @@ export function Settings() {
                 <p className="mt-1 text-xs text-blue-700">
                   View the full API documentation at{" "}
                   <a href="#" className="underline">
-                    docs.ndle.im/api
+                    ndle.app
                   </a>
                 </p>
               </div>

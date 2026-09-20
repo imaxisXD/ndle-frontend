@@ -13,7 +13,7 @@ const links = vi.hoisted(() => ({
     _id: `link-${index}`,
     _creationTime: Date.UTC(2026, 8, 1),
     fullurl: `https://example.com/${index}`,
-    shortUrl: `https://ndle.im/link-${index}`,
+    shortUrl: `https://ndle.fyi/link-${index}`,
   })),
 }));
 

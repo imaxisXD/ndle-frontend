@@ -3,7 +3,7 @@ export function getShortDomain(): string {
   if (envValue) {
     return envValue.replace(/^https?:\/\//, "").replace(/\/+$/, "");
   }
-  return process.env.NODE_ENV === "development" ? "dev.ndle.im" : "ndle.im";
+  return process.env.NODE_ENV === "development" ? "dev.ndle.fyi" : "ndle.fyi";
 }
 
 export function makeShortLink(slugOrPath: string): string {

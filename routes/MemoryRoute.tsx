@@ -1,3 +1,5 @@
+import { getShortDomain } from "@/lib/config";
+
 type MemoryItem = {
   link: string;
   title: string;
@@ -5,8 +7,7 @@ type MemoryItem = {
   conversations: number;
 };
 
-const domain =
-  process.env.NODE_ENV === "development" ? "dev.ndle.im" : "ndle.im";
+const domain = getShortDomain();
 const items: Array<MemoryItem> = [
   {
     link: `${domain}/a8x9k2`,

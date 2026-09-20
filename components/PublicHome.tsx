@@ -727,7 +727,7 @@ function ActTwoBento() {
             className="flex flex-col justify-between md:col-span-2 md:row-span-2"
           >
             <div className="flex items-center justify-between">
-              <BentoStat label="QR · ndle.im/demo" />
+              <BentoStat label="QR · ndle.fyi/demo" />
               <span className="text-[10px] text-[color:var(--pulp-ink)]/50">
                 164 × 164
               </span>
@@ -1094,7 +1094,7 @@ function Memo({ inView }: { inView: boolean }) {
               },
               {
                 k: "From:",
-                v: <span className="tabular-nums">alerts@ndle.im</span>,
+                v: <span className="tabular-nums">ndle monitoring</span>,
               },
               {
                 k: "Date:",
@@ -1111,7 +1111,7 @@ function Memo({ inView }: { inView: boolean }) {
                     <span className="font-bold" style={{ color: stampRed }}>
                       [DOWN]
                     </span>{" "}
-                    ndle.im/launch is not responding
+                    ndle.fyi/launch is not responding
                   </>
                 ),
               },
@@ -1146,7 +1146,7 @@ function Memo({ inView }: { inView: boolean }) {
             animate={inView ? { opacity: 1, y: 0 } : { opacity: 0, y: 4 }}
             transition={{ duration: 0.24, delay: 0.6, ease: "easeOut" }}
           >
-            One of your short links, <strong>ndle.im/launch</strong>, stopped
+            One of your short links, <strong>ndle.fyi/launch</strong>, stopped
             responding at <strong>03:04 AM UTC</strong> this morning.
           </motion.p>
 
@@ -1196,7 +1196,7 @@ function Memo({ inView }: { inView: boolean }) {
             <p>
               <strong>ndle</strong> monitoring
             </p>
-            <p className="opacity-65">alerts@ndle.im</p>
+            <p className="opacity-65">ndle.app</p>
           </motion.div>
 
           {/* URGENT rubber stamp — slaps onto the body after the email types in */}

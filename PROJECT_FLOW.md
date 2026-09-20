@@ -147,8 +147,8 @@ User views URLs → routes/HomeRoute.tsx → components/UrlTable.tsx → convex/
 
 #### Short domain configuration (frontend)
 
-- Local development uses `dev.ndle.im`
-- All other environments use `ndle.im`
+- Local development uses `dev.ndle.fyi`
+- All other environments use `ndle.fyi`
 - Optional override: set `NEXT_PUBLIC_SHORT_DOMAIN` (without protocol) to force a domain
 - Helper: see `lib/config.ts` (`getShortDomain`, `makeShortLink`)
 

@@ -21,6 +21,7 @@ import {
   InfoIcon,
   TrashIcon,
 } from "@phosphor-icons/react/dist/ssr";
+import { getShortDomain } from "@/lib/config";
 
 interface DomainItemProps {
   domain: DomainData;
@@ -62,6 +63,7 @@ export function DomainItem({ domain, onDelete }: DomainItemProps) {
   const recordName = isLikelyApexDomain
     ? "@"
     : domainLabels.slice(0, -2).join(".");
+  const shortDomain = getShortDomain();
 
   return (
     <div className="space-y-2 rounded-sm border border-dashed border-gray-300 p-2">
@@ -118,8 +120,10 @@ export function DomainItem({ domain, onDelete }: DomainItemProps) {
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2">
-                        <code className="font-mono text-gray-900">ndle.im</code>
-                        <CopyButton value="ndle.im" />
+                        <code className="font-mono text-gray-900">
+                          {shortDomain}
+                        </code>
+                        <CopyButton value={shortDomain} />
                       </div>
                     </td>
                   </tr>

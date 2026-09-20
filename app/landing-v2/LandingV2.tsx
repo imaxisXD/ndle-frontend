@@ -135,11 +135,11 @@ function FlapLine({
 type BoardStatus = "UP" | "SLOW" | "DOWN";
 
 const BOARD: Array<{ slug: string; dest: string; last: string; status: BoardStatus }> = [
-  { slug: "ndle.im/launch", dest: "mysite.com/product-launch", last: "12s", status: "UP" },
-  { slug: "ndle.im/docs", dest: "docs.mycompany.com/start", last: "18s", status: "UP" },
-  { slug: "ndle.im/blog", dest: "blog.mycompany.com/latest", last: "07s", status: "SLOW" },
-  { slug: "ndle.im/careers", dest: "mysite.com/senior-engineer", last: "03s", status: "DOWN" },
-  { slug: "ndle.im/pricing", dest: "mysite.com/pricing", last: "22s", status: "UP" },
+  { slug: "ndle.fyi/launch", dest: "mysite.com/product-launch", last: "12s", status: "UP" },
+  { slug: "ndle.fyi/docs", dest: "docs.mycompany.com/start", last: "18s", status: "UP" },
+  { slug: "ndle.fyi/blog", dest: "blog.mycompany.com/latest", last: "07s", status: "SLOW" },
+  { slug: "ndle.fyi/careers", dest: "mysite.com/senior-engineer", last: "03s", status: "DOWN" },
+  { slug: "ndle.fyi/pricing", dest: "mysite.com/pricing", last: "22s", status: "UP" },
 ];
 
 function boardStatusColor(s: BoardStatus) {
@@ -218,7 +218,7 @@ function DeparturesBoard({ inView, reduce }: { inView: boolean; reduce: boolean 
               }`}
             >
               <span className="truncate text-[color:var(--pulp-cream)]">
-                <span className="opacity-50">ndle.im/</span>
+                <span className="opacity-50">ndle.fyi/</span>
                 <span className="font-bold">{r.slug.split("/")[1]}</span>
               </span>
               <span className="hidden truncate text-[color:var(--pulp-cream)]/55 sm:block">
@@ -375,7 +375,7 @@ function BoardingPass({
   onCopy: () => void;
 }) {
   const isSample = !yourLink;
-  const slug = yourLink?.slug ?? "ndle.im/x7f2a9";
+  const slug = yourLink?.slug ?? "ndle.fyi/x7f2a9";
   const original = yourLink?.original ?? "yoursite.com/campaigns/spring-launch";
 
   return (
@@ -401,7 +401,7 @@ function BoardingPass({
           <div className="mt-3 space-y-1">
             <p className="text-[9px] font-bold tracking-[0.22em] uppercase opacity-55">to</p>
             <p className="font-sigmar truncate text-2xl leading-tight italic sm:text-3xl">
-              <span className="opacity-45">ndle.im/</span>
+              <span className="opacity-45">ndle.fyi/</span>
               <span className="text-[color:var(--pulp-orange)]">{slug.split("/")[1]}</span>
             </p>
           </div>
@@ -695,7 +695,7 @@ function Wayfinding() {
 /* ───────── scene: the service notice (the incident) ───────── */
 
 const NOTICE_LINES = [
-  { t: "03:04:03", text: "ndle.im/careers — 503 at sa-east", tone: "down" as const },
+  { t: "03:04:03", text: "ndle.fyi/careers — 503 at sa-east", tone: "down" as const },
   { t: "03:04:04", text: "dispatch sent → you", tone: "alert" as const },
   { t: "03:04:41", text: "service resumed — 200 OK", tone: "ok" as const },
 ];
