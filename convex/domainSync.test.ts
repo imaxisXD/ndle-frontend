@@ -431,6 +431,27 @@ describe("durable custom domain changes", () => {
     expect(failed.lastError).toContain("credentials are not configured");
   });
 
+  test("Cloudflare API failures preserve the provider error code", async () => {
+    const { backend, client } = await setup();
+    await client.mutation(api.customDomains.addDomain, { domain });
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () =>
+        Response.json(
+          {
+            success: false,
+            errors: [{ code: 10000, message: "Authentication error" }],
+          },
+          { status: 403 },
+        ),
+      ),
+    );
+    const failed = await runJob(backend);
+    expect(failed.lastError).toContain(
+      "Cloudflare domain request failed (HTTP 403): 10000 Authentication error",
+    );
+  });
+
   test("another account cannot adopt a domain just because its local status is old", async () => {
     const { backend, client } = await setup();
     await backend.run(async (ctx) => {

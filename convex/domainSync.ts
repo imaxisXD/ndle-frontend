@@ -145,6 +145,16 @@ function isObject(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
+function cloudflareErrorDetail(value: unknown): string {
+  if (!isObject(value) || !Array.isArray(value.errors)) return "";
+  const first = value.errors.find(isObject);
+  if (!first) return "";
+  const code = typeof first.code === "number" ? String(first.code) : "";
+  const message = typeof first.message === "string" ? first.message : "";
+  const detail = [code, message].filter(Boolean).join(" ");
+  return detail ? `: ${detail}` : "";
+}
+
 function readHostname(value: unknown): Hostname {
   if (
     !isObject(value) ||
@@ -194,11 +204,11 @@ async function callCloudflare(
     },
   );
   if (allowMissing && response.status === 404) return MISSING_HOSTNAME;
+  const body: unknown = await response.json().catch(() => null);
   if (!response.ok)
     throw new Error(
-      `Cloudflare domain request failed (HTTP ${response.status})`,
+      `Cloudflare domain request failed (HTTP ${response.status})${cloudflareErrorDetail(body)}`,
     );
-  const body: unknown = await response.json();
   if (!isObject(body) || body.success !== true || !("result" in body)) {
     throw new Error("Cloudflare did not confirm the domain request");
   }
