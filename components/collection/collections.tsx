@@ -1,17 +1,6 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { Badge } from "@ui/badge";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  CardToolbar,
-  CardHeading,
-  CardFooter,
-} from "@ui/card";
 import { MoreVertCircle, BinMinusIn, Page, KeyCommand } from "iconoir-react";
 import { CreateCollectionButton } from "./create-collection-button";
 import { CollectionFolder, isHexColor } from "./collection-folder";
@@ -154,72 +143,84 @@ function CollectionCard({
     ? collection.collectionColor
     : fallbackColor;
   const href = `/collection/${collection.id}`;
+  const clickCount = collection.totalClickCount;
 
   return (
-    <Card
-      variant="accent"
-      className="group hover:border-accent border-border cursor-pointer border transition-all duration-100 ease-in-out hover:border-dashed hover:shadow-[0px_0px_0px_4px_#ffca0026]"
+    <div
+      className="group relative flex flex-col items-center"
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >
-      <NavLink to={href} tabIndex={-1} aria-hidden className="block pt-6">
-        <CollectionFolder
-          previewUrls={collection.previewUrls}
-          color={collectionColor}
-          size="xs"
-          hovered={hovered}
-          open={false}
-          className="h-36"
-        />
-      </NavLink>
-      <CardHeader className="flex items-center">
-        <NavLink to={href} tabIndex={0} className="flex-1">
-          <CardHeading className="flex items-center gap-2">
-            <span
-              aria-hidden
-              className="size-2.5 shrink-0 rounded-full"
-              style={{ backgroundColor: collectionColor }}
-            />
-            <CardTitle className="font-medium">{collection.name}</CardTitle>
-          </CardHeading>
+      {/* The folder is the card. The label sits on its face like a paper sticker,
+          so the art is the container rather than a picture boxed inside one. */}
+      <div className="relative">
+        <NavLink
+          to={href}
+          tabIndex={-1}
+          aria-hidden
+          className="block h-[162px] w-[194px] transition-transform duration-150 ease-out group-hover:-translate-y-[3px] active:scale-[0.99]"
+        >
+          <CollectionFolder
+            previewUrls={collection.previewUrls}
+            color={collectionColor}
+            size="xs"
+            hovered={hovered}
+            open={false}
+            className="h-[135px] w-[161px] origin-top-left scale-[1.2] transition-transform duration-150 ease-out"
+          />
         </NavLink>
-        <CardToolbar>
+        {/* Anchored to the art, not the cell, so it stays beside the folder at every width. */}
+        <div className="absolute -top-1 -right-8">
           <CollectionMenuCell
             collection={collection}
             onView={onView}
             onDeleteClick={onDeleteClick}
           />
-        </CardToolbar>
-      </CardHeader>
-
-      <NavLink to={href} tabIndex={-1} className="block">
-        <CardContent className="px-5 pb-0.5">
-          <CardDescription className="mb-5 line-clamp-2 h-[2lh] text-xs">
-            {collection.description || "No description given"}
-          </CardDescription>
-        </CardContent>
-        <CardFooter>
-          <div className="flex flex-wrap gap-2">
-            <Badge variant="default">
-              [{collection.urlCount}]{" "}
-              <span className="text-muted-foreground pl-1 text-xs">
-                {collection.urlCount === 1 ? "link" : "links"}
+        </div>
+        {/* Name band over an instrument readout: the collection reads as a filing card. */}
+        <div className="border-border bg-card absolute top-[54%] left-1/2 w-[88%] -translate-x-1/2 overflow-hidden rounded-sm border shadow-[inset_0_1px_0_rgba(255,255,255,0.9),0_1px_2px_rgba(0,0,0,0.04)]">
+          <NavLink
+            to={href}
+            className="focus-visible:ring-accent/50 block px-3 py-1.5 outline-none focus-visible:ring-[3px] focus-visible:ring-inset"
+            style={{
+              backgroundColor: `color-mix(in oklab, ${collectionColor} 22%, white)`,
+            }}
+          >
+            <h3 className="truncate text-sm leading-tight font-semibold tracking-tight">
+              {collection.name}
+            </h3>
+          </NavLink>
+          <NavLink to={href} tabIndex={-1} className="block px-3 pt-2 pb-2">
+            <span className="flex items-end justify-between gap-2">
+              <span className="flex flex-col">
+                <span className="text-sm leading-none font-semibold tabular-nums">
+                  {collection.urlCount}
+                </span>
+                <span className="text-muted-foreground mt-0.5 text-[10px] leading-none">
+                  {collection.urlCount === 1 ? "link" : "links"}
+                </span>
               </span>
-            </Badge>
-            <Badge variant="default">
-              [{collection.totalClickCount ?? "Updating"}]{" "}
-              <span className="text-muted-foreground pl-1 text-xs">
-                {collection.totalClickCount === null
-                  ? "click total"
-                  : collection.totalClickCount === 1
-                    ? "click"
-                    : "clicks"}
+              <span
+                className="border-border h-6 border-l border-dashed"
+                aria-hidden
+              />
+              <span className="flex flex-col items-end">
+                <span className="text-sm leading-none font-semibold tabular-nums">
+                  {clickCount ?? "—"}
+                </span>
+                <span className="text-muted-foreground mt-0.5 text-[10px] leading-none">
+                  {clickCount === null
+                    ? "clicks updating"
+                    : clickCount === 1
+                      ? "click"
+                      : "clicks"}
+                </span>
               </span>
-            </Badge>
-          </div>
-        </CardFooter>
-      </NavLink>
-    </Card>
+            </span>
+          </NavLink>
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -303,7 +304,7 @@ export function Collections({
           </p>
         </div>
       ) : (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-x-5 gap-y-10 pt-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {collections?.map((collection) => (
             <CollectionCard
               key={collection.id}
