@@ -314,6 +314,10 @@ const SHOWCASE = {
   swap: { type: "spring" as const, duration: 0.45, bounce: 0 },
 };
 
+function imageSourceUrl(image: string | { src: string }): string {
+  return typeof image === "string" ? image : image.src;
+}
+
 function StoryShowcase({ inView }: { inView: boolean }) {
   const [active, setActive] = useState(0);
   const [paused, setPaused] = useState(false);
@@ -324,7 +328,7 @@ function StoryShowcase({ inView }: { inView: boolean }) {
   useEffect(() => {
     if (!inView) return;
     for (const item of STAGES) {
-      preload(item.src.src, { as: "image" });
+      preload(imageSourceUrl(item.src), { as: "image" });
     }
   }, [inView]);
 
@@ -407,7 +411,7 @@ function StoryShowcase({ inView }: { inView: boolean }) {
         <div className="relative aspect-[16/10] overflow-hidden rounded-[2px] bg-white outline outline-1 -outline-offset-1 outline-[oklch(0_0_0/0.1)]">
           <AnimatePresence initial={false} mode="popLayout">
             <motion.div
-              key={stage.src.src}
+              key={imageSourceUrl(stage.src)}
               className="absolute inset-0"
               initial={reduce ? false : { opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
