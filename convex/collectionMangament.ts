@@ -14,6 +14,28 @@ import { accountCounter as counter } from "./accountCounters";
 import schema from "./schema";
 
 const BATCH_SIZE = 100;
+export const COLLECTION_COLOR_PALETTE = [
+  "#3b82f6",
+  "#10b981",
+  "#f59e0b",
+  "#8b5cf6",
+  "#ec4899",
+  "#06b6d4",
+  "#ef4444",
+] as const;
+const HEX_COLOR_PATTERN = /^#[0-9a-f]{6}$/i;
+
+function getNewCollectionColor(requestedColor?: string) {
+  const color = requestedColor?.trim();
+  if (!color) {
+    const index = Math.floor(Math.random() * COLLECTION_COLOR_PALETTE.length);
+    return COLLECTION_COLOR_PALETTE[index];
+  }
+  if (!HEX_COLOR_PATTERN.test(color))
+    throw new ConvexError("Collection color must be a 6-digit hex color");
+  return color.toLowerCase();
+}
+
 const collectionDocument = v.object({
   _id: v.id("collections"),
   _creationTime: v.number(),
@@ -362,7 +384,7 @@ export const createCollection = mutation({
   args: {
     name: v.string(),
     description: v.optional(v.string()),
-    collectionColor: v.string(),
+    collectionColor: v.optional(v.string()),
   },
   returns: v.id("collections"),
   handler: async (ctx, args) => {
@@ -386,7 +408,7 @@ export const createCollection = mutation({
       description: args.description ?? "",
       userTableId: user._id,
       urls: [],
-      collectionColor: args.collectionColor,
+      collectionColor: getNewCollectionColor(args.collectionColor),
       normalizedName,
       shareAble: false,
       membersReady: true,

@@ -4,6 +4,7 @@ import { createTestBackend } from "./test.setup";
 import { accountCounter } from "./accountCounters";
 import {
   addLinkToCollection,
+  COLLECTION_COLOR_PALETTE,
   incrementCollectionClicks,
   removeLinkFromCollections,
 } from "./collectionMangament";
@@ -25,6 +26,38 @@ async function setup() {
 afterEach(() => {
   vi.useRealTimers();
   vi.unstubAllEnvs();
+});
+
+describe("collection creation", () => {
+  test("assigns and persists a backend color when the client omits it", async () => {
+    const { backend, client } = await setup();
+    const collectionId = await client.mutation(
+      api.collectionMangament.createCollection,
+      { name: "Backend colored" },
+    );
+
+    const collection = await backend.run((ctx) => ctx.db.get(collectionId));
+
+    expect(collection?.collectionColor).toBeDefined();
+    expect(COLLECTION_COLOR_PALETTE).toContain(collection?.collectionColor);
+  });
+
+  test("preserves a valid explicit color and rejects invalid colors", async () => {
+    const { backend, client } = await setup();
+    const collectionId = await client.mutation(
+      api.collectionMangament.createCollection,
+      { name: "Custom colored", collectionColor: "#ABCDEF" },
+    );
+
+    const collection = await backend.run((ctx) => ctx.db.get(collectionId));
+    expect(collection?.collectionColor).toBe("#abcdef");
+    await expect(
+      client.mutation(api.collectionMangament.createCollection, {
+        name: "Invalid colored",
+        collectionColor: "transparent",
+      }),
+    ).rejects.toThrow("Collection color must be a 6-digit hex color");
+  });
 });
 
 describe("collection membership", () => {

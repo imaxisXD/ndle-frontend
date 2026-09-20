@@ -15,7 +15,7 @@ import {
 import { MoreVertCircle, BinMinusIn, Page, KeyCommand } from "iconoir-react";
 import { CreateCollectionButton } from "./create-collection-button";
 import { CollectionFolder, isHexColor } from "./collection-folder";
-import { COLLECTION_COLORS } from "./colors";
+import { getCollectionFallbackColor } from "./colors";
 import { NavLink, useNavigate } from "react-router";
 import { CollectionsType } from "@/routes/CollectionsRoute";
 import { useMutation } from "convex/react";
@@ -304,13 +304,11 @@ export function Collections({
         </div>
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {collections?.map((collection, index) => (
+          {collections?.map((collection) => (
             <CollectionCard
               key={collection.id}
               collection={collection}
-              fallbackColor={
-                COLLECTION_COLORS[index % COLLECTION_COLORS.length]
-              }
+              fallbackColor={getCollectionFallbackColor(collection.id)}
               onView={handleView}
               onDeleteClick={handleDeleteClick}
             />

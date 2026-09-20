@@ -8,7 +8,17 @@ export const COLLECTION_COLORS = [
   "#ef4444", // Red
 ] as const;
 
-export function getRandomCollectionColor(): string {
-  const index = Math.floor(Math.random() * COLLECTION_COLORS.length);
-  return COLLECTION_COLORS[index];
+/**
+ * Returns a stable fallback for legacy collections that have no saved color.
+ * The collection ID is used instead of its list position so deleting or
+ * reordering another collection cannot change the displayed color.
+ */
+export function getCollectionFallbackColor(collectionId: string): string {
+  let hash = 0;
+
+  for (let index = 0; index < collectionId.length; index += 1) {
+    hash = Math.imul(hash, 31) + collectionId.charCodeAt(index);
+  }
+
+  return COLLECTION_COLORS[(hash >>> 0) % COLLECTION_COLORS.length];
 }

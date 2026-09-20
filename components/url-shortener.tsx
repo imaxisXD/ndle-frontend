@@ -38,7 +38,6 @@ import { getShortDomain } from "@/lib/config";
 import { HotkeyButton } from "./ui/hotkey-button";
 import { Badge } from "@/components/ui/badge";
 import { AdvancedOptions } from "./url-shortener/AdvancedOptions";
-import { getRandomCollectionColor } from "@/components/collection/colors";
 import { trackUrlCreated, trackAdvancedOptionsOpened } from "@/lib/posthog";
 import { useFavicon } from "@/hooks/use-favicon";
 import {
@@ -317,8 +316,7 @@ export function UrlShortener() {
         const newId = await createCollection({
           name: values.newCollectionName.trim(),
           description: "",
-          collectionColor:
-            values.newCollectionColor?.trim() || getRandomCollectionColor(),
+          collectionColor: values.newCollectionColor?.trim() || undefined,
         });
         collectionIdToUse = newId;
       }

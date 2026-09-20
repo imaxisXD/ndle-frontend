@@ -30,10 +30,6 @@ import {
   ComboboxValue,
 } from "@/components/ui/base-combobox";
 import { ColorSelector } from "@/components/collection/ColorSelector";
-import {
-  COLLECTION_COLORS,
-  getRandomCollectionColor,
-} from "@/components/collection/colors";
 import { getWindowsFolderNameError } from "@/lib/utils";
 import {
   NavArrowDown,
@@ -132,11 +128,6 @@ export function OptionOrganization({
     setNameError(null);
     form.setValue("collectionId", undefined, { shouldDirty: true });
     form.setValue("newCollectionName", name.trim(), { shouldDirty: true });
-    if (!form.getValues("newCollectionColor")) {
-      form.setValue("newCollectionColor", getRandomCollectionColor(), {
-        shouldDirty: true,
-      });
-    }
     setComboboxOpen(false);
   };
 
@@ -150,11 +141,10 @@ export function OptionOrganization({
     }
     setCreating(true);
     try {
-      const color = pendingNewColor || getRandomCollectionColor();
       const newId = await createCollection({
         name,
         description: "",
-        collectionColor: color,
+        collectionColor: pendingNewColor || undefined,
       });
       form.setValue("collectionId", newId, { shouldDirty: true });
       resetNewCollectionFields();
@@ -446,8 +436,7 @@ export function OptionOrganization({
                 Choose collection color:
               </FormLabel>
               <ColorSelector
-                value={pendingNewColor || COLLECTION_COLORS[0]}
-                colors={COLLECTION_COLORS}
+                value={pendingNewColor}
                 onChange={(val) =>
                   form.setValue("newCollectionColor", val, {
                     shouldDirty: true,

@@ -26,7 +26,6 @@ import { useState } from "react";
 import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useToast } from "@/hooks/use-toast";
-import { getRandomCollectionColor } from "./colors";
 import { ColorSelector } from "./ColorSelector";
 import { getWindowsFolderNameError } from "@/lib/utils";
 import { trackCollectionCreated } from "@/lib/posthog";
@@ -90,11 +89,10 @@ export function CreateCollectionButton({
       return;
     }
 
-    const colorToSend = values.collectionColor || getRandomCollectionColor();
     await createCollection({
       name: values.name,
       description: values.description || "",
-      collectionColor: colorToSend,
+      collectionColor: values.collectionColor || undefined,
     });
     trackCollectionCreated();
     addToast.add({
