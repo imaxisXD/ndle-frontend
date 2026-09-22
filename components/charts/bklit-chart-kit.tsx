@@ -190,7 +190,8 @@ function estimateLabelWidth<T extends object>({
       getRecordValue(item as ChartRecord, labelKey),
       item,
     );
-    return Math.max(longest, Math.min(label.length, 12));
+    // 16 characters fits names like "United Kingdom" or "Samsung Internet".
+    return Math.max(longest, Math.min(label.length, 16));
   }, 0);
 
   return Math.max(48, Math.min(maxWidth, longestVisibleLength * 7 + 24));
@@ -210,7 +211,7 @@ export function BklitHorizontalBarChart<T extends object>({
   emptyDescription,
   loadingTitle,
   style,
-  labelWidth = 96,
+  labelWidth = 136,
   barWidth = 18,
   showValueLabels = true,
 }: {

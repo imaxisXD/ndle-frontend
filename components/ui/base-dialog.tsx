@@ -90,8 +90,9 @@ function DialogPopup({
   );
 }
 
-export interface DialogContentProps
-  extends React.ComponentProps<typeof DialogPrimitive.Popup> {
+export interface DialogContentProps extends React.ComponentProps<
+  typeof DialogPrimitive.Popup
+> {
   showDismissButton?: boolean;
   showBackdrop?: boolean;
   fullscreen?: boolean;
@@ -115,10 +116,11 @@ function DialogContent({
         {showDismissButton && (
           <DialogPrimitive.Close
             data-slot="alert-dialog-dismiss"
+            // Fixed 36px target. It used to inherit the dialog's className,
+            // so a dialog with `p-0` shrank the button to 20px wide.
             className={cn(
               buttonVariants({ variant: "dim" }),
-              "group absolute end-2.5 top-3 hover:bg-red-200/10",
-              className,
+              "group absolute end-2 top-2 size-9 p-0 hover:bg-red-200/10",
             )}
           >
             <XmarkCircle className="size-5 text-red-500 group-hover:text-red-400" />
