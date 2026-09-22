@@ -74,11 +74,11 @@ import {
   DialogClose,
 } from "../ui/base-dialog";
 import { type DisplayUrl } from "./types";
+import { urlTableColumnSize } from "./column-sizes";
+import { UrlTableSkeletonRows } from "./UrlTableSkeletonRows";
 import { formatRelative, cn, getMonitoringStatus } from "@/lib/utils";
-import { DotmatrixLoaderIcon } from "@/components/ui/dotmatrix-loader-icon";
 import { EmptyStateImage } from "@/components/empty-state-image";
 import { AnimatedMetricNumber } from "@/components/animated-metric-number";
-import { Skeleton } from "../ui/skeleton";
 import { makeShortLinkWithDomain } from "@/lib/config";
 
 import { ChartBarIcon, CopyIcon, TrashIcon } from "@phosphor-icons/react";
@@ -469,15 +469,6 @@ function ClickCountNumber({
     />
   );
 }
-
-const urlTableColumnSize = {
-  actions: 40,
-  clicks: 60,
-  createdAt: 60,
-  separator: 60,
-  shortUrl: 180,
-  status: 60,
-} as const;
 
 type UrlDataRowProps = {
   createdAt: number;
@@ -1295,6 +1286,30 @@ export function UrlTable({
 
   const columns_count = table.getAllColumns().length;
 
+  // Shared by the loading and empty states; the loaded table adds sorting.
+  const plainTableHeader = (
+    <TableHeader className="bg-card sticky top-0">
+      {table.getHeaderGroups().map((headerGroup) => (
+        <TableRow key={headerGroup.id} className="hover:bg-transparent">
+          {headerGroup.headers.map((header) => (
+            <TableHead
+              key={header.id}
+              className="px-4 py-3"
+              style={{ width: header.getSize() }}
+            >
+              {header.isPlaceholder
+                ? null
+                : flexRender(
+                    header.column.columnDef.header,
+                    header.getContext(),
+                  )}
+            </TableHead>
+          ))}
+        </TableRow>
+      ))}
+    </TableHeader>
+  );
+
   return (
     <div className="border-border bg-card rounded-md border">
       {showHeader && (
@@ -1336,13 +1351,18 @@ export function UrlTable({
 
       <div className="border-border border-b">
         {isLoading ? (
-          <Skeleton className="diagonal-dash bg-mute flex h-[499px] flex-col items-center justify-center rounded-none">
-            <DotmatrixLoaderIcon className="mx-auto" size={24} />
-            <h3 className="mt-4 text-sm font-medium">Loading</h3>
-            <p className="text-muted-foreground mt-2 h-64 text-xs">
-              Please wait while we load your links
-            </p>
-          </Skeleton>
+          <Table
+            aria-busy="true"
+            aria-label="Loading your links"
+            style={{ tableLayout: "fixed", width: "100%" }}
+          >
+            {plainTableHeader}
+            <TableBody>
+              <UrlTableSkeletonRows
+                rows={table.getState().pagination.pageSize}
+              />
+            </TableBody>
+          </Table>
         ) : collectionIsUpdating ? (
           <output className="block px-6 py-12 text-center">
             <span className="block text-sm font-medium">
@@ -1354,26 +1374,7 @@ export function UrlTable({
           </output>
         ) : hasLoadProblem || isEmpty || filteredUrls.length === 0 ? (
           <Table style={{ tableLayout: "fixed", width: "100%" }}>
-            <TableHeader className="bg-card sticky top-0">
-              {table.getHeaderGroups().map((headerGroup) => (
-                <TableRow key={headerGroup.id} className="hover:bg-transparent">
-                  {headerGroup.headers.map((header) => (
-                    <TableHead
-                      key={header.id}
-                      className="px-4 py-3"
-                      style={{ width: header.getSize() }}
-                    >
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext(),
-                          )}
-                    </TableHead>
-                  ))}
-                </TableRow>
-              ))}
-            </TableHeader>
+            {plainTableHeader}
             <TableBody>
               <TableRow>
                 <TableCell colSpan={columns_count} className="my-auto">

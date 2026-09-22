@@ -4,14 +4,14 @@ import { useAuth } from "@clerk/nextjs";
 import { useConvexAuth } from "convex/react";
 import type { ReactNode } from "react";
 import { Button } from "@/components/ui/button";
+import { AppShellSkeleton } from "@/components/skeleton-routes/app-shell-skeleton";
 
 export function AppLoading() {
   return (
-    <main className="bg-home text-foreground flex min-h-screen items-center justify-center px-6">
-      <output className="text-muted-foreground text-sm">
-        Loading your account…
-      </output>
-    </main>
+    <div aria-busy="true">
+      <output className="sr-only">Loading your account…</output>
+      <AppShellSkeleton />
+    </div>
   );
 }
 

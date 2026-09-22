@@ -38,13 +38,10 @@ import { getShortDomain } from "@/lib/config";
 import { HotkeyButton } from "./ui/hotkey-button";
 import { Badge } from "@/components/ui/badge";
 import { AdvancedOptions } from "./url-shortener/AdvancedOptions";
+import { PlanNote, type PlanNoteState } from "./url-shortener/PlanNote";
 import { trackUrlCreated, trackAdvancedOptionsOpened } from "@/lib/posthog";
 import { useFavicon } from "@/hooks/use-favicon";
-import {
-  clampQrLogoScale,
-  clampQrMargin,
-  clampQrSize,
-} from "@/lib/qr";
+import { clampQrLogoScale, clampQrMargin, clampQrSize } from "@/lib/qr";
 import {
   Select,
   SelectTrigger,
@@ -152,6 +149,8 @@ export function UrlShortener() {
     useState<string>(getShortDomain());
   const viewer = useQuery(api.users.getViewerState);
   const isPro = viewer?.membership === "pro";
+  const planNoteState: PlanNoteState =
+    viewer === undefined ? "loading" : isPro ? "pro" : "free";
 
   // Get active custom domains for domain selector
   const activeDomains = useQuery(api.customDomains.getActiveDomains);
@@ -251,12 +250,7 @@ export function UrlShortener() {
   // Watch specific form values for summary chips
   const watchedSummaryValues = useWatch({
     control: form.control,
-    name: [
-      "utmEnabled",
-      "abEnabled",
-      "qrEnabled",
-      "collectionId",
-    ],
+    name: ["utmEnabled", "abEnabled", "qrEnabled", "collectionId"],
   });
 
   const summaryChips = useMemo(() => {
@@ -542,39 +536,37 @@ export function UrlShortener() {
               render={({ field }) => (
                 <FormItem>
                   <div className="border-border bg-muted/20 rounded-lg border p-4">
-                    {/* Domain Selector */}
-                    {activeDomains && activeDomains.length > 0 && (
-                      <div className="mb-4">
-                        <div className="text-muted-foreground mb-2 text-xs">
-                          Domain
-                        </div>
-                        <Select
-                          value={selectedDomain}
-                          onValueChange={(newDomain) => {
-                            if (typeof newDomain === "string") {
-                              setSelectedDomain(newDomain);
-                            }
-                          }}
-                        >
-                          <SelectTrigger className="border-border h-8 w-fit border bg-white text-xs shadow-xs">
-                            <SelectValue placeholder="Select domain" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value={getShortDomain()}>
-                              {getShortDomain()}
-                            </SelectItem>
-                            {activeDomains.map((domain) => (
-                              <SelectItem
-                                key={domain._id}
-                                value={domain.domain}
-                              >
-                                {domain.domain}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                    {/* Domain Selector. Always shown so the form keeps its
+                        height while custom domains load; with none it just
+                        shows the default domain. */}
+                    <div className="mb-4">
+                      <div className="text-muted-foreground mb-2 text-xs">
+                        Domain
                       </div>
-                    )}
+                      <Select
+                        disabled={!activeDomains?.length}
+                        value={selectedDomain}
+                        onValueChange={(newDomain) => {
+                          if (typeof newDomain === "string") {
+                            setSelectedDomain(newDomain);
+                          }
+                        }}
+                      >
+                        <SelectTrigger className="border-border h-8 w-fit border bg-white text-xs shadow-xs">
+                          <SelectValue placeholder="Select domain" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value={getShortDomain()}>
+                            {getShortDomain()}
+                          </SelectItem>
+                          {activeDomains?.map((domain) => (
+                            <SelectItem key={domain._id} value={domain.domain}>
+                              {domain.domain}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
 
                     <div className="text-muted-foreground mb-3 text-xs">
                       Link Style
@@ -600,7 +592,7 @@ export function UrlShortener() {
                             </span>
                           </label>
                         </div>
-                      <div className="flex flex-wrap items-center gap-2">
+                        <div className="flex flex-wrap items-center gap-2">
                           <RadioGroupItem
                             id="slug-human"
                             value="human"
@@ -609,7 +601,10 @@ export function UrlShortener() {
                           />
                           <label
                             htmlFor="slug-human"
-                            className={cn("text-sm", !isPro && "text-muted-foreground")}
+                            className={cn(
+                              "text-sm",
+                              !isPro && "text-muted-foreground",
+                            )}
                           >
                             Readable words{" "}
                             <span className="text-muted-foreground text-xs">
@@ -619,11 +614,17 @@ export function UrlShortener() {
                               </span>
                               )
                             </span>
-                            {!isPro ? (
-                              <span className="ml-2 text-[11px] uppercase tracking-wide">
-                                Pro only
-                              </span>
-                            ) : null}
+                            {/* Kept in place for Pro so the label wraps the
+                                same way before and after the plan loads. */}
+                            <span
+                              aria-hidden={isPro}
+                              className={cn(
+                                "ml-2 text-[11px] tracking-wide uppercase",
+                                isPro && "invisible",
+                              )}
+                            >
+                              Pro only
+                            </span>
                           </label>
                         </div>
                       </RadioGroup>
@@ -635,12 +636,7 @@ export function UrlShortener() {
 
             {/* Advanced Options */}
             <div className="space-y-3">
-              {!isPro ? (
-                <p className="text-muted-foreground text-xs">
-                  Free accounts can use simple settings here. Paid-only options
-                  will stay blocked when you save.
-                </p>
-              ) : null}
+              <PlanNote state={planNoteState} />
               <HotkeyButton
                 kbdClassName="no-underline text-xs h-fit py-0.5 shadow-xs from-gray-200 to-gray-100 backdrop-blur-sm text-black/60 rounded-xs border"
                 type="button"

@@ -1421,6 +1421,69 @@
   }
 }
 
+/* ── App loading skeleton ─────────────────────────────────────────── */
+
+/* A card with a top, left and right border and no bottom edge: the frame
+   and everything in it fade out below --skel-fade-start. The bottom border
+   keeps its width so the frame is exactly as tall as the real card. */
+.skel-frame {
+  --skel-fade-start: 60%;
+  border: 1px solid var(--border);
+  border-bottom-color: transparent;
+  background: var(--card);
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    #000 0%,
+    #000 var(--skel-fade-start),
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    #000 0%,
+    #000 var(--skel-fade-start),
+    transparent 100%
+  );
+}
+
+/* Placeholder bar. A light band sweeps across it; --skel-delay staggers
+   the sweep so it travels down the page instead of flashing everywhere. */
+.skel-bone {
+  position: relative;
+  overflow: hidden;
+  background: var(--muted);
+}
+/* Bones sitting on the page background need more contrast than on a card. */
+.skel-bone-page {
+  background: oklch(0.91 0 0);
+}
+.skel-bone::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    oklch(1 0 0 / 0.8) 50%,
+    transparent 100%
+  );
+  animation: skel-sweep 1.6s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  animation-delay: var(--skel-delay, 0ms);
+}
+@keyframes skel-sweep {
+  60%,
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skel-bone::after {
+    animation: none;
+    opacity: 0;
+  }
+}
+
 /* ── transitions.dev — dark-theme color overrides ─────────────────────
    The shimmer / tabs / tooltip transitions ship hardcoded light-mode
    color tokens. The reference files (and SKILL.md) document that these
