@@ -62,7 +62,8 @@ export function DeviceOSChart({
             </TabsTrigger>
             <TabsTrigger value="os" className="flex items-center gap-2">
               <Monitor className="size-4" />
-              Operating Systems
+              <span className="sm:hidden">OS</span>
+              <span className="hidden sm:inline">Operating Systems</span>
             </TabsTrigger>
           </TabsList>
           <TabsContent value="device" className="mt-0">

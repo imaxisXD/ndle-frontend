@@ -102,10 +102,10 @@ export function LinkActivityLog({ linkSlug }: LinkActivityLogProps) {
             {activities.map((activity) => (
               <div
                 key={activity._id}
-                className="hover:bg-muted/30 flex items-center justify-between gap-4 px-5 py-3 transition-colors"
+                className="hover:bg-muted/30 flex items-center justify-between gap-4 px-4 py-3 transition-colors sm:px-5"
               >
-                {/* Left side: Time and Location */}
-                <div className="flex min-w-0 items-center gap-4">
+                {/* Left side: Time and Location (stacked on phones) */}
+                <div className="flex min-w-0 flex-1 flex-col gap-0.5 sm:flex-row sm:items-center sm:gap-4">
                   <div className="text-muted-foreground text-xs whitespace-nowrap">
                     {formatRelative(activity.occurredAt)}
                   </div>
@@ -127,8 +127,12 @@ export function LinkActivityLog({ linkSlug }: LinkActivityLogProps) {
                       {activity.deviceType}
                     </span>
                   </div>
-                  <Badge variant="default" className="text-xs">
-                    {activity.browser}
+                  <Badge
+                    variant="default"
+                    className="max-w-36 text-xs sm:max-w-none"
+                    title={activity.browser}
+                  >
+                    <span className="truncate">{activity.browser}</span>
                   </Badge>
                   <span className="text-muted-foreground hidden text-xs md:inline">
                     {activity.os}

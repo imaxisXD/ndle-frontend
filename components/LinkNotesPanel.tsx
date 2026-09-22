@@ -53,7 +53,7 @@ export function LinkNotesPanel({ shortUrl, fullUrl }: LinkNotesPanelProps) {
   return (
     <Card>
       <CardHeader>
-        <div className="flex items-center justify-between">
+        <div className="flex w-full items-center justify-between">
           <div className="flex items-center gap-2">
             <Bookmark className="text-muted-foreground size-4" />
             <CardTitle className="text-sm font-medium">Notes</CardTitle>
@@ -89,7 +89,6 @@ export function LinkNotesPanel({ shortUrl, fullUrl }: LinkNotesPanelProps) {
               value={noteInput}
               onChange={(e) => setNoteInput(e.target.value)}
               placeholder="Add a note about this link..."
-              className="text-sm"
             />
             <Button
               size="sm"
@@ -122,7 +121,9 @@ export function LinkNotesPanel({ shortUrl, fullUrl }: LinkNotesPanelProps) {
                 key={note.id}
                 className="bg-muted/30 border-border rounded-lg border p-3"
               >
-                <p className="text-sm">{note.content}</p>
+                <p className="text-sm [overflow-wrap:anywhere]">
+                  {note.content}
+                </p>
                 <p className="text-muted-foreground mt-2 text-xs">
                   {formatRelativeDate(note.createdAt)}
                 </p>

@@ -40,19 +40,22 @@ export function LinkHeader({
       {/* Main Header Section */}
       <div className="flex flex-col gap-4">
         {/* Short URL and Actions */}
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-          <div className="flex flex-col items-start gap-2">
+        {/* Side by side only from lg: with the sidebar rail, tablets are too
+            narrow for a long short link plus the full actions bar. */}
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+          <div className="flex min-w-0 flex-1 flex-col items-start gap-2">
             <LinkWithIcon
               link={shortUrl}
               href={`https://${shortUrl}`}
+              className="max-w-full justify-start text-2xl [overflow-wrap:anywhere] sm:text-3xl"
               iconClassName="size-4"
             />
 
             {/* Destination URL Preview */}
             {fullUrl && (
-              <div className="text-muted-foreground flex items-center gap-2 text-sm">
+              <div className="text-muted-foreground flex w-full min-w-0 items-center gap-2 text-sm">
                 <LinkIcon className="size-3.5 shrink-0" />
-                <span className="max-w-xs truncate md:max-w-md" title={fullUrl}>
+                <span className="min-w-0 truncate sm:max-w-md" title={fullUrl}>
                   {fullUrl}
                 </span>
               </div>

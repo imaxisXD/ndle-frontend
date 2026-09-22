@@ -40,17 +40,18 @@ export default function LinkDetailSkeleton({ shortUrl }: { shortUrl: string }) {
         <LiveClickHero counterValue={0} />
       </header>
 
-      <section className="grid gap-6 lg:grid-cols-2">
-        <ClicksTimelineChart />
-        <BrowserChart />
-        <CountryChart />
-        <DeviceOSChart />
-        <BotTrafficChart />
+      <section className="grid gap-6 lg:grid-cols-2 [&>*]:min-w-0">
+        {/* isLoading so the cards show their loading state, not "no clicks yet". */}
+        <ClicksTimelineChart isLoading />
+        <BrowserChart isLoading />
+        <CountryChart isLoading />
+        <DeviceOSChart isLoading />
+        <BotTrafficChart isLoading />
         {/* <LatencyChart data={[]} /> */}
-        <HourlyActivityChart />
+        <HourlyActivityChart isLoading />
       </section>
 
-      <section className="mt-6 grid gap-6 lg:grid-cols-2">
+      <section className="mt-6 grid gap-6 lg:grid-cols-2 [&>*]:min-w-0">
         <MetadataCard />
 
         <Card className="border-red-500">

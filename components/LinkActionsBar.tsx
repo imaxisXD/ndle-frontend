@@ -25,6 +25,9 @@ interface LinkActionsBarProps {
   onDownloadQR?: () => void;
 }
 
+// Comfortable touch size on phones; the compact size stays from sm up.
+const phoneTapTarget = "max-sm:h-10 max-sm:min-w-10";
+
 export function LinkActionsBar({
   shortUrl,
   qrEnabled = false,
@@ -107,7 +110,7 @@ export function LinkActionsBar({
         : "Scheduled";
 
   return (
-    <div className="flex flex-wrap items-center gap-3">
+    <div className="flex shrink-0 flex-wrap items-center gap-3">
       {/* Status Badge */}
       <Badge variant={statusVariant} className="text-xs">
         {statusLabel}
@@ -122,7 +125,7 @@ export function LinkActionsBar({
                 variant="outline"
                 size="sm"
                 onClick={handleCopy}
-                className="gap-1.5"
+                className={cn("gap-1.5", phoneTapTarget)}
               >
                 {/* Icon slot: clipboard (a) cross-fades to the success
                     check (b) when `copied` toggles. */}
@@ -166,7 +169,12 @@ export function LinkActionsBar({
         <Tooltip>
           <TooltipTrigger
             render={
-              <Button variant="outline" size="sm" onClick={handleShare}>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleShare}
+                className={phoneTapTarget}
+              >
                 <ShareAndroid className="size-3.5" strokeWidth={1.8} />
                 <span className="hidden sm:inline">Share</span>
               </Button>
@@ -179,7 +187,12 @@ export function LinkActionsBar({
           <Tooltip>
             <TooltipTrigger
               render={
-                <Button variant="outline" size="sm" onClick={onDownloadQR}>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={onDownloadQR}
+                  className={phoneTapTarget}
+                >
                   <Download className="size-3.5" strokeWidth={1.8} />
                   <QrCode className="size-3.5" strokeWidth={1.8} />
                 </Button>
@@ -192,7 +205,12 @@ export function LinkActionsBar({
         <Tooltip>
           <TooltipTrigger
             render={
-              <Button variant="outline" size="sm" onClick={handleOpenInNewTab}>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleOpenInNewTab}
+                className={phoneTapTarget}
+              >
                 <OpenNewWindow className="size-3.5" strokeWidth={1.8} />
                 <span className="hidden sm:inline">Open</span>
               </Button>

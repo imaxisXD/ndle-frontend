@@ -53,7 +53,7 @@ export function BotTrafficChart({
               />
               <span className="text-sm">{item.label}</span>
               <span className="text-muted-foreground text-sm tabular-nums">
-                {item.value}
+                {item.value.toLocaleString()}
               </span>
             </div>
           ))}

@@ -315,9 +315,9 @@ export function LinkHealthPanel({ urlId }: LinkHealthPanelProps) {
               {healthData.incidentData?.map((incident) => (
                 <div
                   key={incident._id}
-                  className="hover:bg-muted/30 flex items-center gap-3 px-5 py-3 transition-colors"
+                  className="hover:bg-muted/30 flex flex-wrap items-center gap-x-3 gap-y-1 px-4 py-3 transition-colors sm:flex-nowrap sm:px-5"
                 >
-                  <div className="w-24">
+                  <div className="shrink-0 sm:w-24">
                     <Badge
                       variant={
                         incident.type === "resolved"
@@ -332,13 +332,17 @@ export function LinkHealthPanel({ urlId }: LinkHealthPanelProps) {
                         incident.type.slice(1)}
                     </Badge>
                   </div>
-                  <div className="min-w-0 flex-1">
+                  {/* Phones: the message takes its own line under the badge
+                      and time instead of shrinking to a couple of words. */}
+                  <div className="order-last min-w-0 basis-full sm:order-none sm:flex-1 sm:basis-auto">
                     <div className="flex items-center gap-2">
-                      <p className="truncate text-sm">{incident.message}</p>
+                      <p className="line-clamp-2 text-sm sm:truncate">
+                        {incident.message}
+                      </p>
                     </div>
                   </div>
-                  <div className="mt-1 flex items-center gap-3">
-                    <span className="text-muted-foreground text-xs">
+                  <div className="ml-auto flex shrink-0 items-center gap-3 sm:mt-1 sm:ml-0">
+                    <span className="text-muted-foreground text-xs whitespace-nowrap">
                       [{formatRelativeTimeCompact(incident.createdAt)}]
                     </span>
                   </div>

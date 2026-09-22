@@ -65,7 +65,7 @@ export function DeleteLinkCard({
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="bg-card gap-6">
           <div>
-            <DialogTitle className="text-base">
+            <DialogTitle className="pr-8 text-base">
               Permanently delete this link?
             </DialogTitle>
             <DialogDescription className="mt-2">
@@ -73,7 +73,7 @@ export function DeleteLinkCard({
               action cannot be undone.
             </DialogDescription>
           </div>
-          <DialogFooter className="flex items-center border-t border-dashed pt-4">
+          <DialogFooter className="gap-2 border-t border-dashed pt-4 sm:items-center [&>*]:w-full sm:[&>*]:w-auto">
             <DialogClose className="border-border border" disabled={deleting}>
               Cancel
             </DialogClose>

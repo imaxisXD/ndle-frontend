@@ -67,7 +67,7 @@ export default function MetadataCard({
                 href={`https://${shortLink}`}
               />
             ) : (
-              <Skeleton className="w-sm" />
+              <Skeleton className="w-full max-w-sm min-w-0" />
             )}
           </div>
           {qrEnabled && shortslug && qrTarget ? (
@@ -126,7 +126,7 @@ export default function MetadataCard({
             {fullurl ? (
               <code className="max-w-xs truncate">{fullurl}</code>
             ) : (
-              <Skeleton className="w-sm" />
+              <Skeleton className="w-full max-w-sm min-w-0" />
             )}
           </div>
           <div className="flex items-center gap-2">

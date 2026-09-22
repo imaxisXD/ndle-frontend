@@ -30,6 +30,9 @@ import {
 } from "@/components/ui/base-tabs";
 import { GraphUp, Settings, List, Bookmark, ShieldCheck } from "iconoir-react";
 
+const linkTabClassName =
+  "min-w-0 flex-col gap-1 text-xs sm:flex-row sm:gap-2 sm:text-sm";
+
 export default function LinkDetailRoute() {
   const params = useParams();
   const navigate = useNavigate();
@@ -159,12 +162,13 @@ export default function LinkDetailRoute() {
     // Daily totals cannot reveal the hour of a click or whether it was a bot.
     const hourlyActivityData = null;
     const traffic = trafficSummary.data?.bot_traffic;
-    const botHumanData = traffic && Number.isFinite(traffic.human) && Number.isFinite(traffic.bot)
-      ? [
-          { name: "Human", value: traffic.human, color: "#22c55e" },
-          { name: "Bot", value: traffic.bot, color: "#ef4444" },
-        ]
-      : null;
+    const botHumanData =
+      traffic && Number.isFinite(traffic.human) && Number.isFinite(traffic.bot)
+        ? [
+            { name: "Human", value: traffic.human, color: "#22c55e" },
+            { name: "Bot", value: traffic.bot, color: "#ef4444" },
+          ]
+        : null;
 
     // Latency buckets (placeholder)
     const latencyBuckets = [
@@ -317,24 +321,30 @@ export default function LinkDetailRoute() {
 
       {/* Tabbed Navigation */}
       <Tabs defaultValue="analytics">
-        <TabsList variant="line" size="md" className="mb-6">
-          <TabsTrigger value="analytics">
+        {/* Phones: five equal columns with the icon above the label, so every
+            tab fits without scrolling. */}
+        <TabsList
+          variant="line"
+          size="md"
+          className="mb-6 grid w-full grid-cols-5 gap-0 sm:flex sm:w-auto sm:gap-8"
+        >
+          <TabsTrigger value="analytics" className={linkTabClassName}>
             <GraphUp className="size-4" />
             Analytics
           </TabsTrigger>
-          <TabsTrigger value="activity">
+          <TabsTrigger value="activity" className={linkTabClassName}>
             <List className="size-4" />
             Activity
           </TabsTrigger>
-          <TabsTrigger value="notes">
+          <TabsTrigger value="notes" className={linkTabClassName}>
             <Bookmark className="size-4" />
             Notes
           </TabsTrigger>
-          <TabsTrigger value="health">
+          <TabsTrigger value="health" className={linkTabClassName}>
             <ShieldCheck className="size-4" />
             Health
           </TabsTrigger>
-          <TabsTrigger value="settings">
+          <TabsTrigger value="settings" className={linkTabClassName}>
             <Settings className="size-4" />
             Settings
           </TabsTrigger>

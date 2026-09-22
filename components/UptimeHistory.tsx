@@ -42,7 +42,7 @@ export function UptimeHistory({ uptimeBars }: UptimeHistoryProps) {
           <span>[Day 30]</span>
         </div>
       </CardContent>
-      <CardFooter className="text-muted-foreground flex items-center justify-center gap-4 text-xs">
+      <CardFooter className="text-muted-foreground flex flex-wrap items-center justify-center gap-x-4 gap-y-2 py-3 text-xs [&_span]:whitespace-nowrap">
         <div className="flex items-center gap-1.5">
           <div className="size-3 bg-green-500" />
           <span className="text-xs">Healthy</span>

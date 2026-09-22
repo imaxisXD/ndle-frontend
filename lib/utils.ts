@@ -38,41 +38,47 @@ export function getWindowsFolderNameError(name: string): string | null {
 
 export function formatRelative(ts: number): string {
   const diffMs = Date.now() - ts;
+  // Future timestamps (e.g. an expiry date) read "in 3 days", not "just now".
+  const isFuture = diffMs < 0;
+  const relative = (amount: string) =>
+    isFuture ? `in ${amount}` : `${amount} ago`;
+  const plural = (value: number, unit: string) =>
+    `${value} ${unit}${value === 1 ? "" : "s"}`;
 
   // Seconds
-  const seconds = Math.floor(diffMs / 1000);
+  const seconds = Math.floor(Math.abs(diffMs) / 1000);
   if (seconds < 60) {
     if (seconds < 10) return "just now";
-    return `${seconds} sec ago`;
+    return relative(`${seconds} sec`);
   }
 
   // Minutes
   const minutes = Math.floor(seconds / 60);
   if (minutes < 60) {
-    return `${minutes} min ago`;
+    return relative(`${minutes} min`);
   }
 
   // Hours
   const hours = Math.floor(minutes / 60);
   if (hours < 24) {
-    return `${hours} hour${hours === 1 ? "" : "s"} ago`;
+    return relative(plural(hours, "hour"));
   }
 
   // Days
   const days = Math.floor(hours / 24);
   if (days < 30) {
-    return `${days} day${days === 1 ? "" : "s"} ago`;
+    return relative(plural(days, "day"));
   }
 
   // Months (approximate)
   const months = Math.floor(days / 30);
   if (months < 12) {
-    return `${months} month${months === 1 ? "" : "s"} ago`;
+    return relative(plural(months, "month"));
   }
 
   // Years
   const years = Math.floor(months / 12);
-  return `${years} year${years === 1 ? "" : "s"} ago`;
+  return relative(plural(years, "year"));
 }
 
 /**

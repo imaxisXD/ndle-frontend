@@ -6,7 +6,7 @@ export function LiveClickHero({ counterValue }: { counterValue: number }) {
     <section className="bg-card border-border relative isolate overflow-hidden rounded-md border px-6 py-1 shadow-xs md:px-6">
       {/* black circle  */}
       <div
-        className="pointer-events-none absolute -top-20 -right-3 -z-10 size-64 rounded-full bg-black"
+        className="pointer-events-none absolute -top-20 -right-3 -z-10 hidden size-64 rounded-full bg-black md:block"
         style={{
           backgroundImage:
             "conic-gradient(from 0deg at 50% 50%, #e5e7eb26 0deg, #e5e7eb17 90deg, transparent 90deg)",
@@ -34,7 +34,7 @@ export function LiveClickHero({ counterValue }: { counterValue: number }) {
           </div>
         </div>
 
-        <div className="font-doto flex flex-col items-center justify-center rounded-full p-2 text-2xl leading-none font-black text-white/90 md:text-6xl">
+        <div className="font-doto text-primary flex flex-col items-center justify-center rounded-full p-2 text-2xl leading-none font-black md:text-6xl md:text-white/90">
           <AnimatedCounter
             value={counterValue}
             includeDecimals={false}
@@ -44,7 +44,7 @@ export function LiveClickHero({ counterValue }: { counterValue: number }) {
               margin: "0 auto",
             }}
           />
-          <span className="text-accent font-mono text-xs font-normal">
+          <span className="text-muted-foreground md:text-accent font-mono text-xs font-normal">
             [total clicks]
           </span>
         </div>
