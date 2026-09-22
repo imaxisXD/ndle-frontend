@@ -17,6 +17,7 @@ import { BarChart } from "@/components/charts/bar-chart";
 import { BarChartLoading } from "@/components/charts/bar-chart-loading";
 import { BarXAxis } from "@/components/charts/bar-x-axis";
 import { BarYAxis } from "@/components/charts/bar-y-axis";
+import { curveMonotoneX } from "@visx/curve";
 import { Line } from "@/components/charts/line";
 import { LineChart } from "@/components/charts/line-chart";
 import { LiveLine } from "@/components/charts/live-line";
@@ -457,6 +458,8 @@ export function BklitLineSeriesChart<T extends object>({
       >
         <Background pattern="dots" opacity={0.85} />
         <Line
+          // Monotone never overshoots its points, so zero days stay on the axis.
+          curve={curveMonotoneX}
           dataKey={valueKey}
           showMarkers={data.length <= 12}
           stroke={color}
@@ -650,27 +653,36 @@ export function BklitDonutChart({
   emptyDescription?: string;
   style?: CSSProperties;
 }) {
+  // Zero-value slices still draw a padded gap, so leave them out of the ring.
+  const slices = data.filter((item) => item.value > 0);
+  const isSingleSlice = slices.length === 1;
+
   return (
     <ChartStateFrame
       emptyDescription={emptyDescription}
       emptyTitle={emptyTitle}
       heightClassName={heightClassName}
-      isEmpty={data.length === 0}
+      isEmpty={slices.length === 0}
       isLoading={isLoading}
       style={style}
     >
       <div className="grid h-full place-items-center">
         <PieChart
           className="max-h-full max-w-full"
-          cornerRadius={4}
-          data={data}
-          hoverOffset={8}
+          cornerRadius={isSingleSlice ? 0 : 4}
+          data={slices}
+          hoverOffset={4}
           innerRadius={64}
-          padAngle={0.045}
+          padAngle={isSingleSlice ? 0 : 0.045}
           size={220}
         >
-          {data.map((item, index) => (
-            <PieSlice color={item.color} index={index} key={item.label} />
+          {slices.map((item, index) => (
+            <PieSlice
+              color={item.color}
+              hoverEffect="grow"
+              index={index}
+              key={item.label}
+            />
           ))}
           <PieCenter
             defaultLabel="Traffic"

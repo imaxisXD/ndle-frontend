@@ -52,6 +52,9 @@ export function BotTrafficChart({
                 style={{ backgroundColor: item.color }}
               />
               <span className="text-sm">{item.label}</span>
+              <span className="text-muted-foreground text-sm tabular-nums">
+                {item.value}
+              </span>
             </div>
           ))}
         </div>
