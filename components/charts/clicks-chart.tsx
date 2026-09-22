@@ -10,9 +10,8 @@ import {
   CardFooter,
 } from "@/components/ui/card";
 import { BklitHorizontalBarChart } from "@/components/charts/bklit-chart-kit";
-import { RefreshDouble } from "iconoir-react";
+import { Calendar, RefreshDouble } from "iconoir-react";
 import { cn, expandWeekday } from "@/lib/utils";
-import { CursorClickIcon } from "@phosphor-icons/react/dist/ssr";
 
 export function ClicksChart({
   data,
@@ -38,29 +37,24 @@ export function ClicksChart({
   }, [chartData]);
 
   return (
-    <Card
-      className={cn(
-        "flex h-full flex-col border-zinc-200 bg-white text-zinc-900",
-        className,
-      )}
-    >
-      <CardHeader className="border-b border-zinc-200">
+    <Card className={cn("flex h-full flex-col", className)}>
+      <CardHeader>
         <div className="flex w-full items-center justify-between gap-3">
           <div className="flex min-w-0 flex-col gap-1">
-            <CardTitle className="flex items-center gap-2 font-medium text-zinc-900">
-              <CursorClickIcon className="size-5" weight="duotone" />
+            <CardTitle className="flex items-center gap-2 font-medium">
+              <Calendar className="size-5" />
               Weekly Click Count
               {isLoading && (
-                <RefreshDouble className="h-3 w-3 animate-spin text-zinc-400" />
+                <RefreshDouble className="text-muted-foreground h-3 w-3 animate-spin" />
               )}
             </CardTitle>
-            <CardDescription className="text-xs text-zinc-400">
+            <CardDescription className="text-xs">
               Click activity by day of week
             </CardDescription>
           </div>
         </div>
       </CardHeader>
-      <CardContent className="grow p-6">
+      <CardContent>
         <BklitHorizontalBarChart
           barWidth={28}
           data={chartData}
@@ -74,10 +68,12 @@ export function ClicksChart({
         />
       </CardContent>
       {!isLoading && chartData.length > 0 && (
-        <CardFooter className="flex-col items-start gap-2 border-t border-zinc-200 pt-4 text-sm">
-          <div className="flex w-full items-center justify-between text-xs text-zinc-500">
+        <CardFooter className="flex-col items-start gap-2 pt-4 text-sm">
+          <div className="text-muted-foreground flex w-full items-center justify-between text-xs">
             <span>Average per day</span>
-            <span className="font-medium text-zinc-900">[{averageClicks}]</span>
+            <span className="text-foreground font-medium">
+              [{averageClicks}]
+            </span>
           </div>
         </CardFooter>
       )}

@@ -52,7 +52,7 @@ export function VariantPerformanceChart({
           data={chartData}
           emptyDescription="Waiting for traffic on your variants."
           emptyTitle="No A/B data yet"
-          heightClassName="h-[250px]"
+          heightClassName="h-[280px]"
           isLoading={isLoading}
           labelKey="label"
           labelWidth={112}

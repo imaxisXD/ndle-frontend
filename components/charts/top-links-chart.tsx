@@ -9,7 +9,6 @@ import {
   CardFooter,
 } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { cn } from "@/lib/utils";
 import NumberFlow from "@number-flow/react";
 import { makeShortLinkWithDomain } from "@/lib/config";
 import { NavLink } from "react-router";
@@ -68,12 +67,7 @@ export function TopLinksChart({
   );
 
   return (
-    <Card
-      className={cn(
-        "shadow-[0_1px_2px_rgba(0,0,0,0.04),0_4px_10px_-2px_rgba(0,0,0,0.08)]",
-        className,
-      )}
-    >
+    <Card className={className}>
       <CardHeader className="flex flex-row items-center justify-start gap-3">
         <span className="bg-muted flex shrink-0 items-center justify-center rounded-lg p-3">
           <RankingIcon className="size-6" weight="duotone" aria-hidden="true" />
@@ -118,7 +112,10 @@ export function TopLinksChart({
                 key={link.url}
                 layout="position"
                 transition={{
-                  layout: { duration: reduce ? 0 : 0.45, ease: [0.16, 1, 0.3, 1] },
+                  layout: {
+                    duration: reduce ? 0 : 0.45,
+                    ease: [0.16, 1, 0.3, 1],
+                  },
                 }}
                 className="px-2 py-3 first:pt-0 last:pb-0"
               >

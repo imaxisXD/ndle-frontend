@@ -3,7 +3,7 @@ import { MouseButtonLeft } from "iconoir-react";
 
 export function LiveClickHero({ counterValue }: { counterValue: number }) {
   return (
-    <section className="bg-card border-border relative isolate overflow-hidden rounded-lg border px-6 py-1 shadow-sm md:px-6">
+    <section className="bg-card border-border relative isolate overflow-hidden rounded-md border px-6 py-1 shadow-xs md:px-6">
       {/* black circle  */}
       <div
         className="pointer-events-none absolute -top-20 -right-3 -z-10 size-64 rounded-full bg-black"

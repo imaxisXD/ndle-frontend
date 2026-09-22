@@ -28,7 +28,7 @@
   --telegram-red: oklch(0.52 0.22 28);
   --background: oklch(0.97 0 0); /* Light gray background like reference */
   --foreground: oklch(0.145 0 0); /* Black text */
-  --card: oklch(0.985 0 0); /* Very light gray cards */
+  --card: oklch(1 0 0); /* White cards on the light gray background */
   --card-foreground: oklch(0.145 0 0);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.145 0 0);

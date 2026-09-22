@@ -35,7 +35,7 @@ export function BrowserChart({
       <CardContent>
         <BklitHorizontalBarChart
           data={chartData}
-          heightClassName="h-[200px]"
+          heightClassName="h-[280px]"
           isLoading={isLoading}
           labelKey="month"
           valueKey="clicks"

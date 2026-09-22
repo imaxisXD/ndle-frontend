@@ -36,7 +36,7 @@ export function HourlyActivityChart({
           data={chartData}
           emptyDescription="No hourly activity in this range."
           emptyTitle="No hourly activity"
-          heightClassName="h-[250px]"
+          heightClassName="h-[280px]"
           isLoading={isLoading}
           labelKey="hour"
           valueKey="clicks"

@@ -69,7 +69,7 @@ export function DeviceOSChart({
             <CardContent className="pt-4">
               <BklitHorizontalBarChart
                 data={deviceData ?? defaultDeviceData}
-                heightClassName="h-[200px]"
+                heightClassName="h-[280px]"
                 isLoading={isLoading}
                 labelKey="device"
                 valueKey="clicks"
@@ -80,7 +80,7 @@ export function DeviceOSChart({
             <CardContent className="pt-4">
               <BklitHorizontalBarChart
                 data={osData ?? defaultOsData}
-                heightClassName="h-[200px]"
+                heightClassName="h-[280px]"
                 isLoading={isLoading}
                 labelKey="os"
                 valueKey="clicks"

@@ -19,13 +19,9 @@ import {
   DialogBody,
 } from "@/components/ui/base-dialog";
 import { Button } from "@/components/ui/button";
-import { Expand } from "iconoir-react";
+import { Expand, Link } from "iconoir-react";
 
 import { cn } from "@/lib/utils";
-
-import {
-  LinkSimpleIcon,
-} from "@phosphor-icons/react/dist/ssr";
 
 function normalizeReferrerHost(domain: string): string {
   const trimmed = domain.trim().toLowerCase();
@@ -34,9 +30,7 @@ function normalizeReferrerHost(domain: string): string {
 
   try {
     const parsed = new URL(
-      /^[a-z][a-z0-9+.-]*:\/\//i.test(trimmed)
-        ? trimmed
-        : `https://${trimmed}`,
+      /^[a-z][a-z0-9+.-]*:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`,
     );
     return parsed.hostname.replace(/^www\./, "");
   } catch {
@@ -112,20 +106,15 @@ export function ReferrerChart({
   }, [sortedData, limit]);
 
   return (
-    <Card
-      className={cn(
-        "flex h-full flex-col border-zinc-200 bg-white text-zinc-900",
-        className,
-      )}
-    >
-      <CardHeader className="border-b border-zinc-200">
+    <Card className={cn("flex h-full flex-col", className)}>
+      <CardHeader>
         <div className="flex w-full items-center justify-between gap-3">
           <div className="flex min-w-0 flex-col gap-1">
-            <CardTitle className="flex items-center gap-2 font-medium text-zinc-900">
-              <LinkSimpleIcon className="size-5" weight="duotone" />
+            <CardTitle className="flex items-center gap-2 font-medium">
+              <Link className="size-5" />
               Traffic Sources
             </CardTitle>
-            <CardDescription className="text-xs text-zinc-400">
+            <CardDescription className="text-xs">
               Where your clicks are coming from
             </CardDescription>
           </div>
@@ -136,7 +125,7 @@ export function ReferrerChart({
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="text-zinc-900 hover:bg-zinc-100 hover:text-zinc-900"
+                    className="hover:bg-muted hover:text-foreground"
                   >
                     <Expand className="h-4 w-4" />
                   </Button>
@@ -146,7 +135,7 @@ export function ReferrerChart({
                 <DialogHeader className="bg-transparent">
                   <DialogTitle>All Traffic Sources</DialogTitle>
                 </DialogHeader>
-                <DialogBody className="rounded-sm bg-white p-2">
+                <DialogBody className="bg-card rounded-sm p-2">
                   <div className="max-h-[70vh] overflow-y-auto px-2 py-4">
                     <BklitHorizontalBarChart
                       barWidth={28}
@@ -167,7 +156,7 @@ export function ReferrerChart({
           )}
         </div>
       </CardHeader>
-      <CardContent className="grow p-6">
+      <CardContent>
         <BklitHorizontalBarChart
           barWidth={28}
           data={chartData}
@@ -182,10 +171,10 @@ export function ReferrerChart({
         />
       </CardContent>
       {!isLoading && chartData.length > 0 && (
-        <CardFooter className="flex-col items-start gap-2 border-t border-zinc-200 pt-4 text-sm">
-          <div className="flex w-full items-center justify-between text-xs text-zinc-500">
+        <CardFooter className="flex-col items-start gap-2 pt-4 text-sm">
+          <div className="text-muted-foreground flex w-full items-center justify-between text-xs">
             <span>Total sources</span>
-            <span className="font-medium text-zinc-900">
+            <span className="text-foreground font-medium">
               [{sortedData.length}]
             </span>
           </div>

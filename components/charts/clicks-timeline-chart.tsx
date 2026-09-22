@@ -8,7 +8,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { BklitLineSeriesChart } from "@/components/charts/bklit-chart-kit";
-import { MouseLeftClickIcon } from "@phosphor-icons/react";
+import { MouseButtonLeft } from "iconoir-react";
 
 export const description = "A line chart showing clicks over time";
 
@@ -27,7 +27,7 @@ export function ClicksTimelineChart({
         <div className="flex w-full items-center justify-between gap-3">
           <div className="flex min-w-0 flex-col gap-1.5">
             <CardTitle className="flex items-center gap-2 font-medium">
-              <MouseLeftClickIcon className="text-muted-foreground size-5" />
+              <MouseButtonLeft className="size-5" />
               Link Click Activity
             </CardTitle>
             <CardDescription className="pl-1 text-xs">

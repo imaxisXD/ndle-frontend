@@ -61,32 +61,27 @@ export function LiveEventsChart({
   const currentValue = chartData.at(-1)?.value ?? 0;
 
   return (
-    <Card
-      className={cn(
-        "flex h-full flex-col border-zinc-200 bg-white text-zinc-900",
-        className,
-      )}
-    >
-      <CardHeader className="border-b border-zinc-200">
+    <Card className={cn("flex h-full flex-col", className)}>
+      <CardHeader>
         <div className="flex w-full items-center justify-between gap-3">
           <div className="flex min-w-0 flex-col gap-1">
-            <CardTitle className="flex items-center gap-2 font-medium text-zinc-900">
+            <CardTitle className="flex items-center gap-2 font-medium">
               <span className="relative flex h-2.5 w-2.5">
                 <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400 opacity-75"></span>
                 <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-green-500"></span>
               </span>
               Live Activity
             </CardTitle>
-            <CardDescription className="text-xs text-zinc-400">
+            <CardDescription className="text-xs">
               Clicks in the last 60 minutes
             </CardDescription>
           </div>
           <div className="flex items-center gap-3 text-sm">
             <div className="text-right">
-              <div className="text-2xl font-semibold text-zinc-900 tabular-nums">
+              <div className="text-2xl font-semibold tabular-nums">
                 {totalClicks}
               </div>
-              <div className="text-xs text-zinc-400">total clicks</div>
+              <div className="text-muted-foreground text-xs">total clicks</div>
             </div>
           </div>
         </div>

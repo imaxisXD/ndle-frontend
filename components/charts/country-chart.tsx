@@ -19,10 +19,9 @@ import {
   DialogBody,
 } from "@/components/ui/base-dialog";
 import { Button } from "@/components/ui/button";
-import { Expand } from "iconoir-react";
+import { Expand, Globe } from "iconoir-react";
 
 import { cn, countryCodeToName } from "@/lib/utils";
-import { GlobeHemisphereWestIcon } from "@phosphor-icons/react";
 
 export function CountryChart({
   data,
@@ -56,20 +55,15 @@ export function CountryChart({
   }, [topCountries, limit]);
 
   return (
-    <Card
-      className={cn(
-        "flex h-full flex-col border-zinc-200 bg-white text-zinc-900",
-        className,
-      )}
-    >
-      <CardHeader className="border-b border-zinc-200">
+    <Card className={cn("flex h-full flex-col", className)}>
+      <CardHeader>
         <div className="flex w-full items-center justify-between gap-3">
           <div className="flex min-w-0 flex-col gap-1">
-            <CardTitle className="flex items-center gap-2 font-medium text-zinc-900">
-              <GlobeHemisphereWestIcon className="size-5" weight="duotone" />
+            <CardTitle className="flex items-center gap-2 font-medium">
+              <Globe className="size-5" />
               Top Countries
             </CardTitle>
-            <CardDescription className="text-xs text-zinc-400">
+            <CardDescription className="text-xs">
               Clicks by geographic location
             </CardDescription>
           </div>
@@ -80,7 +74,7 @@ export function CountryChart({
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="text-zinc-900 hover:bg-zinc-100 hover:text-zinc-900"
+                    className="hover:bg-muted hover:text-foreground"
                   >
                     <Expand className="h-4 w-4" />
                   </Button>
@@ -90,7 +84,7 @@ export function CountryChart({
                 <DialogHeader className="bg-transparent">
                   <DialogTitle>All Countries</DialogTitle>
                 </DialogHeader>
-                <DialogBody className="rounded-sm bg-white p-2">
+                <DialogBody className="bg-card rounded-sm p-2">
                   <div className="max-h-[70vh] overflow-y-auto px-2 py-4">
                     <BklitHorizontalBarChart
                       barWidth={28}
@@ -113,7 +107,7 @@ export function CountryChart({
           )}
         </div>
       </CardHeader>
-      <CardContent className="grow p-6">
+      <CardContent>
         <BklitHorizontalBarChart
           barWidth={28}
           data={chartData}
@@ -128,10 +122,10 @@ export function CountryChart({
         />
       </CardContent>
       {!isLoading && chartData.length > 0 && (
-        <CardFooter className="flex-col items-start gap-2 border-t border-zinc-200 pt-4 text-sm">
-          <div className="flex w-full items-center justify-between text-xs text-zinc-500">
+        <CardFooter className="flex-col items-start gap-2 pt-4 text-sm">
+          <div className="text-muted-foreground flex w-full items-center justify-between text-xs">
             <span>Total countries</span>
-            <span className="font-medium text-zinc-900">
+            <span className="text-foreground font-medium">
               [{topCountries.length}]
             </span>
           </div>
