@@ -85,7 +85,7 @@ export function AddDomainForm({ onSuccess }: AddDomainFormProps) {
     <Form {...form}>
       <form
         onSubmit={form.handleSubmit(onSubmit)}
-        className="flex w-full items-start gap-2 py-4"
+        className="flex w-full flex-col gap-2 py-4 sm:flex-row sm:items-start"
       >
         <FormField
           control={form.control}
@@ -107,7 +107,7 @@ export function AddDomainForm({ onSuccess }: AddDomainFormProps) {
             </FormItem>
           )}
         />
-        <div className="flex items-center justify-between gap-2">
+        <div className="flex w-full items-center justify-between gap-2 sm:w-auto">
           <Button
             type="submit"
             disabled={
@@ -115,7 +115,7 @@ export function AddDomainForm({ onSuccess }: AddDomainFormProps) {
               !form.watch("domain")?.trim() ||
               form.formState.errors.domain !== undefined
             }
-            className="shrink-0 disabled:opacity-50"
+            className="shrink-0 disabled:opacity-50 max-sm:w-full"
           >
             {isSubmitting ? (
               <>

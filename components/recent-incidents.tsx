@@ -21,7 +21,8 @@ export type Incident = {
 };
 
 const getIncidentCardStyles = (type: Incident["type"]) => {
-  const baseStyles = "flex items-start gap-4 rounded-lg border p-4";
+  const baseStyles =
+    "flex items-start gap-3 rounded-lg border p-3 sm:gap-4 sm:p-4";
 
   switch (type) {
     case "warning":
@@ -37,17 +38,17 @@ const getIncidentCardStyles = (type: Incident["type"]) => {
 
 function IncidentCardSkeleton() {
   return (
-    <div className="border-border flex items-start gap-4 rounded-lg border bg-white p-4">
-      <div className="flex-1">
-        <div className="flex items-center gap-8">
-          <Skeleton className="h-6 w-20 rounded-full" />
-          <div className="flex flex-col gap-2">
-            <Skeleton className="h-4 w-48" />
-            <Skeleton className="h-4 w-64" />
+    <div className="border-border flex items-start gap-3 rounded-lg border bg-white p-3 sm:gap-4 sm:p-4">
+      <div className="min-w-0 flex-1">
+        <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:gap-8">
+          <Skeleton className="h-6 w-20 shrink-0 rounded-full" />
+          <div className="flex w-full min-w-0 flex-col gap-2">
+            <Skeleton className="h-4 w-48 max-w-full" />
+            <Skeleton className="h-4 w-64 max-w-full" />
           </div>
         </div>
       </div>
-      <div className="flex flex-col items-end gap-2">
+      <div className="hidden shrink-0 flex-col items-end gap-2 sm:flex">
         <Skeleton className="h-4 w-16" />
         <Skeleton className="h-3 w-12" />
       </div>
@@ -62,7 +63,7 @@ const columns: ColumnDef<Incident>[] = [
     cell: ({ row }) => {
       const incident = row.original;
       return (
-        <div className="w-20">
+        <div className="w-24 shrink-0">
           <Badge
             variant={
               incident.type === "error"
@@ -83,14 +84,21 @@ const columns: ColumnDef<Incident>[] = [
     accessorKey: "link",
     header: "Link",
     cell: ({ row }) => (
-      <code className="text-sm font-medium">{row.original.link}</code>
+      <code
+        className="block truncate text-sm font-medium"
+        title={row.original.link}
+      >
+        {row.original.link}
+      </code>
     ),
   },
   {
     accessorKey: "message",
     header: "Message",
     cell: ({ row }) => (
-      <p className="text-muted-foreground text-sm">{row.original.message}</p>
+      <p className="text-muted-foreground text-sm [overflow-wrap:anywhere]">
+        {row.original.message}
+      </p>
     ),
   },
   {
@@ -164,13 +172,23 @@ export function RecentIncidents({
                   key={row.id}
                   className={getIncidentCardStyles(incident.type)}
                 >
-                  <div className="flex-1">
-                    <div className="flex items-center gap-8">
-                      {flexRender(
-                        columns[0].cell,
-                        row.getVisibleCells()[0].getContext(),
-                      )}
-                      <div className="flex flex-col gap-1">
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:gap-8">
+                      {/* Phones: the time sits beside the badge instead of in
+                          its own column. */}
+                      <div className="flex w-full items-center justify-between gap-3 sm:w-auto">
+                        {flexRender(
+                          columns[0].cell,
+                          row.getVisibleCells()[0].getContext(),
+                        )}
+                        <div className="shrink-0 sm:hidden">
+                          {flexRender(
+                            columns[3].cell,
+                            row.getVisibleCells()[3].getContext(),
+                          )}
+                        </div>
+                      </div>
+                      <div className="flex w-full min-w-0 flex-col gap-1">
                         {flexRender(
                           columns[1].cell,
                           row.getVisibleCells()[1].getContext(),
@@ -182,7 +200,7 @@ export function RecentIncidents({
                       </div>
                     </div>
                   </div>
-                  <div className="flex flex-col gap-1">
+                  <div className="hidden shrink-0 flex-col gap-1 text-right sm:flex">
                     <p className="text-sm">Occurred</p>
                     {flexRender(
                       columns[3].cell,
@@ -196,7 +214,7 @@ export function RecentIncidents({
 
           {/* Pagination controls */}
           {pageCount > 1 && (
-            <div className="border-border mt-6 flex items-center justify-between border-t pt-4">
+            <div className="border-border mt-6 flex flex-wrap items-center justify-between gap-3 border-t pt-4">
               <div className="text-muted-foreground text-xs">
                 {pagination.pageIndex * pagination.pageSize + 1} -{" "}
                 {Math.min(
@@ -205,7 +223,7 @@ export function RecentIncidents({
                 )}{" "}
                 of {incidents.length} incidents
               </div>
-              <span className="text-xs">
+              <span className="hidden text-xs sm:inline">
                 Page {currentPage} of {pageCount}
               </span>
               <div className="flex items-center gap-4">
@@ -217,7 +235,7 @@ export function RecentIncidents({
                     type="button"
                     onClick={() => table.previousPage()}
                     disabled={!table.getCanPreviousPage()}
-                    className="border-border hover:bg-accent rounded-md border px-3 py-1.5 text-sm transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+                    className="border-border hover:bg-accent rounded-md border px-3 py-1.5 text-sm whitespace-nowrap transition-colors disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     ← Prev
                   </button>
@@ -225,7 +243,7 @@ export function RecentIncidents({
                     type="button"
                     onClick={() => table.nextPage()}
                     disabled={!table.getCanNextPage()}
-                    className="border-border hover:bg-accent rounded-md border px-3 py-1.5 text-sm transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+                    className="border-border hover:bg-accent rounded-md border px-3 py-1.5 text-sm whitespace-nowrap transition-colors disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     Next →
                   </button>

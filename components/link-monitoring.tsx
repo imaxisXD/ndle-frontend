@@ -121,7 +121,7 @@ function MonitoringSortHeader({
     <button
       type="button"
       onClick={column.getToggleSortingHandler()}
-      className="hover:text-foreground text-muted-foreground flex items-center gap-1 text-left text-xs font-medium tracking-wider uppercase"
+      className="hover:text-foreground text-muted-foreground -my-2 flex items-center gap-1 py-2 text-left text-xs font-medium tracking-wider uppercase"
       aria-label={`${label}, sorted ${sortLabel}`}
     >
       <span>{label}</span>
@@ -315,10 +315,10 @@ const MonitoringDataRow = memo(function MonitoringDataRow({
   return (
     <TableRow className="group bg-card hover:bg-muted/30">
       <TableCell
-        className="px-5 py-5"
+        className="px-3 py-4 md:px-5 md:py-5"
         style={{ width: monitoringColumnSize.status }}
       >
-        <div className="w-20">
+        <div className="w-20 shrink-0">
           <Badge variant={getStatusBadgeVariant(status)} className="capitalize">
             {status}
           </Badge>
@@ -326,7 +326,7 @@ const MonitoringDataRow = memo(function MonitoringDataRow({
       </TableCell>
 
       <TableCell
-        className="px-5 py-5"
+        className="px-3 py-4 md:px-5 md:py-5"
         style={{ width: monitoringColumnSize.link }}
       >
         <div className="flex min-w-0 flex-col space-y-1">
@@ -341,7 +341,7 @@ const MonitoringDataRow = memo(function MonitoringDataRow({
       </TableCell>
 
       <TableCell
-        className="px-5 py-5"
+        className="px-3 py-4 md:px-5 md:py-5"
         style={{ width: monitoringColumnSize.uptime }}
       >
         {uptime === null ? (
@@ -358,7 +358,7 @@ const MonitoringDataRow = memo(function MonitoringDataRow({
       </TableCell>
 
       <TableCell
-        className="px-5 py-5"
+        className="px-3 py-4 md:px-5 md:py-5"
         style={{ width: monitoringColumnSize.latency }}
       >
         {latencyMs > 0 ? (
@@ -376,7 +376,7 @@ const MonitoringDataRow = memo(function MonitoringDataRow({
       </TableCell>
 
       <TableCell
-        className="px-5 py-5"
+        className="px-3 py-4 md:px-5 md:py-5"
         style={{ width: monitoringColumnSize.incidents }}
       >
         <MetricCell
@@ -387,7 +387,7 @@ const MonitoringDataRow = memo(function MonitoringDataRow({
       </TableCell>
 
       <TableCell
-        className="px-5 py-5"
+        className="px-3 py-4 md:px-5 md:py-5"
         style={{ width: monitoringColumnSize.checked }}
       >
         <TextMetricCell label="Checked" value={checkedLabel} />
@@ -459,7 +459,7 @@ const MonitoredLinksTable = memo(function MonitoredLinksTable({
               {headerGroup.headers.map((header) => (
                 <TableHead
                   key={header.id}
-                  className="px-5 py-3"
+                  className="px-3 py-3 md:px-5"
                   style={{ width: header.getSize() }}
                 >
                   {header.isPlaceholder
@@ -489,10 +489,10 @@ const MonitoringStats = memo(function MonitoringStats({
   stats: OverviewStat[];
 }) {
   return (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+    <div className="grid grid-cols-2 gap-3 md:gap-4 lg:grid-cols-4">
       {stats.map((stat) => (
         <Card key={stat.label} className="rounded-sm bg-white">
-          <CardContent className="flex items-center justify-between p-6">
+          <CardContent className="flex items-center justify-between p-4 md:p-6">
             <div className="space-y-2">
               <p className="text-muted-foreground text-xs font-medium tracking-wider uppercase">
                 {stat.label}
@@ -525,7 +525,7 @@ const MonitoringStats = memo(function MonitoringStats({
 function MonitoringSkeleton() {
   return (
     <div className="space-y-6">
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 md:gap-4 lg:grid-cols-4">
         {[1, 2, 3, 4].map((item) => (
           <Skeleton key={item} className="h-24 w-full" />
         ))}
@@ -543,7 +543,7 @@ function MonitoringSkeleton() {
                 "Incidents",
                 "Checked",
               ].map((label) => (
-                <TableHead key={label} className="px-5 py-3">
+                <TableHead key={label} className="px-3 py-3 md:px-5">
                   <span className="text-muted-foreground text-xs font-medium tracking-wider uppercase">
                     {label}
                   </span>
@@ -554,17 +554,17 @@ function MonitoringSkeleton() {
           <TableBody>
             {[1, 2, 3].map((row) => (
               <TableRow key={row} className="bg-card">
-                <TableCell className="px-5 py-5">
+                <TableCell className="px-3 py-4 md:px-5 md:py-5">
                   <Skeleton className="h-6 w-20 rounded-full" />
                 </TableCell>
-                <TableCell className="px-5 py-5">
+                <TableCell className="px-3 py-4 md:px-5 md:py-5">
                   <div className="space-y-2">
                     <Skeleton className="h-4 w-48" />
                     <Skeleton className="h-3 w-64" />
                   </div>
                 </TableCell>
                 {[1, 2, 3, 4].map((cell) => (
-                  <TableCell key={cell} className="px-5 py-5">
+                  <TableCell key={cell} className="px-3 py-4 md:px-5 md:py-5">
                     <div className="space-y-2">
                       <Skeleton className="h-2 w-12" />
                       <Skeleton className="h-4 w-16" />

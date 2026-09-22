@@ -76,9 +76,9 @@ export function AccountCard() {
             height={48}
             className="border-border h-12 w-12 rounded-full border object-cover"
           />
-          <div className="min-w-0">
+          <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-2">
-              <h4 className="max-w-[200px] truncate text-sm font-medium sm:max-w-[260px]">
+              <h4 className="max-w-full truncate text-sm font-medium">
                 {user.firstName} {user.lastName}
               </h4>
               <span className={isPro ? "badge-pro" : "badge-basic"}>

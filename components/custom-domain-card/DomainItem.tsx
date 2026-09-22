@@ -68,19 +68,21 @@ export function DomainItem({ domain, onDelete }: DomainItemProps) {
   return (
     <div className="space-y-2 rounded-sm border border-dashed border-gray-300 p-2">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-5">
+      <div className="flex items-start justify-between gap-2">
+        <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-5 gap-y-1">
           <StatusBadge status={domain.status} />
-          <span className="text-primary text-sm">{domain.domain}</span>
+          <span className="text-primary min-w-0 text-sm [overflow-wrap:anywhere]">
+            {domain.domain}
+          </span>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex shrink-0 items-center gap-2">
           <Button
             variant={"destructive"}
             size={"sm"}
             onClick={() => setIsDeleteOpen(true)}
           >
             <TrashIcon weight="duotone" className="size-4 fill-white" />
-            Delete
+            <span className="sr-only sm:not-sr-only">Delete</span>
           </Button>
         </div>
       </div>
@@ -96,7 +98,28 @@ export function DomainItem({ domain, onDelete }: DomainItemProps) {
               </h4>
             </div>
 
-            <div className="overflow-x-auto">
+            {/* Phones: one record per line, so the values and their copy
+                buttons stay on screen. */}
+            <dl className="grid grid-cols-[auto_minmax(0,1fr)] items-center gap-x-4 gap-y-3 px-4 py-3 text-sm sm:hidden">
+              <dt className="text-xs font-medium text-gray-500">Type</dt>
+              <dd className="font-mono text-gray-600">{recordType}</dd>
+              <dt className="text-xs font-medium text-gray-500">Name</dt>
+              <dd className="flex min-w-0 items-center gap-2">
+                <code className="min-w-0 font-mono break-all text-gray-900">
+                  {recordName}
+                </code>
+                <CopyButton value={recordName} />
+              </dd>
+              <dt className="text-xs font-medium text-gray-500">Content</dt>
+              <dd className="flex min-w-0 items-center gap-2">
+                <code className="min-w-0 font-mono break-all text-gray-900">
+                  {shortDomain}
+                </code>
+                <CopyButton value={shortDomain} />
+              </dd>
+            </dl>
+
+            <div className="hidden overflow-x-auto sm:block">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-gray-100 text-left text-xs font-medium text-gray-500">
@@ -107,7 +130,7 @@ export function DomainItem({ domain, onDelete }: DomainItemProps) {
                 </thead>
                 <tbody>
                   <tr>
-                    <td className="px-4 py-3 font-mono text-gray-600">
+                    <td className="px-4 py-3 font-mono whitespace-nowrap text-gray-600">
                       {recordType}
                     </td>
                     <td className="px-4 py-3">
@@ -132,8 +155,8 @@ export function DomainItem({ domain, onDelete }: DomainItemProps) {
             </div>
           </div>
 
-          <p className="flex items-center gap-1 pb-2 text-xs text-blue-500">
-            <InfoIcon weight="duotone" className="size-4" />
+          <p className="flex items-start gap-1 pb-2 text-xs text-blue-500">
+            <InfoIcon weight="duotone" className="mt-px size-4 shrink-0" />
             <span>
               DNS changes can take a few minutes to propagate. We check
               automatically.

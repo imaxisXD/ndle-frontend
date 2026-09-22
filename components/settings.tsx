@@ -438,7 +438,7 @@ export function Settings() {
         </div>
 
         <div className="space-y-4">
-          <div className="flex items-center justify-between rounded-lg border border-red-200 bg-white p-4">
+          <div className="flex flex-col items-start gap-3 rounded-lg border border-red-200 bg-white p-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <h4 className="text-sm font-medium text-red-900">
                 Delete All Links
@@ -449,7 +449,7 @@ export function Settings() {
             </div>
             <button
               type="button"
-              className="rounded-md bg-red-600 px-4 py-2 text-sm text-white transition-colors hover:bg-red-700"
+              className="shrink-0 rounded-md bg-red-600 px-4 py-2 text-sm whitespace-nowrap text-white transition-colors hover:bg-red-700"
             >
               Delete All
             </button>
