@@ -341,7 +341,7 @@ function StoryShowcase({ inView }: { inView: boolean }) {
 
   return (
     <div
-      className="grid gap-8 lg:grid-cols-[minmax(0,17rem)_minmax(0,1fr)] lg:gap-12"
+      className="grid grid-cols-[minmax(0,1fr)] gap-8 lg:grid-cols-[minmax(0,17rem)_minmax(0,1fr)] lg:gap-12"
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
       onFocusCapture={() => setPaused(true)}
@@ -359,13 +359,13 @@ function StoryShowcase({ inView }: { inView: boolean }) {
               aria-selected={on}
               aria-controls="showcase-panel"
               onClick={() => setActive(i)}
-              className={`group relative flex flex-1 items-start gap-4 border-l-[3px] py-4 pr-2 pl-4 text-left transition-[opacity,border-color] duration-200 active:scale-[0.96] motion-safe:transition-transform lg:flex-none lg:py-5 ${
+              className={`group relative flex min-w-0 flex-1 flex-col items-start gap-1.5 border-l-[3px] py-3 pr-1 pl-3 text-left transition-[opacity,border-color] duration-200 active:scale-[0.96] motion-safe:transition-transform sm:flex-row sm:gap-4 sm:py-4 sm:pr-2 sm:pl-4 lg:flex-none lg:py-5 ${
                 on
                   ? "border-[color:var(--poster)] opacity-100"
                   : "border-[color:var(--pulp-ink)]/20 opacity-55 hover:opacity-85"
               }`}
             >
-              <span className="font-sigmar text-3xl leading-none text-[color:var(--poster)] italic">
+              <span className="font-sigmar text-2xl leading-none text-[color:var(--poster)] italic sm:text-3xl">
                 {st.num}
               </span>
               <span className="min-w-0">
@@ -1059,7 +1059,8 @@ function Memo({ inView }: { inView: boolean }) {
         textSize={92}
         variant="green"
         delay={0.6}
-        className="absolute -top-20 -right-14 z-20"
+        // Phones: smaller and tucked into the corner so it clears the heading.
+        className="absolute -top-20 -right-3 z-20 origin-top-right scale-[0.6] sm:-right-14 sm:scale-100"
       >
         PING!
       </ComicBurst>

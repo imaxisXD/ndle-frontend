@@ -21,8 +21,9 @@ export const authClerkAppearance = {
   },
   elements: {
     rootBox: "mx-auto w-full bg-transparent",
-    card:
-      "mx-auto w-full border-0 bg-transparent shadow-none text-[color:var(--pulp-ink)]",
+    // Clerk's cardBox has a fixed width; let it follow the poster panel.
+    cardBox: "w-full max-w-full border-0 bg-transparent shadow-none",
+    card: "mx-auto w-full border-0 bg-transparent px-0 shadow-none text-[color:var(--pulp-ink)]",
     header: "hidden",
     formFieldLabel:
       "text-[11px] font-bold tracking-[0.18em] uppercase text-[color:var(--pulp-ink)]/70",
@@ -30,8 +31,8 @@ export const authClerkAppearance = {
       "h-11 rounded-md border-2 border-[color:var(--pulp-ink)]/25 bg-white/80 font-mono text-[color:var(--pulp-ink)] shadow-none focus:border-[color:var(--pulp-orange)] focus:ring-[color:var(--pulp-orange)]",
     formFieldInputShowPasswordButton:
       "text-[color:var(--pulp-ink)]/55 hover:text-[color:var(--pulp-ink)]",
-    socialButtons: "grid gap-3 sm:grid-cols-2",
-    socialButton:
+    socialButtons: "grid gap-3",
+    socialButtonsBlockButton:
       "h-11 rounded-md border-2 border-[color:var(--pulp-ink)]/25 bg-white/70 font-mono text-[color:var(--pulp-ink)] shadow-none hover:border-[color:var(--pulp-ink)] hover:bg-[color:var(--pulp-yellow)]/35",
     dividerLine: "bg-[color:var(--pulp-ink)]/20",
     dividerText:
@@ -40,10 +41,12 @@ export const authClerkAppearance = {
       "h-11 rounded-md border-2 border-[color:var(--pulp-ink)] bg-[color:var(--pulp-yellow)] font-mono text-xs font-bold tracking-[0.22em] text-[color:var(--pulp-ink)] uppercase shadow-[4px_4px_0_0_var(--pulp-ink)] transition hover:bg-[color:var(--pulp-orange)] hover:text-[color:var(--pulp-cream)] active:translate-x-px active:translate-y-px active:shadow-[2px_2px_0_0_var(--pulp-ink)]",
     footer: "hidden",
     identityPreviewText: "text-[color:var(--pulp-ink)]",
-    formResendCodeLink: "text-[color:var(--poster)] hover:text-[color:var(--poster-deep)]",
+    formResendCodeLink:
+      "text-[color:var(--poster)] hover:text-[color:var(--poster-deep)]",
     formFieldSuccessText: "text-[color:var(--telegram-green)]",
     formFieldErrorText: "text-[color:var(--telegram-red)]",
-    alert: "border-2 border-[color:var(--telegram-red)]/35 bg-[color:var(--telegram-red)]/10 text-[color:var(--pulp-ink)]",
+    alert:
+      "border-2 border-[color:var(--telegram-red)]/35 bg-[color:var(--telegram-red)]/10 text-[color:var(--pulp-ink)]",
   },
 };
 
@@ -153,7 +156,7 @@ export function AuthScreen({
         </Link>
       </header>
 
-      <section className="relative z-10 mx-auto grid min-h-[calc(100svh-88px)] max-w-7xl items-center gap-10 px-5 pb-10 lg:grid-cols-[minmax(0,1fr)_minmax(360px,460px)] lg:px-8 lg:pb-16">
+      <section className="relative z-10 mx-auto grid min-h-[calc(100svh-88px)] max-w-7xl grid-cols-[minmax(0,1fr)] items-center gap-10 px-5 pb-10 lg:grid-cols-[minmax(0,1fr)_minmax(360px,460px)] lg:px-8 lg:pb-16">
         <div className="hidden max-w-3xl lg:block">
           <div className="mb-10 flex items-start justify-between gap-5">
             <div className="bg-[color:var(--pulp-cream)]/95">
@@ -179,7 +182,7 @@ export function AuthScreen({
           </p>
         </div>
 
-        <div className="mx-auto w-full max-w-[460px]">
+        <div className="mx-auto w-full max-w-[460px] min-w-0">
           <div className="mb-4 flex items-center justify-between gap-4 lg:hidden">
             <div className="bg-[color:var(--pulp-cream)]/95">
               <RatingStamp />

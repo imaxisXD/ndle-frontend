@@ -91,6 +91,9 @@ export default function RootLayout({
         </Script>
         <ClerkProvider
           dynamic
+          // Clerk's styles go in their own cascade layer (declared at the top
+          // of globals.css) so Tailwind classes in `appearance` can win.
+          appearance={{ cssLayerName: "clerk" }}
           signInFallbackRedirectUrl="/dashboard"
           signUpFallbackRedirectUrl="/dashboard"
         >

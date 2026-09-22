@@ -1,3 +1,6 @@
+/* Clerk renders into the "clerk" layer (see ClerkProvider in app/layout.tsx):
+   after Tailwind's base styles, before its utilities. */
+@layer theme, base, clerk, components, utilities;
 @import "tailwindcss";
 @import "tw-animate-css";
 
