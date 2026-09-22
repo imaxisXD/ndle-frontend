@@ -33,6 +33,7 @@ export default function CollectionsRoute() {
         {status !== "Exhausted" && status !== "LoadingFirstPage" && (
           <Button
             variant="outline"
+            className="mt-8"
             onClick={() => loadMore(25)}
             disabled={status === "LoadingMore"}
           >

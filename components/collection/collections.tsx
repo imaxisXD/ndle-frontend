@@ -75,13 +75,14 @@ function CollectionMenuCell({
         render={
           <button
             type="button"
-            className="hover:bg-accent rounded-md p-1 transition-all"
+            aria-label={`Options for ${collection.name}`}
+            className="hover:bg-accent rounded-md p-2 transition-all"
             onClick={(e) => {
               e.stopPropagation();
               e.preventDefault();
             }}
           >
-            <MoreVertCircle className="h-4 w-4" />
+            <MoreVertCircle className="size-5" />
           </button>
         }
       />
@@ -170,7 +171,7 @@ function CollectionCard({
           />
         </NavLink>
         {/* Anchored to the art, not the cell, so it stays beside the folder at every width. */}
-        <div className="absolute -top-1 -right-8">
+        <div className="absolute -top-2 -right-11">
           <CollectionMenuCell
             collection={collection}
             onView={onView}

@@ -168,7 +168,10 @@ export function HotkeyButton({
       )}
     >
       {children}
-      {renderHotkeyDisplay()}
+      {/* Touch screens have no keyboard to press the shortcut with. */}
+      <span className="contents pointer-coarse:hidden">
+        {renderHotkeyDisplay()}
+      </span>
     </Button>
   );
 }

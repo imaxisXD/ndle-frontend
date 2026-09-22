@@ -1,6 +1,6 @@
 import { SkeletonBone } from "@/components/ui/skeleton-bone";
 import { TableCell, TableRow } from "@/components/ui/table";
-import { urlTableColumnSize } from "./column-sizes";
+import { urlTableCellClassName, urlTableColumnSize } from "./column-sizes";
 
 const ROW_STAGGER_MS = 90;
 
@@ -48,7 +48,7 @@ export function UrlTableSkeletonRows({
         </TableCell>
 
         <TableCell
-          className="px-4 py-3 align-top"
+          className={urlTableCellClassName("separator")}
           style={{ width: urlTableColumnSize.separator }}
         />
 
@@ -76,7 +76,7 @@ export function UrlTableSkeletonRows({
         </TableCell>
 
         <TableCell
-          className="px-4 py-3 align-top"
+          className={urlTableCellClassName("actions")}
           style={{ width: urlTableColumnSize.actions }}
         >
           <div className="flex h-8 items-center">

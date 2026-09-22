@@ -153,9 +153,9 @@ export function UrlPickerTable({ collectionId, onClose }: UrlPickerTableProps) {
           </Button>
         </div>
       </div>
-      <div className="px-1">
+      <div>
         <input
-          className="border-input bg-background focus:ring-foreground/20 w-full rounded-md border px-3 py-2 text-sm focus:ring-2 focus:outline-none"
+          className="border-input bg-background focus:ring-foreground/20 w-full rounded-md border px-3 py-2 text-base focus:ring-2 focus:outline-none sm:text-sm"
           aria-label="Search loaded links"
           placeholder="Search loaded links…"
           value={search}
@@ -180,15 +180,25 @@ export function UrlPickerTable({ collectionId, onClose }: UrlPickerTableProps) {
               </TableHead>
               <TableHead className="px-4">Short</TableHead>
               <TableHead className="px-4">Original</TableHead>
-              <TableHead className="px-4">Created</TableHead>
+              <TableHead className="hidden w-28 px-4 sm:table-cell">
+                Created
+              </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {filtered.map((u) => {
               const short = u.slugAssigned || u.shortUrl;
               return (
-                <TableRow key={u._id} className="hover:bg-muted/50">
-                  <TableCell className="px-4">
+                // The whole row toggles the checkbox, so it's easy to tap.
+                <TableRow
+                  key={u._id}
+                  className="hover:bg-muted/50 cursor-pointer"
+                  onClick={() => toggleOne(u._id)}
+                >
+                  <TableCell
+                    className="px-4"
+                    onClick={(e) => e.stopPropagation()}
+                  >
                     <Checkbox
                       aria-label="Select row"
                       checked={selected.has(u._id)}
@@ -196,7 +206,12 @@ export function UrlPickerTable({ collectionId, onClose }: UrlPickerTableProps) {
                     />
                   </TableCell>
                   <TableCell className="px-4">
-                    <code className="text-xs font-medium">{short}</code>
+                    <code
+                      className="block truncate text-xs font-medium"
+                      title={short}
+                    >
+                      {short}
+                    </code>
                   </TableCell>
                   <TableCell className="px-4">
                     <p
@@ -206,7 +221,7 @@ export function UrlPickerTable({ collectionId, onClose }: UrlPickerTableProps) {
                       {u.fullurl}
                     </p>
                   </TableCell>
-                  <TableCell className="text-muted-foreground px-4 text-xs">
+                  <TableCell className="text-muted-foreground hidden px-4 text-xs sm:table-cell">
                     {formatRelative(u._creationTime)}
                   </TableCell>
                 </TableRow>

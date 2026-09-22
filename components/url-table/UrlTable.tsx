@@ -74,7 +74,12 @@ import {
   DialogClose,
 } from "../ui/base-dialog";
 import { type DisplayUrl } from "./types";
-import { urlTableColumnSize, urlTableStyle } from "./column-sizes";
+import {
+  urlTableCellClassName,
+  urlTableColumnSize,
+  urlTableHeadClassName,
+  urlTableStyle,
+} from "./column-sizes";
 import { UrlTableSkeletonRows } from "./UrlTableSkeletonRows";
 import { formatRelative, cn, getMonitoringStatus } from "@/lib/utils";
 import { EmptyStateImage } from "@/components/empty-state-image";
@@ -140,7 +145,7 @@ function SortableHeader({
               const handler = column.getToggleSortingHandler();
               if (handler) handler(e);
             }}
-            className="hover:text-foreground flex cursor-pointer items-center gap-2 text-sm font-medium select-none"
+            className="hover:text-foreground -my-1.5 flex cursor-pointer items-center gap-2 py-1.5 text-sm font-medium select-none"
           >
             <span>{label}</span>
             <span
@@ -332,7 +337,7 @@ function ShortUrlCell({
           variant="link"
           type="button"
           aria-label={copied ? "Copied" : "Copy short link"}
-          className="text-muted-foreground hover:bg-muted flex size-7 shrink-0 items-center justify-center rounded-md transition-colors hover:text-blue-600"
+          className="text-muted-foreground hover:bg-muted flex size-8 shrink-0 items-center justify-center rounded-md transition-colors hover:text-blue-600"
           onClick={(e) => {
             e.stopPropagation();
             onCopy(shortUrl);
@@ -532,7 +537,7 @@ const UrlDataRow = memo(function UrlDataRow({
       </TableCell>
 
       <TableCell
-        className="px-4 py-3 align-top"
+        className={urlTableCellClassName("separator")}
         style={{ width: urlTableColumnSize.separator }}
       />
 
@@ -565,7 +570,7 @@ const UrlDataRow = memo(function UrlDataRow({
       </TableCell>
 
       <TableCell
-        className="px-4 py-3 align-top"
+        className={urlTableCellClassName("actions")}
         style={{ width: urlTableColumnSize.actions }}
       >
         <div className="flex h-8 items-center">
@@ -626,7 +631,7 @@ const UrlTableSearch = memo(function UrlTableSearch({
   searchQuery: string;
 }) {
   return (
-    <div className="border-border border-b p-6">
+    <div className="border-border border-b p-4 sm:p-6">
       <div className="relative">
         <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
         <input
@@ -634,7 +639,7 @@ const UrlTableSearch = memo(function UrlTableSearch({
           value={searchQuery}
           onChange={(e) => onSearchChange(e.target.value)}
           placeholder={searchPlaceholder}
-          className="border-border bg-home focus:ring-foreground/20 w-full rounded-md border py-2.5 pr-10 pl-10 text-sm focus:ring-2 focus:outline-none"
+          className="border-border bg-home focus:ring-foreground/20 w-full rounded-md border py-2.5 pr-10 pl-10 text-base focus:ring-2 focus:outline-none sm:text-sm"
         />
         {searchQuery && (
           <button
@@ -680,7 +685,7 @@ const UrlTableFilters = memo(function UrlTableFilters({
     searchQuery || statusFilter !== "all" || collectionFilter !== "all";
 
   return (
-    <div className="border-border border-b p-6 py-3">
+    <div className="border-border border-b px-4 py-3 sm:px-6">
       <div className="flex items-center justify-end">
         <Button
           variant="secondary"
@@ -703,74 +708,79 @@ const UrlTableFilters = memo(function UrlTableFilters({
         </Button>
       </div>
 
+      {/* Grid rows animate to the panel's real height, so nothing gets clipped
+          however many collections there are. */}
       <div
-        className={`overflow-hidden transition-[max-height] duration-300 ease-in-out ${
-          showFiltersPanel ? "max-h-64" : "max-h-0"
+        className={`grid transition-[grid-template-rows] duration-300 ease-in-out ${
+          showFiltersPanel ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
         }`}
         aria-hidden={!showFiltersPanel}
+        inert={!showFiltersPanel}
       >
-        <div className="bg-muted/30 border-border mt-4 flex flex-col gap-4 rounded-lg border p-4">
-          {collectionOptions.length > 0 && (
-            <div className="flex flex-col gap-2">
-              <span className="text-muted-foreground text-xs font-medium">
-                Collection:
-              </span>
-              <div className="flex flex-wrap gap-2">
-                <button
-                  type="button"
-                  onClick={() => onCollectionFilterChange("all")}
-                  className={`rounded-md px-3 py-1 text-xs transition-colors ${
-                    collectionFilter === "all"
-                      ? "bg-foreground text-background"
-                      : "bg-background border-border hover:bg-accent border"
-                  }`}
-                >
-                  All
-                </button>
-                {collectionOptions.map((collection) => (
+        <div className="min-h-0 overflow-hidden">
+          <div className="bg-muted/30 border-border mt-4 flex flex-col gap-4 rounded-lg border p-4">
+            {collectionOptions.length > 0 && (
+              <div className="flex flex-col gap-2">
+                <span className="text-muted-foreground text-xs font-medium">
+                  Collection:
+                </span>
+                <div className="flex max-h-40 flex-wrap gap-2 overflow-y-auto">
                   <button
                     type="button"
-                    key={collection.id}
-                    onClick={() => onCollectionFilterChange(collection.id)}
-                    className={`flex items-center gap-1.5 rounded-md px-3 py-1 text-xs transition-colors ${
-                      collectionFilter === collection.id
+                    onClick={() => onCollectionFilterChange("all")}
+                    className={`rounded-md px-3 py-1 text-xs transition-colors ${
+                      collectionFilter === "all"
                         ? "bg-foreground text-background"
                         : "bg-background border-border hover:bg-accent border"
                     }`}
                   >
-                    <span
-                      className="h-2 w-2 rounded-full"
-                      style={{
-                        backgroundColor:
-                          collection.collectionColor || "#6b7280",
-                      }}
-                    />
-                    {collection.name}
+                    All
+                  </button>
+                  {collectionOptions.map((collection) => (
+                    <button
+                      type="button"
+                      key={collection.id}
+                      onClick={() => onCollectionFilterChange(collection.id)}
+                      className={`flex max-w-full items-center gap-1.5 rounded-md px-3 py-1 text-xs transition-colors ${
+                        collectionFilter === collection.id
+                          ? "bg-foreground text-background"
+                          : "bg-background border-border hover:bg-accent border"
+                      }`}
+                    >
+                      <span
+                        className="h-2 w-2 shrink-0 rounded-full"
+                        style={{
+                          backgroundColor:
+                            collection.collectionColor || "#6b7280",
+                        }}
+                      />
+                      <span className="truncate">{collection.name}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+              <span className="text-muted-foreground text-xs font-medium">
+                Status:
+              </span>
+              <div className="flex flex-wrap gap-2">
+                {statusFilterOptions.map((status) => (
+                  <button
+                    type="button"
+                    key={status}
+                    onClick={() => onStatusFilterChange(status)}
+                    className={`rounded-md px-3 py-1 text-xs transition-colors ${
+                      statusFilter === status
+                        ? "bg-foreground text-background"
+                        : "bg-background border-border hover:bg-accent border"
+                    }`}
+                  >
+                    {status === "all" ? "All" : status}
                   </button>
                 ))}
               </div>
-            </div>
-          )}
-
-          <div className="flex items-center gap-2">
-            <span className="text-muted-foreground text-xs font-medium">
-              Status:
-            </span>
-            <div className="flex flex-wrap gap-2">
-              {statusFilterOptions.map((status) => (
-                <button
-                  type="button"
-                  key={status}
-                  onClick={() => onStatusFilterChange(status)}
-                  className={`rounded-md px-3 py-1 text-xs transition-colors ${
-                    statusFilter === status
-                      ? "bg-foreground text-background"
-                      : "bg-background border-border hover:bg-accent border"
-                  }`}
-                >
-                  {status === "all" ? "All" : status}
-                </button>
-              ))}
             </div>
           </div>
         </div>
@@ -875,7 +885,7 @@ export function UrlTable({
   headerTitle = "",
   headerDescription = "",
   footerContent = "",
-  searchPlaceholder = "Search links by Link, content, or notes...",
+  searchPlaceholder = "Search links…",
   collectionId,
 }: UrlTableProps) {
   const [now, setNow] = useState(() => Date.now());
@@ -1240,7 +1250,12 @@ export function UrlTable({
       },
       {
         id: "actions",
-        header: () => <span className="text-sm font-medium">Options</span>,
+        // The narrow sticky column on phones only fits the menu button.
+        header: () => (
+          <span className="sr-only text-sm font-medium md:not-sr-only">
+            Options
+          </span>
+        ),
         cell: ({ row }) => {
           const url = row.original;
           return (
@@ -1294,7 +1309,7 @@ export function UrlTable({
           {headerGroup.headers.map((header) => (
             <TableHead
               key={header.id}
-              className="px-4 py-3"
+              className={urlTableHeadClassName(header.column.id)}
               style={{ width: header.getSize() }}
             >
               {header.isPlaceholder
@@ -1415,7 +1430,7 @@ export function UrlTable({
                     return (
                       <TableHead
                         key={header.id}
-                        className="px-4 py-3"
+                        className={urlTableHeadClassName(header.column.id)}
                         style={{ width: header.getSize() }}
                       >
                         {header.isPlaceholder ? null : (
@@ -1491,16 +1506,19 @@ export function UrlTable({
 
       {/* Pagination Section */}
       {showPagination && (
-        <div className="px-6 py-5">
+        <div className="px-4 py-4 sm:px-6 sm:py-5">
           {!isLoading && !isEmpty && filteredUrls.length > 0 ? (
-            <div className="flex items-center justify-between gap-6">
+            <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3">
               <div className="flex items-center gap-2">
-                <p className="text-sm">Links per page</p>
+                <p className="text-sm whitespace-nowrap">
+                  <span className="sm:hidden">Per page</span>
+                  <span className="hidden sm:inline">Links per page</span>
+                </p>
                 <Select
                   value={String(table.getState().pagination.pageSize)}
                   onValueChange={(value) => table.setPageSize(Number(value))}
                 >
-                  <SelectTrigger className="px-3">
+                  <SelectTrigger aria-label="Links per page" className="px-3">
                     <SelectValue placeholder="Rows" />
                   </SelectTrigger>
                   <SelectContent>
@@ -1545,7 +1563,7 @@ export function UrlTable({
               </div>
 
               <div className="flex items-center gap-2">
-                <span className="text-sm">
+                <span className="text-sm whitespace-nowrap">
                   Page {table.getState().pagination.pageIndex + 1} of{" "}
                   {table.getPageCount()}
                 </span>
@@ -1575,7 +1593,7 @@ export function UrlTable({
                   type="button"
                   onClick={() => table.previousPage()}
                   disabled={!table.getCanPreviousPage()}
-                  className="border-border hover:bg-accent rounded-md border px-3 py-1.5 text-sm transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+                  className="border-border hover:bg-accent rounded-md border px-3 py-1.5 text-sm whitespace-nowrap transition-colors disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   ← Prev
                 </button>
@@ -1583,7 +1601,7 @@ export function UrlTable({
                   type="button"
                   onClick={() => table.nextPage()}
                   disabled={!table.getCanNextPage()}
-                  className="border-border hover:bg-accent rounded-md border px-3 py-1.5 text-sm transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+                  className="border-border hover:bg-accent rounded-md border px-3 py-1.5 text-sm whitespace-nowrap transition-colors disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   Next →
                 </button>

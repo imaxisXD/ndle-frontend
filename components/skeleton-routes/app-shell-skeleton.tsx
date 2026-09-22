@@ -30,6 +30,7 @@ import {
 } from "@/components/ui/table";
 import {
   urlTableColumnSize,
+  urlTableHeadClassName,
   urlTableStyle,
 } from "@/components/url-table/column-sizes";
 import { UrlTableSkeletonRows } from "@/components/url-table/UrlTableSkeletonRows";
@@ -224,7 +225,11 @@ function RecentLinksSkeleton() {
     {
       key: "actions",
       width: urlTableColumnSize.actions,
-      label: <SkeletonColumnLabel label="Options" />,
+      label: (
+        <span className="sr-only text-sm font-medium md:not-sr-only">
+          Options
+        </span>
+      ),
     },
   ];
 
@@ -248,7 +253,7 @@ function RecentLinksSkeleton() {
               {columns.map((column) => (
                 <TableHead
                   key={column.key}
-                  className="px-4 py-3"
+                  className={urlTableHeadClassName(column.key)}
                   style={{ width: column.width }}
                 >
                   {column.label}

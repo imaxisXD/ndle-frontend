@@ -86,10 +86,10 @@ export default function CollectionDetailRoute() {
   return (
     <>
       <header>
-        <div className="mb-6 flex items-center justify-between">
+        <div className="mb-6 flex items-center justify-between gap-3">
           <NavLink
             to="/collections"
-            className="text-muted-foreground hover:text-foreground flex items-center gap-2 text-sm transition-colors"
+            className="text-muted-foreground hover:text-foreground flex min-h-10 items-center gap-2 text-sm transition-colors"
           >
             ← Back to Collections
           </NavLink>
@@ -131,11 +131,11 @@ export default function CollectionDetailRoute() {
             update finishes.
           </output>
         ) : (collection.linkCount ?? 0) === 0 ? (
-          <div className="border-border from-muted/60 mt-6 flex flex-col gap-10 rounded-lg border-2 border-dashed bg-gradient-to-t to-white/10 p-10 text-center">
+          <div className="border-border from-muted/60 mt-6 flex flex-col gap-6 rounded-lg border-2 border-dashed bg-gradient-to-t to-white/10 p-6 text-center sm:gap-10 sm:p-10">
             <h3 className="text-sm font-medium">
               ndle is ready to help you organize your links
             </h3>
-            <div className="mt-10 flex flex-col items-center gap-10">
+            <div className="mt-4 flex flex-col items-center gap-6 sm:mt-10 sm:gap-10">
               <div className="flex flex-col items-center gap-2">
                 <div className="rounded-lg bg-gradient-to-br from-gray-200/80 to-gray-300/60 p-2">
                   <BookmarkBook className="size-18 text-yellow-500/90" />
