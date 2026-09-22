@@ -15,6 +15,9 @@ export function Toaster() {
   return (
     <SonnerToaster
       position="bottom-right"
+      // Clears the bottom nav bar on small screens (see --toast-offset-bottom).
+      offset={{ bottom: "var(--toast-offset-bottom)" }}
+      mobileOffset={{ bottom: "var(--toast-offset-bottom)" }}
       expand={false}
       visibleToasts={5}
       closeButton

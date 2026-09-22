@@ -3,14 +3,10 @@ import { cn } from "@/lib/utils";
 
 export type PlanNoteState = "loading" | "free" | "pro";
 
-const FREE_NOTE =
-  "Free accounts can use simple settings here. Paid-only options will stay blocked when you save.";
-const PRO_NOTE = "Your Pro plan includes every option below.";
-
 /**
- * Plan note above Advanced Options. Both messages share one grid cell, so the
- * note is as tall as the longer one whatever the plan is, and the form does
- * not move when the plan loads.
+ * Free-plan note above Advanced Options. The note keeps its space while the
+ * plan loads and for Pro accounts (where it is hidden), so the form does not
+ * move when the plan arrives.
  */
 export function PlanNote({ state }: { state: PlanNoteState }) {
   return (
@@ -22,16 +18,8 @@ export function PlanNote({ state }: { state: PlanNoteState }) {
           state !== "free" && "invisible",
         )}
       >
-        {FREE_NOTE}
-      </p>
-      <p
-        aria-hidden={state !== "pro"}
-        className={cn(
-          "col-start-1 row-start-1",
-          state !== "pro" && "invisible",
-        )}
-      >
-        {PRO_NOTE}
+        Free accounts can use simple settings here. Paid-only options will stay
+        blocked when you save.
       </p>
       {state === "loading" ? (
         <span className="col-start-1 row-start-1 flex h-4 items-center">

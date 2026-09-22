@@ -6,3 +6,11 @@ export const urlTableColumnSize = {
   shortUrl: 180,
   status: 60,
 } as const;
+
+// Below this width the table scrolls sideways instead of squeezing columns
+// until badges and links overlap.
+export const urlTableStyle = {
+  tableLayout: "fixed",
+  width: "100%",
+  minWidth: 720,
+} as const;

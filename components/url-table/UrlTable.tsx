@@ -74,7 +74,7 @@ import {
   DialogClose,
 } from "../ui/base-dialog";
 import { type DisplayUrl } from "./types";
-import { urlTableColumnSize } from "./column-sizes";
+import { urlTableColumnSize, urlTableStyle } from "./column-sizes";
 import { UrlTableSkeletonRows } from "./UrlTableSkeletonRows";
 import { formatRelative, cn, getMonitoringStatus } from "@/lib/utils";
 import { EmptyStateImage } from "@/components/empty-state-image";
@@ -1354,7 +1354,7 @@ export function UrlTable({
           <Table
             aria-busy="true"
             aria-label="Loading your links"
-            style={{ tableLayout: "fixed", width: "100%" }}
+            style={urlTableStyle}
           >
             {plainTableHeader}
             <TableBody>
@@ -1373,7 +1373,7 @@ export function UrlTable({
             </span>
           </output>
         ) : hasLoadProblem || isEmpty || filteredUrls.length === 0 ? (
-          <Table style={{ tableLayout: "fixed", width: "100%" }}>
+          <Table style={urlTableStyle}>
             {plainTableHeader}
             <TableBody>
               <TableRow>
@@ -1407,7 +1407,7 @@ export function UrlTable({
             </TableBody>
           </Table>
         ) : (
-          <Table style={{ tableLayout: "fixed", width: "100%" }}>
+          <Table style={urlTableStyle}>
             <TableHeader className="bg-card sticky top-0">
               {table.getHeaderGroups().map((headerGroup) => (
                 <TableRow key={headerGroup.id} className="hover:bg-transparent">

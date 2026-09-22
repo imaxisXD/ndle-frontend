@@ -20,8 +20,8 @@ import {
 
 export function Sidebar() {
   return (
-    <aside className="my-auto ml-4 flex h-[65vh] w-16 shrink-0 flex-col items-center rounded-sm border border-dashed border-gray-400/60 bg-white py-2 shadow-2xs">
-      <nav className="flex flex-1 flex-col gap-4">
+    <aside className="fixed inset-x-3 bottom-[calc(env(safe-area-inset-bottom)+0.75rem)] z-40 flex h-14 flex-row items-center justify-between rounded-sm border border-dashed border-gray-400/60 bg-white px-2 shadow-2xs md:static md:my-auto md:ml-4 md:h-[65vh] md:w-16 md:shrink-0 md:flex-col md:justify-start md:px-0 md:py-2">
+      <nav className="flex flex-row gap-1 md:flex-1 md:flex-col md:gap-4">
         <Tooltip>
           <TooltipTrigger
             render={
@@ -180,7 +180,7 @@ export function Sidebar() {
         </Tooltip>
       </nav>
 
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-row gap-1 md:flex-col md:gap-4">
         {/* TODO: WILL ADD BACK IN LATER notification center */}
         {/* <NotificationCenter /> */}
 

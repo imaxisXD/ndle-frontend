@@ -1421,6 +1421,17 @@
   }
 }
 
+/* Toasts sit above the mobile bottom nav bar (components/sidebar.tsx),
+   which turns into the side rail from the md breakpoint up. */
+:root {
+  --toast-offset-bottom: calc(env(safe-area-inset-bottom) + 5.25rem);
+}
+@media (min-width: 48rem) {
+  :root {
+    --toast-offset-bottom: 24px;
+  }
+}
+
 /* ── App loading skeleton ─────────────────────────────────────────── */
 
 /* A card with a top, left and right border and no bottom edge: the frame

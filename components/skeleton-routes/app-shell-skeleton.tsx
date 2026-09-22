@@ -28,7 +28,10 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { urlTableColumnSize } from "@/components/url-table/column-sizes";
+import {
+  urlTableColumnSize,
+  urlTableStyle,
+} from "@/components/url-table/column-sizes";
 import { UrlTableSkeletonRows } from "@/components/url-table/UrlTableSkeletonRows";
 import { PlanNote } from "@/components/url-shortener/PlanNote";
 import { getShortDomain } from "@/lib/config";
@@ -90,11 +93,11 @@ function SidebarSkeleton({ pathname }: { pathname: string | null }) {
   };
 
   return (
-    <div className="my-auto ml-4 flex h-[65vh] w-16 shrink-0 flex-col items-center rounded-sm border border-dashed border-gray-400/60 bg-white py-2 shadow-2xs">
-      <div className="flex flex-1 flex-col gap-4">
+    <div className="fixed inset-x-3 bottom-[calc(env(safe-area-inset-bottom)+0.75rem)] z-40 flex h-14 flex-row items-center justify-between rounded-sm border border-dashed border-gray-400/60 bg-white px-2 shadow-2xs md:static md:my-auto md:ml-4 md:h-[65vh] md:w-16 md:shrink-0 md:flex-col md:justify-start md:px-0 md:py-2">
+      <div className="flex flex-row gap-1 md:flex-1 md:flex-col md:gap-4">
         {primaryNav.map(navSlot)}
       </div>
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-row gap-1 md:flex-col md:gap-4">
         {navSlot({ path: "/settings", Icon: GearIcon })}
         <span className="flex h-10 w-10 items-center justify-center rounded-md text-blue-500/60">
           <HeadsetIcon className="size-5" weight="duotone" />
@@ -142,7 +145,7 @@ function ShortenerSkeleton() {
                   </span>
                 </span>
               </div>
-              <div className="flex flex-wrap items-center gap-2">
+              <div className="flex items-center gap-2">
                 <SkeletonBone className="size-3.5 rounded-full" delay={120} />
                 <span className="text-muted-foreground text-sm">
                   Readable words{" "}
@@ -239,7 +242,7 @@ function RecentLinksSkeleton() {
       </div>
 
       <div className="border-border border-b">
-        <Table style={{ tableLayout: "fixed", width: "100%" }}>
+        <Table style={urlTableStyle}>
           <TableHeader className="bg-card">
             <TableRow className="hover:bg-transparent">
               {columns.map((column) => (
@@ -321,8 +324,8 @@ export function AppShellSkeleton() {
       className="bg-home text-foreground dot flex min-h-screen w-full gap-4 overflow-hidden"
     >
       <SidebarSkeleton pathname={pathname} />
-      <div className="flex min-h-screen w-full flex-1 items-start justify-center overflow-y-auto px-4 py-8">
-        <div className="pointer-events-none flex w-full max-w-6xl flex-col space-y-8 px-6 py-8 select-none">
+      <div className="flex min-h-screen w-full min-w-0 flex-1 items-start justify-center overflow-y-auto px-4 pt-4 pb-24 md:py-8">
+        <div className="pointer-events-none flex w-full max-w-6xl flex-col space-y-8 py-4 select-none md:px-6 md:py-8">
           {isActivePath(pathname, "/dashboard") ? (
             <DashboardSkeleton />
           ) : (
