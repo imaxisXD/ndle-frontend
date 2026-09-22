@@ -461,6 +461,16 @@ export function BklitLineSeriesChart<T extends object>({
           // Monotone never overshoots its points, so zero days stay on the axis.
           curve={curveMonotoneX}
           dataKey={valueKey}
+          // Keep the first and last days fully visible instead of fading them out.
+          fadeEdges={false}
+          // Gray out the rest of the line on hover so the yellow highlight reads.
+          dimOpacity={0.8}
+          grayOnDim
+          markers={{
+            inactiveBlur: 0,
+            inactiveGray: true,
+            inactiveOpacity: 0.8,
+          }}
           showMarkers={data.length <= 12}
           stroke={color}
         />

@@ -20,6 +20,7 @@ import { ChartProvider, type LineConfig, type Margin } from "./chart-context";
 import { isGradientDefComponent, isPatternDefComponent } from "./chart-defs";
 import { shortDateFmt } from "./chart-formatters";
 import { ChartRevealClip } from "./chart-reveal-clip";
+import { getSeriesMarkerVisualExtent } from "./series-point-marker";
 import {
   decimateTimeSeries,
   maxRenderPointsForWidth,
@@ -399,7 +400,9 @@ const TimeSeriesChartCore = memo(function TimeSeriesChartCore({
 
   const revealClipPadding = useMemo(() => {
     if (!composedBarDataKeys?.length) {
-      return 0;
+      // Room for a default point marker, so markers on the plot edges are not
+      // cut in half by the clip.
+      return getSeriesMarkerVisualExtent({});
     }
     const barWidth = computeSeriesBarWidth({
       innerWidth,

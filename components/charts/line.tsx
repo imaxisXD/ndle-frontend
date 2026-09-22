@@ -46,6 +46,10 @@ export interface LineProps {
   fadeEdges?: FadeEdges;
   /** Whether to show highlight segment on hover. Default: true */
   showHighlight?: boolean;
+  /** Opacity of the rest of the line while hovering. Default: 0.3 */
+  dimOpacity?: number;
+  /** Turn the rest of the line gray while hovering. Default: false */
+  grayOnDim?: boolean;
   /** Render scatter-style circle markers at each data point. Default: false */
   showMarkers?: boolean;
   /** Marker styling (same options as Scatter). */
@@ -68,6 +72,8 @@ export function Line({
   animate = true,
   fadeEdges = true,
   showHighlight = true,
+  dimOpacity = 0.3,
+  grayOnDim = false,
   showMarkers = false,
   markers,
   dashFromIndex,
@@ -136,8 +142,9 @@ export function Line({
       ) : null}
 
       <SeriesHoverDim
-        dimOpacity={0.3}
+        dimOpacity={dimOpacity}
         enabled={showHighlight}
+        grayOnDim={grayOnDim}
         seriesIndex={seriesIndex}
       >
         <LinePath

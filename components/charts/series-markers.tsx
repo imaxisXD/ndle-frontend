@@ -9,6 +9,7 @@ import {
   useYScale,
 } from "./chart-context";
 import { useChartLegendHover } from "./chart-legend-hover";
+import { GRAY_DIM_FILTER } from "./series-hover-dim";
 import {
   getSeriesMarkerVisualExtent,
   SeriesPointMarker,
@@ -54,6 +55,7 @@ export function SeriesMarkers({
   fadeOnHover = true,
   inactiveOpacity = 0.5,
   inactiveBlur = 2,
+  inactiveGray = false,
   enterBlur = 2,
   showActiveHighlight = true,
 }: SeriesMarkersProps) {
@@ -200,6 +202,7 @@ export function SeriesMarkers({
       <SeriesMarkersDimWrapper
         enabled={fadeOnHover}
         inactiveBlur={inactiveBlur}
+        inactiveGray={inactiveGray}
         inactiveOpacity={inactiveOpacity}
         seriesIndex={seriesIndex}
       >
@@ -221,6 +224,7 @@ interface SeriesMarkersDimWrapperProps {
   enabled: boolean;
   inactiveOpacity: number;
   inactiveBlur: number;
+  inactiveGray: boolean;
   seriesIndex: number;
   children: ReactNode;
 }
@@ -234,6 +238,7 @@ function SeriesMarkersDimWrapper({
   enabled,
   inactiveOpacity,
   inactiveBlur,
+  inactiveGray,
   seriesIndex,
   children,
 }: SeriesMarkersDimWrapperProps) {
@@ -242,13 +247,17 @@ function SeriesMarkersDimWrapper({
   const isLegendDimmed =
     legendHoveredIndex !== null && legendHoveredIndex !== seriesIndex;
   const dimBase = enabled && (tooltipData !== null || isLegendDimmed);
+  const dimFilters = [
+    inactiveBlur > 0 ? `blur(${inactiveBlur}px)` : null,
+    inactiveGray ? GRAY_DIM_FILTER : null,
+  ].filter(Boolean);
   return (
     <g
       opacity={dimBase ? inactiveOpacity : 1}
       style={{
         transition: "opacity 0.15s ease-in-out, filter 0.15s ease-in-out",
         filter:
-          dimBase && inactiveBlur > 0 ? `blur(${inactiveBlur}px)` : "none",
+          dimBase && dimFilters.length > 0 ? dimFilters.join(" ") : "none",
       }}
     >
       {children}
