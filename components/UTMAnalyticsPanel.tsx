@@ -129,7 +129,7 @@ export function UTMAnalyticsPanel({ data, isLoading }: UTMAnalyticsPanelProps) {
   return (
     <div className="space-y-4">
       {/* Summary Cards */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         <Card>
           <CardHeader className="pb-2">
             <CardDescription>UTM Tracked Clicks</CardDescription>
@@ -285,15 +285,12 @@ export function UTMAnalyticsPanel({ data, isLoading }: UTMAnalyticsPanelProps) {
                       strokeDasharray={`${utmPercentage}, 100`}
                       strokeLinecap="round"
                     />
-                    <text
-                      x="18"
-                      y="20.5"
-                      textAnchor="middle"
-                      className="fill-current text-3xl font-bold"
-                    >
-                      {utmPercentage}%
-                    </text>
                   </svg>
+                  {/* HTML text: a CSS font size inside the 36-unit viewBox
+                      renders far larger than the ring. */}
+                  <span className="absolute inset-0 flex items-center justify-center text-2xl font-bold tabular-nums">
+                    {utmPercentage}%
+                  </span>
                 </div>
                 <div className="mt-4 flex justify-center gap-6 text-sm">
                   <div className="flex items-center gap-2">

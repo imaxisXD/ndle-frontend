@@ -68,11 +68,11 @@ export function TopLinksChart({
 
   return (
     <Card className={className}>
-      <CardHeader className="flex flex-row items-center justify-start gap-3">
+      <CardHeader className="flex flex-row flex-nowrap items-center justify-start gap-3">
         <span className="bg-muted flex shrink-0 items-center justify-center rounded-lg p-3">
           <RankingIcon className="size-6" weight="duotone" aria-hidden="true" />
         </span>
-        <div className="flex flex-col gap-1">
+        <div className="flex min-w-0 flex-col gap-1">
           <CardTitle className="font-medium">Top Performing Links</CardTitle>
           <CardDescription className="text-xs">
             Most clicked links in the selected period
@@ -120,7 +120,7 @@ export function TopLinksChart({
                 className="px-2 py-3 first:pt-0 last:pb-0"
               >
                 {/* Primary line — rank, link, count and action all aligned */}
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2 sm:gap-4">
                   {index === 0 ? (
                     <span className="bg-accent text-accent-foreground flex size-6 shrink-0 items-center justify-center rounded-sm text-xs font-semibold tabular-nums">
                       1
@@ -136,6 +136,9 @@ export function TopLinksChart({
                       url={normalizedHref}
                       originalUrl={link.originalUrl}
                       asCode
+                      // Phones: give the short link the room instead.
+                      faviconClassName="hidden sm:contents"
+                      iconClassName="hidden sm:block"
                     >
                       {shortLink.replace(/^https?:\/\//, "")}
                     </LinkWithFavicon>
@@ -165,8 +168,15 @@ export function TopLinksChart({
                   <div className="flex shrink-0 flex-col items-end leading-tight">
                     <p className="text-sm font-medium tabular-nums">
                       <NumberFlow value={link.clicks} isolate={true} />
+                      <span className="sr-only"> clicks</span>
                     </p>
-                    <p className="text-muted-foreground text-xs">[clicks]</p>
+                    {/* Hidden on phones to leave room for the link. */}
+                    <p
+                      aria-hidden="true"
+                      className="text-muted-foreground hidden text-xs sm:block"
+                    >
+                      [clicks]
+                    </p>
                   </div>
 
                   <Tooltip>
@@ -187,7 +197,7 @@ export function TopLinksChart({
 
                 {/* Secondary line — full URL, aligned under the link */}
                 <p
-                  className="text-muted-foreground mt-1 truncate pl-10 text-xs"
+                  className="text-muted-foreground mt-1 truncate pl-8 text-xs sm:pl-10"
                   title={link.originalUrl}
                 >
                   {link.originalUrl}

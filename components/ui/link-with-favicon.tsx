@@ -10,6 +10,8 @@ export interface LinkWithFaviconProps extends Omit<
   url: string;
   originalUrl: string;
   showFavicon?: boolean;
+  /** Extra classes for the favicon slot, e.g. to hide it on small screens. */
+  faviconClassName?: string;
   showIcon?: boolean;
   asCode?: boolean;
   children?: React.ReactNode;
@@ -25,6 +27,7 @@ const LinkWithFavicon = React.forwardRef<
       url,
       originalUrl,
       showFavicon = true,
+      faviconClassName,
       showIcon = true,
       asCode = false,
       className,
@@ -39,22 +42,27 @@ const LinkWithFavicon = React.forwardRef<
     const displayText = children || url.replace(/^https?:\/\//, "");
 
     return (
-      <div className="flex items-center gap-0.5">
-        {showFavicon && <UrlFavicon url={originalUrl} size={size} />}
+      <div className="flex min-w-0 items-center gap-0.5">
+        {showFavicon && (
+          <span className={cn("contents", faviconClassName)}>
+            <UrlFavicon url={originalUrl} size={size} />
+          </span>
+        )}
         <LinkWithIcon
           ref={ref}
           href={url}
           link={
             <TextWrapper
               className={cn(
-                asCode && "text-foreground truncate text-sm font-medium",
+                asCode &&
+                  "text-foreground min-w-0 truncate text-sm font-medium",
               )}
             >
               {displayText}
             </TextWrapper>
           }
           className={cn(
-            "text-muted-foreground hover:bg-muted hover:text-foreground rounded-md px-2 py-1 text-sm font-medium transition-colors hover:decoration-blue-500 hover:decoration-dashed hover:underline-offset-2",
+            "text-muted-foreground hover:bg-muted hover:text-foreground min-w-0 rounded-md px-2 py-1 text-sm font-medium transition-colors hover:decoration-blue-500 hover:decoration-dashed hover:underline-offset-2",
             className,
           )}
           iconClassName={cn(
