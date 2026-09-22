@@ -14,18 +14,9 @@ interface SeriesHoverDimProps {
   durationSec?: number;
   /** Series index for multi-series legend hover dimming. */
   seriesIndex?: number;
-  /**
-   * Desaturate the series to gray while dimmed, so a highlight in the series
-   * color stands out by hue instead of relying on opacity alone.
-   */
-  grayOnDim?: boolean;
   /** Stable chart visuals — area fill, stroke line, dashed tail, etc. */
   children: ReactNode;
 }
-
-// Both filters list the same functions so motion can interpolate between them.
-const REST_FILTER = "grayscale(0) brightness(1)";
-export const GRAY_DIM_FILTER = "grayscale(1) brightness(0.7)";
 
 /**
  * Wraps stable series visuals with a hover-driven opacity animation.
@@ -42,7 +33,6 @@ export function SeriesHoverDim({
   dimOpacity = 0.5,
   durationSec = 0.4,
   seriesIndex,
-  grayOnDim = false,
   children,
 }: SeriesHoverDimProps) {
   const { tooltipData, selection } = useChartHover();
@@ -52,13 +42,12 @@ export function SeriesHoverDim({
     legendHoveredIndex !== null &&
     seriesIndex !== undefined &&
     legendHoveredIndex !== seriesIndex;
-  const isDimmed = enabled && (isChartHovering || isLegendDimmed);
-  const opacity = isDimmed ? dimOpacity : 1;
-  const filter = grayOnDim && isDimmed ? GRAY_DIM_FILTER : REST_FILTER;
+  const opacity =
+    enabled && (isChartHovering || isLegendDimmed) ? dimOpacity : 1;
   return (
     <motion.g
-      animate={grayOnDim ? { opacity, filter } : { opacity }}
-      initial={grayOnDim ? { opacity: 1, filter: REST_FILTER } : { opacity: 1 }}
+      animate={{ opacity }}
+      initial={{ opacity: 1 }}
       transition={{ duration: durationSec, ease: "easeInOut" }}
     >
       {children}

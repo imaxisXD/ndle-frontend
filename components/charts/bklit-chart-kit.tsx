@@ -463,14 +463,11 @@ export function BklitLineSeriesChart<T extends object>({
           dataKey={valueKey}
           // Keep the first and last days fully visible instead of fading them out.
           fadeEdges={false}
-          // Gray out the rest of the line on hover so the yellow highlight reads.
-          dimOpacity={0.8}
-          grayOnDim
-          markers={{
-            inactiveBlur: 0,
-            inactiveGray: true,
-            inactiveOpacity: 0.8,
-          }}
+          // On hover the rest of the line stays yellow at lower opacity: faint
+          // enough for the full-strength highlight to stand out, strong
+          // enough to keep the shape readable on a white card.
+          dimOpacity={0.45}
+          markers={{ inactiveBlur: 0, inactiveOpacity: 0.45 }}
           showMarkers={data.length <= 12}
           stroke={color}
         />

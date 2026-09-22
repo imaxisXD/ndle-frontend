@@ -29,8 +29,6 @@ export interface SeriesPointMarkerStyle {
    * Applied once on the dimmed layer (not per dot) for performance. Default: 2
    */
   inactiveBlur?: number;
-  /** Turn non-hovered points gray when `fadeOnHover` is true. Default: false */
-  inactiveGray?: boolean;
   /** Initial blur in px during enter animation. Default: 2 */
   enterBlur?: number;
   /** Enlarge the active point while hovering. Default: true */
