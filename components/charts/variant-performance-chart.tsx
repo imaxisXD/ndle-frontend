@@ -12,6 +12,9 @@ import { Shuffle } from "iconoir-react"; // Icon for A/B testing
 
 export const description = "A bar chart showing A/B test variant performance";
 
+/** Maps a variant_id to its short name and destination URL. */
+export type VariantLabels = Record<string, { name: string; url?: string }>;
+
 export function VariantPerformanceChart({
   data,
   variantMap,
@@ -22,18 +25,21 @@ export function VariantPerformanceChart({
     clicks: number;
     percentage: string | number;
   }>;
-  variantMap?: Record<string, string>; // Maps variant_id to display name or URL
+  variantMap?: VariantLabels;
   isLoading?: boolean;
 }) {
-  // Enhance data with labels
+  // Bars use the short name; destinations are listed under the chart, since
+  // a URL in a bar label gets cut to "Control (htt…".
   const chartData = (data || []).map((item) => ({
     ...item,
     label:
-      variantMap?.[item.variant_id] ||
+      variantMap?.[item.variant_id]?.name ||
       (item.variant_id === "control"
         ? "Control"
         : `Variant ${item.variant_id.replace("variant_", "")}`),
+    url: variantMap?.[item.variant_id]?.url,
   }));
+  const destinations = chartData.filter((item) => item.url);
 
   return (
     <Card>
@@ -59,6 +65,25 @@ export function VariantPerformanceChart({
           loadingTitle="Loading variant analytics"
           valueKey="clicks"
         />
+        {!isLoading && destinations.length > 0 ? (
+          <ul className="mt-4 space-y-1.5 text-xs">
+            {destinations.map((item) => (
+              <li
+                key={item.variant_id}
+                // minmax(0,1fr): a long URL can't widen the card.
+                className="grid grid-cols-[auto_minmax(0,1fr)] gap-2"
+              >
+                <span className="shrink-0 font-medium">{item.label}</span>
+                <span
+                  className="text-muted-foreground min-w-0 truncate"
+                  title={item.url}
+                >
+                  {item.url}
+                </span>
+              </li>
+            ))}
+          </ul>
+        ) : null}
       </CardContent>
     </Card>
   );

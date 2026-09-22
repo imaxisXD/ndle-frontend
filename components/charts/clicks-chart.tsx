@@ -63,7 +63,7 @@ export function ClicksChart({
           heightClassName="h-[280px]"
           isLoading={isLoading}
           labelKey="dayFull"
-          labelWidth={74}
+          labelWidth={90}
           valueKey="clicks"
         />
       </CardContent>

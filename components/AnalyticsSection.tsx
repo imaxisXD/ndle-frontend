@@ -11,7 +11,10 @@ import {
   ReferrerChart,
   type ReferrerData,
 } from "@/components/charts/referrer-chart";
-import { VariantPerformanceChart } from "@/components/charts/variant-performance-chart";
+import {
+  VariantPerformanceChart,
+  type VariantLabels,
+} from "@/components/charts/variant-performance-chart";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export function AnalyticsSection({
@@ -40,11 +43,14 @@ export function AnalyticsSection({
     clicks: number;
     percentage: string | number;
   }>;
-  variantMap?: Record<string, string>;
+  variantMap?: VariantLabels;
   isLoading: boolean;
 }) {
   return (
-    <section data-analytics-section className="grid gap-6 lg:grid-cols-2">
+    <section
+      data-analytics-section
+      className="grid gap-6 lg:grid-cols-2 [&>*]:min-w-0"
+    >
       <ClicksTimelineChart data={clicksTimelineData} isLoading={isLoading} />
       {variantData && variantData.length > 0 && (
         <VariantPerformanceChart
@@ -65,7 +71,9 @@ export function AnalyticsSection({
         <BotTrafficChart data={botHumanData ?? []} isLoading={isLoading} />
       ) : (
         <Card>
-          <CardHeader><CardTitle>Traffic Analysis</CardTitle></CardHeader>
+          <CardHeader>
+            <CardTitle>Traffic Analysis</CardTitle>
+          </CardHeader>
           <CardContent className="text-muted-foreground text-sm">
             Human and bot counts are unavailable for this date range.
           </CardContent>
@@ -76,9 +84,12 @@ export function AnalyticsSection({
         <HourlyActivityChart data={hourlyActivityData} isLoading={isLoading} />
       ) : (
         <Card>
-          <CardHeader><CardTitle>Hourly Activity</CardTitle></CardHeader>
+          <CardHeader>
+            <CardTitle>Hourly Activity</CardTitle>
+          </CardHeader>
           <CardContent className="text-muted-foreground text-sm">
-            Hourly activity is unavailable for this date range. Daily totals are shown above.
+            Hourly activity is unavailable for this date range. Daily totals are
+            shown above.
           </CardContent>
         </Card>
       )}

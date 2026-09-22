@@ -259,6 +259,7 @@ function getIncidentRows(recentIncidents: RecentIncidentsResponse | undefined) {
 
 function MetricCell({
   animationKey,
+  className,
   formatValue,
   label,
   minWidthCh,
@@ -266,6 +267,7 @@ function MetricCell({
   valueClassName,
 }: {
   animationKey: string;
+  className?: string;
   formatValue?: (value: number) => string;
   label: string;
   minWidthCh?: number;
@@ -273,7 +275,7 @@ function MetricCell({
   valueClassName?: string;
 }) {
   return (
-    <div className="w-24 shrink-0 space-y-1">
+    <div className={cn("w-24 shrink-0 space-y-1", className)}>
       <p className="text-muted-foreground text-[10px] tracking-wider uppercase">
         {label}
       </p>
@@ -289,9 +291,17 @@ function MetricCell({
   );
 }
 
-function TextMetricCell({ label, value }: { label: string; value: string }) {
+function TextMetricCell({
+  className,
+  label,
+  value,
+}: {
+  className?: string;
+  label: string;
+  value: string;
+}) {
   return (
-    <div className="w-24 shrink-0 space-y-1">
+    <div className={cn("w-24 shrink-0 space-y-1", className)}>
       <p className="text-muted-foreground text-[10px] tracking-wider uppercase">
         {label}
       </p>
@@ -396,6 +406,83 @@ const MonitoringDataRow = memo(function MonitoringDataRow({
   );
 }, areMonitoringDataRowPropsEqual);
 
+// Phones get one card per link instead of the six-column table, so every
+// metric is visible without swiping sideways.
+const MonitoringLinkCard = memo(function MonitoringLinkCard({
+  checkedLabel,
+  id,
+  incidents,
+  latencyMs,
+  originalUrl,
+  shortUrl,
+  status,
+  uptime,
+}: MonitoringDataRowProps) {
+  return (
+    <li className="space-y-3 px-4 py-4">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0 flex-1 space-y-1">
+          <LinkWithFavicon url={shortUrl} originalUrl={originalUrl} />
+          <p
+            className="text-muted-foreground truncate text-xs"
+            title={originalUrl}
+          >
+            {originalUrl}
+          </p>
+        </div>
+        <Badge
+          variant={getStatusBadgeVariant(status)}
+          className="shrink-0 capitalize"
+        >
+          {status}
+        </Badge>
+      </div>
+      <div className="grid grid-cols-2 gap-3">
+        {uptime === null ? (
+          <TextMetricCell
+            className="w-auto"
+            label="Uptime"
+            value="No recent checks"
+          />
+        ) : (
+          <MetricCell
+            animationKey={`monitoring-card:${id}:uptime`}
+            className="w-auto"
+            formatValue={formatUptimeMetric}
+            label="Uptime"
+            minWidthCh={5}
+            value={uptime}
+          />
+        )}
+        {latencyMs > 0 ? (
+          <MetricCell
+            animationKey={`monitoring-card:${id}:latency`}
+            className="w-auto"
+            formatValue={formatLatencyMetric}
+            label="Latency"
+            minWidthCh={5}
+            value={latencyMs}
+            valueClassName={getResponseTimeColor(latencyMs)}
+          />
+        ) : (
+          <TextMetricCell className="w-auto" label="Latency" value="N/A" />
+        )}
+        <MetricCell
+          animationKey={`monitoring-card:${id}:incidents`}
+          className="w-auto"
+          label="Incidents"
+          value={incidents}
+        />
+        <TextMetricCell
+          className="w-auto"
+          label="Checked"
+          value={checkedLabel}
+        />
+      </div>
+    </li>
+  );
+}, areMonitoringDataRowPropsEqual);
+
 function areMonitoringDataRowPropsEqual(
   previous: MonitoringDataRowProps,
   next: MonitoringDataRowProps,
@@ -450,35 +537,44 @@ const MonitoredLinksTable = memo(function MonitoredLinksTable({
     );
   }
 
+  const rows = table.getRowModel().rows;
+
   return (
     <div className="border-border bg-card overflow-hidden rounded-md border">
-      <Table style={{ tableLayout: "fixed", width: "100%" }}>
-        <TableHeader className="bg-card">
-          {table.getHeaderGroups().map((headerGroup) => (
-            <TableRow key={headerGroup.id} className="hover:bg-transparent">
-              {headerGroup.headers.map((header) => (
-                <TableHead
-                  key={header.id}
-                  className="px-3 py-3 md:px-5"
-                  style={{ width: header.getSize() }}
-                >
-                  {header.isPlaceholder
-                    ? null
-                    : flexRender(
-                        header.column.columnDef.header,
-                        header.getContext(),
-                      )}
-                </TableHead>
-              ))}
-            </TableRow>
-          ))}
-        </TableHeader>
-        <TableBody>
-          {table.getRowModel().rows.map((row) => (
-            <MonitoringDataRow key={row.id} {...row.original} />
-          ))}
-        </TableBody>
-      </Table>
+      <ul className="divide-border divide-y md:hidden">
+        {rows.map((row) => (
+          <MonitoringLinkCard key={row.id} {...row.original} />
+        ))}
+      </ul>
+      <div className="hidden md:block">
+        <Table style={{ tableLayout: "fixed", width: "100%" }}>
+          <TableHeader className="bg-card">
+            {table.getHeaderGroups().map((headerGroup) => (
+              <TableRow key={headerGroup.id} className="hover:bg-transparent">
+                {headerGroup.headers.map((header) => (
+                  <TableHead
+                    key={header.id}
+                    className="px-3 py-3 md:px-5"
+                    style={{ width: header.getSize() }}
+                  >
+                    {header.isPlaceholder
+                      ? null
+                      : flexRender(
+                          header.column.columnDef.header,
+                          header.getContext(),
+                        )}
+                  </TableHead>
+                ))}
+              </TableRow>
+            ))}
+          </TableHeader>
+          <TableBody>
+            {rows.map((row) => (
+              <MonitoringDataRow key={row.id} {...row.original} />
+            ))}
+          </TableBody>
+        </Table>
+      </div>
     </div>
   );
 });
@@ -532,7 +628,31 @@ function MonitoringSkeleton() {
       </div>
 
       <div className="border-border bg-card overflow-hidden rounded-md border">
-        <Table style={{ tableLayout: "fixed", width: "100%" }}>
+        <ul className="divide-border divide-y md:hidden">
+          {[1, 2, 3].map((row) => (
+            <li key={row} className="space-y-3 px-4 py-4">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0 flex-1 space-y-2">
+                  <Skeleton className="h-4 w-40 max-w-full" />
+                  <Skeleton className="h-3 w-56 max-w-full" />
+                </div>
+                <Skeleton className="h-6 w-16 rounded-full" />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                {[1, 2, 3, 4].map((cell) => (
+                  <div key={cell} className="space-y-2">
+                    <Skeleton className="h-2 w-12" />
+                    <Skeleton className="h-4 w-16" />
+                  </div>
+                ))}
+              </div>
+            </li>
+          ))}
+        </ul>
+        <Table
+          className="max-md:hidden"
+          style={{ tableLayout: "fixed", width: "100%" }}
+        >
           <TableHeader className="bg-card">
             <TableRow className="hover:bg-transparent">
               {[
@@ -577,7 +697,7 @@ function MonitoringSkeleton() {
         </Table>
       </div>
 
-      <div className="border-border rounded-xl border bg-white p-6">
+      <div className="border-border rounded-xl border bg-white p-4 sm:p-6">
         <div className="mb-6">
           <Skeleton className="h-5 w-36" />
           <Skeleton className="mt-2 h-3 w-56" />
@@ -586,18 +706,18 @@ function MonitoringSkeleton() {
           {[1, 2, 3].map((item) => (
             <div
               key={item}
-              className="border-border flex items-start gap-4 rounded-lg border bg-white p-4"
+              className="border-border flex items-start gap-3 rounded-lg border bg-white p-3 sm:gap-4 sm:p-4"
             >
-              <div className="flex-1">
-                <div className="flex items-center gap-8">
-                  <Skeleton className="h-6 w-20 rounded-full" />
-                  <div className="flex flex-col gap-2">
-                    <Skeleton className="h-4 w-48" />
-                    <Skeleton className="h-4 w-64" />
+              <div className="min-w-0 flex-1">
+                <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:gap-8">
+                  <Skeleton className="h-6 w-20 shrink-0 rounded-full" />
+                  <div className="flex w-full min-w-0 flex-col gap-2">
+                    <Skeleton className="h-4 w-48 max-w-full" />
+                    <Skeleton className="h-4 w-64 max-w-full" />
                   </div>
                 </div>
               </div>
-              <div className="flex flex-col items-end gap-2">
+              <div className="hidden shrink-0 flex-col items-end gap-2 sm:flex">
                 <Skeleton className="h-4 w-16" />
                 <Skeleton className="h-3 w-12" />
               </div>

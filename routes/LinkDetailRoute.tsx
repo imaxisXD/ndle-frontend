@@ -21,6 +21,7 @@ import {
   useVariantPerformance,
 } from "@/hooks/useAnalytics";
 import { getUtcRange } from "@/lib/analyticsRanges";
+import type { VariantLabels } from "@/components/charts/variant-performance-chart";
 import { useAnalyticsV2 } from "@/hooks/useAnalyticsV2";
 import {
   Tabs,
@@ -223,15 +224,13 @@ export default function LinkDetailRoute() {
 
     // Build Variant Map (ID -> Name/URL)
     // Build Variant Map (ID -> Name/URL)
-    const variantMap: Record<string, string> = { control: "Control" };
+    const variantMap: VariantLabels = { control: { name: "Control" } };
     if (url?.abVariants) {
       url.abVariants.forEach((v: { url: string }, i: number) => {
-        if (i === 0) {
-          variantMap[`variant_${i}`] = `Control (${v.url})`;
-        } else {
-          variantMap[`variant_${i}`] =
-            `Variant ${String.fromCharCode(65 + i)} (${v.url})`;
-        }
+        variantMap[`variant_${i}`] = {
+          name: i === 0 ? "Control" : `Variant ${String.fromCharCode(65 + i)}`,
+          url: v.url,
+        };
       });
     }
 

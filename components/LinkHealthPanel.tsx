@@ -145,9 +145,12 @@ export function LinkHealthPanel({ urlId }: LinkHealthPanelProps) {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3">
               {[1, 2, 3].map((i) => (
-                <div key={i} className="bg-muted/30 rounded-lg border p-4">
+                <div
+                  key={i}
+                  className="bg-muted/30 rounded-lg border p-4 last:col-span-2 sm:last:col-span-1"
+                >
                   <Skeleton className="h-4 w-20" />
                   <Skeleton className="mt-2 h-8 w-24" />
                   <Skeleton className="mt-1 h-3 w-16" />
@@ -237,14 +240,15 @@ export function LinkHealthPanel({ urlId }: LinkHealthPanelProps) {
           </CardDescription>
         </CardHeader>
         <CardContent className="rounded-sm [&:last-child]:rounded-b-sm">
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {/* Phones: two tiles per row, Last Checked across the bottom. */}
+          <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3">
             <div className="bg-muted/30 border-border rounded-sm border p-3">
               <div className="flex items-center gap-2">
                 <ShieldCheckIcon className="text-muted-foreground size-4" />
                 <span className="text-muted-foreground text-xs">Uptime</span>
               </div>
               <p
-                className={`mt-2 text-2xl font-medium ${uptime === null ? "text-muted-foreground" : getUptimeColor(uptime)}`}
+                className={`mt-2 text-xl font-medium sm:text-2xl ${uptime === null ? "text-muted-foreground" : getUptimeColor(uptime)}`}
               >
                 {uptime === null ? "No recent checks" : `[${uptime}%]`}
               </p>
@@ -259,7 +263,7 @@ export function LinkHealthPanel({ urlId }: LinkHealthPanelProps) {
                 </span>
               </div>
               <p
-                className={`mt-2 text-2xl font-medium ${getResponseTimeColor(healthData.healthData.latencyMs)}`}
+                className={`mt-2 text-xl font-medium sm:text-2xl ${getResponseTimeColor(healthData.healthData.latencyMs)}`}
               >
                 [
                 {healthData.healthData.latencyMs > 0
@@ -270,7 +274,7 @@ export function LinkHealthPanel({ urlId }: LinkHealthPanelProps) {
               <p className="text-muted-foreground mt-1 text-xs">Latest check</p>
             </div>
 
-            <div className="bg-muted/30 border-border rounded-sm border p-3">
+            <div className="bg-muted/30 border-border col-span-2 rounded-sm border p-3 sm:col-span-1">
               <div className="flex items-center gap-2">
                 <Clock className="text-muted-foreground size-4" />
                 <span className="text-muted-foreground text-xs">
