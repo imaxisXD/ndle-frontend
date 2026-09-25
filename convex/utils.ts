@@ -133,6 +133,51 @@ export function normalizeHostname(hostname: string): string {
 }
 
 /**
+ * Hostname as the browser resolves it: lowercase, without trailing dots, so
+ * "bit.ly." cannot slip past a block on "bit.ly".
+ */
+export function canonicalHostname(hostname: string): string {
+  return hostname.trim().toLowerCase().replace(/\.+$/, "");
+}
+
+/** Canonical hostname of an http(s) destination, or null when it cannot be parsed. */
+export function destinationHostname(url: string): string | null {
+  try {
+    return canonicalHostname(new URL(url.trim()).hostname) || null;
+  } catch {
+    return null;
+  }
+}
+
+/** The hostname followed by each parent domain: a.b.example.com, b.example.com, example.com, com. */
+export function hostnameWithParents(hostname: string): string[] {
+  const labels = canonicalHostname(hostname).split(".").filter(Boolean);
+  return labels.map((_, index) => labels.slice(index).join("."));
+}
+
+export function isHostOrSubdomainOf(hostname: string, domain: string): boolean {
+  const host = canonicalHostname(hostname);
+  const parent = canonicalHostname(domain);
+  return !!parent && (host === parent || host.endsWith(`.${parent}`));
+}
+
+/**
+ * Operator input for a domain block ("evil.example", "https://evil.example/x",
+ * "*.evil.example") as a canonical hostname, or null when it is not a hostname.
+ */
+export function normalizeBlockedDomainInput(input: string): string | null {
+  const value = input.trim().toLowerCase().replace(/^\*\./, "");
+  if (!value) return null;
+  const candidate = /^[a-z][a-z0-9+.-]*:\/\//.test(value) ? value : `http://${value}`;
+  try {
+    const hostname = canonicalHostname(new URL(candidate).hostname);
+    return hostname || null;
+  } catch {
+    return null;
+  }
+}
+
+/**
  * Check if the hostname is localhost
  */
 function isLocalhost(hostname: string) {
@@ -206,11 +251,8 @@ function hasSuspiciousPatterns(url: string) {
  * Check if domain is blacklisted
  */
 function isBlacklistedDomain(hostname: string) {
-  const lowerHostname = hostname.toLowerCase();
-  return CONFIG.blacklistedDomains.some(
-    (domain) =>
-      lowerHostname === domain.toLowerCase() ||
-      lowerHostname.endsWith("." + domain.toLowerCase()),
+  return CONFIG.blacklistedDomains.some((domain) =>
+    isHostOrSubdomainOf(hostname, domain),
   );
 }
 
@@ -218,11 +260,7 @@ function isBlacklistedDomain(hostname: string) {
  * Check if domain is ndle's own domain (prevent redirect loops and abuse)
  */
 function isSelfDomain(hostname: string): boolean {
-  const lowerHostname = hostname.toLowerCase();
-  return SELF_DOMAINS.some(
-    (domain) =>
-      lowerHostname === domain || lowerHostname.endsWith("." + domain),
-  );
+  return SELF_DOMAINS.some((domain) => isHostOrSubdomainOf(hostname, domain));
 }
 
 /**
@@ -327,8 +365,11 @@ export function isValidHttpUrl(
     };
   }
 
+  // Trailing dots resolve to the same host, so they must not bypass the checks below.
+  const hostname = canonicalHostname(url.hostname);
+
   // Check for localhost
-  if (!config.allowLocalhost && isLocalhost(url.hostname)) {
+  if (!config.allowLocalhost && isLocalhost(hostname)) {
     return {
       valid: false,
       url: null,
@@ -349,7 +390,7 @@ export function isValidHttpUrl(
   }
 
   // Check blacklisted domains
-  if (isBlacklistedDomain(url.hostname)) {
+  if (isBlacklistedDomain(hostname)) {
     return {
       valid: false,
       url: null,
@@ -360,7 +401,7 @@ export function isValidHttpUrl(
   }
 
   // Check if redirecting to ndle's own domains (prevent loops/abuse)
-  if (isSelfDomain(url.hostname)) {
+  if (isSelfDomain(hostname)) {
     return {
       valid: false,
       url: null,

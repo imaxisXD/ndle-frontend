@@ -85,6 +85,12 @@ export default defineSchema({
     // Stable Link ID (for analytics correlation)
     linkId: v.optional(v.string()),
     accountCountersIncluded: v.optional(v.boolean()),
+
+    // Abuse controls. The network key is a keyed hash of the guest's network, never a raw IP.
+    guestNetworkKey: v.optional(v.string()),
+    // Set only by internal moderation; the redirect projection then serves is_active: false.
+    disabledAt: v.optional(v.number()),
+    disabledReason: v.optional(v.string()),
   })
     .index("by_slug", ["slugAssigned"])
     .index("by_user", ["userTableId"])
@@ -96,7 +102,16 @@ export default defineSchema({
     .index("by_guest_slug", ["guestId", "slugAssigned"])
     .index("by_owner_key", ["analyticsOwnerKey"])
     .index("by_accountCountersIncluded", ["accountCountersIncluded"])
-    .index("by_user_and_accountCountersIncluded", ["userTableId", "accountCountersIncluded"]),
+    .index("by_user_and_accountCountersIncluded", ["userTableId", "accountCountersIncluded"])
+    // Both are read with a _creationTime range to count recent guest links.
+    .index("by_guestNetworkKey", ["guestNetworkKey"])
+    .index("by_ownershipState", ["ownershipState"]),
+  // Destinations refused for new links; blocking also disables existing links.
+  blocked_domains: defineTable({
+    domain: v.string(), // canonical hostname; subdomains are blocked too
+    reason: v.string(),
+    createdAt: v.number(),
+  }).index("by_domain", ["domain"]),
   urlAnalytics: defineTable({
     urlId: v.id("urls"),
     urlStatusCode: v.optional(v.number()),
@@ -224,7 +239,10 @@ export default defineSchema({
     userId: v.id("users"),
     domain: v.string(), // e.g., "links.example.com"
     status: v.union(
-      v.literal("pending"), // Waiting for DNS verification
+      // Not claimed yet: the owner must publish the challenge TXT record first.
+      // Several accounts may hold one of these for the same hostname.
+      v.literal("awaiting_verification"),
+      v.literal("pending"), // Ownership proven (or grandfathered); waiting for Cloudflare
       v.literal("active"), // SSL issued, ready to use
       v.literal("failed"), // Verification failed
     ),
@@ -234,10 +252,15 @@ export default defineSchema({
     verificationTxtValue: v.optional(v.string()), // TXT record value
     createdAt: v.number(),
     verifiedAt: v.optional(v.number()),
+    // Ownership challenge, published as `ndle-verify=<token>` at `_ndle-challenge.<domain>`.
+    challengeToken: v.optional(v.string()),
+    lastVerificationAttemptAt: v.optional(v.number()),
+    ownershipVerifiedAt: v.optional(v.number()),
   })
     .index("by_user", ["userId"])
     .index("by_domain", ["domain"])
-    .index("by_status", ["status"]),
+    .index("by_status", ["status"])
+    .index("by_domain_and_status", ["domain", "status"]),
   // UTM Templates for reusable UTM configurations
   utm_templates: defineTable({
     userId: v.id("users"),

@@ -19,6 +19,7 @@ import {
   CheckIcon,
   CopyIcon,
   InfoIcon,
+  SpinnerIcon,
   TrashIcon,
 } from "@phosphor-icons/react/dist/ssr";
 import { getShortDomain } from "@/lib/config";
@@ -26,6 +27,8 @@ import { getShortDomain } from "@/lib/config";
 interface DomainItemProps {
   domain: DomainData;
   onDelete: (id: Id<"custom_domains">) => void;
+  onVerify?: (id: Id<"custom_domains">) => void;
+  isVerifying?: boolean;
 }
 
 function CopyButton({ value }: { value: string }) {
@@ -55,7 +58,84 @@ function CopyButton({ value }: { value: string }) {
   );
 }
 
-export function DomainItem({ domain, onDelete }: DomainItemProps) {
+function DnsRecordTable({
+  title,
+  type,
+  name,
+  content,
+}: {
+  title: string;
+  type: string;
+  name: string;
+  content: string;
+}) {
+  return (
+    <div className="rounded-lg border border-gray-200">
+      <div className="border-b border-gray-200 bg-gray-50/50 px-4 py-3">
+        <h4 className="text-sm font-medium text-gray-900">{title}</h4>
+      </div>
+
+      {/* Phones: one record per line, so the values and their copy
+          buttons stay on screen. */}
+      <dl className="grid grid-cols-[auto_minmax(0,1fr)] items-center gap-x-4 gap-y-3 px-4 py-3 text-sm sm:hidden">
+        <dt className="text-xs font-medium text-gray-500">Type</dt>
+        <dd className="font-mono text-gray-600">{type}</dd>
+        <dt className="text-xs font-medium text-gray-500">Name</dt>
+        <dd className="flex min-w-0 items-center gap-2">
+          <code className="min-w-0 font-mono break-all text-gray-900">
+            {name}
+          </code>
+          <CopyButton value={name} />
+        </dd>
+        <dt className="text-xs font-medium text-gray-500">Content</dt>
+        <dd className="flex min-w-0 items-center gap-2">
+          <code className="min-w-0 font-mono break-all text-gray-900">
+            {content}
+          </code>
+          <CopyButton value={content} />
+        </dd>
+      </dl>
+
+      <div className="hidden overflow-x-auto sm:block">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="border-b border-gray-100 text-left text-xs font-medium text-gray-500">
+              <th className="w-20 px-4 py-2.5">Type</th>
+              <th className="px-4 py-2.5">Name</th>
+              <th className="px-4 py-2.5">Content</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td className="px-4 py-3 font-mono whitespace-nowrap text-gray-600">
+                {type}
+              </td>
+              <td className="px-4 py-3">
+                <div className="flex items-center gap-2">
+                  <code className="font-mono text-gray-900">{name}</code>
+                  <CopyButton value={name} />
+                </div>
+              </td>
+              <td className="px-4 py-3">
+                <div className="flex items-center gap-2">
+                  <code className="font-mono text-gray-900">{content}</code>
+                  <CopyButton value={content} />
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+export function DomainItem({
+  domain,
+  onDelete,
+  onVerify,
+  isVerifying = false,
+}: DomainItemProps) {
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const domainLabels = domain.domain.split(".");
   const isLikelyApexDomain = domainLabels.length === 2;
@@ -64,6 +144,10 @@ export function DomainItem({ domain, onDelete }: DomainItemProps) {
     ? "@"
     : domainLabels.slice(0, -2).join(".");
   const shortDomain = getShortDomain();
+  // Same relative-name convention as the CNAME record below.
+  const challengeName = isLikelyApexDomain
+    ? "_ndle-challenge"
+    : `_ndle-challenge.${recordName}`;
 
   return (
     <div className="space-y-2 rounded-sm border border-dashed border-gray-300 p-2">
@@ -87,73 +171,57 @@ export function DomainItem({ domain, onDelete }: DomainItemProps) {
         </div>
       </div>
 
+      {/* Unverified: prove DNS control before the hostname is claimed */}
+      {domain.status === "awaiting_verification" &&
+        domain.challengeRecordValue && (
+          <div className="border-border space-y-4 border-t pt-4">
+            <DnsRecordTable
+              title="Add this TXT record to verify you own this domain"
+              type="TXT"
+              name={challengeName}
+              content={domain.challengeRecordValue}
+            />
+
+            <div className="flex flex-col gap-3 pb-2 sm:flex-row sm:items-start sm:justify-between">
+              <p className="flex items-start gap-1 text-xs text-blue-500">
+                <InfoIcon weight="duotone" className="mt-px size-4 shrink-0" />
+                <span>
+                  If your DNS provider needs the full name, use{" "}
+                  <code className="font-mono [overflow-wrap:anywhere]">
+                    {domain.challengeRecordName}
+                  </code>
+                  . Unverified domains are removed after 7 days.
+                </span>
+              </p>
+              <Button
+                type="button"
+                size={"sm"}
+                disabled={isVerifying || !onVerify}
+                onClick={() => onVerify?.(domain._id as Id<"custom_domains">)}
+                className="shrink-0 max-sm:w-full"
+              >
+                {isVerifying ? (
+                  <>
+                    <SpinnerIcon className="size-4 animate-spin" />
+                    Checking...
+                  </>
+                ) : (
+                  "Verify"
+                )}
+              </Button>
+            </div>
+          </div>
+        )}
+
       {/* Pending: DNS Instructions */}
       {domain.status === "pending" && (
         <div className="border-border space-y-4 border-t pt-4">
-          {/* DNS Records table */}
-          <div className="rounded-lg border border-gray-200">
-            <div className="border-b border-gray-200 bg-gray-50/50 px-4 py-3">
-              <h4 className="text-sm font-medium text-gray-900">
-                Add this DNS record to your DNS provider
-              </h4>
-            </div>
-
-            {/* Phones: one record per line, so the values and their copy
-                buttons stay on screen. */}
-            <dl className="grid grid-cols-[auto_minmax(0,1fr)] items-center gap-x-4 gap-y-3 px-4 py-3 text-sm sm:hidden">
-              <dt className="text-xs font-medium text-gray-500">Type</dt>
-              <dd className="font-mono text-gray-600">{recordType}</dd>
-              <dt className="text-xs font-medium text-gray-500">Name</dt>
-              <dd className="flex min-w-0 items-center gap-2">
-                <code className="min-w-0 font-mono break-all text-gray-900">
-                  {recordName}
-                </code>
-                <CopyButton value={recordName} />
-              </dd>
-              <dt className="text-xs font-medium text-gray-500">Content</dt>
-              <dd className="flex min-w-0 items-center gap-2">
-                <code className="min-w-0 font-mono break-all text-gray-900">
-                  {shortDomain}
-                </code>
-                <CopyButton value={shortDomain} />
-              </dd>
-            </dl>
-
-            <div className="hidden overflow-x-auto sm:block">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-gray-100 text-left text-xs font-medium text-gray-500">
-                    <th className="w-20 px-4 py-2.5">Type</th>
-                    <th className="px-4 py-2.5">Name</th>
-                    <th className="px-4 py-2.5">Content</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td className="px-4 py-3 font-mono whitespace-nowrap text-gray-600">
-                      {recordType}
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-2">
-                        <code className="font-mono text-gray-900">
-                          {recordName}
-                        </code>
-                        <CopyButton value={recordName} />
-                      </div>
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-2">
-                        <code className="font-mono text-gray-900">
-                          {shortDomain}
-                        </code>
-                        <CopyButton value={shortDomain} />
-                      </div>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
+          <DnsRecordTable
+            title="Add this DNS record to your DNS provider"
+            type={recordType}
+            name={recordName}
+            content={shortDomain}
+          />
 
           <p className="flex items-start gap-1 pb-2 text-xs text-blue-500">
             <InfoIcon weight="duotone" className="mt-px size-4 shrink-0" />

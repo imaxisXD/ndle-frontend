@@ -5,6 +5,7 @@ import type { Doc } from "./_generated/dataModel";
 import { getCurrentUser } from "./users";
 import { accountCounter, accountCountsReady } from "./accountCounters";
 import schema from "./schema";
+import { toOwnerLinkView } from "./moderation";
 
 const link = v.object({
   _id: v.id("urls"),
@@ -52,7 +53,7 @@ async function enrich(ctx: QueryCtx, urls: Doc<"urls">[]) {
           accountCounter.count(ctx, `url:${url._id}`),
         ]);
       return {
-        ...url,
+        ...toOwnerLinkView(url),
         analytics: savedAnalytics
           ? { ...savedAnalytics, totalClickCounts }
           : null,

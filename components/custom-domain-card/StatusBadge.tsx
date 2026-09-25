@@ -4,6 +4,7 @@ import {
   ArrowsClockwiseIcon,
   CloudCheckIcon,
   CloudWarningIcon,
+  ShieldWarningIcon,
 } from "@phosphor-icons/react/dist/ssr";
 import type { DomainStatus } from "./types";
 
@@ -12,6 +13,11 @@ interface StatusBadgeProps {
 }
 
 const statusConfig = {
+  awaiting_verification: {
+    icon: ShieldWarningIcon,
+    label: "Unverified",
+    className: "text-amber-700",
+  },
   pending: {
     icon: null,
     label: "Verifying",

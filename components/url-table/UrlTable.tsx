@@ -615,6 +615,7 @@ const statusFilterOptions = [
   "pending",
   "unknown",
   "overdue",
+  "disabled",
 ] as const;
 
 // Search and filters do not use live click counts, so they should stay out of
@@ -854,6 +855,8 @@ const UrlTableFilters = memo(function UrlTableFilters({
 });
 
 function getDisplayStatus(doc: UserUrlsResponse[number], now: number) {
+  // Taken down by moderation: the short link no longer redirects.
+  if (doc.disabledAt !== undefined) return "disabled";
   return getMonitoringStatus(
     doc.latestHealthCheck?.healthStatus ?? null,
     doc.latestHealthCheck?.checkedAt ?? null,
@@ -868,7 +871,7 @@ function getStatusBadgeVariant(
     return "green";
   }
 
-  if (status === "error") {
+  if (status === "error" || status === "disabled") {
     return "red";
   }
 

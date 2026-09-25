@@ -3,6 +3,7 @@ import { api, internal } from "./_generated/api";
 import { createTestBackend } from "./test.setup";
 
 type Backend = ReturnType<typeof createTestBackend>;
+type Client = ReturnType<Backend["withIdentity"]>;
 const domain = "links.example.test";
 const hostname = {
   id: "cloudflare-hostname",
@@ -26,6 +27,24 @@ async function setup() {
     }),
   );
   return { backend, client: backend.withIdentity(identity), userId };
+}
+
+/**
+ * Adding a domain no longer claims it. Complete ownership verification the way
+ * the Verify action does after finding the TXT record, to reach today's flow.
+ */
+async function addVerifiedDomain(backend: Backend, client: Client) {
+  const created = await client.mutation(api.customDomains.addDomain, {
+    domain,
+  });
+  const row = await backend.run((ctx) => ctx.db.get(created.domainId!));
+  expect(
+    await client.mutation(internal.customDomains.completeDomainVerification, {
+      domainId: created.domainId!,
+      challengeToken: row!.challengeToken!,
+    }),
+  ).toEqual({ success: true });
+  return created;
 }
 
 async function jobFor(backend: Backend, key = `domain:${domain}`) {
@@ -61,9 +80,7 @@ afterEach(() => {
 describe("durable custom domain changes", () => {
   test("saves registration and deletion work even before a Cloudflare ID exists", async () => {
     const { backend, client } = await setup();
-    const created = await client.mutation(api.customDomains.addDomain, {
-      domain,
-    });
+    const created = await addVerifiedDomain(backend, client);
     expect(created.success).toBe(true);
     const registration = await jobFor(backend);
     expect(registration.target).toMatchObject({
@@ -84,9 +101,7 @@ describe("durable custom domain changes", () => {
 
   test("retries a lost create response by finding the existing hostname before creating again", async () => {
     const { backend, client } = await setup();
-    const created = await client.mutation(api.customDomains.addDomain, {
-      domain,
-    });
+    const created = await addVerifiedDomain(backend, client);
     let createdInCloudflare = false;
     const fetchMock = vi.fn(async (url: string, options?: RequestInit) => {
       if (options?.method === "POST") {
@@ -114,9 +129,7 @@ describe("durable custom domain changes", () => {
 
   test("deletion during registration removes an orphan whose ID was never saved", async () => {
     const { backend, client } = await setup();
-    const created = await client.mutation(api.customDomains.addDomain, {
-      domain,
-    });
+    const created = await addVerifiedDomain(backend, client);
     let exists = false;
     const fetchMock = vi.fn(async (_url: string, options?: RequestInit) => {
       if (options?.method === "POST") {
@@ -146,18 +159,14 @@ describe("durable custom domain changes", () => {
 
   test("an old deletion preserves a newer registration of the same hostname", async () => {
     const { backend, client } = await setup();
-    const first = await client.mutation(api.customDomains.addDomain, {
-      domain,
-    });
+    const first = await addVerifiedDomain(backend, client);
     await backend.run((ctx) =>
       ctx.db.patch(first.domainId!, { cloudflareHostnameId: hostname.id }),
     );
     await client.mutation(api.customDomains.deleteDomain, {
       domainId: first.domainId!,
     });
-    const replacement = await client.mutation(api.customDomains.addDomain, {
-      domain,
-    });
+    const replacement = await addVerifiedDomain(backend, client);
     const fetchMock = vi.fn(async () => response([hostname]));
     vi.stubGlobal("fetch", fetchMock);
     expect((await runJob(backend)).status).toBe("complete");
@@ -169,9 +178,7 @@ describe("durable custom domain changes", () => {
 
   test("a replacement waits for an in-flight deletion and then restores the hostname", async () => {
     const { backend, client } = await setup();
-    const first = await client.mutation(api.customDomains.addDomain, {
-      domain,
-    });
+    const first = await addVerifiedDomain(backend, client);
     await backend.run((ctx) =>
       ctx.db.patch(first.domainId!, { cloudflareHostnameId: hostname.id }),
     );
@@ -205,9 +212,7 @@ describe("durable custom domain changes", () => {
     vi.stubGlobal("fetch", fetchMock);
     const deleting = runJob(backend);
     await deleteStarted;
-    const replacement = await client.mutation(api.customDomains.addDomain, {
-      domain,
-    });
+    const replacement = await addVerifiedDomain(backend, client);
     expect((await runJob(backend)).status).toBe("running");
     expect(
       fetchMock.mock.calls.some(([, options]) => options?.method === "POST"),
@@ -223,9 +228,7 @@ describe("durable custom domain changes", () => {
 
   test("deletion retries service errors and treats a missing hostname as already deleted", async () => {
     const { backend, client } = await setup();
-    const created = await client.mutation(api.customDomains.addDomain, {
-      domain,
-    });
+    const created = await addVerifiedDomain(backend, client);
     await backend.run((ctx) =>
       ctx.db.patch(created.domainId!, { cloudflareHostnameId: hostname.id }),
     );
@@ -249,9 +252,7 @@ describe("durable custom domain changes", () => {
 
   test("legacy deletion saves ID lookup work before any network request and joins the hostname queue", async () => {
     const { backend, client } = await setup();
-    const created = await client.mutation(api.customDomains.addDomain, {
-      domain,
-    });
+    const created = await addVerifiedDomain(backend, client);
     const fetchMock = vi.fn(async () => new Response(null, { status: 503 }));
     vi.stubGlobal("fetch", fetchMock);
     await backend.action(internal.customDomains.internalDeleteFromCloudflare, {
@@ -276,9 +277,7 @@ describe("durable custom domain changes", () => {
 
   test("a legacy registration finishing after deletion saves a cleanup lookup", async () => {
     const { backend, client } = await setup();
-    const created = await client.mutation(api.customDomains.addDomain, {
-      domain,
-    });
+    const created = await addVerifiedDomain(backend, client);
     await client.mutation(api.customDomains.deleteDomain, {
       domainId: created.domainId!,
     });
@@ -340,9 +339,7 @@ describe("durable custom domain changes", () => {
 
   test("active certificates alone do not mark an unverified hostname active", async () => {
     const { backend, client } = await setup();
-    const created = await client.mutation(api.customDomains.addDomain, {
-      domain,
-    });
+    const created = await addVerifiedDomain(backend, client);
     vi.stubGlobal(
       "fetch",
       vi.fn(async () => response([{ ...hostname, status: "pending" }])),
@@ -411,7 +408,7 @@ describe("durable custom domain changes", () => {
     "invalid successful responses remain retryable: $error",
     async ({ result, error }) => {
       const { backend, client } = await setup();
-      await client.mutation(api.customDomains.addDomain, { domain });
+      await addVerifiedDomain(backend, client);
       vi.stubGlobal(
         "fetch",
         vi.fn(async () => response(result)),
@@ -424,7 +421,7 @@ describe("durable custom domain changes", () => {
 
   test("missing credentials remain visible retryable work", async () => {
     const { backend, client } = await setup();
-    await client.mutation(api.customDomains.addDomain, { domain });
+    await addVerifiedDomain(backend, client);
     vi.stubEnv("CLOUDFLARE_API_TOKEN", "");
     const failed = await runJob(backend);
     expect(failed.status).toBe("pending");
@@ -433,7 +430,7 @@ describe("durable custom domain changes", () => {
 
   test("Cloudflare API failures preserve the provider error code", async () => {
     const { backend, client } = await setup();
-    await client.mutation(api.customDomains.addDomain, { domain });
+    await addVerifiedDomain(backend, client);
     vi.stubGlobal(
       "fetch",
       vi.fn(async () =>

@@ -9,12 +9,14 @@ import {
   type MutationCtx,
 } from "./_generated/server";
 import { upsertGuestSession } from "./guestSessions";
-import { verifyGuestSessionToken } from "./guestTokens";
+import { verifyGuestSessionCredential } from "./guestTokens";
 import {
   ensureGuestId,
   FREE_ACTIVE_LINK_LIMIT,
   GUEST_LINKS_PER_DAY,
   getGuestExpiry,
+  getGuestLinksPerHour,
+  getGuestLinksPerNetworkPerDay,
   getViewerPlan,
   makeGuestOwnerKey,
   makeUserOwnerKey,
@@ -23,9 +25,17 @@ import { getCurrentUser } from "./users";
 import { queueServiceSync } from "./serviceSync";
 import { includeLinkInAccount, removeLinkFromAccount } from "./accountCounters";
 import { addLinkToCollection, removeLinkFromCollections } from "./collectionMangament";
+import { getClaimedDomain } from "./domainSync";
+import {
+  BLOCKED_DESTINATION_MESSAGE,
+  ensureDestinationsAllowed,
+  toOwnerLinkView,
+} from "./moderation";
 import { createSlug, isValidHttpUrl, VALIDATION_ERRORS } from "./utils";
 
 const counter = new ShardedCounter(components.shardedCounter);
+const HOUR_MS = 60 * 60 * 1000;
+const DAY_MS = 24 * HOUR_MS;
 
 const errorCopyByCode: Record<string, string> = {
   [VALIDATION_ERRORS.INVALID_FORMAT]: "We couldn’t process that link.",
@@ -42,8 +52,7 @@ const errorCopyByCode: Record<string, string> = {
     "The link is longer than the supported length.",
   [VALIDATION_ERRORS.INVALID_PORT]:
     "The port number in the link is outside the allowed range.",
-  [VALIDATION_ERRORS.BLACKLISTED_DOMAIN]:
-    "For safety reasons, this domain has been blocked.",
+  [VALIDATION_ERRORS.BLACKLISTED_DOMAIN]: BLOCKED_DESTINATION_MESSAGE,
   [VALIDATION_ERRORS.USERINFO_NOT_ALLOWED]:
     "Links cannot contain embedded usernames or passwords.",
   [VALIDATION_ERRORS.SELF_DOMAIN_NOT_ALLOWED]:
@@ -117,10 +126,8 @@ async function ensureCustomDomainAllowed(
   const normalizedDomain = normalizeCustomDomain(domain);
   if (!normalizedDomain) return undefined;
 
-  const domainRecord = await ctx.db
-    .query("custom_domains")
-    .withIndex("by_domain", (q) => q.eq("domain", normalizedDomain))
-    .unique();
+  // Unverified rows for the same hostname may belong to other accounts.
+  const domainRecord = await getClaimedDomain(ctx, normalizedDomain);
 
   if (
     !domainRecord ||
@@ -256,18 +263,64 @@ async function ensureBelowUserLimit(ctx: MutationCtx, user: Doc<"users">) {
   }
 }
 
-async function ensureBelowGuestLimit(ctx: MutationCtx, guestId: string) {
+/**
+ * Guest limits, cheapest first. Each reads at most `limit` rows through an
+ * index with a creation-time range, so counting stops once a limit is reached.
+ */
+async function ensureBelowGuestLimits(
+  ctx: MutationCtx,
+  guestId: string,
+  networkKey: string | undefined,
+) {
+  const now = Date.now();
   const guestUrls = await ctx.db
     .query("urls")
-    .withIndex("by_guest", (q) => q.eq("guestId", guestId))
-    .collect();
-  const oneDayAgo = Date.now() - 24 * 60 * 60 * 1000;
-  const recentCount = guestUrls.filter((url) => url._creationTime >= oneDayAgo)
-    .length;
-
-  if (recentCount >= GUEST_LINKS_PER_DAY) {
+    .withIndex("by_guest", (q) =>
+      q.eq("guestId", guestId).gte("_creationTime", now - DAY_MS),
+    )
+    .take(GUEST_LINKS_PER_DAY);
+  if (guestUrls.length >= GUEST_LINKS_PER_DAY) {
     throw new ConvexError(
       `Guest mode allows up to ${GUEST_LINKS_PER_DAY} links each day.`,
+    );
+  }
+
+  // New guest sessions do not reset this. Tokens issued before network keys
+  // existed have none and only get the per-guest limit above.
+  if (networkKey) {
+    const networkLimit = getGuestLinksPerNetworkPerDay();
+    const networkUrls =
+      networkLimit > 0
+        ? await ctx.db
+            .query("urls")
+            .withIndex("by_guestNetworkKey", (q) =>
+              q
+                .eq("guestNetworkKey", networkKey)
+                .gte("_creationTime", now - DAY_MS),
+            )
+            .take(networkLimit)
+        : [];
+    if (networkUrls.length >= networkLimit) {
+      throw new ConvexError(
+        `Guest links from your network reached today's limit of ${networkLimit}. Sign in to keep creating links.`,
+      );
+    }
+  }
+
+  // Circuit breaker across every guest.
+  const hourlyLimit = getGuestLinksPerHour();
+  const recentGuestUrls =
+    hourlyLimit > 0
+      ? await ctx.db
+          .query("urls")
+          .withIndex("by_ownershipState", (q) =>
+            q.eq("ownershipState", "guest").gte("_creationTime", now - HOUR_MS),
+          )
+          .take(hourlyLimit)
+      : [];
+  if (recentGuestUrls.length >= hourlyLimit) {
+    throw new ConvexError(
+      "Guest links are paused for now because of unusually high demand. Sign in to keep creating links, or try again later.",
     );
   }
 }
@@ -435,6 +488,10 @@ export const createUrl = mutation({
       args.customDomain,
     );
     const abVariantsWithIds = normalizeAbVariants(normalizedUrl, args);
+    await ensureDestinationsAllowed(ctx, [
+      normalizedUrl,
+      ...(abVariantsWithIds ?? []).map((variant) => variant.url),
+    ]);
 
     await ensureNoDuplicateForOwner(ctx, {
       userId: user._id,
@@ -530,10 +587,13 @@ export const createGuestUrl = mutation({
     expiresAt: v.number(),
   }),
   async handler(ctx, args) {
-    const guestId = ensureGuestId(args.guestId);
-    await verifyGuestSessionToken(guestId, args.guestToken);
+    const { guestId, networkKey } = await verifyGuestSessionCredential(
+      ensureGuestId(args.guestId),
+      args.guestToken,
+    );
     const normalizedUrl = normalizeDestination(args.url);
-    await ensureBelowGuestLimit(ctx, guestId);
+    await ensureDestinationsAllowed(ctx, [normalizedUrl]);
+    await ensureBelowGuestLimits(ctx, guestId, networkKey);
     await ensureNoDuplicateForOwner(ctx, {
       guestId,
       url: normalizedUrl,
@@ -568,6 +628,7 @@ export const createGuestUrl = mutation({
       utmContent: undefined,
       abEnabled: false,
       abVariants: undefined,
+      guestNetworkKey: networkKey,
     });
 
     const savedUrl = await ctx.db.get(docId);
@@ -651,14 +712,14 @@ async function enrichLegacyUrls(ctx: import("./_generated/server").QueryCtx, url
   return Promise.all(urls.map(async url => {
     const analytics = await ctx.db.query("urlAnalytics").withIndex("by_url", q => q.eq("urlId", url._id)).unique();
     const latestHealthCheck = await ctx.db.query("linkHealthChecks").withIndex("by_url_id", q => q.eq("urlId", url._id)).unique();
-    return { ...url, analytics: analytics ? { ...analytics, totalClickCounts: await counter.count(ctx, `url:${url._id}`) } : null, latestHealthCheck };
+    return { ...toOwnerLinkView(url), analytics: analytics ? { ...analytics, totalClickCounts: await counter.count(ctx, `url:${url._id}`) } : null, latestHealthCheck };
   }));
 }
 export const getUserUrls = query({ args: {}, handler: async ctx => {
   const user = await getCurrentUser(ctx); if (!user) return null;
   const urls = await ctx.db.query("urls").withIndex("by_user", q => q.eq("userTableId", user._id)).take(101);
   if (urls.length > 100) throw new ConvexError("This list needs pagination. Use the updated links page.");
-  return urls;
+  return urls.map(toOwnerLinkView);
 } });
 export const getUserUrlsWithAnalytics = query({ args: {}, handler: async ctx => {
   const user = await getCurrentUser(ctx); if (!user) return null;
@@ -725,6 +786,6 @@ export const getLinkDetailsBySlugs = query({
     if (!user) return [];
     if (slugs.length > 20) throw new ConvexError("Request up to 20 links at a time");
     const links = await Promise.all(slugs.map(slug => ctx.db.query("urls").withIndex("by_user_slug", q => q.eq("userTableId", user._id).eq("slugAssigned", slug)).unique()));
-    return links.filter((link): link is Doc<"urls"> => !!link);
+    return links.filter((link): link is Doc<"urls"> => !!link).map(toOwnerLinkView);
   },
 });

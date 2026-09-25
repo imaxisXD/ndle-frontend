@@ -6,6 +6,7 @@ import { components } from "./_generated/api";
 import { getOwnerSnapshot } from "./ownership";
 import { accountCounter, accountCountsReady } from "./accountCounters";
 import { incrementCollectionClicks } from "./collectionMangament";
+import { toOwnerLinkView } from "./moderation";
 
 export const counter = new ShardedCounter(components.shardedCounter);
 
@@ -138,7 +139,7 @@ export const getUrlAnalytics = query({
 
     return {
       analytics: analyticsWithCount,
-      url,
+      url: toOwnerLinkView(url),
       isError: false,
       message: "success",
     };

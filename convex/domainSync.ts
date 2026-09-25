@@ -7,6 +7,7 @@ import {
   internalQuery,
   type ActionCtx,
   type MutationCtx,
+  type QueryCtx,
 } from "./_generated/server";
 import schema from "./schema";
 import { queueServiceSync } from "./serviceSync";
@@ -16,6 +17,29 @@ type DomainTarget = {
   domainId?: Id<"custom_domains">;
   hostnameId?: string;
 };
+
+/**
+ * States in which a row holds its hostname exclusively. Unverified rows do not:
+ * several accounts may be trying to prove the same hostname at once.
+ */
+export const CLAIMED_DOMAIN_STATUSES = ["active", "pending", "failed"] as const;
+
+/** The one account that holds the hostname, or null while nobody has claimed it. */
+export async function getClaimedDomain(
+  ctx: QueryCtx,
+  hostname: string,
+): Promise<Doc<"custom_domains"> | null> {
+  for (const status of CLAIMED_DOMAIN_STATUSES) {
+    const domain = await ctx.db
+      .query("custom_domains")
+      .withIndex("by_domain_and_status", (q) =>
+        q.eq("domain", hostname).eq("status", status),
+      )
+      .first();
+    if (domain) return domain;
+  }
+  return null;
+}
 
 export async function queueDomainSync(
   ctx: MutationCtx,
@@ -42,11 +66,8 @@ export const requestDomainSync = internalMutation({
 export const getDesiredDomain = internalQuery({
   args: { hostname: v.string() },
   returns: v.union(doc(schema, "custom_domains"), v.null()),
-  handler: async (ctx, { hostname }) =>
-    ctx.db
-      .query("custom_domains")
-      .withIndex("by_domain", (q) => q.eq("domain", hostname))
-      .unique(),
+  // Unverified rows never get a Cloudflare hostname.
+  handler: async (ctx, { hostname }) => getClaimedDomain(ctx, hostname),
 });
 
 export const saveDomainStatus = internalMutation({
@@ -67,7 +88,12 @@ export const saveDomainStatus = internalMutation({
   handler: async (ctx, args) => {
     const domain = await ctx.db.get(args.domainId);
     // Deletion/replacement owns a newer job. Never attach an old result to a new row.
-    if (!domain || domain.domain !== args.hostname) return false;
+    if (
+      !domain ||
+      domain.domain !== args.hostname ||
+      domain.status === "awaiting_verification"
+    )
+      return false;
     await ctx.db.patch(domain._id, {
       cloudflareHostnameId: args.hostnameId,
       status: args.status,
@@ -118,6 +144,8 @@ export const bootstrapDomains = internalMutation({
       .query("custom_domains")
       .paginate({ cursor, numItems: 50 });
     for (const domain of result.page) {
+      // Unverified rows have nothing to adopt in Cloudflare.
+      if (domain.status === "awaiting_verification") continue;
       const job = await ctx.db
         .query("serviceSyncJobs")
         .withIndex("by_key", (q) => q.eq("key", `domain:${domain.domain}`))

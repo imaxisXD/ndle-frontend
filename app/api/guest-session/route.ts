@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getRateLimit } from "@/lib/rateLimit";
-import { createGuestSessionToken, readGuestSessionToken, GUEST_CREDENTIAL_COOKIE } from "@/convex/guestTokens";
+import { getGuestSessionNetworkRateLimit, getRateLimit } from "@/lib/rateLimit";
+import {
+  createGuestSessionToken,
+  deriveGuestNetworkKey,
+  readGuestSessionToken,
+  GUEST_CREDENTIAL_COOKIE,
+} from "@/convex/guestTokens";
 
 export async function POST(request: NextRequest) {
   const origin = request.headers.get("origin");
@@ -15,6 +20,8 @@ export async function POST(request: NextRequest) {
   if (!(await getRateLimit().limit(`guest-session:${clientKey}`)).success) {
     return NextResponse.json({ error: "Too many guest session requests" }, { status: 429 });
   }
+  // Signed into the session so link limits follow the network, not the guest ID.
+  const networkKey = await deriveGuestNetworkKey(clientKey);
   const body: unknown = await request.json().catch(() => ({}));
   const storedToken = typeof body === "object" && body !== null && "guestToken" in body && typeof body.guestToken === "string"
     ? body.guestToken : undefined;
@@ -30,10 +37,17 @@ export async function POST(request: NextRequest) {
       return response;
     }
   } else {
+    // Renewing a valid credential is free; each brand-new session counts for the network.
+    if (!(await getGuestSessionNetworkRateLimit().limit(`guest-session-new:${networkKey}`)).success) {
+      return NextResponse.json(
+        { error: "Too many new guest sessions from your network today. Sign in to keep creating links.", code: "guest_session_limit" },
+        { status: 429 },
+      );
+    }
     // A supplied identifier is not proof of ownership. Only the server chooses new IDs.
     guestId = crypto.randomUUID();
   }
-  const session = await createGuestSessionToken(guestId);
+  const session = await createGuestSessionToken(guestId, networkKey);
   const response = NextResponse.json(session);
   response.headers.set("Cache-Control", "private, no-store");
   response.cookies.set(GUEST_CREDENTIAL_COOKIE, session.guestToken, {

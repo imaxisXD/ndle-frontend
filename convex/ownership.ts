@@ -3,6 +3,10 @@ import type { Doc } from "./_generated/dataModel";
 
 export const GUEST_LINK_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 export const GUEST_LINKS_PER_DAY = 5;
+export const DEFAULT_GUEST_LINKS_PER_NETWORK_PER_DAY = 10;
+export const DEFAULT_GUEST_LINKS_PER_HOUR = 200;
+// Limits are enforced by reading up to `limit` rows, so keep one transaction bounded.
+const MAX_CONFIGURED_GUEST_LIMIT = 5_000;
 export const FREE_ACTIVE_LINK_LIMIT = 100;
 export const FREE_ANALYTICS_RANGE_DAYS = 30;
 
@@ -79,6 +83,24 @@ export function ensureGuestId(guestId: string | undefined) {
     throw new ConvexError("Guest session not found");
   }
   return value;
+}
+
+/** A whole number from the deployment environment; 0 stops guest creation entirely. */
+function readGuestLimit(name: string, fallback: number): number {
+  const raw = process.env[name]?.trim();
+  if (!raw || !/^\d+$/.test(raw)) return fallback;
+  return Math.min(Number(raw), MAX_CONFIGURED_GUEST_LIMIT);
+}
+
+export function getGuestLinksPerNetworkPerDay() {
+  return readGuestLimit(
+    "GUEST_LINKS_PER_NETWORK_PER_DAY",
+    DEFAULT_GUEST_LINKS_PER_NETWORK_PER_DAY,
+  );
+}
+
+export function getGuestLinksPerHour() {
+  return readGuestLimit("GUEST_LINKS_PER_HOUR", DEFAULT_GUEST_LINKS_PER_HOUR);
 }
 
 export function getGuestExpiry() {

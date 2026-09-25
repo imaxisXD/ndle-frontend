@@ -12,6 +12,14 @@ crons.interval(
   internal.customDomains.checkAllPendingDomains,
 );
 
+// Unverified custom domains expire 7 days after they were added.
+crons.interval(
+  "expire-unverified-custom-domains",
+  { hours: 1 },
+  internal.customDomains.expireUnverifiedDomains,
+  {},
+);
+
 crons.interval(
   "adopt-existing-custom-domains",
   { hours: 24 },

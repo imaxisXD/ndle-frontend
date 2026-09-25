@@ -21,6 +21,8 @@ type RedirectProjectionInput = {
 		weight: number;
 	}>;
 	abDistribution?: "weighted_random" | "deterministic";
+	// False for links taken down by moderation; the Worker then refuses them.
+	isActive?: boolean;
 };
 
 function buildUtmParams(args: RedirectProjectionInput): Record<string, string> {
@@ -56,7 +58,7 @@ function buildRedirectProjection(args: RedirectProjectionInput): RedisValueObjec
 		created_at: now,
 		updated_at: now,
 		link_id: args.docId,
-		is_active: true,
+		is_active: args.isActive ?? true,
 		expires_at: args.expiresAt ?? null,
 		max_clicks: null,
 		tags: [],

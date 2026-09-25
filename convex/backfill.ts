@@ -4,6 +4,7 @@ import { internal } from "./_generated/api";
 import { makeGuestOwnerKey, makeUserOwnerKey } from "./ownership";
 import { queueUrlSync } from "./serviceSync";
 import { detachLinkFromDomain } from "./customDomains";
+import { getClaimedDomain } from "./domainSync";
 import { normalizeHostname } from "./utils";
 
 const LINK_MIGRATION_BATCH_SIZE = 100;
@@ -280,11 +281,9 @@ export const detachOrphanedCustomDomainLinks = internalMutation({
     for (const url of result.page) {
       if (!url.customDomain) continue;
       const hostname = normalizeHostname(url.customDomain);
-      const holders = await ctx.db
-        .query("custom_domains")
-        .withIndex("by_domain", (q) => q.eq("domain", hostname))
-        .take(10);
-      if (holders.some((domain) => domain.userId === url.userTableId)) continue;
+      // An unverified row for the hostname does not hold it.
+      const holder = await getClaimedDomain(ctx, hostname);
+      if (holder && holder.userId === url.userTableId) continue;
       await detachLinkFromDomain(ctx, url);
       patched += 1;
     }

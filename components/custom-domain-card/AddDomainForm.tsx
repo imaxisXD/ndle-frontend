@@ -70,7 +70,7 @@ export function AddDomainForm({ onSuccess }: AddDomainFormProps) {
     try {
       const result = await addDomain({ domain: values.domain });
       if (result.success && result.domainId) {
-        toast.success("Domain added! Cloudflare registration in progress.");
+        toast.success("Domain added. Add the TXT record to verify it.");
         form.reset();
         onSuccess?.();
       } else {

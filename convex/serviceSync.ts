@@ -221,6 +221,7 @@ export function redirectValue(url: Doc<"urls">) {
     abEnabled: url.abEnabled,
     abVariants,
     abDistribution: "deterministic",
+    isActive: url.disabledAt === undefined,
   });
 }
 

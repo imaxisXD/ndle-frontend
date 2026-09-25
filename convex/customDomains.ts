@@ -1,5 +1,6 @@
-import { v } from "convex/values";
+import { v, type Infer } from "convex/values";
 import {
+  action,
   mutation,
   query,
   internalMutation,
@@ -11,7 +12,7 @@ import type { Doc, Id } from "./_generated/dataModel";
 import { getCurrentUser } from "./users";
 import { internal } from "./_generated/api";
 import { getViewerPlan } from "./ownership";
-import { queueDomainSync } from "./domainSync";
+import { getClaimedDomain, queueDomainSync } from "./domainSync";
 import { queueServiceSync, queueUrlSync } from "./serviceSync";
 import { normalizeHostname } from "./utils";
 
@@ -25,6 +26,14 @@ const MAX_DOMAINS_PRO = 3;
 const MAX_DOMAINS_READ = 100;
 // Each detached link also queues two sync jobs; keep one transaction well bounded.
 const DETACH_LINKS_BATCH_SIZE = 100;
+// Unverified rows never claim a hostname, but each account may only hold a few.
+const MAX_UNVERIFIED_DOMAINS = 3;
+export const UNVERIFIED_DOMAIN_TTL_MS = 7 * 24 * 60 * 60 * 1000;
+const VERIFY_ATTEMPT_INTERVAL_MS = 10_000;
+const CLEANUP_BATCH_SIZE = 100;
+const DNS_LOOKUP_TIMEOUT_MS = 5_000;
+const TXT_RECORD_TYPE = 16;
+const DNS_NXDOMAIN = 3;
 
 // ============================================================================
 // HELPER FUNCTIONS
@@ -100,6 +109,98 @@ async function detachDomainLinksPage(
     });
 }
 
+/** Where the owner publishes the ownership challenge. */
+export function challengeRecordName(domain: string): string {
+  return `_ndle-challenge.${domain}`;
+}
+
+export function challengeRecordValue(challengeToken: string): string {
+  return `ndle-verify=${challengeToken}`;
+}
+
+function createChallengeToken(): string {
+  return Array.from(crypto.getRandomValues(new Uint8Array(16)), (byte) =>
+    byte.toString(16).padStart(2, "0"),
+  ).join("");
+}
+
+function isObject(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+/**
+ * TXT data arrives in presentation format: one or more quoted strings that
+ * together form the record, with backslash and \DDD escapes.
+ */
+function parseTxtData(data: string): string {
+  const parts = [...data.matchAll(/"((?:[^"\\]|\\.)*)"/g)];
+  if (parts.length === 0) return data.trim();
+  return parts
+    .map(([, part]) =>
+      part.replace(/\\(\d{3}|.)/g, (_, escaped: string) =>
+        escaped.length === 3 ? String.fromCharCode(Number(escaped)) : escaped,
+      ),
+    )
+    .join("");
+}
+
+/** TXT records at `name`, via DNS-over-HTTPS. A missing name is an empty answer. */
+async function lookupTxtRecords(name: string): Promise<string[]> {
+  const response = await fetch(
+    `https://cloudflare-dns.com/dns-query?${new URLSearchParams({ name, type: "TXT" })}`,
+    {
+      headers: { accept: "application/dns-json" },
+      signal: AbortSignal.timeout(DNS_LOOKUP_TIMEOUT_MS),
+    },
+  );
+  if (!response.ok) {
+    throw new Error(`DNS lookup failed (HTTP ${response.status})`);
+  }
+  const body: unknown = await response.json().catch(() => null);
+  if (!isObject(body) || typeof body.Status !== "number") {
+    throw new Error("DNS lookup returned an invalid response");
+  }
+  if (body.Status === DNS_NXDOMAIN) return [];
+  if (body.Status !== 0) {
+    throw new Error(`DNS lookup failed (status ${body.Status})`);
+  }
+  const answers: unknown[] = Array.isArray(body.Answer) ? body.Answer : [];
+  return answers.flatMap((answer) =>
+    isObject(answer) &&
+    answer.type === TXT_RECORD_TYPE &&
+    typeof answer.data === "string"
+      ? [parseTxtData(answer.data)]
+      : [],
+  );
+}
+
+function isUnverifiedExpired(domain: Doc<"custom_domains">, now: number) {
+  return domain._creationTime + UNVERIFIED_DOMAIN_TTL_MS <= now;
+}
+
+/**
+ * Once an account proves a hostname, other accounts' attempts at it are moot.
+ * Deletes one page and continues in the background.
+ */
+async function removeUnverifiedDomainsPage(ctx: MutationCtx, hostname: string) {
+  const attempts = await ctx.db
+    .query("custom_domains")
+    .withIndex("by_domain_and_status", (q) =>
+      q.eq("domain", hostname).eq("status", "awaiting_verification"),
+    )
+    .take(CLEANUP_BATCH_SIZE);
+  for (const attempt of attempts) {
+    await ctx.db.delete("custom_domains", attempt._id);
+  }
+  if (attempts.length === CLEANUP_BATCH_SIZE) {
+    await ctx.scheduler.runAfter(
+      0,
+      internal.customDomains.removeUnverifiedDomains,
+      { hostname },
+    );
+  }
+}
+
 /**
  * Get the domain limit for a user based on their membership
  */
@@ -123,6 +224,7 @@ export const listUserDomains = query({
       _id: v.id("custom_domains"),
       domain: v.string(),
       status: v.union(
+        v.literal("awaiting_verification"),
         v.literal("pending"),
         v.literal("active"),
         v.literal("failed"),
@@ -130,6 +232,10 @@ export const listUserDomains = query({
       sslStatus: v.optional(v.string()),
       verificationTxtName: v.optional(v.string()),
       verificationTxtValue: v.optional(v.string()),
+      // Ownership challenge, shown only until the domain is verified.
+      challengeRecordName: v.optional(v.string()),
+      challengeRecordValue: v.optional(v.string()),
+      challengeExpiresAt: v.optional(v.number()),
       createdAt: v.number(),
       verifiedAt: v.optional(v.number()),
     }),
@@ -145,16 +251,27 @@ export const listUserDomains = query({
       .withIndex("by_user", (q) => q.eq("userId", user._id))
       .take(MAX_DOMAINS_READ);
 
-    return domains.map((d) => ({
-      _id: d._id,
-      domain: d.domain,
-      status: d.status,
-      sslStatus: d.sslStatus,
-      verificationTxtName: d.verificationTxtName,
-      verificationTxtValue: d.verificationTxtValue,
-      createdAt: d.createdAt,
-      verifiedAt: d.verifiedAt,
-    }));
+    return domains.map((d) => {
+      const awaiting = d.status === "awaiting_verification" && !!d.challengeToken;
+      return {
+        _id: d._id,
+        domain: d.domain,
+        status: d.status,
+        sslStatus: d.sslStatus,
+        verificationTxtName: d.verificationTxtName,
+        verificationTxtValue: d.verificationTxtValue,
+        challengeRecordName: awaiting ? challengeRecordName(d.domain) : undefined,
+        challengeRecordValue:
+          awaiting && d.challengeToken
+            ? challengeRecordValue(d.challengeToken)
+            : undefined,
+        challengeExpiresAt: awaiting
+          ? d._creationTime + UNVERIFIED_DOMAIN_TTL_MS
+          : undefined,
+        createdAt: d.createdAt,
+        verifiedAt: d.verifiedAt,
+      };
+    });
   },
 });
 
@@ -238,7 +355,9 @@ export const getDomainLimits = query({
 
 /**
  * Add a new custom domain for the current user.
- * Validates membership, domain format, and limits.
+ * Validates membership, domain format, and limits. The hostname is not claimed
+ * and nothing is created in Cloudflare until the owner proves control of its
+ * DNS with `verifyDomain`.
  */
 export const addDomain = mutation({
   args: { domain: v.string() },
@@ -263,18 +382,15 @@ export const addDomain = mutation({
       };
     }
 
-    // Check if domain already exists (for any user)
-    const existingDomain = await ctx.db
-      .query("custom_domains")
-      .withIndex("by_domain", (q) => q.eq("domain", domain))
-      .unique();
+    // Only a verified (or grandfathered) row holds the hostname for one account.
+    const holder = await getClaimedDomain(ctx, domain);
 
-    if (existingDomain?.userId === user._id) {
-      return { success: true, domainId: existingDomain._id };
+    if (holder?.userId === user._id) {
+      return { success: true, domainId: holder._id };
     }
 
     // A delayed status update is not proof that a domain has been abandoned.
-    if (existingDomain) {
+    if (holder) {
       return { success: false, error: "This domain is already registered" };
     }
 
@@ -284,6 +400,21 @@ export const addDomain = mutation({
       .withIndex("by_user", (q) => q.eq("userId", user._id))
       .take(MAX_DOMAINS_READ);
 
+    const ownAttempt = userDomains.find((d) => d.domain === domain);
+    if (ownAttempt) {
+      return { success: true, domainId: ownAttempt._id };
+    }
+
+    const unverified = userDomains.filter(
+      (d) => d.status === "awaiting_verification",
+    ).length;
+    if (unverified >= MAX_UNVERIFIED_DOMAINS) {
+      return {
+        success: false,
+        error: `You can have up to ${MAX_UNVERIFIED_DOMAINS} domains waiting for verification. Verify or remove one first.`,
+      };
+    }
+
     const limit = getDomainLimit(user.membership);
     if (userDomains.length >= limit) {
       return {
@@ -292,18 +423,14 @@ export const addDomain = mutation({
       };
     }
 
-    // Create the domain record with pending status
+    // Other accounts may hold unverified rows for the same hostname; the first
+    // to publish its challenge record claims it.
     const domainId = await ctx.db.insert("custom_domains", {
       userId: user._id,
       domain,
-      status: "pending",
+      status: "awaiting_verification",
+      challengeToken: createChallengeToken(),
       createdAt: Date.now(),
-    });
-
-    await queueServiceSync(ctx, `domain:${domain}`, {
-      kind: "domain",
-      hostname: domain,
-      domainId,
     });
 
     return { success: true, domainId };
@@ -339,6 +466,12 @@ export const deleteDomain = mutation({
       return { success: false, error: "Not authorized to delete this domain" };
     }
 
+    // Never claimed: nothing exists in Cloudflare and no link can use it.
+    if (domain.status === "awaiting_verification") {
+      await ctx.db.delete("custom_domains", domain._id);
+      return { success: true };
+    }
+
     // Retain the hostname even if registration has not saved its Cloudflare ID yet.
     await queueDomainSync(ctx, domain);
     await ctx.db.delete(args.domainId);
@@ -353,35 +486,193 @@ export const deleteDomain = mutation({
   },
 });
 
-/**
- * Verify a custom domain's status with Cloudflare.
- * Schedules the verification action to check SSL status.
- */
-export const verifyDomain = mutation({
-  args: { domainId: v.id("custom_domains") },
-  returns: v.object({
-    success: v.boolean(),
-    error: v.optional(v.string()),
+const verificationResult = v.object({
+  success: v.boolean(),
+  error: v.optional(v.string()),
+});
+type VerificationResult = Infer<typeof verificationResult>;
+
+const verificationAttempt = v.union(
+  v.object({ kind: v.literal("error"), error: v.string() }),
+  // Ownership is already settled; the Cloudflare status check was queued.
+  v.object({ kind: v.literal("claimed") }),
+  v.object({
+    kind: v.literal("check"),
+    hostname: v.string(),
+    challengeToken: v.string(),
   }),
-  handler: async (ctx, args) => {
+);
+
+/**
+ * Prove control of a domain's DNS, then claim it and start the Cloudflare flow.
+ * For domains that are already verified (or grandfathered), re-checks their
+ * Cloudflare status as before.
+ */
+export const verifyDomain = action({
+  args: { domainId: v.id("custom_domains") },
+  returns: verificationResult,
+  handler: async (ctx, args): Promise<VerificationResult> => {
+    const attempt: Infer<typeof verificationAttempt> = await ctx.runMutation(
+      internal.customDomains.startDomainVerification,
+      args,
+    );
+    if (attempt.kind === "error") {
+      return { success: false, error: attempt.error };
+    }
+    if (attempt.kind === "claimed") return { success: true };
+
+    let records: string[];
+    try {
+      records = await lookupTxtRecords(challengeRecordName(attempt.hostname));
+    } catch (error) {
+      console.log("[Domains] challenge lookup failed", {
+        hostname: attempt.hostname,
+        error: error instanceof Error ? error.message : "unknown",
+      });
+      return {
+        success: false,
+        error: "We couldn't check your DNS right now. Try again in a minute.",
+      };
+    }
+    // Only the exact value proves control; a prefix or another token does not.
+    if (!records.includes(challengeRecordValue(attempt.challengeToken))) {
+      return {
+        success: false,
+        error:
+          "We couldn't find the verification TXT record yet. DNS changes can take a few minutes to appear.",
+      };
+    }
+    const result: VerificationResult = await ctx.runMutation(
+      internal.customDomains.completeDomainVerification,
+      { domainId: args.domainId, challengeToken: attempt.challengeToken },
+    );
+    return result;
+  },
+});
+
+/** Checks ownership and records the attempt so DNS is queried at most once per 10 s. */
+export const startDomainVerification = internalMutation({
+  args: { domainId: v.id("custom_domains") },
+  returns: verificationAttempt,
+  handler: async (ctx, { domainId }) => {
     const user = await getCurrentUser(ctx);
     if (!user) {
-      return { success: false, error: "Not authenticated" };
+      return { kind: "error" as const, error: "Not authenticated" };
     }
+    const domain = await ctx.db.get("custom_domains", domainId);
+    if (!domain) return { kind: "error" as const, error: "Domain not found" };
+    if (domain.userId !== user._id) {
+      return { kind: "error" as const, error: "Not authorized" };
+    }
+    if (domain.status !== "awaiting_verification") {
+      await queueDomainSync(ctx, domain);
+      return { kind: "claimed" as const };
+    }
+    const now = Date.now();
+    if (isUnverifiedExpired(domain, now) || !domain.challengeToken) {
+      return {
+        kind: "error" as const,
+        error: "This verification expired. Remove the domain and add it again.",
+      };
+    }
+    if (
+      domain.lastVerificationAttemptAt !== undefined &&
+      now - domain.lastVerificationAttemptAt < VERIFY_ATTEMPT_INTERVAL_MS
+    ) {
+      return {
+        kind: "error" as const,
+        error: "Please wait a few seconds before checking again.",
+      };
+    }
+    await ctx.db.patch("custom_domains", domain._id, {
+      lastVerificationAttemptAt: now,
+    });
+    return {
+      kind: "check" as const,
+      hostname: domain.domain,
+      challengeToken: domain.challengeToken,
+    };
+  },
+});
 
-    const domain = await ctx.db.get(args.domainId);
-    if (!domain) {
+/** Claims the hostname exclusively after the challenge record was found. */
+export const completeDomainVerification = internalMutation({
+  args: { domainId: v.id("custom_domains"), challengeToken: v.string() },
+  returns: verificationResult,
+  handler: async (ctx, { domainId, challengeToken }) => {
+    const user = await getCurrentUser(ctx);
+    if (!user) return { success: false, error: "Not authenticated" };
+    const domain = await ctx.db.get("custom_domains", domainId);
+    if (!domain || domain.userId !== user._id) {
       return { success: false, error: "Domain not found" };
     }
-
-    // Verify ownership
-    if (domain.userId !== user._id) {
-      return { success: false, error: "Not authorized" };
+    if (domain.status !== "awaiting_verification") return { success: true };
+    // Removed and re-added while DNS was being checked.
+    if (domain.challengeToken !== challengeToken) {
+      return {
+        success: false,
+        error: "The verification code changed. Check the TXT record and try again.",
+      };
     }
-
+    // Mutations are serialized, so only one account can pass this check.
+    if (await getClaimedDomain(ctx, domain.domain)) {
+      return {
+        success: false,
+        error: "Another account has already verified this domain.",
+      };
+    }
+    await ctx.db.patch("custom_domains", domain._id, {
+      status: "pending",
+      ownershipVerifiedAt: Date.now(),
+    });
+    // From here on this is the existing flow: the sync job creates the
+    // Cloudflare custom hostname and the pending-domain cron polls it.
     await queueDomainSync(ctx, domain);
-
+    await removeUnverifiedDomainsPage(ctx, domain.domain);
+    console.log("[Domains] ownership verified", {
+      domainId: domain._id,
+      hostname: domain.domain,
+    });
     return { success: true };
+  },
+});
+
+/** Continues deleting other accounts' unverified rows for a claimed hostname. */
+export const removeUnverifiedDomains = internalMutation({
+  args: { hostname: v.string() },
+  returns: v.null(),
+  handler: async (ctx, { hostname }) => {
+    if (await getClaimedDomain(ctx, hostname)) {
+      await removeUnverifiedDomainsPage(ctx, hostname);
+    }
+    return null;
+  },
+});
+
+/** Cron: unverified rows expire after 7 days. Deletes bounded pages. */
+export const expireUnverifiedDomains = internalMutation({
+  args: {},
+  returns: v.number(),
+  handler: async (ctx) => {
+    const expired = await ctx.db
+      .query("custom_domains")
+      .withIndex("by_status", (q) =>
+        q
+          .eq("status", "awaiting_verification")
+          .lt("_creationTime", Date.now() - UNVERIFIED_DOMAIN_TTL_MS),
+      )
+      .take(CLEANUP_BATCH_SIZE);
+    for (const domain of expired) {
+      await ctx.db.delete("custom_domains", domain._id);
+    }
+    if (expired.length === CLEANUP_BATCH_SIZE) {
+      await ctx.scheduler.runAfter(
+        0,
+        internal.customDomains.expireUnverifiedDomains,
+        {},
+      );
+    }
+    return expired.length;
   },
 });
 
@@ -431,7 +722,9 @@ export const internalDeleteDomain = internalMutation({
   returns: v.null(),
   handler: async (ctx, { domainId }) => {
     const domain = await ctx.db.get(domainId);
-    if (domain) {
+    if (domain?.status === "awaiting_verification") {
+      await ctx.db.delete("custom_domains", domainId);
+    } else if (domain) {
       await queueDomainSync(ctx, domain);
       await ctx.db.delete(domainId);
       await detachDomainLinksPage(
@@ -455,10 +748,7 @@ export const detachDomainLinks = internalMutation({
   returns: v.null(),
   handler: async (ctx, { userId, hostname, cursor }) => {
     // The owner added the hostname back, so their remaining links are valid again.
-    const current = await ctx.db
-      .query("custom_domains")
-      .withIndex("by_domain", (q) => q.eq("domain", hostname))
-      .unique();
+    const current = await getClaimedDomain(ctx, hostname);
     if (current?.userId === userId) return null;
     await detachDomainLinksPage(ctx, userId, hostname, cursor);
     return null;
@@ -511,6 +801,7 @@ export const getDomainById = internalQuery({
       userId: v.id("users"),
       domain: v.string(),
       status: v.union(
+        v.literal("awaiting_verification"),
         v.literal("pending"),
         v.literal("active"),
         v.literal("failed"),

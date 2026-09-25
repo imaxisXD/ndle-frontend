@@ -1,6 +1,7 @@
 "use client";
 
-import { useMutation } from "convex/react";
+import { useState } from "react";
+import { useAction, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
 import { toast } from "sonner";
@@ -22,13 +23,13 @@ import { GlobeHemisphereWestIcon } from "@phosphor-icons/react/dist/ssr";
  * Displays user's custom domains and allows adding/removing domains
  */
 export function CustomDomainSettings() {
-  // const [verifyingDomainId, setVerifyingDomainId] = useState<string | null>(
-  //   null,
-  // );
+  const [verifyingDomainId, setVerifyingDomainId] = useState<string | null>(
+    null,
+  );
   const domains = useQuery(api.customDomains.listUserDomains);
   const limits = useQuery(api.customDomains.getDomainLimits);
   const deleteDomain = useMutation(api.customDomains.deleteDomain);
-  // const verifyDomain = useMutation(api.customDomains.verifyDomain);
+  const verifyDomain = useAction(api.customDomains.verifyDomain);
 
   // Loading state
   if (domains === undefined || limits === undefined) {
@@ -44,21 +45,21 @@ export function CustomDomainSettings() {
     }
   };
 
-  // const handleVerify = async (domainId: Id<"custom_domains">) => {
-  //   setVerifyingDomainId(domainId);
-  //   try {
-  //     const result = await verifyDomain({ domainId });
-  //     if (result.success) {
-  //       toast.info(
-  //         "Verification in progress. Status will update automatically.",
-  //       );
-  //     } else {
-  //       toast.error(result.error || "Failed to verify domain");
-  //     }
-  //   } finally {
-  //     setVerifyingDomainId(null);
-  //   }
-  // };
+  const handleVerify = async (domainId: Id<"custom_domains">) => {
+    setVerifyingDomainId(domainId);
+    try {
+      const result = await verifyDomain({ domainId });
+      if (result.success) {
+        toast.success("Domain verified. Add the DNS record shown to finish.");
+      } else {
+        toast.error(result.error || "We couldn't verify this domain");
+      }
+    } catch {
+      toast.error("Something went wrong");
+    } finally {
+      setVerifyingDomainId(null);
+    }
+  };
 
   return (
     <Card variant="accent" className="border-border border">
@@ -75,6 +76,8 @@ export function CustomDomainSettings() {
                 key={domain._id}
                 domain={domain}
                 onDelete={handleDelete}
+                onVerify={handleVerify}
+                isVerifying={verifyingDomainId === domain._id}
               />
             ))}
           </div>
