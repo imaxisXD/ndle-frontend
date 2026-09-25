@@ -23,3 +23,12 @@ export function resolveYAxisTickCount(numTicks?: number): number {
   }
   return rounded;
 }
+
+/** Whole-number ticks for count axes: d3 picks 0, 0.5, 1… for small domains. */
+export function integerTicks(ticks: number[]): number[] {
+  const whole = ticks.filter(Number.isInteger);
+  if (whole.length >= 2 || ticks.length === 0) return whole;
+  const low = Math.floor(Math.min(...ticks));
+  const high = Math.ceil(Math.max(...ticks));
+  return high > low ? [low, high] : [low];
+}

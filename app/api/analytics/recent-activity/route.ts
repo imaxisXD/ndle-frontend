@@ -7,6 +7,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { auth } from "@clerk/nextjs/server";
 import { getRateLimit } from "@/lib/rateLimit";
+import { withUtcTimestamps } from "@/lib/analytics-response";
 
 const INTERNAL_API_URL = (process.env.INTERNAL_API_URL || "").replace(
   /\/analytics\/v2$/,
@@ -92,7 +93,9 @@ export async function GET(req: NextRequest) {
     }
 
     const result = await response.json();
-    const res = NextResponse.json({ data: result.data });
+    const res = NextResponse.json({
+      data: withUtcTimestamps(result.data, "occurred_at"),
+    });
     res.headers.set("Cache-Control", "private, no-store");
     return res;
   } catch {

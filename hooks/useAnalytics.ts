@@ -2,6 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { AnalyticsRange } from "@/lib/analyticsRanges";
+import { browserTimeZone } from "@/lib/local-dates";
 
 type Scope = "user" | "link";
 
@@ -23,10 +24,11 @@ export function useTimeseries({
   linkSlug?: string;
   scope: Scope;
 }) {
+  const tz = browserTimeZone();
   return useQuery({
-    queryKey: ["analytics", "timeseries", scope, linkSlug, range],
+    queryKey: ["analytics", "timeseries", scope, linkSlug, range, tz],
     queryFn: async () => {
-      const q = qs({ range, link_slug: linkSlug });
+      const q = qs({ range, link_slug: linkSlug, tz });
       const res = await fetch(`/api/analytics/timeseries?${q}`);
       if (!res.ok) throw new Error("Failed to load timeseries");
       return res.json();

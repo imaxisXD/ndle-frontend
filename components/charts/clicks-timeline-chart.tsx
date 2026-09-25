@@ -39,6 +39,7 @@ export function ClicksTimelineChart({
       <CardContent>
         <div className="relative">
           <BklitLineSeriesChart
+            allowDecimals={false}
             data={chartData}
             dateKey="time"
             heightClassName="h-[340px] sm:h-[380px] md:h-[420px]"

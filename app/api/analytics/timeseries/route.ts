@@ -5,6 +5,7 @@ import { getRateLimit } from "@/lib/rateLimit";
 import { AnalyticsRange, getUtcRange } from "@/lib/analyticsRanges";
 import { getRangeAccessError } from "@/lib/analytics-access";
 import { normalizeAnalyticsTimeseries } from "@/lib/analytics-response";
+import { getLocalDayRange, isValidTimeZone } from "@/lib/local-dates";
 import {
   getSignedInAnalyticsViewer,
   ANALYTICS_READ_TIMEOUT_MS,
@@ -32,6 +33,7 @@ const schema = z.object({
     ])
     .default("7d"),
   link_slug: z.string().min(1).optional(),
+  tz: z.string().max(64).optional(),
 });
 
 export async function GET(req: NextRequest) {
@@ -42,11 +44,12 @@ export async function GET(req: NextRequest) {
     const parsed = schema.safeParse({
       range: searchParams.get("range") ?? undefined,
       link_slug: searchParams.get("link_slug") ?? undefined,
+      tz: searchParams.get("tz") ?? undefined,
     });
     if (!parsed.success) {
       return NextResponse.json({ error: "Invalid params" }, { status: 400 });
     }
-    const { range, link_slug } = parsed.data;
+    const { range, link_slug, tz } = parsed.data;
 
     if (!clerkUserId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -93,6 +96,14 @@ export async function GET(req: NextRequest) {
     backendUrl.searchParams.set("end", endDate);
     if (link_slug) {
       backendUrl.searchParams.set("link_slug", link_slug);
+    }
+    // Local calendar days for the viewer. A service without zone support
+    // ignores these and answers UTC days for start/end, as before.
+    if (isValidTimeZone(tz)) {
+      const local = getLocalDayRange(range as AnalyticsRange, tz);
+      backendUrl.searchParams.set("tz", tz);
+      backendUrl.searchParams.set("local_start", local.start);
+      backendUrl.searchParams.set("local_end", local.end);
     }
 
     const response = await fetch(backendUrl.toString(), {

@@ -5,6 +5,7 @@ import { createPortal } from "react-dom";
 import { useChartStable, useYScale } from "./chart-context";
 import type { YAxisOrientation } from "./y-axis-scales";
 import {
+  integerTicks,
   resolveYAxisTickCount,
   Y_AXIS_DEFAULT_TICK_COUNT,
 } from "./y-axis-ticks";
@@ -23,6 +24,8 @@ export interface YAxisProps {
   formatLargeNumbers?: boolean;
   /** Custom formatter for tick labels (e.g. USD). Overrides formatLargeNumbers when set. */
   formatValue?: (value: number) => string;
+  /** Allow fractional ticks such as 0.5. Set false for counts. Default: true */
+  allowDecimals?: boolean;
 }
 
 function formatLabel(
@@ -61,6 +64,7 @@ const YAxisInner = memo(function YAxisInner({
   numTicks = Y_AXIS_DEFAULT_TICK_COUNT,
   formatLargeNumbers = true,
   formatValue,
+  allowDecimals = true,
   container,
 }: YAxisProps & { container: HTMLDivElement }) {
   const { margin } = useChartStable();
@@ -68,13 +72,21 @@ const YAxisInner = memo(function YAxisInner({
   const isLeft = orientation === "left";
 
   const ticks = useMemo(() => {
-    const tickValues = yScale.ticks(resolveYAxisTickCount(numTicks));
+    const niceTicks = yScale.ticks(resolveYAxisTickCount(numTicks));
+    const tickValues = allowDecimals ? niceTicks : integerTicks(niceTicks);
     return tickValues.map((value) => ({
       value,
       y: (yScale(value) ?? 0) + margin.top,
       label: formatLabel(value, formatLargeNumbers, formatValue),
     }));
-  }, [yScale, margin.top, numTicks, formatLargeNumbers, formatValue]);
+  }, [
+    yScale,
+    margin.top,
+    numTicks,
+    formatLargeNumbers,
+    formatValue,
+    allowDecimals,
+  ]);
 
   return createPortal(
     <div className="pointer-events-none absolute inset-0">

@@ -26,6 +26,8 @@ import {
   type VariantLabels,
 } from "@/components/charts/variant-performance-chart";
 import { useAnalyticsV2 } from "@/hooks/useAnalyticsV2";
+import { useRefreshLinkAnalytics } from "@/hooks/use-refresh-link-analytics";
+import { buildClickTimeline } from "@/lib/click-timeline";
 import {
   Tabs,
   TabsList,
@@ -66,6 +68,11 @@ export default function LinkDetailRoute() {
   const isABTestEnabled =
     url && url.abEnabled && url.abVariants && url.abVariants.length > 0;
   const linkId = url?.linkId || url?._id;
+  useRefreshLinkAnalytics({
+    linkSlug: String(slug),
+    linkId: linkId ? String(linkId) : undefined,
+    liveClickCount: analyticsData?.totalClickCounts,
+  });
 
   // Direct API calls via TanStack Query (bypasses Convex, uses DuckDB backend)
   const timeseries = useTimeseries({
@@ -119,49 +126,9 @@ export default function LinkDetailRoute() {
 
   // Derive display data from raw analytics
   const derived = useMemo(() => {
-    const tsRows = timeseries.data?.data ?? [];
-
-    const formatBucket = (s: string) => {
-      const d = new Date(s);
-      const yyyy = d.getUTCFullYear();
-      const mm = String(d.getUTCMonth() + 1).padStart(2, "0");
-      const dd = String(d.getUTCDate()).padStart(2, "0");
-      return `${yyyy}-${mm}-${dd}`;
-    };
-
-    // Build day -> clicks map for zero-filling
-    const dayToClicks = new Map<string, number>();
-    for (const r of tsRows) {
-      const key = formatBucket(r.bucket_start);
-      dayToClicks.set(key, (dayToClicks.get(key) ?? 0) + r.clicks);
-    }
-
-    // Zero-fill clicks timeline
-    const clicksTimelineData: Array<{ time: string; clicks: number }> = [];
-    if (tsRows.length > 0) {
-      const { start, end } = getUtcRange(range);
-      const startDay = new Date(
-        Date.UTC(
-          start.getUTCFullYear(),
-          start.getUTCMonth(),
-          start.getUTCDate(),
-        ),
-      );
-      const endDay = new Date(
-        Date.UTC(end.getUTCFullYear(), end.getUTCMonth(), end.getUTCDate()),
-      );
-      for (
-        let d = startDay;
-        d.getTime() <= endDay.getTime();
-        d = new Date(d.getTime() + 24 * 60 * 60 * 1000)
-      ) {
-        const key = formatBucket(d.toISOString());
-        clicksTimelineData.push({
-          time: key,
-          clicks: dayToClicks.get(key) ?? 0,
-        });
-      }
-    }
+    // One point per calendar day: the viewer's days when the service
+    // supports time zones, otherwise UTC days.
+    const clicksTimelineData = buildClickTimeline(timeseries.data, range);
 
     // Daily totals cannot reveal the hour of a click or whether it was a bot.
     const hourlyActivityData = null;

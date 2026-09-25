@@ -426,6 +426,7 @@ export function BklitLineSeriesChart<T extends object>({
   emptyTitle,
   emptyDescription,
   numTicks = 5,
+  allowDecimals = true,
   style,
 }: {
   data: T[];
@@ -439,6 +440,8 @@ export function BklitLineSeriesChart<T extends object>({
   emptyTitle?: string;
   emptyDescription?: string;
   numTicks?: number;
+  /** Set false for counts so the value axis never shows 0.5. */
+  allowDecimals?: boolean;
   style?: CSSProperties;
 }) {
   return (
@@ -487,6 +490,7 @@ export function BklitLineSeriesChart<T extends object>({
         />
         <XAxis numTicks={numTicks} />
         <YAxis
+          allowDecimals={allowDecimals}
           formatValue={(nextValue) => formatChartNumber(nextValue)}
           orientation="right"
         />
@@ -507,6 +511,7 @@ export function BklitAreaSeriesChart<T extends object>({
   emptyTitle,
   emptyDescription,
   numTicks = 5,
+  allowDecimals = true,
   style,
   gradient = true,
 }: {
@@ -521,6 +526,8 @@ export function BklitAreaSeriesChart<T extends object>({
   emptyTitle?: string;
   emptyDescription?: string;
   numTicks?: number;
+  /** Set false for counts so the value axis never shows 0.5. */
+  allowDecimals?: boolean;
   style?: CSSProperties;
   gradient?: boolean;
 }) {
@@ -564,6 +571,7 @@ export function BklitAreaSeriesChart<T extends object>({
         />
         <XAxis numTicks={numTicks} />
         <YAxis
+          allowDecimals={allowDecimals}
           formatValue={(nextValue) => formatChartNumber(nextValue)}
           orientation="right"
         />
