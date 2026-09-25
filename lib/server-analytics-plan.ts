@@ -10,6 +10,11 @@ export type SignedInAnalyticsViewer = {
 };
 export const ANALYTICS_READ_TIMEOUT_MS = 10_000;
 
+/** Ingest reads use their own scoped secret when configured. */
+export function getAnalyticsReadSecret(): string | undefined {
+  return process.env.ANALYTICS_READ_SECRET || process.env.API_SECRET;
+}
+
 /** Resolve the account from the authenticated identity, without waiting for Clerk metadata sync. */
 export async function getSignedInAnalyticsViewer(
   getToken: GetClerkToken,

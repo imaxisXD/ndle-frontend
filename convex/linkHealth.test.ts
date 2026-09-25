@@ -2,6 +2,7 @@ import { afterEach, describe, expect, test, vi } from "vitest";
 import { api, internal } from "./_generated/api";
 import { createTestBackend } from "./test.setup";
 import { deliverMonitoringChange } from "./linkHealth";
+import { queueServiceSync } from "./serviceSync";
 import { getMonitoringStatus } from "../lib/utils";
 
 async function setup() {
@@ -41,6 +42,7 @@ async function setup() {
 afterEach(() => {
   vi.unstubAllEnvs();
   vi.unstubAllGlobals();
+  vi.useRealTimers();
 });
 
 describe("monitor result delivery", () => {
@@ -214,6 +216,109 @@ describe("monitor result delivery", () => {
       }),
     ).rejects.toThrow("HTTP 503");
   });
+
+  test("a URL the service can never monitor completes the sync instead of retrying", async () => {
+    vi.useFakeTimers();
+    const { backend, urlId } = await setup();
+    vi.stubEnv("ENVIRONMENT", "prod");
+    vi.stubEnv("MONITOR_SERVICE_URL", "https://monitor.test");
+    vi.stubEnv("MONITORING_API_SECRET", "test-only");
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const fetchMock = vi.fn<
+      (url: string, options?: RequestInit) => Promise<Response>
+    >(async () =>
+      Response.json(
+        {
+          success: false,
+          code: "invalid_url",
+          error: "URL cannot be monitored",
+        },
+        { status: 400 },
+      ),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+    const version = await backend.run((ctx) =>
+      queueServiceSync(ctx, `monitor:${urlId}`, { kind: "monitor", urlId }),
+    );
+    const job = await backend.run((ctx) =>
+      ctx.db
+        .query("serviceSyncJobs")
+        .withIndex("by_key", (q) => q.eq("key", `monitor:${urlId}`))
+        .unique(),
+    );
+    await backend.action(internal.serviceSync.run, {
+      jobId: job!._id,
+      version,
+    });
+    const saved = await backend.run((ctx) => ctx.db.get(job!._id));
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      "https://monitor.test/monitors/register",
+    );
+    expect(saved?.status).toBe("complete");
+    expect(saved?.lastError).toBeUndefined();
+    expect(warn).toHaveBeenCalledWith(
+      "[Link Monitoring] | Link cannot be monitored",
+      expect.objectContaining({ convexUrlId: urlId }),
+    );
+    warn.mockRestore();
+  });
+
+  test.each([
+    {
+      status: 400,
+      body: { success: false, code: "rate_limited" },
+      register: true,
+    },
+    {
+      status: 400,
+      body: { success: true, code: "invalid_url" },
+      register: true,
+    },
+    { status: 400, body: "invalid_url", register: true },
+    {
+      status: 422,
+      body: { success: false, code: "invalid_url" },
+      register: true,
+    },
+    {
+      status: 500,
+      body: { success: false, code: "invalid_url" },
+      register: true,
+    },
+    {
+      status: 400,
+      body: { success: false, code: "invalid_url" },
+      register: false,
+    },
+  ])(
+    "any other rejection stays retryable: HTTP $status $body (register: $register)",
+    async ({ status, body, register }) => {
+      vi.stubEnv("ENVIRONMENT", "prod");
+      vi.stubEnv("MONITOR_SERVICE_URL", "https://monitor.test");
+      vi.stubEnv("MONITORING_API_SECRET", "test-only");
+      vi.stubGlobal(
+        "fetch",
+        vi.fn(async () =>
+          typeof body === "string"
+            ? new Response(body, { status })
+            : Response.json(body, { status }),
+        ),
+      );
+      await expect(
+        deliverMonitoringChange({
+          convexUrlId: "test",
+          monitoringVersion: 1,
+          registration: register
+            ? {
+                convexUserId: "user",
+                longUrl: "https://example.test",
+                shortUrl: "test",
+              }
+            : undefined,
+        }),
+      ).rejects.toThrow(`HTTP ${status}`);
+    },
+  );
 
   test("delivery requires an acknowledgement of the saved version and state", async () => {
     vi.stubEnv("ENVIRONMENT", "prod");

@@ -219,6 +219,48 @@ describe("saved service updates", () => {
     },
   );
 
+  test.each([
+    { scoped: "owner-sync-only", expected: "Bearer owner-sync-only" },
+    { scoped: undefined, expected: "Bearer local-only" },
+  ])(
+    "owner updates use the scoped ingest secret when set: $expected",
+    async ({ scoped, expected }) => {
+      vi.useFakeTimers();
+      const { backend, userId } = await setup();
+      vi.stubEnv("INTERNAL_API_URL", "https://analytics.test/analytics/v2");
+      vi.stubEnv("API_SECRET", "local-only");
+      vi.stubEnv("OWNER_SYNC_SECRET", scoped);
+      const fetchMock = vi.fn<
+        (url: string, options?: RequestInit) => Promise<Response>
+      >(async () => Response.json({ success: true }));
+      vi.stubGlobal("fetch", fetchMock);
+      const version = await backend.run((ctx) =>
+        queueServiceSync(ctx, `owner:${userId}`, {
+          kind: "owner",
+          userId,
+          ownerKeys: [userId],
+        }),
+      );
+      const job = await backend.run((ctx) =>
+        ctx.db.query("serviceSyncJobs").first(),
+      );
+      await backend.action(internal.serviceSync.run, {
+        jobId: job!._id,
+        version,
+      });
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+      expect(fetchMock.mock.calls[0][0]).toBe(
+        "https://analytics.test/internal/owner-aliases",
+      );
+      expect(fetchMock.mock.calls[0][1]?.headers).toMatchObject({
+        Authorization: expected,
+      });
+      expect((await backend.run((ctx) => ctx.db.get(job!._id)))?.status).toBe(
+        "complete",
+      );
+    },
+  );
+
   test("a late legacy registration writes the current owner of a reused slug and confirms that link", async () => {
     vi.useFakeTimers();
     const { backend, userId } = await setup();
@@ -284,6 +326,7 @@ describe("saved service updates", () => {
     expect(JSON.parse(command[command.length - 1])).toMatchObject({
       link_id: replacementId,
       destination: "https://example.com/replacement",
+      domain: null,
     });
     expect(await backend.run((ctx) => ctx.db.get(replacementId))).toMatchObject(
       { redisStatus: "OK", urlStatusMessage: "success" },

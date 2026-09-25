@@ -8,6 +8,7 @@ import { normalizeAnalyticsBreakdown } from "@/lib/analytics-response";
 import {
   getSignedInAnalyticsViewer,
   ANALYTICS_READ_TIMEOUT_MS,
+  getAnalyticsReadSecret,
 } from "@/lib/server-analytics-plan";
 
 // Strip /analytics/v2 suffix to get base URL
@@ -15,7 +16,6 @@ const INTERNAL_API_URL = (process.env.INTERNAL_API_URL || "").replace(
   /\/analytics\/v2$/,
   "",
 );
-const API_SECRET = process.env.API_SECRET;
 
 const schema = z.object({
   range: z
@@ -105,7 +105,7 @@ export async function GET(req: NextRequest) {
       headers: {
         "Content-Type": "application/json",
         "x-user-id": convexUserId,
-        Authorization: `Bearer ${API_SECRET}`,
+        Authorization: `Bearer ${getAnalyticsReadSecret()}`,
       },
       cache: "no-store",
       signal: AbortSignal.timeout(ANALYTICS_READ_TIMEOUT_MS),

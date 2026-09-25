@@ -21,7 +21,10 @@ import {
   useVariantPerformance,
 } from "@/hooks/useAnalytics";
 import { getUtcRange } from "@/lib/analyticsRanges";
-import type { VariantLabels } from "@/components/charts/variant-performance-chart";
+import {
+  getVariantName,
+  type VariantLabels,
+} from "@/components/charts/variant-performance-chart";
 import { useAnalyticsV2 } from "@/hooks/useAnalyticsV2";
 import {
   Tabs,
@@ -223,14 +226,13 @@ export default function LinkDetailRoute() {
     const variantData = variantPerf.data?.variants || undefined;
 
     // Build Variant Map (ID -> Name/URL)
-    // Build Variant Map (ID -> Name/URL)
-    const variantMap: VariantLabels = { control: { name: "Control" } };
+    const variantMap: VariantLabels = {
+      control: { name: getVariantName("control") },
+    };
     if (url?.abVariants) {
       url.abVariants.forEach((v: { url: string }, i: number) => {
-        variantMap[`variant_${i}`] = {
-          name: i === 0 ? "Control" : `Variant ${String.fromCharCode(65 + i)}`,
-          url: v.url,
-        };
+        const variantId = `variant_${i}`;
+        variantMap[variantId] = { name: getVariantName(variantId), url: v.url };
       });
     }
 
@@ -282,12 +284,11 @@ export default function LinkDetailRoute() {
   }
 
   const handleDownloadQR = () => {
-    // TODO: Implement QR download functionality
-    add({
-      type: "success",
-      title: "QR Download",
-      description: "QR download functionality coming soon!",
-    });
+    // The hosted image encodes this link's short URL, never its destination.
+    const anchor = document.createElement("a");
+    anchor.href = `/api/qr/${encodeURIComponent(String(slug))}?format=png`;
+    anchor.download = `${slug}-qr.png`;
+    anchor.click();
   };
 
   const handleDelete = async () => {

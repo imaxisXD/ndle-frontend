@@ -1,6 +1,7 @@
 import {
   getSignedInAnalyticsViewer,
   ANALYTICS_READ_TIMEOUT_MS,
+  getAnalyticsReadSecret,
 } from "@/lib/server-analytics-plan";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
@@ -11,7 +12,6 @@ const INTERNAL_API_URL = (process.env.INTERNAL_API_URL || "").replace(
   /\/analytics\/v2$/,
   "",
 );
-const API_SECRET = process.env.API_SECRET;
 
 const schema = z.object({
   link_slug: z.string().min(1).optional(),
@@ -73,7 +73,7 @@ export async function GET(req: NextRequest) {
       headers: {
         "Content-Type": "application/json",
         "x-user-id": convexUserId,
-        Authorization: `Bearer ${API_SECRET}`,
+        Authorization: `Bearer ${getAnalyticsReadSecret()}`,
       },
       cache: "no-store",
       signal: AbortSignal.timeout(ANALYTICS_READ_TIMEOUT_MS),

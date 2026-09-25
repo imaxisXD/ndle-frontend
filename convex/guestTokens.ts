@@ -21,6 +21,41 @@ function getGuestSessionSecret() {
   return secret;
 }
 
+/** Epoch milliseconds or an ISO 8601 date; anything else disables the legacy window. */
+function parseLegacyAcceptUntil(value: string | undefined): number | undefined {
+  const trimmed = value?.trim();
+  if (!trimmed) return undefined;
+  if (/^\d+$/.test(trimmed)) {
+    const epochMs = Number(trimmed);
+    return Number.isSafeInteger(epochMs) ? epochMs : undefined;
+  }
+  if (
+    !/^\d{4}-\d{2}-\d{2}(?:T\d{2}:\d{2}(?::\d{2}(?:\.\d{1,3})?)?(?:Z|[+-]\d{2}:\d{2})?)?$/.test(
+      trimmed,
+    )
+  )
+    return undefined;
+  const parsed = Date.parse(trimmed);
+  return Number.isFinite(parsed) ? parsed : undefined;
+}
+
+/**
+ * Tokens signed before GUEST_SESSION_SECRET was set used the shared fallback
+ * secrets. Accept them only until GUEST_SESSION_LEGACY_ACCEPT_UNTIL so existing
+ * guests are not signed out; renewal re-signs them with the dedicated secret.
+ */
+function getLegacyGuestSessionSecrets(primary: string): string[] {
+  if (!process.env.GUEST_SESSION_SECRET) return [];
+  const acceptUntil = parseLegacyAcceptUntil(
+    process.env.GUEST_SESSION_LEGACY_ACCEPT_UNTIL,
+  );
+  if (acceptUntil === undefined || Date.now() >= acceptUntil) return [];
+  return [process.env.API_SECRET, process.env.SHARED_SECRET].filter(
+    (secret): secret is string =>
+      !!secret && secret.length >= 16 && secret !== primary,
+  );
+}
+
 function decodeBase64Url(value: string): string {
   const padded = value
     .replace(/-/g, "+")
@@ -38,10 +73,13 @@ function encodeBase64Url(buffer: ArrayBuffer): string {
   return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 }
 
-async function signPayload(payload: string): Promise<string> {
+async function signPayload(
+  payload: string,
+  secret = getGuestSessionSecret(),
+): Promise<string> {
   const key = await crypto.subtle.importKey(
     "raw",
-    new TextEncoder().encode(getGuestSessionSecret()),
+    new TextEncoder().encode(secret),
     { name: "HMAC", hash: "SHA-256" },
     false,
     ["sign"],
@@ -100,8 +138,18 @@ export async function verifyGuestSessionToken(
     throw new ConvexError("Guest session is invalid");
   }
 
-  const expectedSignature = await signPayload(payloadPart);
-  if (!constantTimeEqual(signature, expectedSignature)) {
+  const primarySecret = getGuestSessionSecret();
+  let validSignature = false;
+  for (const secret of [
+    primarySecret,
+    ...getLegacyGuestSessionSecrets(primarySecret),
+  ]) {
+    // Compare against every candidate so timing does not reveal which one matched.
+    validSignature =
+      constantTimeEqual(signature, await signPayload(payloadPart, secret)) ||
+      validSignature;
+  }
+  if (!validSignature) {
     throw new ConvexError("Guest session is invalid");
   }
 

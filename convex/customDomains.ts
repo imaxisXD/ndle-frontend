@@ -5,12 +5,15 @@ import {
   internalMutation,
   internalQuery,
   internalAction,
+  type MutationCtx,
 } from "./_generated/server";
+import type { Doc, Id } from "./_generated/dataModel";
 import { getCurrentUser } from "./users";
 import { internal } from "./_generated/api";
 import { getViewerPlan } from "./ownership";
 import { queueDomainSync } from "./domainSync";
-import { queueServiceSync } from "./serviceSync";
+import { queueServiceSync, queueUrlSync } from "./serviceSync";
+import { normalizeHostname } from "./utils";
 
 // ============================================================================
 // CONSTANTS
@@ -20,6 +23,8 @@ const MAX_DOMAINS_FREE = 1;
 const MAX_DOMAINS_PRO = 3;
 // Plans allow at most three domains. Keep reads bounded for legacy accounts too.
 const MAX_DOMAINS_READ = 100;
+// Each detached link also queues two sync jobs; keep one transaction well bounded.
+const DETACH_LINKS_BATCH_SIZE = 100;
 
 // ============================================================================
 // HELPER FUNCTIONS
@@ -59,6 +64,40 @@ function normalizeDomain(domain: string): string {
   normalized = normalized.replace(/\.$/, "");
 
   return normalized;
+}
+
+/** The link keeps working on the default domain; its projection gets `domain: null`. */
+export async function detachLinkFromDomain(ctx: MutationCtx, url: Doc<"urls">) {
+  await ctx.db.patch(url._id, { customDomain: undefined });
+  const detached = await ctx.db.get(url._id);
+  if (detached) await queueUrlSync(ctx, detached);
+}
+
+/**
+ * Move one page of an owner's links off a hostname they no longer hold, then
+ * continue in the background. The links keep working on the default domain, and
+ * a later owner of the hostname can never serve them.
+ */
+async function detachDomainLinksPage(
+  ctx: MutationCtx,
+  userId: Id<"users">,
+  hostname: string,
+  cursor: string | null,
+) {
+  const result = await ctx.db
+    .query("urls")
+    .withIndex("by_user", (q) => q.eq("userTableId", userId))
+    .paginate({ cursor, numItems: DETACH_LINKS_BATCH_SIZE });
+  for (const url of result.page) {
+    if (url.customDomain && normalizeHostname(url.customDomain) === hostname)
+      await detachLinkFromDomain(ctx, url);
+  }
+  if (!result.isDone)
+    await ctx.scheduler.runAfter(0, internal.customDomains.detachDomainLinks, {
+      userId,
+      hostname,
+      cursor: result.continueCursor,
+    });
 }
 
 /**
@@ -303,6 +342,12 @@ export const deleteDomain = mutation({
     // Retain the hostname even if registration has not saved its Cloudflare ID yet.
     await queueDomainSync(ctx, domain);
     await ctx.db.delete(args.domainId);
+    await detachDomainLinksPage(
+      ctx,
+      domain.userId,
+      normalizeHostname(domain.domain),
+      null,
+    );
 
     return { success: true };
   },
@@ -389,7 +434,33 @@ export const internalDeleteDomain = internalMutation({
     if (domain) {
       await queueDomainSync(ctx, domain);
       await ctx.db.delete(domainId);
+      await detachDomainLinksPage(
+        ctx,
+        domain.userId,
+        normalizeHostname(domain.domain),
+        null,
+      );
     }
+    return null;
+  },
+});
+
+/** Continues a domain deletion for owners with more links than one page. */
+export const detachDomainLinks = internalMutation({
+  args: {
+    userId: v.id("users"),
+    hostname: v.string(),
+    cursor: v.union(v.string(), v.null()),
+  },
+  returns: v.null(),
+  handler: async (ctx, { userId, hostname, cursor }) => {
+    // The owner added the hostname back, so their remaining links are valid again.
+    const current = await ctx.db
+      .query("custom_domains")
+      .withIndex("by_domain", (q) => q.eq("domain", hostname))
+      .unique();
+    if (current?.userId === userId) return null;
+    await detachDomainLinksPage(ctx, userId, hostname, cursor);
     return null;
   },
 });

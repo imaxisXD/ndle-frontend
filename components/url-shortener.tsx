@@ -288,6 +288,8 @@ export function UrlShortener() {
 
   const handleUrlChange = () => {
     setCurrentUrl(null);
+    // A new destination starts a new link, so stop offering the previous link's QR code.
+    if (form.getValues("shortUrl")) form.setValue("shortUrl", undefined);
     // Clear URL error when user starts typing again
     if (form.formState.errors.url) {
       form.clearErrors("url");

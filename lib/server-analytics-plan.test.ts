@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
+  getAnalyticsReadSecret,
   getSignedInAnalyticsViewer,
   getSignedInUserPlan,
 } from "./server-analytics-plan";
@@ -60,6 +61,13 @@ describe("authenticated analytics account", () => {
     const lookup = getSignedInAnalyticsViewer(() => new Promise(() => {}));
     await vi.advanceTimersByTimeAsync(5000);
     expect(await lookup).toBeNull();
+  });
+  it("prefers the scoped analytics read secret and falls back to API_SECRET", () => {
+    vi.stubEnv("API_SECRET", "shared-secret");
+    vi.stubEnv("ANALYTICS_READ_SECRET", undefined);
+    expect(getAnalyticsReadSecret()).toBe("shared-secret");
+    vi.stubEnv("ANALYTICS_READ_SECRET", "analytics-read-only");
+    expect(getAnalyticsReadSecret()).toBe("analytics-read-only");
   });
   it("keeps plan-only callers compatible", async () => {
     vi.stubGlobal(

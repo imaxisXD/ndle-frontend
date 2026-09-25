@@ -7,6 +7,7 @@ import { getRangeAccessError } from "@/lib/analytics-access";
 import {
   getSignedInAnalyticsViewer,
   ANALYTICS_READ_TIMEOUT_MS,
+  getAnalyticsReadSecret,
 } from "@/lib/server-analytics-plan";
 
 // Strip /analytics/v2 suffix to get base URL if present, but we specifically need /analytics/v2 here
@@ -16,7 +17,6 @@ const BASE_API_URL = (process.env.INTERNAL_API_URL || "").replace(
   /\/analytics\/v2$/,
   "",
 );
-const API_SECRET = process.env.API_SECRET;
 
 const schema = z.object({
   range: z
@@ -117,7 +117,7 @@ export async function GET(req: NextRequest) {
       headers: {
         "Content-Type": "application/json",
         "x-user-id": convexUserId,
-        Authorization: `Bearer ${API_SECRET}`,
+        Authorization: `Bearer ${getAnalyticsReadSecret()}`,
       },
       cache: "no-store",
       signal: AbortSignal.timeout(ANALYTICS_READ_TIMEOUT_MS),

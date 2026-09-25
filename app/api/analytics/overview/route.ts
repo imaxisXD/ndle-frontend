@@ -7,10 +7,10 @@ import { getRangeAccessError } from "@/lib/analytics-access";
 import {
   getSignedInAnalyticsViewer,
   ANALYTICS_READ_TIMEOUT_MS,
+  getAnalyticsReadSecret,
 } from "@/lib/server-analytics-plan";
 
 const INTERNAL_API_URL = process.env.INTERNAL_API_URL;
-const API_SECRET = process.env.API_SECRET;
 
 const schema = z.object({
   range: z
@@ -112,7 +112,8 @@ export async function GET(req: NextRequest) {
     const endDate = end.toISOString().split("T")[0];
 
     // Build backend URL - use timeseries and aggregate
-    if (!INTERNAL_API_URL || !API_SECRET) {
+    const analyticsSecret = getAnalyticsReadSecret();
+    if (!INTERNAL_API_URL || !analyticsSecret) {
       return NextResponse.json(
         { error: "Configuration error" },
         { status: 500, headers: getAnalyticsCacheHeaders(false) },
@@ -133,7 +134,7 @@ export async function GET(req: NextRequest) {
       headers: {
         "Content-Type": "application/json",
         "x-user-id": convexUserId,
-        Authorization: `Bearer ${API_SECRET}`,
+        Authorization: `Bearer ${analyticsSecret}`,
       },
       cache: "no-store",
       signal: AbortSignal.timeout(ANALYTICS_READ_TIMEOUT_MS),

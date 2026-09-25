@@ -15,6 +15,18 @@ export const description = "A bar chart showing A/B test variant performance";
 /** Maps a variant_id to its short name and destination URL. */
 export type VariantLabels = Record<string, { name: string; url?: string }>;
 
+/**
+ * The original destination is served as "control" (A); stored test variants are
+ * projected as variant_0, variant_1, … and are shown as Variant B, C, ….
+ */
+export function getVariantName(variantId: string): string {
+  if (variantId === "control") return "Control";
+  const index = /^variant_(\d+)$/.exec(variantId)?.[1];
+  return index === undefined
+    ? `Variant ${variantId}`
+    : `Variant ${String.fromCharCode(66 + Number(index))}`;
+}
+
 export function VariantPerformanceChart({
   data,
   variantMap,
@@ -33,10 +45,7 @@ export function VariantPerformanceChart({
   const chartData = (data || []).map((item) => ({
     ...item,
     label:
-      variantMap?.[item.variant_id]?.name ||
-      (item.variant_id === "control"
-        ? "Control"
-        : `Variant ${item.variant_id.replace("variant_", "")}`),
+      variantMap?.[item.variant_id]?.name || getVariantName(item.variant_id),
     url: variantMap?.[item.variant_id]?.url,
   }));
   const destinations = chartData.filter((item) => item.url);

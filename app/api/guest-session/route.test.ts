@@ -4,7 +4,10 @@ import { POST } from "./route";
 import { createGuestSessionToken, GUEST_CREDENTIAL_COOKIE, verifyGuestSessionToken } from "@/convex/guestTokens";
 
 vi.mock("@/lib/rateLimit", () => ({ getRateLimit: () => ({ limit: async () => ({ success: true }) }) }));
-afterEach(() => vi.useRealTimers());
+afterEach(() => {
+  vi.useRealTimers();
+  vi.unstubAllEnvs();
+});
 function request(body: unknown, cookie?: string, origin = "https://ndle.test") {
   return new NextRequest("https://ndle.test/api/guest-session", { method: "POST", headers: { "Content-Type": "application/json", origin, ...(cookie ? { cookie: `${GUEST_CREDENTIAL_COOKIE}=${cookie}` } : {}) }, body: JSON.stringify(body) });
 }
@@ -37,6 +40,20 @@ describe("guest credentials", () => {
     expect((await POST(request({}, `${session.guestToken}.extra`))).status).toBe(401);
     vi.useFakeTimers(); vi.setSystemTime(Date.now() + 9 * 86400_000);
     expect((await POST(request({}, session.guestToken))).status).toBe(401);
+  });
+  test("renews credentials signed before the dedicated secret only during the legacy window", async () => {
+    vi.stubEnv("GUEST_SESSION_SECRET", undefined);
+    vi.stubEnv("API_SECRET", "api-secret-shared-with-services");
+    const ownId = crypto.randomUUID();
+    const legacy = await createGuestSessionToken(ownId);
+    vi.stubEnv("GUEST_SESSION_SECRET", "dedicated-guest-secret-for-tests");
+    vi.stubEnv("GUEST_SESSION_LEGACY_ACCEPT_UNTIL", new Date(Date.now() + 86400_000).toISOString());
+    const renewed = await (await POST(request({}, legacy.guestToken))).json();
+    expect(renewed.guestId).toBe(ownId);
+    vi.stubEnv("GUEST_SESSION_LEGACY_ACCEPT_UNTIL", undefined);
+    // The renewed credential no longer depends on the shared fallback secret.
+    expect(await verifyGuestSessionToken(ownId, renewed.guestToken)).toBe(ownId);
+    expect((await POST(request({}, legacy.guestToken))).status).toBe(401);
   });
   test("rejects requests from another origin", async () => {
     expect((await POST(request({}, undefined, "https://elsewhere.test"))).status).toBe(403);

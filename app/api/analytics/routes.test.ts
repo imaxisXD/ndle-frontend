@@ -76,6 +76,25 @@ it.each(Object.keys(routes))(
     expect(response.headers.get("Cache-Control")).toBe("private, no-store");
   },
 );
+it.each(Object.keys(routes))(
+  "%s authenticates ingest reads with the scoped analytics secret when set",
+  async (name) => {
+    vi.stubEnv("ANALYTICS_READ_SECRET", "analytics-read-only");
+    const route = await routes[name as keyof typeof routes]();
+    const response = await route.GET(
+      new NextRequest(
+        `https://app.example/api/analytics/${name}?range=7d&dimension=country&link_slug=example&link_id=example`,
+      ),
+    );
+    expect(response.status).toBe(200);
+    const backend = request.mock.calls.find((call) =>
+      String(call[0]).includes("ingest.example"),
+    );
+    expect(backend![1]).toMatchObject({
+      headers: { Authorization: "Bearer analytics-read-only" },
+    });
+  },
+);
 it("does not read analytics when the user is signed out", async () => {
   mocks.auth.mockResolvedValue({ userId: null, getToken: async () => null });
   const { GET } = await import("./timeseries/route");

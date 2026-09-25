@@ -212,6 +212,7 @@ export function redirectValue(url: Doc<"urls">) {
     convexUserId: url.userTableId,
     trackingEnabled: url.trackingEnabled,
     expiresAt: url.expiresAt,
+    customDomain: url.customDomain,
     utmSource: url.utmSource,
     utmMedium: url.utmMedium,
     utmCampaign: url.utmCampaign,
@@ -305,7 +306,7 @@ export const run = internalAction({
               `${required("INTERNAL_API_URL")
                 .replace(/\/analytics\/v2\/?$/, "")
                 .replace(/\/$/, "")}/internal/owner-aliases`,
-              required("API_SECRET"),
+              process.env.OWNER_SYNC_SECRET || required("API_SECRET"),
               "POST",
               { accountUserId: target.userId, ownerKeys: target.ownerKeys },
             );

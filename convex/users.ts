@@ -257,6 +257,8 @@ async function claimGuestLinksForUser(
         ownershipState: "user",
         analyticsOwnerKey: makeUserOwnerKey(user._id),
         claimedAt: now,
+        // The 7-day guest expiry does not apply once the link belongs to an account.
+        expiresAt: undefined,
       });
 
       const claimedUrl = await ctx.db.get(url._id);

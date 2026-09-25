@@ -73,6 +73,24 @@ export async function deliverMonitoringChange(args: {
       signal: AbortSignal.timeout(15_000),
     },
   );
+  // A URL the service can never monitor is a final answer; retrying cannot change it.
+  if (response.status === 400 && args.registration) {
+    const rejection: unknown = await response.json().catch(() => null);
+    if (
+      rejection &&
+      typeof rejection === "object" &&
+      "success" in rejection &&
+      rejection.success === false &&
+      "code" in rejection &&
+      rejection.code === "invalid_url"
+    ) {
+      console.warn("[Link Monitoring] | Link cannot be monitored", {
+        convexUrlId: args.convexUrlId,
+        monitoringVersion: args.monitoringVersion,
+      });
+      return;
+    }
+  }
   if (!response.ok)
     throw new Error(`Monitoring update failed (HTTP ${response.status})`);
   const receipt: unknown = await response.json();

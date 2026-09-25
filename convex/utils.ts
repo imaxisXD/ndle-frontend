@@ -85,6 +85,8 @@ export interface RedisValueObject {
   analytics_owner_key: string;
   convex_user_id?: string;
   redirect_type: 301 | 302 | 307 | 308;
+  // Custom hostname this link is bound to; null means the default short domain only
+  domain: string | null;
   // Tracking
   created_at: number;
   updated_at: number;
@@ -119,6 +121,15 @@ export interface RedisValueObject {
   };
   custom_metadata: Record<string, string>;
   version: number;
+}
+
+/**
+ * Canonical form of a stored custom hostname: lowercase, no port, no trailing dot.
+ * Stored values already went through the input normalizer, so this must not strip
+ * anything else (e.g. another "www.") or the Worker's host comparison would fail.
+ */
+export function normalizeHostname(hostname: string): string {
+  return hostname.trim().toLowerCase().replace(/:\d*$/, "").replace(/\.$/, "");
 }
 
 /**

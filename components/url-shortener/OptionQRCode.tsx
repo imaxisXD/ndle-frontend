@@ -24,6 +24,10 @@ import {
   getQrOverlaySrc,
   normalizeQrStyle,
 } from "@/lib/qr";
+import { makeShortLink } from "@/lib/config";
+
+// Generated slugs never contain "-", so this placeholder can never open a real link.
+const PLACEHOLDER_QR_VALUE = `https://${makeShortLink("your-link")}`;
 
 type Props = {
   form: UseFormReturn<UrlFormValues>;
@@ -34,7 +38,6 @@ export function OptionQRCode({ form, isPro = false }: Props) {
   const previewRef = useRef<HTMLDivElement>(null);
 
   const [
-    urlValue,
     size,
     margin,
     fg,
@@ -49,7 +52,6 @@ export function OptionQRCode({ form, isPro = false }: Props) {
     control: form.control,
     // watching all relevant fields ensures this component re-renders on change
     name: [
-      "url",
       "qrSize",
       "qrMargin",
       "qrFg",
@@ -62,7 +64,6 @@ export function OptionQRCode({ form, isPro = false }: Props) {
       "qrCustomLogoUrl",
     ] as const,
   }) as [
-    string,
     number,
     number,
     string,
@@ -78,6 +79,14 @@ export function OptionQRCode({ form, isPro = false }: Props) {
     control: form.control,
     name: "shortUrl",
   });
+  // Only the created short link may be encoded: a code pointing at the destination
+  // would bypass ndle, so it could never be tracked or redirected elsewhere.
+  const createdShortLink = shortUrl
+    ? /^https?:\/\//i.test(shortUrl)
+      ? shortUrl
+      : `https://${shortUrl}`
+    : undefined;
+  const qrValue = createdShortLink ?? PLACEHOLDER_QR_VALUE;
 
   const qrStyle = useMemo(
     () =>
@@ -126,7 +135,7 @@ export function OptionQRCode({ form, isPro = false }: Props) {
   const qrKey = useMemo(
     () =>
       [
-        urlValue || "",
+        qrValue,
         qrStyle.size,
         getQrMarginSize(qrStyle),
         qrStyle.ecc,
@@ -137,7 +146,7 @@ export function OptionQRCode({ form, isPro = false }: Props) {
           ? qrStyle.logoScale.toFixed(3)
           : "0.18",
       ].join("|"),
-    [urlValue, qrStyle, overlaySrc],
+    [qrValue, qrStyle, overlaySrc],
   );
 
   const svgElement = () => {
@@ -147,6 +156,7 @@ export function OptionQRCode({ form, isPro = false }: Props) {
   };
 
   const downloadSvg = () => {
+    if (!createdShortLink) return;
     const svg = svgElement();
     if (!svg) return;
     const clone = svg.cloneNode(true) as SVGSVGElement;
@@ -164,6 +174,7 @@ export function OptionQRCode({ form, isPro = false }: Props) {
   };
 
   const downloadPng = async () => {
+    if (!createdShortLink) return;
     const svg = svgElement();
     if (!svg) return;
     const clone = svg.cloneNode(true) as SVGSVGElement;
@@ -424,7 +435,7 @@ export function OptionQRCode({ form, isPro = false }: Props) {
             <div className="relative z-10 scale-[0.85]">
               <QRCodeSVG
                 key={qrKey}
-                value={urlValue || "https://ndle.link/preview"}
+                value={qrValue}
                 size={qrStyle.size}
                 level={qrStyle.ecc}
                 fgColor={qrStyle.fg}
@@ -435,13 +446,19 @@ export function OptionQRCode({ form, isPro = false }: Props) {
             </div>
           </div>
 
+          <p className="text-muted-foreground px-4 text-center text-xs break-all lg:px-0">
+            {createdShortLink
+              ? shortUrl
+              : "Placeholder preview. Create the link to download this QR code."}
+          </p>
+
           <div className="grid w-full grid-cols-2 gap-2 px-4 lg:px-0">
             <Button
               type="button"
               variant="outline"
               size="sm"
               onClick={downloadSvg}
-              disabled={!urlValue}
+              disabled={!createdShortLink}
               className="w-full gap-2"
             >
               <Download className="size-3.5" />
@@ -452,7 +469,7 @@ export function OptionQRCode({ form, isPro = false }: Props) {
               variant="outline"
               size="sm"
               onClick={downloadPng}
-              disabled={!urlValue}
+              disabled={!createdShortLink}
               className="w-full gap-2"
             >
               <Download className="size-3.5" />

@@ -1,5 +1,5 @@
 import type { Id } from "./_generated/dataModel";
-import type { RedisValueObject } from "./utils";
+import { normalizeHostname, type RedisValueObject } from "./utils";
 
 type RedirectProjectionInput = {
 	fullUrl: string;
@@ -8,6 +8,7 @@ type RedirectProjectionInput = {
 	convexUserId?: Id<"users">;
 	trackingEnabled: boolean;
 	expiresAt?: number;
+	customDomain?: string;
 	utmSource?: string;
 	utmMedium?: string;
 	utmCampaign?: string;
@@ -50,6 +51,8 @@ function buildRedirectProjection(args: RedirectProjectionInput): RedisValueObjec
 		convex_user_id: args.convexUserId,
 		tenant_id: args.convexUserId ?? args.analyticsOwnerKey,
 		redirect_type: 302,
+		// The Worker serves a link on a custom host only when this matches it.
+		domain: (args.customDomain && normalizeHostname(args.customDomain)) || null,
 		created_at: now,
 		updated_at: now,
 		link_id: args.docId,

@@ -3,7 +3,10 @@ import { auth } from "@clerk/nextjs/server";
 import { z } from "zod";
 import { getDateWindowAccessError } from "@/lib/analytics-access";
 import { getRateLimit } from "@/lib/rateLimit";
-import { getSignedInAnalyticsViewer } from "@/lib/server-analytics-plan";
+import {
+  getAnalyticsReadSecret,
+  getSignedInAnalyticsViewer,
+} from "@/lib/server-analytics-plan";
 
 const dateSchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/).refine(value => {
   const date = new Date(`${value}T00:00:00.000Z`);
@@ -31,7 +34,7 @@ export async function GET(request: NextRequest) {
   if (rangeError) return NextResponse.json({ error: rangeError }, { status: 403 });
   try {
     const endpoint = process.env.INTERNAL_API_URL;
-    const secret = process.env.API_SECRET;
+    const secret = getAnalyticsReadSecret();
     if (!endpoint || !secret) throw new Error("Analytics service is not configured");
     const target = new URL(endpoint);
     for (const [key, value] of Object.entries(input)) if (value !== undefined && value !== "all") target.searchParams.set(key, value);

@@ -13,7 +13,8 @@ vi.mock("@clerk/nextjs/server", () => ({
 vi.mock("@/lib/rateLimit", () => ({
   getRateLimit: () => ({ limit: async () => ({ success: true }) }),
 }));
-vi.mock("@/lib/server-analytics-plan", () => ({
+vi.mock("@/lib/server-analytics-plan", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/lib/server-analytics-plan")>()),
   getSignedInAnalyticsViewer: async () => ({
     userId: "verified-account",
     plan: "free",
@@ -32,7 +33,9 @@ test("the 24-hour dashboard window reaches ingest after local midnight but befor
   vi.stubEnv("TZ", "Asia/Kolkata");
   vi.stubEnv("INTERNAL_API_URL", "https://ingest.example/analytics/v2");
   vi.stubEnv("API_SECRET", "test-secret");
-  const request = vi.fn(async (_url: URL) => Response.json({ totalClicks: 1 }));
+  const request = vi.fn<(url: URL, options?: RequestInit) => Promise<Response>>(
+    async () => Response.json({ totalClicks: 1 }),
+  );
   vi.stubGlobal("fetch", request);
 
   // The previously sent browser-local date is a future UTC date and must stay invalid.
@@ -58,4 +61,27 @@ test("the 24-hour dashboard window reaches ingest after local midnight but befor
   expect(String(request.mock.calls[0][0])).toBe(
     "https://ingest.example/analytics/v2?start=2026-09-05&end=2026-09-05",
   );
+  expect(request.mock.calls[0][1]).toMatchObject({
+    headers: { Authorization: "Bearer test-secret" },
+  });
+});
+
+test("ingest reads use the scoped analytics secret when it is set", async () => {
+  vi.stubEnv("INTERNAL_API_URL", "https://ingest.example/analytics/v2");
+  vi.stubEnv("API_SECRET", "test-secret");
+  vi.stubEnv("ANALYTICS_READ_SECRET", "analytics-read-only");
+  const request = vi.fn<(url: URL, options?: RequestInit) => Promise<Response>>(
+    async () => Response.json({ totalClicks: 1 }),
+  );
+  vi.stubGlobal("fetch", request);
+  const window = getAnalyticsDateWindow("7d");
+  const response = await GET(
+    new NextRequest(
+      `https://app.example/api/analytics/v2?${new URLSearchParams(window)}`,
+    ),
+  );
+  expect(response.status).toBe(200);
+  expect(request.mock.calls[0][1]).toMatchObject({
+    headers: { Authorization: "Bearer analytics-read-only" },
+  });
 });

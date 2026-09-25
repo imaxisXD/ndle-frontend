@@ -614,6 +614,22 @@ export const updateUrlStatus = internalMutation({
   },
 });
 
+/**
+ * Deletion is scheduled at creation, so re-check the link: a guest link claimed
+ * by an account since then must survive its original 7-day expiry.
+ */
+function isDueForScheduledDeletion(url: Doc<"urls">, now: number) {
+  // Unclaimed guest link (legacy rows may predate ownershipState). Claiming sets userTableId.
+  if (!url.userTableId) return url.ownershipState !== "user";
+  // Otherwise only a link created signed in with its own expiry, once it is reached.
+  return (
+    url.ownershipState !== "guest" &&
+    url.claimedAt === undefined &&
+    url.expiresAt !== undefined &&
+    url.expiresAt <= now
+  );
+}
+
 export const deleteUrlById = internalMutation({
   args: {
     urlId: v.id("urls"),
@@ -621,7 +637,7 @@ export const deleteUrlById = internalMutation({
   returns: v.null(),
   async handler(ctx, args) {
     const url = await ctx.db.get(args.urlId);
-    if (!url) {
+    if (!url || !isDueForScheduledDeletion(url, Date.now())) {
       return null;
     }
     await deleteUrlRecord(ctx, url);

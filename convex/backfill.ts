@@ -2,6 +2,17 @@ import { v } from "convex/values";
 import { action, internalMutation } from "./_generated/server";
 import { internal } from "./_generated/api";
 import { makeGuestOwnerKey, makeUserOwnerKey } from "./ownership";
+import { queueUrlSync } from "./serviceSync";
+import { detachLinkFromDomain } from "./customDomains";
+import { normalizeHostname } from "./utils";
+
+const LINK_MIGRATION_BATCH_SIZE = 100;
+const linkMigrationArgs = { cursor: v.optional(v.union(v.string(), v.null())) };
+const linkMigrationResult = v.object({
+  scanned: v.number(),
+  patched: v.number(),
+  isDone: v.boolean(),
+});
 
 const BACKFILL_TABLES = [
   "urls",
@@ -211,5 +222,83 @@ export const runLegacyOwnerBackfill = action({
       nextCursor: done ? null : currentCursor,
       totals,
     };
+  },
+});
+
+/**
+ * Claimed guest links kept their 7-day guest expiry, so they were blocked and then
+ * deleted. Continues itself page by page; re-running only touches rows still affected.
+ */
+export const clearClaimedGuestExpiry = internalMutation({
+  args: linkMigrationArgs,
+  returns: linkMigrationResult,
+  handler: async (ctx, args) => {
+    const result = await ctx.db.query("urls").paginate({
+      cursor: args.cursor ?? null,
+      numItems: LINK_MIGRATION_BATCH_SIZE,
+    });
+    let patched = 0;
+    for (const url of result.page) {
+      if (
+        url.claimedAt === undefined ||
+        url.ownershipState !== "user" ||
+        url.expiresAt === undefined
+      )
+        continue;
+      await ctx.db.patch(url._id, { expiresAt: undefined });
+      const updated = await ctx.db.get(url._id);
+      if (updated) await queueUrlSync(ctx, updated);
+      patched += 1;
+    }
+    console.log("[Backfill] clearClaimedGuestExpiry", {
+      scanned: result.page.length,
+      patched,
+      isDone: result.isDone,
+    });
+    if (!result.isDone)
+      await ctx.scheduler.runAfter(0, internal.backfill.clearClaimedGuestExpiry, {
+        cursor: result.continueCursor,
+      });
+    return { scanned: result.page.length, patched, isDone: result.isDone };
+  },
+});
+
+/**
+ * Domain deletion used to leave links attached, so a later owner of the hostname
+ * could serve them. Detach links whose owner no longer holds their hostname.
+ * Continues itself page by page and is safe to re-run.
+ */
+export const detachOrphanedCustomDomainLinks = internalMutation({
+  args: linkMigrationArgs,
+  returns: linkMigrationResult,
+  handler: async (ctx, args) => {
+    const result = await ctx.db.query("urls").paginate({
+      cursor: args.cursor ?? null,
+      numItems: LINK_MIGRATION_BATCH_SIZE,
+    });
+    let patched = 0;
+    for (const url of result.page) {
+      if (!url.customDomain) continue;
+      const hostname = normalizeHostname(url.customDomain);
+      const holders = await ctx.db
+        .query("custom_domains")
+        .withIndex("by_domain", (q) => q.eq("domain", hostname))
+        .take(10);
+      if (holders.some((domain) => domain.userId === url.userTableId)) continue;
+      await detachLinkFromDomain(ctx, url);
+      patched += 1;
+    }
+    console.log("[Backfill] detachOrphanedCustomDomainLinks", {
+      scanned: result.page.length,
+      patched,
+      isDone: result.isDone,
+    });
+    if (!result.isDone)
+      await ctx.scheduler.runAfter(
+        0,
+        internal.backfill.detachOrphanedCustomDomainLinks,
+        { cursor: result.continueCursor },
+      );
+    return { scanned: result.page.length, patched, isDone: result.isDone };
   },
 });
