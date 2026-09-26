@@ -16,6 +16,10 @@ import {
   type VariantLabels,
 } from "@/components/charts/variant-performance-chart";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { EmptyStateImage } from "@/components/empty-state-image";
+import type { LinkAnalyticsStatus } from "@/lib/analytics-request";
+import { Lock } from "iconoir-react";
 
 export function AnalyticsSection({
   clicksTimelineData,
@@ -29,6 +33,9 @@ export function AnalyticsSection({
   variantData,
   variantMap,
   isLoading,
+  status = "ready",
+  onRetry,
+  onShowAvailableRange,
 }: {
   clicksTimelineData: Array<{ time: string; clicks: number }>;
   browserData: Array<{ month: string; clicks: number }>;
@@ -45,7 +52,71 @@ export function AnalyticsSection({
   }>;
   variantMap?: VariantLabels;
   isLoading: boolean;
+  /** "error" and "plan-required" replace the charts, so failures never read as zero clicks. */
+  status?: LinkAnalyticsStatus;
+  onRetry?: () => void;
+  onShowAvailableRange?: () => void;
 }) {
+  if (status === "plan-required") {
+    return (
+      <section
+        data-analytics-section
+        className="flex flex-col items-center px-6 py-12 text-center"
+      >
+        <div className="bg-muted mb-4 rounded-lg p-3">
+          <Lock className="text-muted-foreground size-5" aria-hidden />
+        </div>
+        <h3 className="text-foreground text-sm font-medium">
+          Longer date ranges are part of Pro
+        </h3>
+        <p className="text-muted-foreground mt-2 max-w-md text-xs">
+          Your plan includes the last 30 days of clicks.
+        </p>
+        {onShowAvailableRange && (
+          <Button
+            className="mt-4"
+            size="sm"
+            variant="outline"
+            onClick={onShowAvailableRange}
+          >
+            Show last 30 days
+          </Button>
+        )}
+      </section>
+    );
+  }
+
+  if (status === "error") {
+    return (
+      <section
+        data-analytics-section
+        className="flex flex-col items-center px-6 py-12 text-center"
+      >
+        <EmptyStateImage
+          alt=""
+          className="mb-5 w-full max-w-[680px]"
+          name="errorAnalytics"
+        />
+        <h3 className="text-foreground text-sm font-medium">
+          Analytics could not load
+        </h3>
+        <p className="text-muted-foreground mt-2 max-w-md text-xs">
+          Your link keeps working. Try again in a moment.
+        </p>
+        {onRetry && (
+          <Button
+            className="mt-4"
+            size="sm"
+            variant="outline"
+            onClick={onRetry}
+          >
+            Retry
+          </Button>
+        )}
+      </section>
+    );
+  }
+
   return (
     <section
       data-analytics-section

@@ -1,5 +1,5 @@
 import { v } from "convex/values";
-import { action, internalMutation } from "./_generated/server";
+import { internalAction, internalMutation } from "./_generated/server";
 import { internal } from "./_generated/api";
 import { makeGuestOwnerKey, makeUserOwnerKey } from "./ownership";
 import { queueUrlSync } from "./serviceSync";
@@ -150,19 +150,15 @@ export const runLegacyOwnerBackfillBatch = internalMutation({
   },
 });
 
-export const runLegacyOwnerBackfill = action({
+/** Operator-only: run from the Convex dashboard or `npx convex run`, never from clients. */
+export const runLegacyOwnerBackfill = internalAction({
   args: {
-    sharedSecret: v.string(),
     batchSize: v.optional(v.number()),
     maxBatches: v.optional(v.number()),
     startTable: v.optional(tableValidator),
     startCursor: v.optional(v.union(v.string(), v.null())),
   },
   handler: async (ctx, args) => {
-    if (args.sharedSecret !== process.env.SHARED_SECRET) {
-      throw new Error("Invalid shared secret");
-    }
-
     const batchSize = Math.min(Math.max(args.batchSize ?? 100, 1), 500);
     const maxBatches = Math.min(Math.max(args.maxBatches ?? 25, 1), 200);
     const startIndex = args.startTable

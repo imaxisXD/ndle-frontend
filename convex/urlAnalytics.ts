@@ -7,6 +7,7 @@ import { getOwnerSnapshot } from "./ownership";
 import { accountCounter, accountCountsReady } from "./accountCounters";
 import { incrementCollectionClicks } from "./collectionMangament";
 import { toOwnerLinkView } from "./moderation";
+import { matchesSecret } from "./secrets";
 
 export const counter = new ShardedCounter(components.shardedCounter);
 
@@ -37,7 +38,7 @@ export const mutateUrlAnalytics = mutation({
     outcome: v.union(v.literal("recorded"), v.literal("duplicate"), v.literal("link_deleted"), v.literal("tracking_disabled"), v.literal("too_old")),
   }),
   handler: async (ctx, args) => {
-    if (!process.env.SHARED_SECRET || args.sharedSecret !== process.env.SHARED_SECRET) {
+    if (!matchesSecret(args.sharedSecret, process.env.SHARED_SECRET)) {
       throw new ConvexError("Invalid shared secret");
     }
     if (!args.requestId.trim() || args.requestId.length > 200) throw new ConvexError("Invalid click ID");

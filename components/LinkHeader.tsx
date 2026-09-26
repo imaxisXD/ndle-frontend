@@ -6,6 +6,7 @@ import { LiveClickHero } from "@/components/charts/live-click-hero";
 import { LinkActionsBar } from "@/components/LinkActionsBar";
 import { Switch } from "@/components/ui/switch";
 import type { AnalyticsRange } from "@/lib/analyticsRanges";
+import type { AnalyticsViewerPlan } from "@/lib/analytics-access";
 import { formatRelative } from "@/lib/utils";
 import { LinkIcon } from "@phosphor-icons/react";
 
@@ -14,6 +15,7 @@ export function LinkHeader({
   fullUrl,
   range,
   onRangeChange,
+  plan,
   excludeBots = false,
   onExcludeBotsChange,
   totalClickCounts,
@@ -26,6 +28,7 @@ export function LinkHeader({
   fullUrl?: string;
   range: AnalyticsRange;
   onRangeChange: (r: AnalyticsRange) => void;
+  plan?: AnalyticsViewerPlan | null;
   excludeBots?: boolean;
   onExcludeBotsChange?: (value: boolean) => void;
   totalClickCounts: number;
@@ -103,7 +106,7 @@ export function LinkHeader({
             </label>
           </div>
         )}
-        <TimeRangeSelector value={range} onChange={onRangeChange} />
+        <TimeRangeSelector value={range} onChange={onRangeChange} plan={plan} />
       </div>
 
       {/* Live Click Counter */}

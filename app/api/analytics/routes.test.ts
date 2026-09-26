@@ -1,9 +1,16 @@
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { NextRequest } from "next/server";
-const mocks = vi.hoisted(() => ({ auth: vi.fn(), limit: vi.fn() }));
+import { ANALYTICS_RATE_LIMIT } from "@/lib/rateLimit";
+const mocks = vi.hoisted(() => ({
+  auth: vi.fn(),
+  limit: vi.fn(),
+  defaultLimit: vi.fn(),
+}));
 vi.mock("@clerk/nextjs/server", () => ({ auth: mocks.auth }));
-vi.mock("@/lib/rateLimit", () => ({
-  getRateLimit: () => ({ limit: mocks.limit }),
+vi.mock("@/lib/rateLimit", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/lib/rateLimit")>()),
+  getRateLimit: () => ({ limit: mocks.defaultLimit }),
+  getAnalyticsRateLimit: () => ({ limit: mocks.limit }),
 }));
 let request: ReturnType<typeof vi.fn>;
 beforeEach(() => {
@@ -16,8 +23,10 @@ beforeEach(() => {
     getToken: async () => "signed-token",
   });
   mocks.limit.mockResolvedValue({ success: true, limit: 100, remaining: 99 });
-  request = vi.fn(async (url: string, _options?: RequestInit) =>
-    url.includes("convex.example")
+  request = vi.fn(async (input: string | URL, _options?: RequestInit) => {
+    const url = String(input);
+    const dimension = new URL(url).searchParams.get("dimension") ?? "country";
+    return url.includes("convex.example")
       ? new Response(
           JSON.stringify({
             status: "success",
@@ -26,12 +35,12 @@ beforeEach(() => {
         )
       : new Response(JSON.stringify({ data: [
           url.includes("endpoint=breakdown")
-            ? { country: "IN", clicks: 3 }
+            ? { [dimension]: "IN", clicks: 3 }
             : url.includes("endpoint=traffic-sources")
               ? { source: "ndle.app", clicks: 3 }
               : { time: "2026-01-03", clicks: 3 },
-        ] })),
-  );
+        ] }));
+  });
   vi.stubGlobal("fetch", request);
 });
 afterEach(() => {
@@ -200,3 +209,102 @@ it.each(botFilterRoutes)(
     ).toBe("true");
   },
 );
+
+const today = new Date().toISOString().slice(0, 10);
+const limitedRoutes = { ...routes, v2: () => import("./v2/route") };
+type LimitedRoute = keyof typeof limitedRoutes;
+const getRoute = async (path: string) => {
+  const url = new URL(path, "https://app.example/api/analytics/");
+  const name = url.pathname.split("/").pop() as LimitedRoute;
+  return (await limitedRoutes[name]()).GET(new NextRequest(url));
+};
+
+/** A sliding window shared by every request with the same key, as in Redis. */
+function useLimiterBuckets() {
+  const used = new Map<string, number>();
+  mocks.limit.mockImplementation(async (key: string) => {
+    const count = (used.get(key) ?? 0) + 1;
+    used.set(key, count);
+    return {
+      success: count <= ANALYTICS_RATE_LIMIT.requests,
+      limit: ANALYTICS_RATE_LIMIT.requests,
+      remaining: Math.max(0, ANALYTICS_RATE_LIMIT.requests - count),
+    };
+  });
+}
+
+it.each(Object.keys(limitedRoutes))(
+  "%s rate-limits by route and account, never by the requested link",
+  async (name) => {
+    const slug = "attacker-chosen-slug";
+    const response = await getRoute(
+      `${name}?range=7d&dimension=country&link_slug=${slug}&link_id=${slug}&link=${slug}&start=${today}&end=${today}`,
+    );
+    expect(response.status).toBe(200);
+    expect(mocks.limit).toHaveBeenCalledTimes(1);
+    expect(mocks.limit).toHaveBeenCalledWith(`analytics:${name}:clerk-account`);
+    expect(String(mocks.limit.mock.calls[0][0])).not.toContain(slug);
+    expect(mocks.defaultLimit).not.toHaveBeenCalled();
+  },
+);
+
+it("new link slugs share the account's bucket instead of opening new ones", async () => {
+  useLimiterBuckets();
+  const statuses: number[] = [];
+  for (let index = 0; index <= ANALYTICS_RATE_LIMIT.requests; index += 1) {
+    statuses.push(
+      (await getRoute(`timeseries?range=7d&link_slug=random-${index}`)).status,
+    );
+  }
+  expect(statuses.slice(0, -1).every((status) => status === 200)).toBe(true);
+  expect(statuses.at(-1)).toBe(429);
+});
+
+it("opening a link page and switching ranges several times is not rate-limited", async () => {
+  useLimiterBuckets();
+  // Everything the link page requests at once on load.
+  const linkPageLoad = [
+    "timeseries?range=7d&link_slug=example",
+    ...["browser", "device", "os", "country"].map(
+      (dimension) => `breakdown?range=7d&dimension=${dimension}&link_slug=example`,
+    ),
+    "traffic-sources?range=7d&link_slug=example",
+    "variants?range=7d&link_id=example",
+    `v2?start=${today}&end=${today}&link=example`,
+  ];
+  // Ten loads inside one window, plus the live counter polling alongside.
+  const burst = [
+    ...Array.from({ length: 10 }, () => linkPageLoad).flat(),
+    "live?link_slug=example",
+    "live?link_slug=example",
+  ];
+  const responses = await Promise.all(burst.map(getRoute));
+  expect(responses.map((response) => response.status)).toEqual(
+    burst.map(() => 200),
+  );
+});
+
+it.each([
+  "timeseries",
+  "breakdown",
+  "traffic-sources",
+  "live",
+  "recent-activity",
+  "dashboard",
+  "overview",
+  "variants",
+] as const)("%s refuses an oversized link slug before any lookup", async (name) => {
+  const tooLong = "a".repeat(129);
+  const response = await getRoute(
+    `${name}?range=7d&dimension=country&link_slug=${tooLong}&link_id=${tooLong}`,
+  );
+  expect(response.status).toBe(400);
+  expect(mocks.limit).not.toHaveBeenCalled();
+  expect(request).not.toHaveBeenCalled();
+});
+
+it("marks a range the plan does not include so the page can explain it", async () => {
+  const response = await getRoute("timeseries?range=12mo&link_slug=example");
+  expect(response.status).toBe(403);
+  expect(await response.json()).toMatchObject({ code: "plan_required" });
+});

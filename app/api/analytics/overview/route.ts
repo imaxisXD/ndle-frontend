@@ -1,9 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { auth } from "@clerk/nextjs/server";
-import { getRateLimit } from "@/lib/rateLimit";
+import { getAnalyticsRateLimit } from "@/lib/rateLimit";
 import { AnalyticsRange, getUtcRange } from "@/lib/analyticsRanges";
-import { getRangeAccessError } from "@/lib/analytics-access";
+import {
+  ANALYTICS_PLAN_REQUIRED,
+  getRangeAccessError,
+} from "@/lib/analytics-access";
 import {
   getSignedInAnalyticsViewer,
   ANALYTICS_READ_TIMEOUT_MS,
@@ -26,7 +29,7 @@ const schema = z.object({
       z.literal("all"),
     ])
     .default("7d"),
-  link_slug: z.string().min(1).optional(),
+  link_slug: z.string().min(1).max(128).optional(),
 });
 
 /**
@@ -51,7 +54,7 @@ const getAnalyticsCacheHeaders = (hasAuth: boolean): Record<string, string> => {
 };
 
 export async function GET(req: NextRequest) {
-  const rateLimit = getRateLimit();
+  const rateLimit = getAnalyticsRateLimit();
 
   try {
     const { userId: clerkUserId, getToken } = await auth();
@@ -74,7 +77,7 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    const identifier = `overview:${clerkUserId}:${link_slug || "all"}`;
+    const identifier = `analytics:overview:${clerkUserId}`;
     const {
       success,
       limit: rlLimit,
@@ -101,7 +104,7 @@ export async function GET(req: NextRequest) {
     const rangeError = getRangeAccessError(range, viewer.plan);
     if (rangeError) {
       return NextResponse.json(
-        { error: rangeError },
+        { error: rangeError, code: ANALYTICS_PLAN_REQUIRED },
         { status: 403, headers: getAnalyticsCacheHeaders(false) },
       );
     }

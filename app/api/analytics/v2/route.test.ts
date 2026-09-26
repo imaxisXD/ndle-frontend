@@ -11,7 +11,7 @@ vi.mock("@clerk/nextjs/server", () => ({
   }),
 }));
 vi.mock("@/lib/rateLimit", () => ({
-  getRateLimit: () => ({ limit: async () => ({ success: true }) }),
+  getAnalyticsRateLimit: () => ({ limit: async () => ({ success: true }) }),
 }));
 vi.mock("@/lib/server-analytics-plan", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/lib/server-analytics-plan")>()),

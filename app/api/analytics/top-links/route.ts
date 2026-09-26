@@ -1,9 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { auth } from "@clerk/nextjs/server";
-import { getRateLimit } from "@/lib/rateLimit";
+import { getAnalyticsRateLimit } from "@/lib/rateLimit";
 import { AnalyticsRange, getUtcRange } from "@/lib/analyticsRanges";
-import { getRangeAccessError } from "@/lib/analytics-access";
+import {
+  ANALYTICS_PLAN_REQUIRED,
+  getRangeAccessError,
+} from "@/lib/analytics-access";
 import {
   getSignedInAnalyticsViewer,
   ANALYTICS_READ_TIMEOUT_MS,
@@ -36,7 +39,7 @@ const schema = z.object({
 
 export async function GET(req: NextRequest) {
   try {
-    const rateLimit = getRateLimit();
+    const rateLimit = getAnalyticsRateLimit();
     const { userId: clerkUserId, getToken } = await auth();
     if (!clerkUserId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -51,7 +54,7 @@ export async function GET(req: NextRequest) {
     }
     const { range, limit } = parsed.data;
 
-    const identifier = `toplinks:${clerkUserId}`;
+    const identifier = `analytics:top-links:${clerkUserId}`;
     const {
       success,
       limit: rlLimit,
@@ -77,7 +80,10 @@ export async function GET(req: NextRequest) {
 
     const rangeError = getRangeAccessError(range, viewer.plan);
     if (rangeError) {
-      return NextResponse.json({ error: rangeError }, { status: 403 });
+      return NextResponse.json(
+        { error: rangeError, code: ANALYTICS_PLAN_REQUIRED },
+        { status: 403 },
+      );
     }
 
     // Convert range to start/end dates

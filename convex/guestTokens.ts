@@ -1,4 +1,5 @@
 import { ConvexError } from "convex/values";
+import { constantTimeEqual } from "./secrets";
 
 const GUEST_TOKEN_MAX_AGE_MS = 8 * 24 * 60 * 60 * 1000;
 export const GUEST_CREDENTIAL_COOKIE = "ndle_guest_credential";
@@ -180,18 +181,6 @@ export async function readGuestSessionToken(token: string) {
   }
   if (typeof guestId !== "string") throw new ConvexError("Guest session is invalid");
   return verifyGuestSessionToken(guestId, token);
-}
-
-function constantTimeEqual(left: string, right: string): boolean {
-  if (left.length !== right.length) {
-    return false;
-  }
-
-  let diff = 0;
-  for (let i = 0; i < left.length; i += 1) {
-    diff |= left.charCodeAt(i) ^ right.charCodeAt(i);
-  }
-  return diff === 0;
 }
 
 export async function verifyGuestSessionToken(

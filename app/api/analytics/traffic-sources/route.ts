@@ -1,9 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { auth } from "@clerk/nextjs/server";
-import { getRateLimit } from "@/lib/rateLimit";
+import { getAnalyticsRateLimit } from "@/lib/rateLimit";
 import { AnalyticsRange, getUtcRange } from "@/lib/analyticsRanges";
-import { getRangeAccessError } from "@/lib/analytics-access";
+import {
+  ANALYTICS_PLAN_REQUIRED,
+  getRangeAccessError,
+} from "@/lib/analytics-access";
 import { normalizeAnalyticsSources } from "@/lib/analytics-response";
 import {
   getSignedInAnalyticsViewer,
@@ -32,13 +35,13 @@ const schema = z.object({
       z.literal("all"),
     ])
     .default("7d"),
-  link_slug: z.string().min(1).optional(),
+  link_slug: z.string().min(1).max(128).optional(),
   limit: z.coerce.number().min(1).max(50).default(20),
 });
 
 export async function GET(req: NextRequest) {
   try {
-    const rateLimit = getRateLimit();
+    const rateLimit = getAnalyticsRateLimit();
     const { userId: clerkUserId, getToken } = await auth();
     const { searchParams } = new URL(req.url);
     const parsed = schema.safeParse({
@@ -55,7 +58,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const identifier = `traffic:${clerkUserId}:${link_slug || "all"}`;
+    const identifier = `analytics:traffic-sources:${clerkUserId}`;
     const {
       success,
       limit: rlLimit,
@@ -81,7 +84,10 @@ export async function GET(req: NextRequest) {
 
     const rangeError = getRangeAccessError(range, viewer.plan);
     if (rangeError) {
-      return NextResponse.json({ error: rangeError }, { status: 403 });
+      return NextResponse.json(
+        { error: rangeError, code: ANALYTICS_PLAN_REQUIRED },
+        { status: 403 },
+      );
     }
 
     // Convert range to start/end dates

@@ -6,7 +6,7 @@ import {
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { auth } from "@clerk/nextjs/server";
-import { getRateLimit } from "@/lib/rateLimit";
+import { getAnalyticsRateLimit } from "@/lib/rateLimit";
 import { withUtcTimestamps } from "@/lib/analytics-response";
 import { forwardExcludeBots } from "@/lib/analytics-bots";
 
@@ -16,13 +16,13 @@ const INTERNAL_API_URL = (process.env.INTERNAL_API_URL || "").replace(
 );
 
 const schema = z.object({
-  link_slug: z.string().min(1),
+  link_slug: z.string().min(1).max(128),
   limit: z.coerce.number().min(1).max(100).default(50),
 });
 
 export async function GET(req: NextRequest) {
   try {
-    const rateLimit = getRateLimit();
+    const rateLimit = getAnalyticsRateLimit();
     const { userId: clerkUserId, getToken } = await auth();
     const { searchParams } = new URL(req.url);
 
@@ -43,7 +43,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const identifier = `recent-activity:${clerkUserId}:${link_slug}`;
+    const identifier = `analytics:recent-activity:${clerkUserId}`;
     const {
       success,
       limit: rlLimit,

@@ -5,6 +5,17 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 
 export type AnalyticsViewerPlan = "guest" | "free" | "pro";
 
+/** `code` of the 403 answer for a date range the viewer's plan does not include. */
+export const ANALYTICS_PLAN_REQUIRED = "plan_required";
+
+/** Whether the plan includes the range. An unknown plan (still loading) is not locked. */
+export function isRangeAvailable(
+  range: AnalyticsRange,
+  viewerPlan: AnalyticsViewerPlan | null | undefined,
+): boolean {
+  return viewerPlan == null || getRangeAccessError(range, viewerPlan) === null;
+}
+
 export function getRangeAccessError(
   range: AnalyticsRange,
   viewerPlan?: AnalyticsViewerPlan | null,

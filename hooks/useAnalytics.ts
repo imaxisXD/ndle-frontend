@@ -3,6 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { AnalyticsRange } from "@/lib/analyticsRanges";
 import { browserTimeZone } from "@/lib/local-dates";
+import { analyticsRequestError } from "@/lib/analytics-request";
 
 type Scope = "user" | "link";
 
@@ -22,11 +23,13 @@ export function useTimeseries({
   range,
   linkSlug,
   scope,
+  enabled = true,
   excludeBots = false,
 }: {
   range: AnalyticsRange;
   linkSlug?: string;
   scope: Scope;
+  enabled?: boolean;
   excludeBots?: boolean;
 }) {
   const tz = browserTimeZone();
@@ -48,9 +51,11 @@ export function useTimeseries({
         exclude_bots: botsParam(excludeBots),
       });
       const res = await fetch(`/api/analytics/timeseries?${q}`);
-      if (!res.ok) throw new Error("Failed to load timeseries");
+      if (!res.ok)
+        throw await analyticsRequestError(res, "Failed to load timeseries");
       return res.json();
     },
+    enabled,
     staleTime: 60_000,
     gcTime: 300_000,
     retry: false,
@@ -63,6 +68,7 @@ export function useBreakdown({
   linkSlug,
   scope,
   limit = 20,
+  enabled = true,
   excludeBots = false,
 }: {
   dimension: "browser" | "device" | "os" | "country" | "datacenter";
@@ -70,6 +76,7 @@ export function useBreakdown({
   linkSlug?: string;
   scope: Scope;
   limit?: number;
+  enabled?: boolean;
   excludeBots?: boolean;
 }) {
   return useQuery({
@@ -92,9 +99,11 @@ export function useBreakdown({
         exclude_bots: botsParam(excludeBots),
       });
       const res = await fetch(`/api/analytics/breakdown?${q}`);
-      if (!res.ok) throw new Error("Failed to load breakdown");
+      if (!res.ok)
+        throw await analyticsRequestError(res, "Failed to load breakdown");
       return res.json();
     },
+    enabled,
     staleTime: 60_000,
     gcTime: 300_000,
     retry: false,
@@ -115,7 +124,8 @@ export function useTopLinks({
     queryFn: async () => {
       const q = qs({ range, limit, exclude_bots: botsParam(excludeBots) });
       const res = await fetch(`/api/analytics/top-links?${q}`);
-      if (!res.ok) throw new Error("Failed to load top links");
+      if (!res.ok)
+        throw await analyticsRequestError(res, "Failed to load top links");
       return res.json();
     },
     staleTime: 60_000,
@@ -129,12 +139,14 @@ export function useTrafficSources({
   linkSlug,
   scope,
   limit = 20,
+  enabled = true,
   excludeBots = false,
 }: {
   range: AnalyticsRange;
   linkSlug?: string;
   scope: Scope;
   limit?: number;
+  enabled?: boolean;
   excludeBots?: boolean;
 }) {
   return useQuery({
@@ -155,9 +167,14 @@ export function useTrafficSources({
         exclude_bots: botsParam(excludeBots),
       });
       const res = await fetch(`/api/analytics/traffic-sources?${q}`);
-      if (!res.ok) throw new Error("Failed to load traffic sources");
+      if (!res.ok)
+        throw await analyticsRequestError(
+          res,
+          "Failed to load traffic sources",
+        );
       return res.json();
     },
+    enabled,
     staleTime: 60_000,
     gcTime: 300_000,
     retry: false,
@@ -186,7 +203,8 @@ export function useLiveEvents({
       if (linkSlug) params.set("link_slug", linkSlug);
       if (excludeBots) params.set("exclude_bots", "true");
       const res = await fetch(`/api/analytics/live?${params.toString()}`);
-      if (!res.ok) throw new Error("Failed to load live events");
+      if (!res.ok)
+        throw await analyticsRequestError(res, "Failed to load live events");
       return res.json() as Promise<{
         data: Array<{ minute_ts: string; clicks: number }>;
       }>;
@@ -227,7 +245,11 @@ export function useVariantPerformance({
         exclude_bots: botsParam(excludeBots),
       });
       const res = await fetch(`/api/analytics/variants?${q}`);
-      if (!res.ok) throw new Error("Failed to load variant performance");
+      if (!res.ok)
+        throw await analyticsRequestError(
+          res,
+          "Failed to load variant performance",
+        );
       return res.json();
     },
     enabled: enabled && !!linkId,
@@ -265,7 +287,11 @@ export function useVariantTimeseries({
         exclude_bots: botsParam(excludeBots),
       });
       const res = await fetch(`/api/analytics/variants?${q}`);
-      if (!res.ok) throw new Error("Failed to load variant timeseries");
+      if (!res.ok)
+        throw await analyticsRequestError(
+          res,
+          "Failed to load variant timeseries",
+        );
       return res.json();
     },
     enabled: enabled && !!linkId,

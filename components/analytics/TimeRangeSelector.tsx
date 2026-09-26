@@ -8,7 +8,11 @@ import {
   SelectValue,
 } from "@/components/ui/base-select";
 import { AnalyticsRange } from "@/lib/analyticsRanges";
-import { Calendar } from "iconoir-react";
+import {
+  isRangeAvailable,
+  type AnalyticsViewerPlan,
+} from "@/lib/analytics-access";
+import { Calendar, Lock } from "iconoir-react";
 
 const timeRanges: { value: AnalyticsRange; label: string }[] = [
   { value: "24h", label: "Today (UTC)" },
@@ -25,9 +29,12 @@ const timeRanges: { value: AnalyticsRange; label: string }[] = [
 export function TimeRangeSelector({
   value,
   onChange,
+  plan,
 }: {
   value: AnalyticsRange;
   onChange: (v: AnalyticsRange) => void;
+  /** Ranges the plan does not include are marked Pro; nothing is marked while it loads. */
+  plan?: AnalyticsViewerPlan | null;
 }) {
   return (
     <Select
@@ -45,7 +52,17 @@ export function TimeRangeSelector({
       <SelectContent className="gap-2 text-xs">
         {timeRanges.map((range) => (
           <SelectItem key={range.value} value={range.value}>
-            {range.label}
+            {isRangeAvailable(range.value, plan) ? (
+              range.label
+            ) : (
+              <span className="flex items-center justify-between gap-4">
+                {range.label}
+                <span className="text-muted-foreground inline-flex items-center gap-1 text-xs font-normal">
+                  <Lock className="size-3" aria-hidden />
+                  Pro
+                </span>
+              </span>
+            )}
           </SelectItem>
         ))}
       </SelectContent>

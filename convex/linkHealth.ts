@@ -10,6 +10,7 @@ import {
 import { internal } from "./_generated/api";
 import type { Doc } from "./_generated/dataModel";
 import { getOwnerSnapshot } from "./ownership";
+import { matchesSecret } from "./secrets";
 import { getCurrentUser } from "./users";
 import schema from "./schema";
 
@@ -263,9 +264,7 @@ export const recordHealthCheck = mutation({
       checkedAt,
     } = args;
 
-    const validSecrets = [process.env.MONITORING_SHARED_SECRET].filter(Boolean);
-
-    if (!validSecrets.includes(sharedSecret)) {
+    if (!matchesSecret(sharedSecret, process.env.MONITORING_SHARED_SECRET)) {
       console.error("[Link Monitoring] | Invalid shared secret");
       throw new Error("[Link Monitoring] | Invalid shared secret");
     }

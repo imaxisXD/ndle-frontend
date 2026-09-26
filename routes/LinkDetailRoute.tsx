@@ -1,5 +1,5 @@
 import { useParams, useNavigate } from "react-router";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import type { AnalyticsRange } from "@/lib/analyticsRanges";
 import { useMutation } from "convex/react";
 import { useQuery } from "convex-helpers/react/cache/hooks";
@@ -21,6 +21,8 @@ import {
   useVariantPerformance,
 } from "@/hooks/useAnalytics";
 import { getUtcRange } from "@/lib/analyticsRanges";
+import { isRangeAvailable } from "@/lib/analytics-access";
+import { getLinkAnalyticsState } from "@/lib/analytics-request";
 import {
   getVariantName,
   type VariantLabels,
@@ -53,6 +55,10 @@ export default function LinkDetailRoute() {
   const queryResult = useQuery(api.urlAnalytics.getUrlAnalytics, {
     urlSlug: slug,
   });
+  const viewer = useQuery(api.users.getViewerState);
+  // Ranges the plan does not include are answered 403 by every analytics
+  // route, so they are not requested; the section explains the limit instead.
+  const rangeLocked = !isRangeAvailable(range, viewer?.membership);
 
   const skeleton = !queryResult;
   const {
@@ -81,6 +87,7 @@ export default function LinkDetailRoute() {
     range,
     linkSlug: String(slug),
     scope: "link",
+    enabled: !rangeLocked,
     excludeBots,
   });
   const browsers = useBreakdown({
@@ -88,6 +95,7 @@ export default function LinkDetailRoute() {
     range,
     linkSlug: String(slug),
     scope: "link",
+    enabled: !rangeLocked,
     excludeBots,
   });
   const devices = useBreakdown({
@@ -95,6 +103,7 @@ export default function LinkDetailRoute() {
     range,
     linkSlug: String(slug),
     scope: "link",
+    enabled: !rangeLocked,
     excludeBots,
   });
   const os = useBreakdown({
@@ -102,6 +111,7 @@ export default function LinkDetailRoute() {
     range,
     linkSlug: String(slug),
     scope: "link",
+    enabled: !rangeLocked,
     excludeBots,
   });
   const countries = useBreakdown({
@@ -109,12 +119,14 @@ export default function LinkDetailRoute() {
     range,
     linkSlug: String(slug),
     scope: "link",
+    enabled: !rangeLocked,
     excludeBots,
   });
   const referers = useTrafficSources({
     range,
     linkSlug: String(slug),
     scope: "link",
+    enabled: !rangeLocked,
     excludeBots,
   });
   const trafficRange = getUtcRange(range);
@@ -123,13 +135,14 @@ export default function LinkDetailRoute() {
     end: trafficRange.end.toISOString().slice(0, 10),
     filters: { link: String(slug), excludeBots },
     pollingInterval: 60_000,
+    enabled: !rangeLocked,
   });
 
   // A/B Test Variant Performance
   const variantPerf = useVariantPerformance({
     range,
     linkId: isABTestEnabled && linkId ? linkId : undefined,
-    enabled: !!isABTestEnabled,
+    enabled: !!isABTestEnabled && !rangeLocked,
     excludeBots,
   });
 
@@ -238,26 +251,28 @@ export default function LinkDetailRoute() {
     url,
   ]);
 
-  const isAnalyticsLoading =
-    timeseries.isLoading ||
-    browsers.isLoading ||
-    devices.isLoading ||
-    os.isLoading ||
-    countries.isLoading ||
-    referers.isLoading ||
-    trafficSummary.isLoading ||
-    variantPerf.isLoading;
+  // A failed or plan-limited load must not render as empty charts ("0 clicks").
+  // The traffic summary is left out: its card already says when it is unavailable.
+  const analyticsState = getLinkAnalyticsState(
+    [timeseries, browsers, devices, os, countries, referers, variantPerf],
+    { rangeLocked },
+  );
+  const retryFailedAnalytics = () => {
+    for (const query of analyticsState.failed) void query.refetch();
+  };
 
   // Build shortUrl using custom domain if available (after url is defined)
   const shortUrl = makeShortLinkWithDomain(String(slug), url?.customDomain);
 
-  if (isError && message !== "") {
-    add({
-      type: "error",
-      title: "Error",
-      description: message,
-    });
-  }
+  useEffect(() => {
+    if (isError && message !== "") {
+      add({
+        type: "error",
+        title: "Error",
+        description: message,
+      });
+    }
+  }, [add, isError, message]);
 
   const handleDownloadQR = () => {
     // The hosted image encodes this link's short URL, never its destination.
@@ -288,6 +303,7 @@ export default function LinkDetailRoute() {
         fullUrl={url?.fullurl}
         range={range}
         onRangeChange={setRange}
+        plan={viewer?.membership}
         excludeBots={excludeBots}
         onExcludeBotsChange={setExcludeBots}
         totalClickCounts={analyticsData?.totalClickCounts || 0}
@@ -342,7 +358,10 @@ export default function LinkDetailRoute() {
             referrerData={derived.referrerData}
             variantData={derived.variantData}
             variantMap={derived.variantMap}
-            isLoading={isAnalyticsLoading}
+            isLoading={analyticsState.isLoading || trafficSummary.isLoading}
+            status={analyticsState.status}
+            onRetry={retryFailedAnalytics}
+            onShowAvailableRange={() => setRange("30d")}
           />
         </TabsContent>
 

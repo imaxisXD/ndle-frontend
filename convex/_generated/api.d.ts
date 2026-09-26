@@ -23,6 +23,7 @@ import type * as moderation from "../moderation.js";
 import type * as ownership from "../ownership.js";
 import type * as redisAction from "../redisAction.js";
 import type * as redisProjection from "../redisProjection.js";
+import type * as secrets from "../secrets.js";
 import type * as serviceSync from "../serviceSync.js";
 import type * as serviceSyncTypes from "../serviceSyncTypes.js";
 import type * as urlAnalytics from "../urlAnalytics.js";
@@ -54,6 +55,7 @@ declare const fullApi: ApiFromModules<{
   ownership: typeof ownership;
   redisAction: typeof redisAction;
   redisProjection: typeof redisProjection;
+  secrets: typeof secrets;
   serviceSync: typeof serviceSync;
   serviceSyncTypes: typeof serviceSyncTypes;
   urlAnalytics: typeof urlAnalytics;
