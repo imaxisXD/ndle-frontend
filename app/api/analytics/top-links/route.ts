@@ -9,6 +9,7 @@ import {
   ANALYTICS_READ_TIMEOUT_MS,
   getAnalyticsReadSecret,
 } from "@/lib/server-analytics-plan";
+import { forwardExcludeBots } from "@/lib/analytics-bots";
 
 // Strip /analytics/v2 suffix to get base URL
 const INTERNAL_API_URL = (process.env.INTERNAL_API_URL || "").replace(
@@ -86,6 +87,7 @@ export async function GET(req: NextRequest) {
 
     // Build backend URL
     const backendUrl = new URL(`${INTERNAL_API_URL}/analytics/unified`);
+    forwardExcludeBots(searchParams, backendUrl);
     backendUrl.searchParams.set("endpoint", "top-links");
     backendUrl.searchParams.set("start", startDate);
     backendUrl.searchParams.set("end", endDate);

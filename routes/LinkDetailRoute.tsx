@@ -45,6 +45,8 @@ export default function LinkDetailRoute() {
   const { add } = useToast();
   const slug = params[":slug"] || params.slug || "unknown";
   const [range, setRange] = useState<AnalyticsRange>("7d");
+  // Bots are counted by default; the filter removes them from every chart.
+  const [excludeBots, setExcludeBots] = useState(false);
 
   // Fetch link config to check for A/B testing
   const deleteUrl = useMutation(api.urlMainFuction.deleteUrl);
@@ -79,41 +81,47 @@ export default function LinkDetailRoute() {
     range,
     linkSlug: String(slug),
     scope: "link",
+    excludeBots,
   });
   const browsers = useBreakdown({
     dimension: "browser",
     range,
     linkSlug: String(slug),
     scope: "link",
+    excludeBots,
   });
   const devices = useBreakdown({
     dimension: "device",
     range,
     linkSlug: String(slug),
     scope: "link",
+    excludeBots,
   });
   const os = useBreakdown({
     dimension: "os",
     range,
     linkSlug: String(slug),
     scope: "link",
+    excludeBots,
   });
   const countries = useBreakdown({
     dimension: "country",
     range,
     linkSlug: String(slug),
     scope: "link",
+    excludeBots,
   });
   const referers = useTrafficSources({
     range,
     linkSlug: String(slug),
     scope: "link",
+    excludeBots,
   });
   const trafficRange = getUtcRange(range);
   const trafficSummary = useAnalyticsV2({
     start: trafficRange.start.toISOString().slice(0, 10),
     end: trafficRange.end.toISOString().slice(0, 10),
-    filters: { link: String(slug) },
+    filters: { link: String(slug), excludeBots },
     pollingInterval: 60_000,
   });
 
@@ -122,6 +130,7 @@ export default function LinkDetailRoute() {
     range,
     linkId: isABTestEnabled && linkId ? linkId : undefined,
     enabled: !!isABTestEnabled,
+    excludeBots,
   });
 
   // Derive display data from raw analytics
@@ -279,6 +288,8 @@ export default function LinkDetailRoute() {
         fullUrl={url?.fullurl}
         range={range}
         onRangeChange={setRange}
+        excludeBots={excludeBots}
+        onExcludeBotsChange={setExcludeBots}
         totalClickCounts={analyticsData?.totalClickCounts || 0}
         qrEnabled={url?.qrEnabled}
         expiresAt={url?.expiresAt}

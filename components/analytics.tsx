@@ -135,6 +135,7 @@ export function Analytics() {
   const [browserFilter, setBrowserFilter] = useState("all");
   const [osFilter, setOSFilter] = useState("all");
   const [linkFilter, setLinkFilter] = useState("all");
+  const [excludeBots, setExcludeBots] = useState(false);
 
   const { start, end } = getAnalyticsDateWindow(timeRange);
 
@@ -147,7 +148,7 @@ export function Analytics() {
   } = useAnalyticsV2({
     start,
     end,
-    filters: { country: countryFilter, device: deviceFilter, browser: browserFilter, os: osFilter, link: linkFilter },
+    filters: { country: countryFilter, device: deviceFilter, browser: browserFilter, os: osFilter, link: linkFilter, excludeBots },
     pollingInterval: 10000,
   });
 
@@ -280,6 +281,8 @@ export function Analytics() {
       osFilter={osFilter}
       onOSFilterChange={setOSFilter}
       osOptions={filterOptions.os}
+      excludeBots={excludeBots}
+      onExcludeBotsChange={setExcludeBots}
     />
   );
 

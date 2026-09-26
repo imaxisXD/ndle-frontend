@@ -15,20 +15,38 @@ function qs(params: Record<string, string | number | undefined>) {
   return search.toString();
 }
 
+/** Bots are included unless the viewer turns on the "exclude bots" filter. */
+const botsParam = (excludeBots: boolean) => (excludeBots ? "true" : undefined);
+
 export function useTimeseries({
   range,
   linkSlug,
   scope,
+  excludeBots = false,
 }: {
   range: AnalyticsRange;
   linkSlug?: string;
   scope: Scope;
+  excludeBots?: boolean;
 }) {
   const tz = browserTimeZone();
   return useQuery({
-    queryKey: ["analytics", "timeseries", scope, linkSlug, range, tz],
+    queryKey: [
+      "analytics",
+      "timeseries",
+      scope,
+      linkSlug,
+      range,
+      tz,
+      excludeBots,
+    ],
     queryFn: async () => {
-      const q = qs({ range, link_slug: linkSlug, tz });
+      const q = qs({
+        range,
+        link_slug: linkSlug,
+        tz,
+        exclude_bots: botsParam(excludeBots),
+      });
       const res = await fetch(`/api/analytics/timeseries?${q}`);
       if (!res.ok) throw new Error("Failed to load timeseries");
       return res.json();
@@ -45,12 +63,14 @@ export function useBreakdown({
   linkSlug,
   scope,
   limit = 20,
+  excludeBots = false,
 }: {
   dimension: "browser" | "device" | "os" | "country" | "datacenter";
   range: AnalyticsRange;
   linkSlug?: string;
   scope: Scope;
   limit?: number;
+  excludeBots?: boolean;
 }) {
   return useQuery({
     queryKey: [
@@ -61,9 +81,16 @@ export function useBreakdown({
       dimension,
       range,
       limit,
+      excludeBots,
     ],
     queryFn: async () => {
-      const q = qs({ dimension, range, link_slug: linkSlug, limit });
+      const q = qs({
+        dimension,
+        range,
+        link_slug: linkSlug,
+        limit,
+        exclude_bots: botsParam(excludeBots),
+      });
       const res = await fetch(`/api/analytics/breakdown?${q}`);
       if (!res.ok) throw new Error("Failed to load breakdown");
       return res.json();
@@ -77,14 +104,16 @@ export function useBreakdown({
 export function useTopLinks({
   range,
   limit = 10,
+  excludeBots = false,
 }: {
   range: AnalyticsRange;
   limit?: number;
+  excludeBots?: boolean;
 }) {
   return useQuery({
-    queryKey: ["analytics", "top-links", range, limit],
+    queryKey: ["analytics", "top-links", range, limit, excludeBots],
     queryFn: async () => {
-      const q = qs({ range, limit });
+      const q = qs({ range, limit, exclude_bots: botsParam(excludeBots) });
       const res = await fetch(`/api/analytics/top-links?${q}`);
       if (!res.ok) throw new Error("Failed to load top links");
       return res.json();
@@ -100,16 +129,31 @@ export function useTrafficSources({
   linkSlug,
   scope,
   limit = 20,
+  excludeBots = false,
 }: {
   range: AnalyticsRange;
   linkSlug?: string;
   scope: Scope;
   limit?: number;
+  excludeBots?: boolean;
 }) {
   return useQuery({
-    queryKey: ["analytics", "traffic-sources", scope, linkSlug, range, limit],
+    queryKey: [
+      "analytics",
+      "traffic-sources",
+      scope,
+      linkSlug,
+      range,
+      limit,
+      excludeBots,
+    ],
     queryFn: async () => {
-      const q = qs({ range, link_slug: linkSlug, limit });
+      const q = qs({
+        range,
+        link_slug: linkSlug,
+        limit,
+        exclude_bots: botsParam(excludeBots),
+      });
       const res = await fetch(`/api/analytics/traffic-sources?${q}`);
       if (!res.ok) throw new Error("Failed to load traffic sources");
       return res.json();
@@ -128,16 +172,19 @@ export function useLiveEvents({
   linkSlug,
   scope,
   enabled = true,
+  excludeBots = false,
 }: {
   linkSlug?: string;
   scope: Scope;
   enabled?: boolean;
+  excludeBots?: boolean;
 }) {
   return useQuery({
-    queryKey: ["analytics", "live", scope, linkSlug],
+    queryKey: ["analytics", "live", scope, linkSlug, excludeBots],
     queryFn: async () => {
       const params = new URLSearchParams();
       if (linkSlug) params.set("link_slug", linkSlug);
+      if (excludeBots) params.set("exclude_bots", "true");
       const res = await fetch(`/api/analytics/live?${params.toString()}`);
       if (!res.ok) throw new Error("Failed to load live events");
       return res.json() as Promise<{
@@ -156,15 +203,29 @@ export function useVariantPerformance({
   range,
   linkId,
   enabled = true,
+  excludeBots = false,
 }: {
   range: AnalyticsRange;
   linkId?: string;
   enabled?: boolean;
+  excludeBots?: boolean;
 }) {
   return useQuery({
-    queryKey: ["analytics", "variants", "performance", linkId, range],
+    queryKey: [
+      "analytics",
+      "variants",
+      "performance",
+      linkId,
+      range,
+      excludeBots,
+    ],
     queryFn: async () => {
-      const q = qs({ range, link_id: linkId, endpoint: "performance" });
+      const q = qs({
+        range,
+        link_id: linkId,
+        endpoint: "performance",
+        exclude_bots: botsParam(excludeBots),
+      });
       const res = await fetch(`/api/analytics/variants?${q}`);
       if (!res.ok) throw new Error("Failed to load variant performance");
       return res.json();
@@ -180,15 +241,29 @@ export function useVariantTimeseries({
   range,
   linkId,
   enabled = true,
+  excludeBots = false,
 }: {
   range: AnalyticsRange;
   linkId?: string;
   enabled?: boolean;
+  excludeBots?: boolean;
 }) {
   return useQuery({
-    queryKey: ["analytics", "variants", "timeseries", linkId, range],
+    queryKey: [
+      "analytics",
+      "variants",
+      "timeseries",
+      linkId,
+      range,
+      excludeBots,
+    ],
     queryFn: async () => {
-      const q = qs({ range, link_id: linkId, endpoint: "timeseries" });
+      const q = qs({
+        range,
+        link_id: linkId,
+        endpoint: "timeseries",
+        exclude_bots: botsParam(excludeBots),
+      });
       const res = await fetch(`/api/analytics/variants?${q}`);
       if (!res.ok) throw new Error("Failed to load variant timeseries");
       return res.json();

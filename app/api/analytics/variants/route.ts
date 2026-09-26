@@ -9,6 +9,7 @@ import {
   ANALYTICS_READ_TIMEOUT_MS,
   getAnalyticsReadSecret,
 } from "@/lib/server-analytics-plan";
+import { forwardExcludeBots } from "@/lib/analytics-bots";
 
 // Strip /analytics/v2 suffix to get base URL if present, but we specifically need /analytics/v2 here
 // process.env.INTERNAL_API_URL is typically http://host:port/api or http://host:port/api/analytics/v2
@@ -109,6 +110,8 @@ export async function GET(req: NextRequest) {
     }
 
     const backendUrl = new URL(`${BASE_API_URL}${backendPath}`);
+
+    forwardExcludeBots(searchParams, backendUrl);
     backendUrl.searchParams.set("start", startDate);
     backendUrl.searchParams.set("end", endDate);
 

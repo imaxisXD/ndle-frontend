@@ -16,6 +16,7 @@ import {
   CheckIcon,
   CaretRightIcon,
   FunnelIcon,
+  RobotIcon,
 } from "@phosphor-icons/react/dist/ssr";
 import {
   Popover,
@@ -85,6 +86,8 @@ export function FilterBar({
   osFilter = "all",
   onOSFilterChange,
   osOptions = [{ value: "all", label: "All OS" }],
+  excludeBots = false,
+  onExcludeBotsChange,
   className,
 }: FilterBarProps) {
   const [isAddFilterOpen, setIsAddFilterOpen] = useState(false);
@@ -112,6 +115,10 @@ export function FilterBar({
     () => onOSFilterChange?.("all"),
     [onOSFilterChange],
   );
+  const handleRemoveBots = useCallback(
+    () => onExcludeBotsChange?.(false),
+    [onExcludeBotsChange],
+  );
 
   const clearAllFilters = () => {
     onLinkFilterChange?.("all");
@@ -119,6 +126,7 @@ export function FilterBar({
     onDeviceFilterChange?.("all");
     onBrowserFilterChange?.("all");
     onOSFilterChange?.("all");
+    onExcludeBotsChange?.(false);
   };
 
   // Build active filters by checking each filter config
@@ -180,8 +188,20 @@ export function FilterBar({
       }
     }
 
+    // Bots are counted by default; this filter removes them everywhere.
+    if (excludeBots)
+      filters.push({
+        key: "bots",
+        label: "Bots",
+        valueLabel: "Excluded",
+        icon: RobotIcon,
+        onRemove: handleRemoveBots,
+      });
+
     return filters;
   }, [
+    excludeBots,
+    handleRemoveBots,
     linkFilter,
     linkOptions,
     countryFilter,
@@ -357,6 +377,36 @@ export function FilterBar({
                       </button>
                     );
                   })}
+                  {onExcludeBotsChange && (
+                    <button
+                      type="button"
+                      disabled={excludeBots}
+                      onClick={() => {
+                        onExcludeBotsChange(true);
+                        setIsAddFilterOpen(false);
+                      }}
+                      className={cn(
+                        "mx-1 flex items-center justify-between rounded-md px-2 py-2 text-xs transition-colors",
+                        excludeBots
+                          ? "text-muted-foreground/50 cursor-not-allowed"
+                          : "text-foreground/80 hover:bg-muted hover:text-foreground cursor-pointer",
+                      )}
+                    >
+                      <div className="flex items-center gap-2.5">
+                        <RobotIcon
+                          weight="duotone"
+                          className="text-muted-foreground h-4 w-4"
+                        />
+                        <span className="font-medium">Exclude bots</span>
+                      </div>
+                      {excludeBots && (
+                        <CheckIcon
+                          className="text-success h-3.5 w-3.5"
+                          weight="bold"
+                        />
+                      )}
+                    </button>
+                  )}
                 </div>
               ) : (
                 <div className="flex flex-col">

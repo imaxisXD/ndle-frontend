@@ -161,3 +161,42 @@ it.each([
     expect(body.data[0]).not.toHaveProperty("bot_clicks");
   }
 });
+
+const botFilterRoutes = [
+  "timeseries",
+  "breakdown",
+  "top-links",
+  "traffic-sources",
+  "live",
+  "recent-activity",
+  "variants",
+] as const;
+it.each(botFilterRoutes)(
+  "%s includes bots by default and forwards the exclude-bots filter",
+  async (name) => {
+    const route = await routes[name]();
+    const backendUrl = async (query: string) => {
+      request.mockClear();
+      const response = await route.GET(
+        new NextRequest(
+          `https://app.example/api/analytics/${name}?range=7d&dimension=country&link_slug=example&link_id=example${query}`,
+        ),
+      );
+      expect(response.status).toBe(200);
+      return new URL(
+        String(
+          request.mock.calls.find((call) =>
+            String(call[0]).includes("ingest.example"),
+          )![0],
+        ),
+      );
+    };
+    expect((await backendUrl("")).searchParams.has("excludeBots")).toBe(false);
+    expect(
+      (await backendUrl("&exclude_bots=false")).searchParams.has("excludeBots"),
+    ).toBe(false);
+    expect(
+      (await backendUrl("&exclude_bots=true")).searchParams.get("excludeBots"),
+    ).toBe("true");
+  },
+);

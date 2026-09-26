@@ -4,6 +4,7 @@ import LinkWithIcon from "@/components/ui/link-with-icon";
 import { TimeRangeSelector } from "@/components/analytics/TimeRangeSelector";
 import { LiveClickHero } from "@/components/charts/live-click-hero";
 import { LinkActionsBar } from "@/components/LinkActionsBar";
+import { Switch } from "@/components/ui/switch";
 import type { AnalyticsRange } from "@/lib/analyticsRanges";
 import { formatRelative } from "@/lib/utils";
 import { LinkIcon } from "@phosphor-icons/react";
@@ -13,6 +14,8 @@ export function LinkHeader({
   fullUrl,
   range,
   onRangeChange,
+  excludeBots = false,
+  onExcludeBotsChange,
   totalClickCounts,
   qrEnabled,
   expiresAt,
@@ -23,6 +26,8 @@ export function LinkHeader({
   fullUrl?: string;
   range: AnalyticsRange;
   onRangeChange: (r: AnalyticsRange) => void;
+  excludeBots?: boolean;
+  onExcludeBotsChange?: (value: boolean) => void;
   totalClickCounts: number;
   qrEnabled?: boolean;
   expiresAt?: number;
@@ -80,8 +85,24 @@ export function LinkHeader({
         </div>
       </div>
 
-      {/* Time Range Selector */}
-      <div className="flex items-center justify-end gap-2">
+      {/* Filters: bots are included unless excluded here. */}
+      <div className="flex items-center justify-end gap-4">
+        {onExcludeBotsChange && (
+          <div className="flex items-center gap-2">
+            <Switch
+              id="link-exclude-bots"
+              checked={excludeBots}
+              onCheckedChange={onExcludeBotsChange}
+              size="sm"
+            />
+            <label
+              htmlFor="link-exclude-bots"
+              className="text-muted-foreground cursor-pointer text-xs font-medium"
+            >
+              Exclude bots
+            </label>
+          </div>
+        )}
         <TimeRangeSelector value={range} onChange={onRangeChange} />
       </div>
 

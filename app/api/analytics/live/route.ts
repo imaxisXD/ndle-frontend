@@ -8,6 +8,7 @@ import { z } from "zod";
 import { auth } from "@clerk/nextjs/server";
 import { getRateLimit } from "@/lib/rateLimit";
 import { withUtcTimestamps } from "@/lib/analytics-response";
+import { forwardExcludeBots } from "@/lib/analytics-bots";
 
 const INTERNAL_API_URL = (process.env.INTERNAL_API_URL || "").replace(
   /\/analytics\/v2$/,
@@ -64,6 +65,7 @@ export async function GET(req: NextRequest) {
 
     // Build backend URL
     const backendUrl = new URL(`${INTERNAL_API_URL}/analytics/unified`);
+    forwardExcludeBots(searchParams, backendUrl);
     backendUrl.searchParams.set("endpoint", "live");
     if (link_slug) {
       backendUrl.searchParams.set("link_slug", link_slug);
