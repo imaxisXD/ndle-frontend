@@ -230,6 +230,62 @@ export const unregisterUrlFromMonitoringService = internalAction({
   },
 });
 
+// Plain-language text for the fixed failure messages the monitoring service sends.
+const CHECK_FAILURE_TEXT: Record<string, string> = {
+  "Connection timed out":
+    "The destination took too long to respond and the request timed out.",
+  "Domain does not resolve":
+    "The destination's domain name could not be found. It may have expired or be misspelled.",
+  "Connection refused":
+    "The destination server refused the connection. It may be offline.",
+  "Connection failed":
+    "Unable to reach the destination. It may be offline or unreachable.",
+  "Secure connection failed":
+    "A secure (HTTPS) connection to the destination failed. Its certificate may be invalid or expired.",
+  "Too many redirects":
+    "The destination redirects too many times, so the page never loads.",
+};
+
+// The incident message an owner sees when a check finds the destination down or slow.
+export function describeIncident(
+  healthStatus: "up" | "down" | "degraded" | "unknown",
+  statusCode: number,
+  errorMessage?: string,
+): string {
+  if (healthStatus === "degraded") {
+    return "The destination is responding slower than expected. Performance may be affected.";
+  }
+  if (healthStatus !== "down") {
+    return "An issue was detected with the link.";
+  }
+  // A request that never got an answer: 0, or 408 when the check timed out.
+  if (!statusCode || statusCode === 408) {
+    const known = errorMessage ? CHECK_FAILURE_TEXT[errorMessage] : undefined;
+    if (known) return known;
+    if (
+      statusCode === 408 ||
+      errorMessage?.includes("abort") ||
+      errorMessage?.includes("timeout")
+    ) {
+      return CHECK_FAILURE_TEXT["Connection timed out"];
+    }
+    return CHECK_FAILURE_TEXT["Connection failed"];
+  }
+  if (statusCode >= 500) {
+    return "The destination server is experiencing issues and isn't responding properly.";
+  }
+  if (statusCode === 404) {
+    return "The destination page could not be found. It may have been moved or deleted.";
+  }
+  if (statusCode === 403) {
+    return "Access to the destination was blocked. The site may have security restrictions.";
+  }
+  if (statusCode === 401) {
+    return "The destination requires authentication to access.";
+  }
+  return `The destination returned an error (HTTP ${statusCode}).`;
+}
+
 export const recordHealthCheck = mutation({
   args: {
     sharedSecret: v.string(),
@@ -416,46 +472,12 @@ export const recordHealthCheck = mutation({
       (previousStatus === "down" || previousStatus === "degraded") &&
       isNowHealthy;
 
-    // Generate user-friendly incident messages
-    const getUserFriendlyMessage = (): string => {
-      if (healthStatus === "down") {
-        // Error messages based on status code
-        if (statusCode >= 500) {
-          return "The destination server is experiencing issues and isn't responding properly.";
-        }
-        if (statusCode === 404) {
-          return "The destination page could not be found. It may have been moved or deleted.";
-        }
-        if (statusCode === 403) {
-          return "Access to the destination was blocked. The site may have security restrictions.";
-        }
-        if (statusCode === 401) {
-          return "The destination requires authentication to access.";
-        }
-        if (statusCode === 0 || !statusCode) {
-          if (
-            errorMessage?.includes("abort") ||
-            errorMessage?.includes("timeout")
-          ) {
-            return "The destination took too long to respond and the request timed out.";
-          }
-          return "Unable to reach the destination. It may be offline or unreachable.";
-        }
-        return `The destination returned an error (HTTP ${statusCode}).`;
-      }
-
-      if (healthStatus === "degraded") {
-        return "The destination is responding slower than expected. Performance may be affected.";
-      }
-
-      return "An issue was detected with the link.";
-    };
 
     if (isNewer && !isUnknown && statusWentDown) {
       // Status went DOWN or DEGRADED (including first-time checks that are unhealthy)
       const message = isFirstCheck
-        ? `Initial check failed: ${getUserFriendlyMessage()}`
-        : getUserFriendlyMessage();
+        ? `Initial check failed: ${describeIncident(healthStatus, statusCode, errorMessage)}`
+        : describeIncident(healthStatus, statusCode, errorMessage);
 
       await ctx.db.insert("linkIncidents", {
         urlId,

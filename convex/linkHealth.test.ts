@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, test, vi } from "vitest";
 import { api, internal } from "./_generated/api";
 import { createTestBackend } from "./test.setup";
-import { deliverMonitoringChange } from "./linkHealth";
+import { deliverMonitoringChange, describeIncident } from "./linkHealth";
 import { queueServiceSync } from "./serviceSync";
 import { getMonitoringStatus } from "../lib/utils";
 
@@ -396,5 +396,24 @@ describe("monitor result delivery", () => {
     expect(getMonitoringStatus("unknown", now, now)).toBe("unknown");
     expect(getMonitoringStatus("up", now - 46 * 60_000, now)).toBe("overdue");
     expect(getMonitoringStatus("up", now, now)).toBe("healthy");
+  });
+});
+
+describe("incident messages", () => {
+  test("timeouts and fixed monitoring failures read as plain language", () => {
+    expect(describeIncident("down", 408, "Connection timed out")).toContain("timed out");
+    expect(describeIncident("down", 408)).toContain("timed out");
+    expect(describeIncident("down", 0, "Domain does not resolve")).toContain("domain name could not be found");
+    expect(describeIncident("down", 0, "Secure connection failed")).toContain("certificate");
+    expect(describeIncident("down", 0, "Too many redirects")).toContain("redirects too many times");
+    expect(describeIncident("down", 0, "Unexpected error")).toContain("Unable to reach");
+    expect(describeIncident("down", 0, "The operation was aborted")).toContain("timed out");
+  });
+
+  test("HTTP errors and slow responses keep their messages", () => {
+    expect(describeIncident("down", 404)).toContain("could not be found");
+    expect(describeIncident("down", 502)).toContain("experiencing issues");
+    expect(describeIncident("down", 410)).toBe("The destination returned an error (HTTP 410).");
+    expect(describeIncident("degraded", 200)).toContain("slower than expected");
   });
 });
