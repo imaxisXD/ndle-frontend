@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { useDuckDB } from "./use-duckdb";
 import type { ColdFile } from "@/types/analytics-v2";
+import { getFileProxyUrl } from "@/lib/config";
 import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import { useAuth } from "@clerk/nextjs";
 import {
@@ -39,10 +40,6 @@ export interface ColdAnalyticsFilters {
   link?: string;
   excludeBots?: boolean;
 }
-
-const FILE_PROXY_WORKER_URL =
-  process.env.NEXT_PUBLIC_FILE_PROXY_URL ||
-  "https://proxy-file-worker.sunny735084.workers.dev";
 
 const MAX_CACHED_FILES = 30;
 const caches = new WeakMap<object, { parquetFileCache: Map<string, ArrayBuffer>; registeredInDuckDB: Map<string, string>; lruOrder: string[] }>();
@@ -338,7 +335,7 @@ function evictLRUIfNeeded(): string | null {
             }
 
             evictLRUIfNeeded();
-            const proxyUrl = `${FILE_PROXY_WORKER_URL}/file/${encodeURIComponent(f.key)}?accessVersion=2`;
+            const proxyUrl = `${getFileProxyUrl()}/file/${encodeURIComponent(f.key)}?accessVersion=2`;
 
             if (process.env.NODE_ENV === "development") {
               // console.log(`[ColdPerf] 📡 Requesting ${f.key}`);

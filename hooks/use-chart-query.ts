@@ -9,6 +9,7 @@ import { useState, useCallback, useMemo, useRef } from "react";
 import { useDuckDB } from "./use-duckdb";
 import { useAuth } from "@clerk/nextjs";
 import type { ColdFile } from "@/types/analytics-v2";
+import { getFileProxyUrl } from "@/lib/config";
 
 interface UseChartQueryResult {
   data: Array<Record<string, unknown>> | null;
@@ -17,10 +18,6 @@ interface UseChartQueryResult {
   execute: (query: string) => Promise<Array<Record<string, unknown>>>;
   setFiles: (files: ColdFile[]) => void;
 }
-
-const FILE_PROXY_WORKER_URL =
-  process.env.NEXT_PUBLIC_FILE_PROXY_URL ||
-  "https://proxy-file-worker.sunny735084.workers.dev";
 
 // Cache for registered files
 const registeredFilesByDatabase = new WeakMap<object, Map<string, string>>();
@@ -88,7 +85,7 @@ export function useChartQuery(): UseChartQueryResult {
               }
 
               // Fetch the parquet file
-              const proxyUrl = `${FILE_PROXY_WORKER_URL}/file/${encodeURIComponent(file.key)}?accessVersion=2`;
+              const proxyUrl = `${getFileProxyUrl()}/file/${encodeURIComponent(file.key)}?accessVersion=2`;
               const response = await fetch(proxyUrl, {
                 method: "GET",
                 headers: { Authorization: `Bearer ${token}` },

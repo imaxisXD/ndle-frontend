@@ -23,6 +23,7 @@
     "NEXT_PUBLIC_CLERK_SIGN_UP_FALLBACK_REDIRECT_URL": "/dashboard",
     "UPSTASH_REDIS_REST_URL": "https://credible-osprey-14471.upstash.io",
     "INTERNAL_API_URL": "https://api.ndle.app/analytics/v2",
+    // Browser code uses the build-time value "/apiv2" from the Cloudflare build settings, not this one.
     "NEXT_PUBLIC_FILE_PROXY_URL": "https://proxy-file-worker-prod.sunny735084.workers.dev",
     "NEXT_PUBLIC_POSTHOG_HOST": "https://imp.ndle.app",
   },

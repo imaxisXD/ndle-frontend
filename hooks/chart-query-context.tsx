@@ -19,6 +19,7 @@ import { useDuckDB } from "./use-duckdb";
 import { useAuth } from "@clerk/nextjs";
 import type { ColdFile } from "@/types/analytics-v2";
 import { loadCompleteChartFiles } from "@/lib/chart-files";
+import { getFileProxyUrl } from "@/lib/config";
 
 interface ChartQueryContextValue {
   execute: (query: string) => Promise<Array<Record<string, unknown>>>;
@@ -45,9 +46,6 @@ export interface ChartScopeDateRange {
 
 const ChartQueryContext = createContext<ChartQueryContextValue | null>(null);
 
-const FILE_PROXY_WORKER_URL =
-  process.env.NEXT_PUBLIC_FILE_PROXY_URL ||
-  "https://proxy-file-worker.sunny735084.workers.dev";
 const EMPTY_SCOPE_FILTERS: ChartScopeFilters = {};
 
 // Cache for registered files (global to avoid re-registering)
@@ -260,7 +258,7 @@ export function ChartQueryProvider({
               }
 
               // Fetch the parquet file
-              const proxyUrl = `${FILE_PROXY_WORKER_URL}/file/${encodeURIComponent(file.key)}?accessVersion=2`;
+              const proxyUrl = `${getFileProxyUrl()}/file/${encodeURIComponent(file.key)}?accessVersion=2`;
               const response = await fetch(proxyUrl, {
                 method: "GET",
                 headers: { Authorization: `Bearer ${token}` },
