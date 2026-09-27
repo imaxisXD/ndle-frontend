@@ -7,8 +7,9 @@ import { auth } from "@clerk/nextjs/server";
 import Page from "./page";
 
 vi.mock("@clerk/nextjs/server", () => ({ auth: vi.fn() }));
-vi.mock("@/components/PublicHome", () => ({
-  PublicHome: () => createElement("h1", null, "Landing page"),
+vi.mock("@/app/home-2/_components/home-page", () => ({
+  HomePage: () => createElement("h1", null, "Landing page"),
+  HOME_METADATA: {},
 }));
 vi.mock("@/app/static-app-shell/page", () => ({
   default: () => createElement("h1", null, "Account access"),

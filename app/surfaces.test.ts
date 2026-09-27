@@ -12,9 +12,6 @@ import { expect, test } from "vitest";
 const ROOTS = ["components", "routes", "app/static-app-shell"];
 
 const EXCLUDED_FILES = new Set([
-  // Marketing pages use the pulp-poster palette, not the product surfaces.
-  "components/PublicHome.tsx",
-  "components/comic.tsx",
   // Not rendered anywhere.
   "components/GuestShortenerCard.tsx",
 ]);

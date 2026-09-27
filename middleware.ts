@@ -3,10 +3,11 @@ import { NextResponse } from "next/server";
 
 const isPublicRoute = createRouteMatcher([
   "/",
-  "/home-2",
   "/robots.txt",
   "/sitemap.xml",
   "/llms.txt",
+  // The home page's share card (app/opengraph-image.tsx)
+  "/opengraph-image(.*)",
   "/blog(.*)",
   "/alternatives(.*)",
   "/use-cases(.*)",

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { auth } from "@clerk/nextjs/server";
 import StaticAppShell from "@/app/static-app-shell/page";
-import { PublicHome } from "@/components/PublicHome";
+import { HOME_METADATA, HomePage } from "@/app/home-2/_components/home-page";
 
 type Props = { params: Promise<{ path?: string[] }> };
 
@@ -9,12 +9,12 @@ type Props = { params: Promise<{ path?: string[] }> };
 // has nothing for search results.
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { path } = await params;
-  return path?.length ? { robots: { index: false, follow: false } } : { alternates: { canonical: "/" } };
+  return path?.length ? { robots: { index: false, follow: false } } : HOME_METADATA;
 }
 
 export default async function Page({ params }: Props) {
   const { path } = await params;
-  if (!path?.length) return <PublicHome />;
+  if (!path?.length) return <HomePage />;
 
   const { isAuthenticated, redirectToSignIn } = await auth();
   if (!isAuthenticated) return redirectToSignIn();

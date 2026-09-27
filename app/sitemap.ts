@@ -3,8 +3,7 @@ import { ALTERNATIVES } from "./alternatives/pages";
 import { POSTS } from "./blog/posts";
 import { USE_CASES } from "./use-cases/pages";
 
-// Only pages meant for search results. /home-2 stays out (it is noindex) and
-// takes over "/" when it replaces the current home page. Blog posts,
+// Only pages meant for search results: the home page at "/", then blog posts,
 // comparison pages and use-case pages come from their registries; add tool pages here as they
 // ship, and make each new section public in middleware.ts.
 export default function sitemap(): MetadataRoute.Sitemap {

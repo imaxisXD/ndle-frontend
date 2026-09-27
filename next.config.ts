@@ -14,6 +14,14 @@ const nextConfig: NextConfig = {
     optimizePackageImports: ["@phosphor-icons/react"],
   },
   reactCompiler: true,
+  // The landing page took over "/"; its old addresses, and the old second
+  // landing page's, send visitors there.
+  async redirects() {
+    return [
+      { source: "/home-2", destination: "/", permanent: true },
+      { source: "/landing-v2", destination: "/", permanent: true },
+    ];
+  },
 };
 
 // Blog posts are MDX files in content/blog, compiled at build time. Plugins are

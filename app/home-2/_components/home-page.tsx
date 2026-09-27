@@ -1,18 +1,22 @@
 import type { Metadata } from "next";
 import { GeistSans } from "geist/font/sans";
-import { FAQ } from "./_components/faq";
-import { HomeTwo } from "./_components/home-two";
-import "./home-2.css";
+import { FAQ } from "./faq";
+import { HomeTwo } from "./home-two";
+import "../home-2.css";
 
-/* Search copy. Promise only what ships (docs/feature-status.md): checks every
-   30 minutes, breakages flagged on the dashboard, no owner emails yet. */
+/* The home page at "/": its search copy, its structured data, and the page.
+   app/[[...path]]/page.tsx renders it for the root URL and uses HOME_METADATA
+   there. Search copy promises only what ships (docs/feature-status.md). */
+
 const TITLE = "ndle: Free URL Shortener That Catches Broken Links";
 const DESCRIPTION =
   "Free URL shortener that checks every link every 30 minutes and flags 404s, timeouts and expired SSL. Click analytics, QR codes and 1 custom domain, free.";
+const SHARE_ALT = "ndle: short links, watched. A free URL shortener that checks every link every 30 minutes.";
 
-export const metadata: Metadata = {
+export const HOME_METADATA: Metadata = {
   title: TITLE,
   description: DESCRIPTION,
+  alternates: { canonical: "/" },
   openGraph: {
     title: TITLE,
     description: DESCRIPTION,
@@ -20,18 +24,17 @@ export const metadata: Metadata = {
     siteName: "ndle",
     locale: "en_US",
     type: "website",
-    // Still the old card; replace it before this page replaces `/`.
-    images: [{ url: "/opengraph-image.webp", width: 1200, height: 630, alt: "ndle, a URL shortener that checks your links" }],
+    // The card, app/opengraph-image.tsx. Named here because this openGraph
+    // replaces the one Next would attach from that file.
+    images: [{ url: "/opengraph-image", width: 1200, height: 630, alt: SHARE_ALT }],
   },
   twitter: {
     card: "summary_large_image",
     title: TITLE,
     description: DESCRIPTION,
     creator: "@abhishk_084",
-    images: ["/opengraph-image.webp"],
+    images: ["/opengraph-image"],
   },
-  // Runs beside the current home page; keep it out of search results until it replaces `/`.
-  robots: { index: false, follow: true },
 };
 
 const STRUCTURED_DATA = {
@@ -59,7 +62,7 @@ const STRUCTURED_DATA = {
   ],
 };
 
-export default function HomeTwoPage() {
+export function HomePage() {
   // Marketing copy is set in Geist Sans; the product views keep Geist Mono.
   return (
     <div className={GeistSans.variable}>

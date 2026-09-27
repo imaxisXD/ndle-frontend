@@ -6,9 +6,8 @@ import { cn } from "@/lib/utils";
 /* Actions in the dashboard's own button language: the yellow primary and the
    quiet outline, same radius, same focus ring. */
 
-/** Where the landing page lives. Becomes "/" when /home-2 replaces the
-    current home page; the shared nav and footer link here. */
-export const HOME_PATH = "/home-2";
+/** Where the landing page lives; the shared nav and footer link here. */
+export const HOME_PATH = "/";
 
 export const FOCUS =
   "focus-visible:ring-[3px] focus-visible:ring-[oklch(0.86_0.17_88/0.5)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg)] focus-visible:outline-none";
