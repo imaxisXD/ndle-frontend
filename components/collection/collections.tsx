@@ -3,7 +3,8 @@
 import { useState, useCallback } from "react";
 import { MoreVertCircle, BinMinusIn, Page, KeyCommand } from "iconoir-react";
 import { CreateCollectionButton } from "./create-collection-button";
-import { CollectionFolder, isHexColor } from "./collection-folder";
+import { isHexColor } from "./collection-folder";
+import { GlassFolder, glassTone } from "./glass-folder";
 import { getCollectionFallbackColor } from "./colors";
 import { NavLink, useNavigate } from "react-router";
 import { CollectionsType } from "@/routes/CollectionsRoute";
@@ -76,7 +77,7 @@ function CollectionMenuCell({
           <button
             type="button"
             aria-label={`Options for ${collection.name}`}
-            className="hover:bg-accent rounded-md p-2 transition-all"
+            className="focus-visible:ring-accent/50 rounded-md p-1.5 transition-colors outline-none hover:bg-current/15 focus-visible:ring-[3px]"
             onClick={(e) => {
               e.stopPropagation();
               e.preventDefault();
@@ -139,87 +140,54 @@ function CollectionCard({
   onDeleteClick: (collectionId: string, collectionName: string) => void;
 }) {
   const [hovered, setHovered] = useState(false);
+  const [focused, setFocused] = useState(false);
   // The picker can store "transparent"; the folder needs a real color.
   const collectionColor = isHexColor(collection.collectionColor)
     ? collection.collectionColor
     : fallbackColor;
   const href = `/collection/${collection.id}`;
   const clickCount = collection.totalClickCount;
+  const links = `${collection.urlCount} ${collection.urlCount === 1 ? "link" : "links"}`;
+  const clicks =
+    clickCount === null
+      ? "clicks updating"
+      : `${clickCount.toLocaleString()} ${clickCount === 1 ? "click" : "clicks"}`;
 
   return (
     <div
-      className="group relative flex flex-col items-center"
+      className="relative mx-auto w-full max-w-[300px] transition-transform duration-150 ease-out hover:-translate-y-[3px] has-[a:focus-visible]:-translate-y-[3px]"
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >
-      {/* The folder is the card. The label sits on its face like a paper sticker,
-          so the art is the container rather than a picture boxed inside one. */}
-      <div className="relative">
+      {/* The folder is the card: the name and counts are written on its glass. */}
+      <h3>
         <NavLink
           to={href}
-          tabIndex={-1}
-          aria-hidden
-          className="block h-[162px] w-[194px] transition-transform duration-150 ease-out group-hover:-translate-y-[3px] active:scale-[0.99]"
+          aria-label={`${collection.name}, ${links}, ${clicks}`}
+          onFocus={() => setFocused(true)}
+          onBlur={() => setFocused(false)}
+          className="focus-visible:ring-accent/50 block rounded-[22px] transition-transform outline-none focus-visible:ring-[3px] focus-visible:ring-offset-2 active:scale-[0.99]"
         >
-          <CollectionFolder
+          <GlassFolder
             previewUrls={collection.previewUrls}
             color={collectionColor}
-            size="xs"
-            hovered={hovered}
-            open={false}
-            className="h-[135px] w-[161px] origin-top-left scale-[1.2] transition-transform duration-150 ease-out"
+            label={collection.name}
+            meta={`${links} · ${clicks}`}
+            hovered={hovered || focused}
+            lift={false}
           />
         </NavLink>
-        {/* Anchored to the art, not the cell, so it stays beside the folder at every width. */}
-        <div className="absolute -top-2 -right-11">
-          <CollectionMenuCell
-            collection={collection}
-            onView={onView}
-            onDeleteClick={onDeleteClick}
-          />
-        </div>
-        {/* Name band over an instrument readout: the collection reads as a filing card. */}
-        <div className="border-border bg-card absolute top-[54%] left-1/2 w-[88%] -translate-x-1/2 overflow-hidden rounded-sm border shadow-[inset_0_1px_0_rgba(255,255,255,0.9),0_1px_2px_rgba(0,0,0,0.04)]">
-          <NavLink
-            to={href}
-            className="focus-visible:ring-accent/50 block px-3 py-1.5 outline-none focus-visible:ring-[3px] focus-visible:ring-inset"
-            style={{
-              backgroundColor: `color-mix(in oklab, ${collectionColor} 22%, white)`,
-            }}
-          >
-            <h3 className="truncate text-sm leading-tight font-semibold tracking-tight">
-              {collection.name}
-            </h3>
-          </NavLink>
-          <NavLink to={href} tabIndex={-1} className="block px-3 pt-2 pb-2">
-            <span className="flex items-end justify-between gap-2">
-              <span className="flex flex-col">
-                <span className="text-sm leading-none font-semibold tabular-nums">
-                  {collection.urlCount}
-                </span>
-                <span className="text-muted-foreground mt-0.5 text-[10px] leading-none">
-                  {collection.urlCount === 1 ? "link" : "links"}
-                </span>
-              </span>
-              <span
-                className="border-border h-6 border-l border-dashed"
-                aria-hidden
-              />
-              <span className="flex flex-col items-end">
-                <span className="text-sm leading-none font-semibold tabular-nums">
-                  {clickCount ?? "—"}
-                </span>
-                <span className="text-muted-foreground mt-0.5 text-[10px] leading-none">
-                  {clickCount === null
-                    ? "clicks updating"
-                    : clickCount === 1
-                      ? "click"
-                      : "clicks"}
-                </span>
-              </span>
-            </span>
-          </NavLink>
-        </div>
+      </h3>
+      {/* Sits on the glass, outside the link, in the label's ink. */}
+      <div
+        className="absolute top-[37%] right-[3%]"
+        style={{ color: glassTone(collectionColor).ink }}
+      >
+        <CollectionMenuCell
+          collection={collection}
+          onView={onView}
+          onDeleteClick={onDeleteClick}
+        />
       </div>
     </div>
   );
@@ -305,7 +273,7 @@ export function Collections({
           </p>
         </div>
       ) : (
-        <div className="grid gap-x-5 gap-y-10 pt-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <div className="grid gap-x-6 gap-y-12 pt-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {collections?.map((collection) => (
             <CollectionCard
               key={collection.id}
