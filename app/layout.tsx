@@ -94,7 +94,7 @@ export default function RootLayout({
         </Script>
         <SessionReplayGuard />
         {/* Static, so marketing pages can be prerendered. The signed-in app opts
-            into request auth data in app/[[...path]]/layout.tsx. */}
+            into request auth data in app/[...path]/layout.tsx. */}
         <ClerkProvider
           // Clerk's styles go in their own cascade layer (declared at the top
           // of globals.css) so Tailwind classes in `appearance` can win.

@@ -5,8 +5,8 @@ import { HomeTwo } from "./home-two";
 import "../home-2.css";
 
 /* The home page at "/": its search copy, its structured data, and the page.
-   app/[[...path]]/page.tsx renders it for the root URL and uses HOME_METADATA
-   there. Search copy promises only what ships (docs/feature-status.md). */
+   app/page.tsx renders it and uses HOME_METADATA. Search copy promises only
+   what ships (docs/feature-status.md). */
 
 const TITLE = "ndle: Free URL Shortener That Catches Broken Links";
 const DESCRIPTION =
