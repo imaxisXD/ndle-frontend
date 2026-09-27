@@ -1,0 +1,29 @@
+# ndle
+
+> ndle is a free URL shortener that checks the page behind every short link every 30 minutes and flags the links that break: 404s, timeouts, failed connections and expired or invalid SSL certificates.
+
+- Free plan: 100 active links, 1 custom domain, unlimited QR codes, click analytics (country, device, referrer, UTM campaign), collections and a UTM builder.
+- No ad or preview page before a link opens. Links on a free account don't expire unless the owner sets an expiry date.
+- Guest links can be made without an account; they last 7 days and aren't checked.
+- Short links use the ndle.fyi domain or the owner's own domain.
+
+## Pages
+
+- [Home](https://ndle.app/): shorten a link and see what ndle does
+- [Link checker](https://ndle.app/tools/link-checker): free tool that shows a link's status code, redirects and response time
+- [UTM builder](https://ndle.app/tools/utm-builder): free tool that adds campaign tags to a link, in the browser
+- [Link in bio](https://ndle.app/use-cases/link-in-bio): short, counted, checked links for Instagram and other bios
+- [QR codes](https://ndle.app/use-cases/qr-codes): free, unlimited QR codes with no trial or ad page, checked every 30 minutes
+- [Blog](https://ndle.app/blog): guides to short links, QR codes and links that keep working
+- [ndle vs Bitly](https://ndle.app/alternatives/bitly): a free Bitly alternative, compared plan by plan
+- [ndle vs TinyURL](https://ndle.app/alternatives/tinyurl), [ndle vs Dub](https://ndle.app/alternatives/dub), [ndle vs Short.io](https://ndle.app/alternatives/short-io), [ndle vs Rebrandly](https://ndle.app/alternatives/rebrandly): free plans compared
+- [goo.gl alternative](https://ndle.app/alternatives/google-url-shortener): which goo.gl links still work, and how to replace the rest
+- [UTM parameters, explained: what each one does](https://ndle.app/blog/utm-parameters-explained)
+- [Do QR codes expire? Static vs dynamic, explained](https://ndle.app/blog/do-qr-codes-expire)
+- [How to shorten a link without an account](https://ndle.app/blog/shorten-link-without-account)
+- [How to check if a link is working, step by step](https://ndle.app/blog/check-if-link-is-working)
+- [What is link rot, and how do you slow it down?](https://ndle.app/blog/what-is-link-rot)
+- [Do short links expire? Bitly, TinyURL and goo.gl compared](https://ndle.app/blog/do-short-links-expire)
+- [Why is my Bitly link not working? Causes and fixes](https://ndle.app/blog/bitly-link-not-working)
+- [Bitly's free plan in 2026: limits, ads and free alternatives](https://ndle.app/blog/bitly-free-plan)
+- [QR code stopped working? Check the destination first](https://ndle.app/blog/qr-code-stopped-working)

@@ -1766,6 +1766,9 @@ export function PublicHome() {
               >
                 Compare
               </Link>
+              <Link href="/blog" className="block opacity-80 hover:opacity-100">
+                Blog
+              </Link>
               <Link
                 href="/sign-up?redirect_url=/dashboard"
                 className="block opacity-80 hover:opacity-100"
