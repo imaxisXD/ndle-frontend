@@ -54,7 +54,8 @@ table and the copy together.
 - **The AI chart builder goes live in production before the swap** (relayed
   from the other session). If it slips, remove the Ask sections and the bento
   tile first.
-- **Owner emails ship before `/home-2` replaces `/`.** The email visuals in the
+- **Update 2026-09-28: `/home-2` replaced `/` before owner emails and the production AI chart builder shipped.** You chose to swap now and ship them soon, accepting the gap. Until they ship, the live home page promises both. Ship them next, or change the lines below.
+- **Owner emails ship before `/home-2` replaces `/`** (the original plan). The email visuals in the
   hero demo and the tour's 3:04 AM section stay. The FAQ answer "When a check
   fails, ndle emails you", the bento's inbox tile and the closing section (its toast
   "We emailed you" and "tell you when they break") also depend on it. If emails slip, change those
