@@ -1,8 +1,13 @@
-import { CheckIcon, MinusIcon, XIcon } from "@phosphor-icons/react/dist/ssr";
-import { cn } from "@/lib/utils";
+"use client";
 
-/* Plan and competitor facts carried over verbatim from the current home page
-   (public plans, April 2026). Update both pages together. */
+import { useQuery } from "convex/react";
+import { CheckIcon, TagIcon, XIcon } from "@phosphor-icons/react/dist/ssr";
+import { api } from "@/convex/_generated/api";
+import { cn } from "@/lib/utils";
+import { ActionLink, INK_TITLE, InkBadge } from "./kit";
+
+/* Competitor facts carried over from the current home page (public plans,
+   April 2026). ndle's rows claim only what ships (docs/feature-status.md). */
 
 type Value = string | boolean;
 
@@ -15,131 +20,93 @@ const ROWS: Array<{
   only?: boolean;
 }> = [
   { label: "Price to start", ndle: "Free", bitly: "Free", dub: "Free", shortio: "Free" },
-  { label: "Short links / month", ndle: "100", bitly: "5", dub: "25", shortio: "1,000*" },
+  { label: "Free short links", ndle: "100 active", bitly: "5 a month", dub: "25 a month", shortio: "1,000*" },
   { label: "Custom domains", ndle: "1", bitly: false, dub: "3", shortio: "5" },
   { label: "QR codes", ndle: "Unlimited", bitly: "2 / mo", dub: true, shortio: true },
-  { label: "Uptime monitoring", ndle: true, bitly: false, dub: false, shortio: false, only: true },
-  { label: "Breakage alerts", ndle: true, bitly: false, dub: false, shortio: false, only: true },
-  { label: "Chat with analytics", ndle: true, bitly: false, dub: "partial", shortio: false },
+  { label: "Broken-link checks", ndle: true, bitly: false, dub: false, shortio: false, only: true },
+  { label: "Uptime history per link", ndle: true, bitly: false, dub: false, shortio: false, only: true },
+  { label: "No ad page before the link", ndle: true, bitly: false, dub: true, shortio: true },
 ];
 
-const ALSO = ["API access", "UTM builder", "Link tags", "Password links", "Webhooks", "CSV export", "Team-ready"];
+const ALSO = ["UTM builder", "Saved UTM templates", "Link expiry dates", "Collections", "Analytics by country, device and referrer"];
 
-function Cell({ value, ours, only }: { value: Value; ours?: boolean; only?: boolean }) {
-  if (ours) {
-    if (value === true)
-      return (
-        <span className="inline-flex items-center gap-2 font-medium text-white">
-          <span
-            className={cn(
-              "inline-flex size-5 items-center justify-center rounded-full",
-              only ? "bg-accent text-black" : "bg-white/12 text-white",
-            )}
-          >
-            <CheckIcon size={12} weight="bold" />
-          </span>
-          Yes
-        </span>
-      );
-    return <span className="font-medium text-white tabular-nums">{value}</span>;
-  }
-  if (value === true)
-    return (
-      <span className="inline-flex items-center gap-1.5 text-[var(--fg-2)]">
-        <CheckIcon size={14} weight="bold" />
-        Yes
-      </span>
-    );
-  if (value === false)
-    return (
-      <span className="inline-flex items-center gap-1.5 text-[var(--fg-3)]">
-        <XIcon size={13} weight="bold" />
-        No
-      </span>
-    );
-  if (value === "partial")
-    return (
-      <span className="inline-flex items-center gap-1.5 text-[var(--fg-3)]">
-        <MinusIcon size={13} weight="bold" />
-        Partial
-      </span>
-    );
-  return <span className="text-[var(--fg-2)] tabular-nums">{value}</span>;
-}
+const PLANS = [
+  { key: "ndle", name: "ndle" },
+  { key: "bitly", name: "Bitly" },
+  { key: "dub", name: "Dub" },
+  { key: "shortio", name: "Short.io" },
+] as const;
 
-/* ndle's column is the one black stripe in a white table: white type,
-   yellow checks where no other free plan has the feature. */
-const OURS = "bg-[#151412]";
+type PlanKey = (typeof PLANS)[number]["key"];
 
-export function Compare() {
+const [PRICE, ...FEATURES] = ROWS;
+
+/* The plans, after capy.ai's Pricing: a centred head, a black banner with
+   the offer, then one ink card per free plan. ndle's card is the inverted
+   one, as capy's featured plan is, with yellow checks where no other free
+   plan has the feature. The banner carries the real click total when there
+   is one. */
+export function Compare({ signedIn = false }: { signedIn?: boolean }) {
+  const live = useQuery(api.publicStats.getLiveClickTotal);
+
   return (
     <section id="pricing" aria-labelledby="pricing-title" className="mx-auto max-w-[1240px] scroll-mt-20 px-5 py-24 sm:px-8 lg:py-28">
-      <h2 id="pricing-title" className="text-[clamp(1.9rem,3.2vw,2.5rem)] leading-[1.1] font-medium tracking-[-0.025em]">
-        <span className="text-[var(--fg)]">Free plan, compared.</span>
-        <span className="block text-[var(--fg-3)]">Monitoring and alerts, free.</span>
-      </h2>
+      <div className="flex flex-col items-center text-center">
+        <InkBadge>
+          <TagIcon size={30} weight="bold" />
+        </InkBadge>
+        <h2 id="pricing-title" className={cn(INK_TITLE, "mt-5")}>
+          Free plan, compared
+        </h2>
+        <p className="mt-4 font-mono text-[17px] leading-[1.45] text-[#141312]">Broken-link checks, free.</p>
+      </div>
 
-      <div className="mt-12">
-        <p className="mb-2 text-xs text-[var(--fg-3)] sm:hidden">Swipe to see Bitly, Dub and Short.io.</p>
-        <div className="border-border overflow-x-auto rounded-md border bg-white shadow-xs">
-          <table className="w-full min-w-[620px] border-collapse text-left text-sm">
-            <caption className="sr-only">Free plans of ndle, Bitly, Dub, and Short.io compared</caption>
-            <thead>
-              <tr className="font-mono text-xs tracking-[0.06em] text-[var(--fg-3)] uppercase">
-                <th scope="col" className="sticky left-0 z-10 w-[30%] border-b border-[var(--line)] bg-white px-5 py-4 font-normal">
-                  Feature
-                </th>
-                <th scope="col" className={cn(OURS, "w-[20%] border-b border-white/10 px-5 py-4 font-normal normal-case")}>
-                  <span className="font-doto roundness-100 font-black inline-flex items-center gap-1.5 text-xl leading-none tracking-normal text-white">
-                    ndle
-                    <span aria-hidden className="bg-accent size-1.5 rounded-full" />
-                  </span>
-                </th>
-                <th scope="col" className="border-b border-[var(--line)] px-5 py-4 font-normal">Bitly</th>
-                <th scope="col" className="border-b border-[var(--line)] px-5 py-4 font-normal">Dub</th>
-                <th scope="col" className="border-b border-[var(--line)] px-5 py-4 font-normal">Short.io</th>
-              </tr>
-            </thead>
-            <tbody>
-              {ROWS.map((row, i) => {
-                const last = i === ROWS.length - 1;
-                const rule = last ? "" : "border-b border-[var(--line)]";
-                return (
-                  <tr key={row.label}>
-                    <th scope="row" className={cn("sticky left-0 z-10 bg-white px-5 py-4 font-normal text-[var(--fg)]", rule)}>
-                      <span className="inline-flex items-center gap-2">
-                        {row.label}
-                        {row.only && (
-                          <>
-                            <span aria-hidden className="bg-accent size-1.5 rounded-full" />
-                            <span className="sr-only">(no other free plan includes it)</span>
-                          </>
-                        )}
-                      </span>
-                    </th>
-                    <td className={cn(OURS, "px-5 py-4", !last && "border-b border-white/10")}>
-                      <Cell value={row.ndle} ours only={row.only} />
-                    </td>
-                    <td className={cn("px-5 py-4", rule)}>
-                      <Cell value={row.bitly} />
-                    </td>
-                    <td className={cn("px-5 py-4", rule)}>
-                      <Cell value={row.dub} />
-                    </td>
-                    <td className={cn("px-5 py-4", rule)}>
-                      <Cell value={row.shortio} />
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+      {/* The offer */}
+      <div className="mt-12 flex flex-col gap-8 border-2 border-[#141312] bg-[#141312] px-7 py-9 text-white sm:px-10 lg:flex-row lg:items-center lg:justify-between">
+        <div>
+          <p className="font-[family-name:var(--font-bebas)] text-[clamp(2.5rem,4.6vw,3.5rem)] leading-[0.92] uppercase">
+            100 links free.
+            <span className="block text-[var(--sig)]">Every one checked.</span>
+          </p>
+          <p className="mt-4 max-w-[46ch] font-mono text-[15px] leading-[1.5] text-white/75">
+            The free plan has 100 active links, 1 custom domain and unlimited QR codes, and every link is checked every
+            30 minutes. No card needed.
+          </p>
+          <ActionLink href={signedIn ? "/dashboard" : "/sign-up?redirect_url=/dashboard"} className="mt-6 focus-visible:ring-offset-[#141312]">
+            {signedIn ? "Open your dashboard" : "Get ndle free"}
+          </ActionLink>
+        </div>
+        {/* The real click total, live; until there is one, the offer's number. */}
+        <div className="shrink-0 lg:text-right">
+          <p className="font-doto roundness-100 text-[clamp(3rem,6vw,4.75rem)] leading-none font-black text-white tabular-nums">
+            {live ? live.total.toLocaleString("en-US") : "100"}
+          </p>
+          <p className="mt-3 flex items-center gap-2 font-mono text-xs text-white/60 lg:justify-end">
+            {live ? (
+              <>
+                <span className="animate-live-blip size-1.5 rounded-full bg-green-500" />
+                clicks counted on ndle so far
+              </>
+            ) : (
+              <>
+                <span className="bg-accent size-1.5 rounded-full" />
+                free links, every one checked
+              </>
+            )}
+          </p>
         </div>
       </div>
 
-      <div className="mt-6 flex flex-col gap-3 text-xs text-[var(--fg-3)] sm:flex-row sm:items-start sm:justify-between">
+      {/* One card per free plan */}
+      <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+        {PLANS.map((plan) => (
+          <Plan key={plan.key} plan={plan.key} name={plan.name} />
+        ))}
+      </div>
+
+      <div className="mt-6 flex flex-col gap-3 font-mono text-xs text-[#3d3d3d] sm:flex-row sm:items-start sm:justify-between">
         <p className="max-w-[70ch] leading-5">
-          <span className="text-[var(--fg-2)]">On every plan:</span> {ALSO.join(", ")}.
+          <span className="text-[#141312]">On every plan:</span> {ALSO.join(", ")}.
         </p>
         <p className="shrink-0 sm:text-right">
           <span className="bg-accent mr-1.5 inline-block size-1.5 rounded-full align-middle" />
@@ -148,5 +115,74 @@ export function Compare() {
         </p>
       </div>
     </section>
+  );
+}
+
+function Plan({ plan, name }: { plan: PlanKey; name: string }) {
+  const ours = plan === "ndle";
+  return (
+    <article
+      aria-label={`${name} free plan`}
+      className={cn("flex flex-col border-2 border-[#141312] p-6", ours ? "bg-[#141312] text-white" : "bg-white text-[#141312]")}
+    >
+      <div className="flex items-center gap-2">
+        {ours ? (
+          <h3 className="font-doto roundness-100 text-[26px] leading-none font-black">ndle</h3>
+        ) : (
+          <h3 className="font-[family-name:var(--font-bebas)] text-[28px] leading-none uppercase">{name}</h3>
+        )}
+      </div>
+      <p className={cn("mt-1 font-mono text-xs", ours ? "text-white/55" : "text-[#6b6b6b]")}>Free plan</p>
+      <p className="mt-5 font-[family-name:var(--font-bebas)] text-[48px] leading-none uppercase">{PRICE[plan] as string}</p>
+
+      <ul className="mt-6 space-y-3 font-mono text-[13px] leading-5">
+        {FEATURES.map((row) => {
+          const value = row[plan];
+          const has = value !== false;
+          return (
+            <li key={row.label} className={cn("flex items-start gap-2.5", !has && (ours ? "text-white/40" : "text-[#9a9a9a]"))}>
+              <Mark has={has} ours={ours} only={ours && !!row.only} />
+              <span className="min-w-0 flex-1">
+                {row.label}
+                {typeof value === "string" && (
+                  <span className={cn("block font-medium", ours ? "text-white" : "text-[#141312]")}>{value}</span>
+                )}
+                {!has && <span className="sr-only"> (not included)</span>}
+                {ours && row.only && <span className="sr-only"> (no other free plan includes it)</span>}
+              </span>
+            </li>
+          );
+        })}
+      </ul>
+
+      {/* ndle's benefit, said plainly and pinned to the foot of its card, so
+          the four feature lists stay level. The LED is the hero's. */}
+      {ours && (
+        <div className="mt-auto pt-6">
+          <p className="flex items-start gap-3 border-t border-white/15 pt-4 font-mono text-[13px] leading-5">
+            <span aria-hidden className="h2-led mt-[6px] ml-0 shrink-0 text-[48px]" />
+            <span>
+              <span className="block font-medium text-white">Watches every link</span>
+              <span className="text-white/60">Checked every 30 minutes.</span>
+            </span>
+          </p>
+        </div>
+      )}
+    </article>
+  );
+}
+
+function Mark({ has, ours, only }: { has: boolean; ours: boolean; only: boolean }) {
+  if (!has) return <XIcon aria-hidden size={14} weight="bold" className="mt-[3px] shrink-0" />;
+  return (
+    <span
+      aria-hidden
+      className={cn(
+        "mt-px inline-flex size-[18px] shrink-0 items-center justify-center rounded-full",
+        only ? "bg-accent text-[#141312]" : ours ? "bg-white/12 text-white" : "bg-[#141312] text-white",
+      )}
+    >
+      <CheckIcon size={11} weight="bold" />
+    </span>
   );
 }

@@ -31,7 +31,7 @@
  *  4 · ALERT                                           Monitoring
  *    16800ms   cursor to Monitoring in the rail; click at 17350ms
  *    18700ms   /launch is being checked…
- *    19200ms   …and fails: 503, the light behind the glass turns red
+ *    19200ms   …and fails: 404, the light behind the glass turns red
  *    19800ms   the DOWN email lands
  *    23000ms   back online: the light turns yellow, RECOVERED email lands
  *    23900ms   cursor to /launch in the table; click at 24450ms
@@ -63,7 +63,7 @@ export const T = {
   toMonitoring:  16800,   // cursor to Monitoring in the rail
   monitoringClick: 17350, // Monitoring opens
   check:         18700,   // /launch is being checked
-  down:          19200,   // …and fails: 503, light turns red
+  down:          19200,   // …and fails: 404, light turns red
   alert:         19800,   // DOWN email lands
   recovered:     23000,   // back online, light turns yellow
   toLink:        23900,   // cursor to /launch in the table

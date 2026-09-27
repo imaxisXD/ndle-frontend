@@ -58,22 +58,24 @@ export function DemoCursor({ stageRef }: { stageRef: RefObject<HTMLDivElement | 
     <motion.div aria-hidden className="pointer-events-none absolute top-0 left-0 z-20" style={{ x, y }}>
       <div className={cn("transition-opacity duration-300", shown ? "opacity-100" : "opacity-0")}>
         {click >= 0 && <span key={`ripple-${click}`} className="h2-ripple absolute -top-3.5 -left-3.5 size-7 rounded-full" />}
-        <svg
-          key={`arrow-${click}`}
-          width="20"
-          height="22"
-          viewBox="0 0 20 22"
-          className={cn("relative -top-[1.5px] -left-[2px] drop-shadow-[0_2px_3px_rgba(0,0,0,0.28)]", click >= 0 && "h2-press")}
-        >
-          <path
-            d="M2 1.5V17.6l4.3-4 2.9 6.6 2.9-1.3-2.8-6.4H15.2Z"
-            fill="#141312"
-            stroke="#fff"
-            strokeWidth="1.5"
-            strokeLinejoin="round"
-          />
-        </svg>
+        <PointerGlyph key={`arrow-${click}`} className={cn(click >= 0 && "h2-press")} />
       </div>
     </motion.div>
+  );
+}
+
+/** The demo pointer itself: an ink arrow with a white rim, its tip at the
+    element's top-left corner. Shared with the features bento. */
+export function PointerGlyph({ className }: { className?: string }) {
+  return (
+    <svg
+      aria-hidden
+      width="20"
+      height="22"
+      viewBox="0 0 20 22"
+      className={cn("relative -top-[1.5px] -left-[2px] drop-shadow-[0_2px_3px_rgba(0,0,0,0.28)]", className)}
+    >
+      <path d="M2 1.5V17.6l4.3-4 2.9 6.6 2.9-1.3-2.8-6.4H15.2Z" fill="#141312" stroke="#fff" strokeWidth="1.5" strokeLinejoin="round" />
+    </svg>
   );
 }

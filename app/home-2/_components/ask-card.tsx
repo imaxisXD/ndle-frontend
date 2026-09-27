@@ -1,11 +1,13 @@
 import { PaperPlaneRightIcon, RobotIcon, SparkleIcon, UserIcon } from "@phosphor-icons/react/dist/ssr";
+import { BklitVerticalBarChart } from "@/components/charts/bklit-chart-kit";
 import { HourlyActivityChart } from "@/components/charts/hourly-activity-chart";
 import { cn } from "@/lib/utils";
 import { HOURLY_CLICKS } from "./sample-data";
 
 /* The AI chart builder's own layout: the question, a thinking beat, then the
    chart it draws, built with the dashboard's hourly chart. Shared by the
-   tour's Ask stop and the hero demo, which types the question in first. */
+   tour's Ask stop, the hero demo (which types the question in first) and the
+   features bento (compact). */
 
 export const ASK = {
   question: "When do my links get clicked the most?",
@@ -17,6 +19,9 @@ export function AskCard({
   focused = false,
   asked = true,
   answered,
+  compact = false,
+  hideField = compact,
+  className,
 }: {
   /** Typed into the field but not sent yet. */
   draft?: string;
@@ -24,16 +29,25 @@ export function AskCard({
   /** The question has been sent and sits in the thread. */
   asked?: boolean;
   answered: boolean;
+  /** For small frames, like a bento panel: the answer draws the same hourly
+      bars without their card. */
+  compact?: boolean;
+  /** Leave the field off, e.g. once a small frame needs the room for the
+      answer. Off by default unless compact. */
+  hideField?: boolean;
+  className?: string;
 }) {
   return (
-    <div className="overflow-hidden rounded-md border border-zinc-200 bg-white shadow-xs">
+    // A column, so in a fixed-height frame the field sits at the bottom like a
+    // chat's; at natural height it lays out as before.
+    <div className={cn("flex flex-col overflow-hidden rounded-md border border-zinc-200 bg-white shadow-xs", className)}>
       <div className="flex items-center border-b border-zinc-200 bg-zinc-50 px-5 py-3">
         <span className="flex items-center gap-2 text-base font-semibold text-zinc-900">
           <SparkleIcon size={20} weight="duotone" className="text-amber-500" />
           Ask AI to Create Charts
         </span>
       </div>
-      <div className="space-y-4 p-4">
+      <div className={cn("min-h-0 flex-1", compact ? "space-y-3 p-3" : "space-y-4 p-4")}>
         {asked ? (
           <div className="h2-settle flex gap-3 rounded-lg bg-zinc-100 p-3">
             <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-blue-500 text-white">
@@ -57,7 +71,11 @@ export function AskCard({
               {answered ? (
                 <div className="h2-settle space-y-3">
                   <p className="text-sm text-zinc-900">{ASK.answer}</p>
-                  <HourlyActivityChart data={HOURLY_CLICKS} />
+                  {compact ? (
+                    <BklitVerticalBarChart data={HOURLY_CLICKS} heightClassName="h-[88px]" labelKey="hour" valueKey="clicks" />
+                  ) : (
+                    <HourlyActivityChart data={HOURLY_CLICKS} />
+                  )}
                 </div>
               ) : (
                 <div className="flex items-center gap-1 py-2" aria-label="Thinking">
@@ -70,7 +88,7 @@ export function AskCard({
           </div>
         )}
       </div>
-      <div aria-hidden className="flex items-center gap-3 border-t border-zinc-200 px-4 py-3">
+      <div aria-hidden className={cn("flex items-center gap-3 border-t border-zinc-200 px-4 py-3", hideField && "hidden")}>
         <span
           data-demo="ask-field"
           className={cn(

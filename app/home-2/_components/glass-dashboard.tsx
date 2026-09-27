@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useRef, useState, type ComponentType, type RefObject } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, type ComponentType } from "react";
 import { useInView, useReducedMotion } from "motion/react";
 import {
   ArrowCounterClockwiseIcon,
@@ -20,6 +20,7 @@ import { DemoCursor } from "./demo-cursor";
 import { AlertToasts, AnalyticsPage, HomePage, HomeToast, LinkPage, MonitoringPage } from "./demo-pages";
 import { CHAPTERS, STAGE, T, between, chapterAt, chapterEnd, pageAt, type Page } from "./demo-script";
 import { FOCUS } from "./kit";
+import { useFitScale } from "./use-fit-scale";
 
 /* The hero is the dashboard itself, behind glass, and it plays: one pass
    through the product with sample data. A link is shortened, its clicks come
@@ -39,7 +40,7 @@ export function GlassDashboard() {
   const [clock] = useState(() => createDemoClock(T.end));
   const frameRef = useRef<HTMLDivElement>(null);
   const stageRef = useRef<HTMLDivElement>(null);
-  const scale = useFitScale(frameRef);
+  const scale = useFitScale(frameRef, STAGE.width);
   const reduce = useReducedMotion();
   const inView = useInView(frameRef, { amount: 0.35 });
   // Paused because it scrolled away, not because someone pressed Pause.
@@ -118,20 +119,6 @@ export function GlassDashboard() {
   );
 }
 
-/** Scale the desktop-sized stage down to the frame's width. */
-function useFitScale(ref: RefObject<HTMLElement | null>) {
-  const [scale, setScale] = useState(1);
-  useLayoutEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const fit = () => setScale(Math.min(1, el.clientWidth / STAGE.width));
-    fit();
-    const observer = new ResizeObserver(fit);
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, [ref]);
-  return scale;
-}
 
 /* ───────── The light behind the glass ───────── */
 

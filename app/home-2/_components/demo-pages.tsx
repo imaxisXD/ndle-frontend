@@ -4,12 +4,10 @@ import { useLayoutEffect, useRef, type ComponentType, type ReactNode } from "rea
 import {
   CalendarBlankIcon,
   CaretDownIcon,
-  CheckIcon,
   CircleNotchIcon,
   ClockIcon,
   CopyIcon,
   DownloadSimpleIcon,
-  ExclamationMarkIcon,
   LightningIcon,
   LinkIcon,
   ArrowSquareOutIcon,
@@ -32,6 +30,7 @@ import LinkWithIcon from "@/components/ui/link-with-icon";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { cn, getResponseTimeColor, getUptimeColor } from "@/lib/utils";
 import { ASK, AskCard } from "./ask-card";
+import { LinkAlertToasts, ShortLink, Toast, ToastStack } from "./toast";
 import { useDemo } from "./demo-clock";
 import {
   CURSOR,
@@ -412,7 +411,7 @@ function LaunchRow({ row }: { row: MonitoredRow }) {
       {broken ? (
         <TableCell className="px-5 py-4">
           <p className="text-muted-foreground text-[10px] tracking-wider uppercase">Latency</p>
-          <p className="mt-1 text-xs text-red-600">503</p>
+          <p className="mt-1 text-xs text-red-600">404</p>
         </TableCell>
       ) : (
         <Metric
@@ -534,8 +533,8 @@ const LINK_TABS = [
 /* Newest first, as the Health tab lists them; `ago` is minutes before the
    page opens. */
 const INCIDENTS = [
-  { type: "Resolved", variant: "green", message: "Back online after 4m 12s. 200 OK in 164ms.", ago: "1m" },
-  { type: "Error", variant: "red", message: "503 Service Unavailable from 2 of 4 regions. Alert emailed.", ago: "5m" },
+  { type: "Resolved", variant: "green", message: "Back online on the next check. 200 OK in 164ms.", ago: "1m" },
+  { type: "Error", variant: "red", message: "404 Not Found. Alert emailed.", ago: "5m" },
 ] as const;
 
 const LINK_UPTIME = 99.2;
@@ -683,71 +682,7 @@ function HealthTile({
   );
 }
 
-/* ───────── Toasts over the page ───────── */
-
-/* One toast for the whole demo: the app's "Short link ready" and the two
-   monitoring alerts. A dark card that pops up from the bottom right with
-   room around its two lines, a status dot for what happened, the headline,
-   and one line of detail. Always mounted, so arriving and leaving are both
-   transitions and a seek or Replay never snaps them: in over 400ms from a
-   little lower and smaller, out in 150ms, quieter than they came. A newer
-   toast tucks the older one behind it, peeking out above. */
-
-type ToastTone = "ready" | "down" | "up";
-
-const TOAST_DOT: Record<ToastTone, { Icon: ComponentType<{ size?: number; weight?: "bold" }>; className: string }> = {
-  ready: { Icon: CheckIcon, className: "bg-[var(--sig)] text-[#141312]" },
-  down: { Icon: ExclamationMarkIcon, className: "bg-red-500 text-white" },
-  up: { Icon: CheckIcon, className: "bg-green-500 text-white" },
-};
-
-function Toast({
-  shown,
-  behind = false,
-  tone,
-  title,
-  children,
-}: {
-  shown: boolean;
-  /** A newer toast has landed in front of this one. */
-  behind?: boolean;
-  tone: ToastTone;
-  title: ReactNode;
-  children: ReactNode;
-}) {
-  const { Icon, className } = TOAST_DOT[tone];
-  return (
-    <div
-      className={cn(
-        "col-start-1 row-start-1 origin-bottom self-end transition-[opacity,translate,scale,filter]",
-        !shown
-          ? "translate-y-3 scale-[0.96] opacity-0 blur-[4px] duration-150 ease-out"
-          : behind
-            ? "-translate-y-3 scale-[0.94] opacity-60 blur-none duration-[400ms] ease-[cubic-bezier(0.16,1,0.3,1)]"
-            : "translate-y-0 scale-100 opacity-100 blur-none duration-[400ms] ease-[cubic-bezier(0.16,1,0.3,1)]",
-      )}
-    >
-      <div className="flex items-start gap-3.5 rounded-xl bg-[#141312] px-4 py-3.5 font-sans text-white shadow-[inset_0_1px_0_oklch(1_0_0/0.1),0_1px_2px_oklch(0_0_0/0.2),0_16px_40px_-12px_oklch(0_0_0/0.45)]">
-        <span className={cn("mt-px flex size-[18px] shrink-0 items-center justify-center rounded-full", className)}>
-          <Icon size={11} weight="bold" />
-        </span>
-        <div className="min-w-0">
-          <p className="truncate text-sm leading-5 font-medium">{title}</p>
-          <p className="mt-1 truncate text-[13px] leading-5 text-white/55">{children}</p>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/** Where toasts land: the pane's bottom right, stacked in one spot. */
-function ToastStack({ children }: { children: ReactNode }) {
-  return <div className="absolute right-6 bottom-6 z-10 grid w-[340px]">{children}</div>;
-}
-
-function ShortLink() {
-  return <span className="font-mono text-white/90">{`${SHORT_DOMAIN}/${NEW_LINK.slug}`}</span>;
-}
+/* ───────── Toasts over the page (toast.tsx) ───────── */
 
 /** The app's success toast while the new link settles in, over the older
     rows, clear of the new one and its clicks. */
@@ -762,36 +697,9 @@ export function HomeToast() {
   );
 }
 
-/* The two alerts ndle sends while /launch is down and when it's back. They
-   stay up on Monitoring and clear when the link's page opens. */
+/* The two alerts stay up on Monitoring and clear when the link's page opens. */
 export function AlertToasts() {
   const down = useDemo((t) => between(t, T.alert, T.linkClick));
   const up = useDemo((t) => between(t, T.recovered, T.linkClick));
-  return (
-    <ToastStack>
-      <Toast
-        shown={down}
-        behind={up}
-        tone="down"
-        title={
-          <>
-            <ShortLink /> is down
-          </>
-        }
-      >
-        503 Service Unavailable. We emailed you.
-      </Toast>
-      <Toast
-        shown={up}
-        tone="up"
-        title={
-          <>
-            <ShortLink /> is back online
-          </>
-        }
-      >
-        Down for 4m 12s. We emailed you again.
-      </Toast>
-    </ToastStack>
-  );
+  return <LinkAlertToasts down={down} up={up} />;
 }
