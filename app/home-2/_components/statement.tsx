@@ -26,7 +26,7 @@ import { useStillAfterMount } from "./use-loop-time";
      break    a crack runs down its middle, the halves snap apart and chips
               fall out; the red alert LED lights as its full stop, and a
               yellow ring is drawn around it: caught. Hover it (or tap it)
-              and short wraps of white bandage bind the crack shut
+              and a small cross bandage slaps on over the crack
 
    Clicks are counted on the page only; nothing is sent anywhere. Reduced
    motion gets the finished line, still, and the button still counts. */
@@ -462,15 +462,16 @@ const at = (s: number) => BREAK.at + s;
 const INSTANT = { duration: 0 };
 
 /* Where the halves rest once the bandage holds them: nearly back
-   together, the crack still showing between the wraps. */
+   together, the crack still showing past its ends. */
 const MENDED = {
   left: { x: "-0.004em", y: "0em", rotate: -0.6 },
   right: { x: "0.01em", y: "0.006em", rotate: 0.8 },
 };
 const MEND_SPRING = { type: "spring" as const, stiffness: 420, damping: 22 };
 
-/* A broken word you can mend: hover it (or tap it) and a bandage winds on
-   over the crack and pulls the halves together; leave and it unwinds. */
+/* A broken word you can mend: hover it (or tap it) and a cross bandage
+   slaps on over the crack and pulls the halves together; leave and it
+   peels off. */
 function useMend(broken: boolean) {
   const [mended, setMended] = useState(false);
   // Once mended, the halves move on the bandage's spring, not the break's beat.
@@ -597,107 +598,67 @@ function Break({ broken, still }: { broken: boolean; still: boolean }) {
   );
 }
 
-/* A bandage on the crack itself, not the letter: three short wraps of white
-   gauze across the seam, one at each turn of its zigzag, as if the break
-   were bound shut. Drawn like the page's other doodles, an ink outline a
-   little off true; each wrap white, shading to grey at its lower edge and
-   darker at both ends where it turns away round the back, with a faint
-   dotted weave. A loose end hangs off the middle wrap. Wound on one wrap
-   after another; unwound quicker than it went on. */
+/* A small cross bandage on the crack: two short sticking plasters crossed
+   in an X, like a cartoon boo-boo. Each is drawn like the page's other
+   doodles: an ink outline a little off true, tan tape with a row of dotted
+   holes at each end, and the pale pad in the middle, where the two cross.
+   The first slaps on, then the second across it; they peel off quicker
+   than they went on. */
 
-/* Each wrap: where it crosses the seam (% of the word's box, from the
-   seam's own turns) and its tilt. */
-const WRAPS = [
-  { left: 48.5, top: 25, tilt: -9 },
-  { left: 54.5, top: 47, tilt: 7, tail: true },
-  { left: 46.5, top: 69, tilt: -6 },
-];
-
-const BANDAGE = {
-  width: "0.3em", // each wrap, across the seam
-  // One wrap on a 30 × 12 box, rounded where it turns away round the back
-  wrap: "M2 3 Q15 0.6 28 2.2 Q30.4 6 28 9.8 Q15 8.2 2 10.6 Q-0.2 6.8 2 3 Z",
-  crease: "M4.5 7.4 Q15 5.4 25.5 6.2",
-  tail: "M21.5 8.6 L26.5 8 C27.6 11.4 26 14 27.6 17.4 L23 18 C21.8 14.8 23.4 11.6 21.5 8.6 Z",
-  wind: { every: 0.09, each: 0.18 },
-  unwind: 0.14,
-  colors: { gauze: "#ffffff", shade: "#e2dfd8", weave: "#cfcbc2" },
+const CROSS = {
+  width: "0.42em", // each plaster
+  // The pair: tilt, and which goes on first (the under one)
+  strips: [
+    { tilt: 36, delay: 0 },
+    { tilt: -34, delay: 0.09 },
+  ],
+  spring: { type: "spring" as const, stiffness: 560, damping: 20 },
+  peel: 0.14,
+  colors: { tape: "#f0c596", pad: "#f8e3c8", holes: "#c99562" },
+  // One plaster on a 62 × 20 box
+  outline:
+    "M9 1.7 C24 0.7 40 1.5 53 1.2 C58.6 1.4 61 5.6 61 10 C61 15.1 57.6 18.8 52.6 18.6 C38 18.2 24 19.3 9.4 18.6 C4.2 18.4 1 14.8 1.2 10 C1.4 5 4.2 1.9 9 1.7 Z",
 };
+const HOLES = [7, 11, 15, 47, 51, 55].flatMap((x) => [6.8, 13.2].map((y) => ({ x, y })));
 
 function Bandage({ on, still }: { on: boolean; still: boolean }) {
   return (
-    <span aria-hidden className="pointer-events-none absolute inset-0 z-10">
-      {WRAPS.map((w, i) => (
-        <span
-          key={i}
-          className="absolute -translate-x-1/2 -translate-y-1/2"
-          style={{ left: `${w.left}%`, top: `${w.top}%`, width: BANDAGE.width, rotate: `${w.tilt}deg` }}
-        >
-          <Wrap index={i} tail={!!w.tail} on={on} still={still} />
+    <span aria-hidden className="pointer-events-none absolute top-[48%] left-[51%] z-10">
+      {CROSS.strips.map((strip, i) => (
+        // Centred on the crack first, so both turn about the same point: an X
+        <span key={i} className="absolute top-0 left-0 -translate-x-1/2 -translate-y-1/2" style={{ rotate: `${strip.tilt}deg` }}>
+          {still ? (
+            <Plaster />
+          ) : (
+            <motion.span
+              className="block"
+              initial={false}
+              animate={on ? { opacity: 1, scale: 1, y: "0em" } : { opacity: 0, scale: 1.35, y: "-0.05em" }}
+              transition={on ? { ...CROSS.spring, delay: strip.delay } : { duration: CROSS.peel, ease: "easeOut" }}
+            >
+              <Plaster />
+            </motion.span>
+          )}
         </span>
       ))}
     </span>
   );
 }
 
-function Wrap({ index, tail, on, still }: { index: number; tail: boolean; on: boolean; still: boolean }) {
-  const id = useId().replace(/:/g, "");
-  const ids = { shade: `wrap-shade-${id}`, turn: `wrap-turn-${id}`, weave: `wrap-weave-${id}` };
-  const drawn = (
-    <>
-      {tail && (
-        <>
-          <path d={BANDAGE.tail} fill={`url(#${ids.shade})`} />
-          <path d={BANDAGE.tail} stroke={INK} strokeWidth={1.1} strokeLinejoin="round" />
-        </>
-      )}
-      <path d={BANDAGE.wrap} fill={`url(#${ids.shade})`} />
-      <path d={BANDAGE.wrap} fill={`url(#${ids.turn})`} />
-      <path d={BANDAGE.wrap} fill={`url(#${ids.weave})`} />
-      <path d={BANDAGE.crease} stroke={BANDAGE.colors.shade} strokeWidth={0.9} strokeLinecap="round" />
-      <path d={BANDAGE.wrap} stroke={INK} strokeWidth={1.1} strokeLinejoin="round" />
-    </>
-  );
-
+function Plaster() {
   return (
-    <svg viewBox="0 0 30 12" className="block overflow-visible drop-shadow-[0_0.012em_0.016em_rgba(0,0,0,0.22)]" fill="none">
-      <defs>
-        {/* Lit from above: white, shading to grey at its lower edge */}
-        <linearGradient id={ids.shade} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0.45" stopColor={BANDAGE.colors.gauze} />
-          <stop offset="1" stopColor={BANDAGE.colors.shade} />
-        </linearGradient>
-        {/* Darker at both ends, where the wrap turns away round the back */}
-        <linearGradient id={ids.turn} x1="0" y1="0" x2="1" y2="0">
-          <stop offset="0" stopColor="#000" stopOpacity={0.14} />
-          <stop offset="0.18" stopColor="#000" stopOpacity={0} />
-          <stop offset="0.82" stopColor="#000" stopOpacity={0} />
-          <stop offset="1" stopColor="#000" stopOpacity={0.14} />
-        </linearGradient>
-        {/* The gauze's weave, in faint dots */}
-        <pattern id={ids.weave} width={2} height={2} patternUnits="userSpaceOnUse">
-          <circle cx={1} cy={1} r={0.3} fill={BANDAGE.colors.weave} />
-        </pattern>
-      </defs>
-      {still ? (
-        drawn
-      ) : (
-        <motion.g
-          initial={false}
-          style={{ transformBox: "fill-box", originX: 0 }}
-          animate={on ? { opacity: 1, scaleX: 1 } : { opacity: 0, scaleX: 0 }}
-          transition={
-            on
-              ? {
-                  opacity: { delay: index * BANDAGE.wind.every, duration: 0.05 },
-                  scaleX: { delay: index * BANDAGE.wind.every, duration: BANDAGE.wind.each, ease: "easeOut" },
-                }
-              : { duration: BANDAGE.unwind, ease: "easeIn" }
-          }
-        >
-          {drawn}
-        </motion.g>
-      )}
+    <svg
+      viewBox="0 0 62 20"
+      className="block overflow-visible drop-shadow-[0_0.012em_0.016em_rgba(0,0,0,0.26)]"
+      style={{ width: CROSS.width }}
+      fill="none"
+    >
+      <path d={CROSS.outline} fill={CROSS.colors.tape} stroke={INK} strokeWidth={1.6} strokeLinejoin="round" />
+      <rect x={23} y={3.8} width={16} height={12.4} rx={2.6} fill={CROSS.colors.pad} stroke={CROSS.colors.holes} strokeWidth={0.8} />
+      {HOLES.map(({ x, y }) => (
+        <circle key={`${x}-${y}`} cx={x} cy={y} r={0.9} fill={CROSS.colors.holes} />
+      ))}
+      <path d="M11 4.6 C18 4.1 26 4.2 34 4" stroke="#ffffff" strokeOpacity={0.55} strokeWidth={1.1} strokeLinecap="round" />
     </svg>
   );
 }

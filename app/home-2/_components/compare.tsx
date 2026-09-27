@@ -2,6 +2,8 @@
 
 import { useQuery } from "convex/react";
 import { CheckIcon, TagIcon, XIcon } from "@phosphor-icons/react/dist/ssr";
+import { COUNTER_TEXTURE } from "@/components/charts/live-click-hero";
+import { LiveDot } from "@/components/ui/live-dot";
 import { api } from "@/convex/_generated/api";
 import { cn } from "@/lib/utils";
 import { ActionLink, INK_TITLE, InkBadge } from "./kit";
@@ -19,7 +21,6 @@ const ROWS: Array<{
   shortio: Value;
   only?: boolean;
 }> = [
-  { label: "Price to start", ndle: "Free", bitly: "Free", dub: "Free", shortio: "Free" },
   { label: "Free short links", ndle: "100 active", bitly: "5 a month", dub: "25 a month", shortio: "1,000*" },
   { label: "Custom domains", ndle: "1", bitly: false, dub: "3", shortio: "5" },
   { label: "QR codes", ndle: "Unlimited", bitly: "2 / mo", dub: true, shortio: true },
@@ -39,7 +40,9 @@ const PLANS = [
 
 type PlanKey = (typeof PLANS)[number]["key"];
 
-const [PRICE, ...FEATURES] = ROWS;
+/* Every plan here is a free one, so the cards show no price: the section's
+   title says it, and each card's "Free plan" line. */
+const FEATURES = ROWS;
 
 /* The plans, after capy.ai's Pricing: a centred head, a black banner with
    the offer, then one ink card per free plan. ndle's card is the inverted
@@ -61,8 +64,12 @@ export function Compare({ signedIn = false }: { signedIn?: boolean }) {
         <p className="mt-4 font-mono text-[17px] leading-[1.45] text-[#141312]">Broken-link checks, free.</p>
       </div>
 
-      {/* The offer */}
-      <div className="mt-12 flex flex-col gap-8 border-2 border-[#141312] bg-[#141312] px-7 py-9 text-white sm:px-10 lg:flex-row lg:items-center lg:justify-between">
+      {/* The offer, on the Live Click Counter's black with its faint white
+          checker across the whole card. */}
+      <div
+        className="mt-12 flex flex-col gap-8 border-2 border-[#141312] bg-black px-7 py-9 text-white sm:px-10 lg:flex-row lg:items-center lg:justify-between"
+        style={COUNTER_TEXTURE}
+      >
         <div>
           <p className="font-[family-name:var(--font-bebas)] text-[clamp(2.5rem,4.6vw,3.5rem)] leading-[0.92] uppercase">
             100 links free.
@@ -72,26 +79,24 @@ export function Compare({ signedIn = false }: { signedIn?: boolean }) {
             The free plan has 100 active links, 1 custom domain and unlimited QR codes, and every link is checked every
             30 minutes. No card needed.
           </p>
-          <ActionLink href={signedIn ? "/dashboard" : "/sign-up?redirect_url=/dashboard"} className="mt-6 focus-visible:ring-offset-[#141312]">
+          <ActionLink href={signedIn ? "/dashboard" : "/sign-up?redirect_url=/dashboard"} className="mt-6 focus-visible:ring-offset-black">
             {signedIn ? "Open your dashboard" : "Get ndle free"}
           </ActionLink>
         </div>
-        {/* The real click total, live; until there is one, the offer's number. */}
+        {/* The real click total, live; until there is one, the offer's number.
+            Captioned the counter's way: yellow, in brackets. */}
         <div className="shrink-0 lg:text-right">
-          <p className="font-doto roundness-100 text-[clamp(3rem,6vw,4.75rem)] leading-none font-black text-white tabular-nums">
+          <p className="font-doto roundness-100 text-[clamp(3rem,6vw,4.75rem)] leading-none font-black text-white/90 tabular-nums">
             {live ? live.total.toLocaleString("en-US") : "100"}
           </p>
-          <p className="mt-3 flex items-center gap-2 font-mono text-xs text-white/60 lg:justify-end">
+          <p className="mt-3 flex items-center gap-2 font-mono text-xs text-[var(--sig)] lg:justify-end">
             {live ? (
               <>
-                <span className="animate-live-blip size-1.5 rounded-full bg-green-500" />
-                clicks counted on ndle so far
+                <LiveDot />
+                [clicks counted on ndle]
               </>
             ) : (
-              <>
-                <span className="bg-accent size-1.5 rounded-full" />
-                free links, every one checked
-              </>
+              "[free links, every one checked]"
             )}
           </p>
         </div>
@@ -133,7 +138,6 @@ function Plan({ plan, name }: { plan: PlanKey; name: string }) {
         )}
       </div>
       <p className={cn("mt-1 font-mono text-xs", ours ? "text-white/55" : "text-[#6b6b6b]")}>Free plan</p>
-      <p className="mt-5 font-[family-name:var(--font-bebas)] text-[48px] leading-none uppercase">{PRICE[plan] as string}</p>
 
       <ul className="mt-6 space-y-3 font-mono text-[13px] leading-5">
         {FEATURES.map((row) => {

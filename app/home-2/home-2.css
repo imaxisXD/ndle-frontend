@@ -35,14 +35,6 @@
   background-size: 16px 16px;
 }
 
-/* The sign word: set in the dot face that echoes the ndle logo. */
-.h2-sign {
-  font-family: var(--font-doto), var(--font-geist-mono), monospace;
-  font-weight: 900;
-  font-variation-settings: "ROND" 100;
-  letter-spacing: -0.01em;
-}
-
 /* The sign's full stop is a real LED: a Signal Yellow dot that pulses like the
    product's live indicator. */
 .h2-led {
@@ -128,13 +120,6 @@
     filter: none;
     transform: none;
   }
-}
-
-/* The dot word sits dim like an unlit sign until its turn, then switches on.
-   Reuses the global bulb-switch keyframes from the footer sign. */
-.h2-bulb {
-  animation: bulb-switch 1s cubic-bezier(0.25, 1, 0.5, 1) both;
-  animation-delay: var(--h2-delay, 0ms);
 }
 
 /* Activity timeline: line draws, marker lands, content settles. */
@@ -359,7 +344,6 @@
 @media (prefers-reduced-motion: reduce) {
   .h2-rise,
   .h2-rise-block,
-  .h2-bulb,
   .h2-line,
   .h2-marker,
   .h2-event,

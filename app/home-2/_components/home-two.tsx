@@ -33,7 +33,7 @@ type GuestRow = { short: string; destination: string };
  *
  *     0ms   "Short"        rises out of blur
  *    70ms   "links,"
- *   260ms   "watched"      a dot sign: sits dim, then switches on like a bulb;
+ *   260ms   "watched"      rises like the rest, in the page's tall capitals;
  *                          its full stop is a live yellow LED
  *   420ms   description    rises as one block
  *   540ms   form           rises as one block
@@ -43,7 +43,7 @@ type GuestRow = { short: string; destination: string };
  *           chapters and Replay under it
  * ───────────────────────────────────────────────────────── */
 
-const DELAY = { word: 70, bulb: 260, copy: 420, form: 540, pane: 680 };
+const DELAY = { word: 70, watched: 260, copy: 420, form: 540, pane: 680 };
 
 const SIGN_UP = "/sign-up?redirect_url=/dashboard";
 
@@ -161,8 +161,12 @@ export function HomeTwo() {
                 links,
               </span>
               <br />
-              <span className="h2-bulb inline-block" style={delay(DELAY.bulb)}>
-                <span className="h2-sign text-[1.06em]">watched</span>
+              <span className="h2-rise inline-block" style={delay(DELAY.watched)}>
+                {/* In the tall capitals the rest of the page uses for its
+                    titles; leading after the size so it isn't dropped */}
+                <span className="font-[family-name:var(--font-bebas)] text-[1.32em] leading-[0.9] font-normal tracking-[-0.005em] uppercase">
+                  watched
+                </span>
                 <span className="h2-led" />
                 <span className="sr-only">.</span>
               </span>
