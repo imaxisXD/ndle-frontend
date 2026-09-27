@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 
 const isPublicRoute = createRouteMatcher([
   "/",
+  "/home-2",
   "/api/favicon(.*)",
   "/api/getFavicon(.*)",
   "/api/guest-session",

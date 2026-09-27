@@ -1,0 +1,346 @@
+/* /home-2 — the dashboard, lit up. Light stage (the product's own surface),
+   one warm Signal Yellow light behind the product, dot-matrix details from the
+   ndle sign. Every animation here has a prefers-reduced-motion path at the
+   bottom of the file. */
+
+.h2-day {
+  /* Pure white, with a faint dot grid; the product views keep the
+     dashboard's own grey canvas so they read as the app. */
+  --bg: #ffffff;
+  --dots: #e4e4e2;
+  --raise: oklch(1 0 0);
+  --line: oklch(0 0 0 / 0.07);
+  --line-2: oklch(0 0 0 / 0.12);
+  --dash: oklch(0.7 0.01 85 / 0.6);
+  --fg: oklch(0.16 0.006 85);
+  --fg-2: oklch(0.42 0.005 85);
+  --fg-3: oklch(0.5 0.005 85);
+  --sig: oklch(0.86 0.17 88);
+  background: var(--bg);
+  color: var(--fg);
+}
+
+/* The landing page's canvas: the dashboard's 16px dot grid on white. */
+.h2-canvas {
+  background-color: var(--bg);
+  background-image: radial-gradient(var(--dots) 1px, transparent 1px);
+  background-size: 16px 16px;
+}
+
+/* The dashboard's own canvas: the app shell's grey with its 16px dot grid.
+   Used for the product views shown on the page. */
+.dot-page {
+  background-color: var(--home);
+  background-image: radial-gradient(#e2e2e2 1px, transparent 1px);
+  background-size: 16px 16px;
+}
+
+/* The sign word: set in the dot face that echoes the ndle logo. */
+.h2-sign {
+  font-family: var(--font-doto), var(--font-geist-mono), monospace;
+  font-weight: 900;
+  font-variation-settings: "ROND" 100;
+  letter-spacing: -0.01em;
+}
+
+/* The sign's full stop is a real LED: a Signal Yellow dot that pulses like the
+   product's live indicator. */
+.h2-led {
+  position: relative;
+  display: inline-block;
+  width: 0.16em;
+  height: 0.16em;
+  margin-left: 0.08em;
+  border-radius: 9999px;
+  background: var(--sig);
+  box-shadow: 0 0 0 1px oklch(0.7 0.14 80 / 0.5);
+}
+
+.h2-led::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: inherit;
+  animation: h2-led 3.2s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+  animation-delay: 1.4s;
+}
+
+/* The same LED reporting a failure. */
+.h2-led-alert {
+  background: oklch(0.63 0.22 27);
+  box-shadow: 0 0 0 1px oklch(0.5 0.2 27 / 0.45);
+}
+
+@keyframes h2-led {
+  0% {
+    opacity: 0.7;
+    transform: scale(1);
+  }
+  40%,
+  100% {
+    opacity: 0;
+    transform: scale(3.2);
+  }
+}
+
+/* Delays are set per element and must not leak into children: a status badge
+   inside the console would otherwise inherit the console's 700ms entrance delay. */
+@property --h2-delay {
+  syntax: "<time>";
+  inherits: false;
+  initial-value: 0ms;
+}
+
+/* Hero stagger: blur 10px -> 0, opacity 0 -> 1, translateY 20% -> 0.
+   CSS (not JS) so it runs before hydration and never strands hidden text. */
+.h2-rise {
+  animation: h2-rise 900ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: var(--h2-delay, 0ms);
+}
+
+.h2-rise-block {
+  animation: h2-rise-block 900ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: var(--h2-delay, 0ms);
+}
+
+@keyframes h2-rise {
+  from {
+    opacity: 0;
+    filter: blur(10px);
+    transform: translateY(20%);
+  }
+  to {
+    opacity: 1;
+    filter: none;
+    transform: none;
+  }
+}
+
+@keyframes h2-rise-block {
+  from {
+    opacity: 0;
+    filter: blur(8px);
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    filter: none;
+    transform: none;
+  }
+}
+
+/* The dot word sits dim like an unlit sign until its turn, then switches on.
+   Reuses the global bulb-switch keyframes from the footer sign. */
+.h2-bulb {
+  animation: bulb-switch 1s cubic-bezier(0.25, 1, 0.5, 1) both;
+  animation-delay: var(--h2-delay, 0ms);
+}
+
+/* Activity timeline: line draws, marker lands, content settles. */
+.h2-line {
+  transform-origin: top;
+  animation: h2-line 360ms cubic-bezier(0.65, 0, 0.35, 1) both;
+}
+
+.h2-marker {
+  animation: h2-marker 260ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: 300ms;
+}
+
+.h2-event {
+  animation: h2-rise-block 420ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: 380ms;
+}
+
+@keyframes h2-line {
+  from {
+    transform: scaleY(0);
+  }
+  to {
+    transform: scaleY(1);
+  }
+}
+
+@keyframes h2-marker {
+  from {
+    opacity: 0;
+    transform: scale(0.4);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* A generic settle for pieces that appear in place (status swaps, emails). */
+.h2-settle {
+  animation: h2-rise-block 480ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: var(--h2-delay, 0ms);
+}
+
+/* Chat bars grow from the axis. */
+.h2-bar {
+  transform-origin: left;
+  animation: h2-bar 700ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: var(--h2-delay, 0ms);
+}
+
+@keyframes h2-bar {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+/* Latency line draws itself left to right. */
+/* The dash is longer than any path (pathLength=1, scaled up to ~2x by
+   preserveAspectRatio=none), so the line is fully drawn before offset hits 0. */
+.h2-draw {
+  stroke-dasharray: 3;
+  stroke-dashoffset: 3;
+  animation: h2-draw 1600ms cubic-bezier(0.65, 0, 0.35, 1) forwards;
+  animation-delay: var(--h2-delay, 0ms);
+}
+
+@keyframes h2-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* The live ticker scrolls one copy of its text, then repeats seamlessly. */
+.h2-ticker {
+  animation: h2-ticker 22s linear infinite;
+}
+
+@keyframes h2-ticker {
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+/* LED clock colon. */
+.h2-colon {
+  animation: live-blip 1s steps(2, start) infinite;
+}
+
+/* ───────── Hero demo (glass-dashboard.tsx) ───────── */
+
+/* A page opening inside the pane, the way the app swaps routes. */
+.h2-page {
+  animation: h2-page 320ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes h2-page {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* The text caret in a focused field. */
+.h2-caret {
+  animation: live-blip 1s steps(2, start) infinite;
+}
+
+/* A new table row opens from nothing, pushing the rows below it down. */
+.h2-row-open {
+  display: grid;
+  animation: h2-row-open 520ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.h2-row-open > * {
+  min-height: 0;
+  overflow: hidden;
+}
+
+@keyframes h2-row-open {
+  from {
+    grid-template-rows: 0fr;
+    opacity: 0;
+  }
+  to {
+    grid-template-rows: 1fr;
+    opacity: 1;
+  }
+}
+
+/* A just-made row is tinted Signal Yellow, then settles to the table. */
+.h2-fresh {
+  animation: h2-fresh 2400ms ease-out both;
+}
+
+@keyframes h2-fresh {
+  from,
+  30% {
+    background-color: oklch(0.86 0.17 88 / 0.14);
+  }
+  to {
+    background-color: transparent;
+  }
+}
+
+/* The demo pointer's click: it dips, and a ring spreads from the tip. */
+.h2-press {
+  animation: h2-press 220ms cubic-bezier(0.33, 1, 0.68, 1);
+}
+
+@keyframes h2-press {
+  40% {
+    transform: scale(0.84);
+  }
+}
+
+.h2-ripple {
+  border: 2px solid oklch(0.8 0.16 85 / 0.9);
+  animation: h2-ripple 450ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes h2-ripple {
+  from {
+    opacity: 1;
+    transform: scale(0.3);
+  }
+  to {
+    opacity: 0;
+    transform: scale(1.5);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .h2-rise,
+  .h2-rise-block,
+  .h2-bulb,
+  .h2-line,
+  .h2-marker,
+  .h2-event,
+  .h2-settle,
+  .h2-bar,
+  .h2-ticker,
+  .h2-colon,
+  .h2-page,
+  .h2-caret,
+  .h2-row-open,
+  .h2-fresh,
+  .h2-press,
+  .h2-ripple {
+    animation: none;
+  }
+
+  .h2-draw {
+    animation: none;
+    stroke-dashoffset: 0;
+  }
+
+  .h2-led::after {
+    animation: none;
+    opacity: 0;
+  }
+}
