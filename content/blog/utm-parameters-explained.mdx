@@ -1,0 +1,50 @@
+import { Figure, UtmAnatomy } from "@/app/blog/_components/diagrams";
+
+UTM parameters are tags you add to the end of a link so your analytics can tell where a visit came from. Without them, a click from your newsletter and a click from a friend's message can look exactly the same. With them, each campaign gets its own line in the report.
+
+<Figure caption="A campaign link, taken apart">
+  <UtmAnatomy />
+</Figure>
+
+## The parameters
+
+Google Analytics recognises these ([Google Analytics Help](https://support.google.com/analytics/answer/10917952)):
+
+| Parameter | What it records | Example |
+| --- | --- | --- |
+| `utm_source` | Where the click came from | `newsletter`, `google`, `instagram` |
+| `utm_medium` | The kind of channel | `email`, `cpc`, `social` |
+| `utm_campaign` | The promotion | `spring_sale` |
+| `utm_content` | Which link or ad, when there are several | `header_button` |
+| `utm_term` | The paid keyword | `running_shoes` |
+| `utm_id` | A campaign ID from your ad platform | `1234567` |
+
+Google says you "should always use `utm_source`, `utm_medium`, and `utm_campaign`". The others are optional. Analytics also accepts `utm_source_platform`, `utm_creative_format` and `utm_marketing_tactic`, though Google notes the last two aren't reported in GA4 yet.
+
+## How to name them
+
+Most UTM problems are naming problems. Google Analytics treats every different spelling as a different value, and "parameter values are case sensitive", so `Facebook`, `facebook` and `fb` become three sources.
+
+- **Use lowercase,** always.
+- **Use underscores** instead of spaces: `spring_sale`, not `Spring Sale`.
+- **Keep a list** of the sources and mediums your team uses, and stick to it.
+- **Match medium to the channel,** not the campaign: `email` for every email, `social` for every social post.
+
+## Where to use them
+
+Tag links you share outside your own site:
+
+- newsletters and email campaigns
+- social posts, bios and ads
+- QR codes on print, so scans show up separately from typed visits
+- partner and affiliate links
+
+Don't tag links between your own pages. A tag tells Analytics where a visit came from, so tagging an internal link replaces the real source (say, a Google search) with your own tag.
+
+## Build one
+
+You can type the tags by hand, but it's easy to slip. The free [UTM builder](/tools/utm-builder) adds them for you, and warns you when a required one is missing or a value has capitals.
+
+## Keep campaign links short
+
+Tagged links are long, which is fine in an email button and awkward everywhere else. A short link hides the tags: `ndle.fyi/k3x9qa` can open the full campaign address. ndle's link form has a UTM builder built in, with saved templates for the tags you reuse, and its stats break clicks down by UTM campaign. It also checks the page behind every short link every 30 minutes, so a campaign doesn't keep sending people to a page that's gone.

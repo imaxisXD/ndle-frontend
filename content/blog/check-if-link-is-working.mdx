@@ -1,0 +1,51 @@
+import { Figure, StatusCodes } from "@/app/blog/_components/diagrams";
+
+Clicking a link tells you it works for you, right now, on your computer. That isn't always what your readers get. Here's how to check a link properly, see what's really happening behind it, and keep checking it after it's shared.
+
+## Open it the way your readers will
+
+Your own browser is the worst place to test, because it remembers too much. Before you trust a link:
+
+- **Open it in a private window.** Pages that need you to be signed in will look fine to you and fail for everyone else.
+- **Open it on a phone,** on mobile data. Some pages break only on small screens or outside your office network.
+- **Copy it from where it's published,** not from your notes. A link that's fine in your document can arrive with a typo, a missing character or a line break in the middle.
+
+## Read the status code
+
+Every time a browser asks for a page, the server answers with a three-digit status code before the page itself. It's the fastest way to tell a working link from a broken one, even when the page looks fine.
+
+<Figure caption="The status codes worth knowing">
+  <StatusCodes />
+</Figure>
+
+To see it:
+
+- **In your browser.** Open the developer tools, go to the Network tab and reload the page. The first row shows the address and its status.
+- **With ndle's [free link checker](/tools/link-checker).** Paste the link and it shows the status code and every redirect.
+- **In a terminal.** `curl` prints only the answer's headers with `-I`, and follows every redirect with `-L`:
+
+```bash
+curl -IL https://example.com/your-link
+```
+
+Each `HTTP/` line is one hop. The last one is what your reader ends up with.
+
+## Follow the redirects
+
+A short link is a redirect: its first answer is a 301 or 302 pointing somewhere else. So a short link can answer perfectly and still send people to a page that's gone. Always check the last hop, not the first.
+
+Watch for chains, too. A link that redirects to another short link, then to a page that redirects again, is slow and fragile, and every hop is one more thing that can fail. If a browser reports "too many redirects", two addresses are pointing at each other.
+
+## Check the certificate
+
+On a secure page, the browser shows a padlock next to the address. Click it to see the certificate and its expiry date. An expired certificate doesn't return an error code; browsers simply show a full-page warning, and most people turn back.
+
+## Watch for pages that fail quietly
+
+Some broken pages still answer "200 OK": a shop's "this product is no longer available" page, a "page not found" message on a normal-looking page, or a login screen. These are sometimes called soft 404s, and a status code alone can't catch them. For links that earn money, such as product and affiliate links, open the page and read it.
+
+## Keep checking it
+
+A link that works today can break next month, when the site is rebuilt or the page is removed. Checking once, before you share it, isn't enough for links that stay in print, in old posts or in email templates.
+
+That's what ndle does for you. ndle is a free URL shortener that checks the page behind every short link every 30 minutes, following its redirects to the end. When a page returns a 404 or most server errors, times out, or fails its certificate check, the link is flagged on your Monitoring page. If you're dealing with links that already broke, see [what link rot is and how to slow it down](/blog/what-is-link-rot).

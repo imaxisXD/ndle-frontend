@@ -1,0 +1,41 @@
+import { Figure, StaticVsDynamic } from "@/app/blog/_components/diagrams";
+
+A QR code itself can't expire. It's a pattern of squares, and it holds the same data for as long as it's printed. What can expire is the link inside it, and whether that can happen depends on which kind of code you made.
+
+<Figure caption="What each kind of code holds">
+  <StaticVsDynamic />
+</Figure>
+
+## Static codes don't expire
+
+A static code holds your page's address directly. Scanning it takes people straight to that address, with nothing in between. There's no account, no service and no subscription for it to depend on, so it can't be switched off.
+
+The catch is that it can't be changed either. If the page at that address moves, the code keeps pointing at the old one. So a static code "expires" only when the page it points to does.
+
+## Dynamic codes can
+
+A dynamic code holds a short link, and the short link redirects to your page. That's what lets a generator count scans and change where a code goes after it's printed. But the code now depends on the company that runs the short link: "the reliability of the code is dependent on the continued operation of this provider" ([Wikipedia](https://en.wikipedia.org/wiki/Dynamic_QR_code)).
+
+That's where expiry comes in. A dynamic code can stop working when:
+
+- **A free trial ends.** QR Code Generator, for example, says that after its trial, dynamic codes "are deactivated and point to a service page" ([QR Code Generator](https://support.qr-code-generator.com/hc/en-us/articles/7665046137613)).
+- **A scan limit is reached.** QR TIGER's free dynamic codes stop after 500 scans ([QR TIGER Help Center](https://qrtiger.helpscoutdocs.com/article/368-how-do-i-fix-a-qr-code-that-has-reached-its-scan-limit)).
+- **A plan is cancelled** or the account is deleted.
+- **The provider closes.** When Google shut down Firebase Dynamic Links, every one of those links stopped working ([Firebase](https://firebase.google.com/support/dynamic-links-faq)).
+
+Not every dynamic code has these limits. Bitly, for example, says the QR codes you create with it "never expire" ([Bitly Support](https://support.bitly.com/hc/en-us/articles/12231200298125)). Read the terms before you print.
+
+## How to tell which one you have
+
+Scan the code and look at the address your phone shows before you open it:
+
+- **Your own website's address:** it's static. It'll work as long as that page does.
+- **A short link on the generator's domain:** it's dynamic. It'll work as long as the generator, your plan and the page all do.
+
+## Make one that lasts
+
+- **For something that will never change,** like a website's front page, a static code is simplest.
+- **For anything that might change,** use a dynamic code from a service with no trial or scan limit, ideally on your own domain, so you can move it later.
+- **Either way, watch the page.** Most codes that "expire" are really pages that moved. If a code has already stopped, see [QR code stopped working? Check the destination first](/blog/qr-code-stopped-working).
+
+ndle makes a QR code for every short link, free and unlimited, with no trial and no scan limit. Links on a free account don't expire unless you set a date, and ndle checks the page behind every link every 30 minutes. See [how ndle QR codes work](/use-cases/qr-codes).

@@ -1,0 +1,69 @@
+import { FailedCheck, Figure, QrPath, StaticVsDynamic } from "@/app/blog/_components/diagrams";
+
+A QR code is a web address printed as a picture. When one stops working, the print is rarely the problem. Far more often the phone reads the code fine and then lands on an error, an "unavailable" page or an ad, because the link behind the code broke.
+
+So before you reprint anything, find out which part failed. It takes about a minute.
+
+<Figure caption="Printed code › short link › your page">
+  <QrPath />
+</Figure>
+
+## Find which part broke
+
+Scan the code with your phone's camera and watch what happens.
+
+1. **Nothing happens, or the camera can't read it.** The print is the problem. The code may be too small for the distance, too low in contrast, or creased, glossy or damaged. Move closer, try better light, and try a second phone. If another phone reads it, the code itself is fine.
+2. **A link appears, but it opens a page saying the code is inactive, expired or needs an upgrade, or it shows an ad first.** The short link inside the code is the problem. It belongs to the QR code generator you used, and that page comes from them.
+3. **A link appears and opens an error**, such as "Page not found", "This site can't be reached" or a warning that the connection isn't private. Your page is the problem. The code and the link did their job.
+
+To see exactly where the code goes, copy the link your camera shows and open it in a desktop browser. If it redirects, a redirect checker shows every hop and the status code at the end.
+
+## Why the link behind a QR code stops working
+
+Most of the reasons have nothing to do with the code you printed.
+
+- **The generator's trial or plan ended.** Many free QR generators make codes that only work while your account is in good standing. QR TIGER's free dynamic codes, for example, are limited to 500 scans each, and once that limit is reached, "the QR code becomes inactive" ([QR TIGER Help Center](https://qrtiger.helpscoutdocs.com/article/368-how-do-i-fix-a-qr-code-that-has-reached-its-scan-limit)).
+- **An ad page was put in front of it.** Bitly now shows a preview page with an ad before links from free accounts open ([Bitly Support](https://support.bitly.com/hc/en-us/articles/32874287800333-Why-are-there-ads-on-my-links)). A QR code that points at one of those links shows it too.
+- **The page moved or was deleted.** A site redesign, a new menu address or a product that sold out leaves the old address returning "404 Not Found". Links rot fast: Pew Research found that 38% of webpages that existed in 2013 were gone a decade later ([Pew Research Center](https://www.pewresearch.org/data-labs/2024/05/17/when-online-content-disappears/)).
+- **The domain or certificate expired.** When a domain lapses, the address stops working entirely. When the SSL certificate expires, browsers show a security warning, and most people turn back.
+- **The site is down.** Sometimes the page is fine and the server is simply offline. It usually comes back, but a poster doesn't wait.
+
+## Static or dynamic: which did you print?
+
+There are two kinds of QR code, and they fail in different ways.
+
+<Figure caption="What each kind of code holds">
+  <StaticVsDynamic />
+</Figure>
+
+A **static** code contains your page's address itself. It can't expire and has no scan limit, because nothing sits between the code and your page. But it can't be changed: if the page moves, the code keeps pointing at the old address.
+
+A **dynamic** code contains a short link that redirects to your page. That's what lets a generator count scans and change where the code goes. It also means the code works only while the short link does, which depends on the company that runs it and on your plan (see [do short links expire?](/blog/do-short-links-expire)).
+
+To tell which you have, look at the link your camera shows. If it's on your own website, the code is static. If it's a short, random-looking link on someone else's domain, it's dynamic.
+
+## Fix a code that's already printed
+
+What you can do depends on which part broke.
+
+- **Your page moved.** Put the page back at its old address, or add a permanent (301) redirect from the old address to the new one. Every printed code starts working again, whichever kind it is.
+- **Your site is down or its certificate expired.** Fix the site or renew the certificate. The code needs no change.
+- **The generator deactivated the short link.** Log in and see what it takes to turn it back on. Often the only option is paying for a plan. If the account is gone, the printed code can't be saved, and reprinting is the only fix.
+- **An ad page appears.** A paid plan usually removes it. Otherwise, reprint with a link that doesn't add one.
+
+## Keep the next one working
+
+A few habits prevent most dead codes.
+
+1. **Scan the proof before you print.** Use two phones, at the distance people will stand, and follow the link all the way to the page.
+2. **Read the generator's terms.** Look for scan limits, trial periods and ads before you print thousands of copies.
+3. **Put dynamic codes on your own domain**, like `go.yourbrand.com/menu`. If you ever switch providers, you can move the domain instead of reprinting.
+4. **Keep checking the page after it's printed.** Pages get moved long after the flyers go out. Open the link yourself now and then, or let a tool do it.
+
+That last habit is why ndle exists. ndle is a free URL shortener that checks the page behind every short link every 30 minutes. When a page returns a 404, times out or fails its certificate check, the link is flagged on your Monitoring page.
+
+<Figure caption="Monitoring › Recent incidents">
+  <FailedCheck />
+</Figure>
+
+Every ndle link comes with a QR code, on the free plan ([how ndle QR codes work](/use-cases/qr-codes)). The code opens your short link with no ad page in between, and the link doesn't expire unless you set a date. The free plan also includes one custom domain, so your codes can point at `go.yourbrand.com` instead of someone else's domain.

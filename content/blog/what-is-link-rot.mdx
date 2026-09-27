@@ -1,0 +1,52 @@
+import { Figure, RotRoutes } from "@/app/blog/_components/diagrams";
+
+Link rot is what happens to links over time: the page they point to moves, disappears or changes, and the link quietly stops leading anywhere useful. It's not rare, and it's not new. It happens to newspapers, governments, courts and anyone who has ever shared a link.
+
+<Figure caption="One link, three stages">
+  <RotRoutes />
+</Figure>
+
+## What link rot looks like
+
+A rotted link usually shows up in one of three ways:
+
+- **An error.** "404 Not Found", "This site can't be reached", or a browser warning about an expired certificate.
+- **The wrong page.** The address now belongs to something else: a new page after a redesign, a parked domain, or an ad.
+- **The right address, different content.** The page is still there, but it no longer says what it said when you linked to it. Researchers call this "reference rot".
+
+## How common it is
+
+More common than most people expect. When Pew Research Center checked old webpages in 2023, it found that ([Pew Research Center](https://www.pewresearch.org/data-labs/2024/05/17/when-online-content-disappears/)):
+
+- **38%** of webpages that existed in 2013 were no longer accessible a decade later.
+- **23%** of news webpages contained at least one broken link, as did **21%** of government pages.
+- **54%** of Wikipedia pages had at least one link in their references pointing to a page that no longer exists.
+
+Law is no safer. A 2014 Harvard study found that more than 70% of the links in the Harvard Law Review and other journals, and half of the links in US Supreme Court opinions, no longer led to the information originally cited ([Harvard Law Review](https://harvardlawreview.org/forum/vol-127/perma-scoping-and-addressing-the-problem-of-link-and-reference-rot-in-legal-citations/)).
+
+## Why links rot
+
+- **Sites get rebuilt.** A redesign or a new platform changes every address, and the old ones are rarely redirected.
+- **Pages get removed.** Products sell out, campaigns end, old posts are cleaned up.
+- **Domains lapse.** When nobody renews a domain, every link to it stops working, and someone else can buy it.
+- **Services close.** Google's URL shortener switched off inactive goo.gl links in August 2025, and Firebase Dynamic Links shut down the same day ([Google for Developers](https://developers.googleblog.com/en/google-url-shortener-links-will-no-longer-be-available/), [Firebase](https://firebase.google.com/support/dynamic-links-faq)).
+- **Content changes.** Pages are edited, and what you linked to is no longer there, even though the address still works.
+
+## Short links rot twice
+
+A short link has two ways to fail: the page at the end can break, and so can the shortener in the middle. The Archive Team, which has been saving shortener links for years, calls shorteners "a ticking timebomb", because if one goes away, gets hacked or sells out, millions of links go with it ([ArchiveTeam](https://wiki.archiveteam.org/index.php/URLTeam)).
+
+That's not a reason to avoid short links. They're easier to share, fit on print and carry click stats. It's a reason to choose one that keeps your links alive and tells you when the page behind them isn't. [Do short links expire?](/blog/do-short-links-expire) compares what each shortener promises.
+
+## How to slow it down
+
+If you publish links:
+
+1. **Keep your own addresses stable.** When a page must move, add a permanent (301) redirect from the old address.
+2. **Save the pages you cite.** The Internet Archive's [Wayback Machine](https://web.archive.org/) can save a copy of a page as it is today, so the original survives even if it changes. Perma.cc, from Harvard's Library Innovation Lab, does the same for legal and academic citations.
+3. **Put short links on your own domain,** so you can move providers without breaking them.
+4. **Check your important links regularly,** not just when someone complains. Here's [how to check if a link is working](/blog/check-if-link-is-working).
+
+## Where ndle fits
+
+ndle checks the page behind every short link every 30 minutes. When one returns a 404, times out or fails its certificate check, it's flagged on your Monitoring page, so rot shows up within half an hour rather than whenever a reader finds it. Links on a free account don't expire unless you set a date, and the free plan includes one custom domain.

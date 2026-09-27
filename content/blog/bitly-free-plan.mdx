@@ -1,0 +1,67 @@
+import { AdDetour, Figure } from "@/app/blog/_components/diagrams";
+
+Bitly still has a free plan. It's small, and since 2025 it puts an ad page in front of every link. Here is exactly what it includes, what the cheapest paid plan adds, and what the other free plans give you. Every figure comes from each company's own pricing page, as it read on 28 September 2026.
+
+## What Bitly's free plan includes
+
+On [Bitly's pricing page](https://bitly.com/pages/pricing), the free plan comes with:
+
+- **5 links a month**, with 3 custom back-halves (like `bit.ly/spring-menu`) among them.
+- **2 QR codes a month.**
+- **Unlimited clicks and scans.** Your links keep redirecting however popular they get.
+
+And it leaves out:
+
+- **Your own domain.** Branded links like `go.yourbrand.com` start on the Growth plan.
+- **Click history.** The free plan has no data history; the cheapest paid plan keeps 30 days.
+- **Changing where a link goes.** Editing a link's destination after you've shared it isn't on the free plan.
+
+## The ad page on free links
+
+Since 2025, Bitly shows ads on free accounts. In its own words, "we introduced an interstitial page that includes a preview of the link destination and an ad" ([Bitly Support](https://support.bitly.com/hc/en-us/articles/32874287800333-Why-are-there-ads-on-my-links)). Bitly also notes that free accounts "still include ads" even though you can manage and edit your links ([Bitly Support](https://support.bitly.com/hc/en-us/articles/32500359495565)).
+
+In practice, anyone who opens a free Bitly link, or scans a free Bitly QR code, lands on that page before they reach yours. If a Bitly link fails outright, [here's how to find out why](/blog/bitly-link-not-working).
+
+<Figure caption="The same click, on two free plans">
+  <AdDetour />
+</Figure>
+
+## What the cheapest paid plan adds
+
+Bitly's cheapest paid plan is **Core, at $10 a month, billed annually** ($120 a year; there's no monthly option). It raises the limits to 100 links and 5 QR codes a month, keeps 30 days of click and scan data, and adds a UTM builder and the ability to change where a link goes.
+
+A custom domain starts one plan up, on **Growth**, at $29 a month billed annually or $35 billed monthly.
+
+## Free plans compared
+
+Here is what each shortener's free plan includes. The units differ, so read the first column carefully: some count links per month, some count links for the life of the account.
+
+| Service | Free links | Custom domains | Click data | Cheapest paid plan |
+| --- | --- | --- | --- | --- |
+| [Bitly](https://bitly.com/pages/pricing) | 5 a month | None | No history | Core, $10/month billed annually |
+| [TinyURL](https://tinyurl.com/app/pricing) | 30 a month | None | None | Pro, $9/month billed annually |
+| [Dub](https://dub.co/pricing/links) | 25 new a month | 3 | 1,000 tracked events a month, kept 30 days | Pro, $30/month |
+| [Short.io](https://short.io/pricing) | 1,000 in total | 5 | 50,000 tracked clicks a month | Hobby, $5/month |
+| [Rebrandly](https://www.rebrandly.com/pricing) | 10 a month | 1 (a .bio domain) | Details on 100 clicks a month | Essentials, $11/month billed annually |
+| ndle | 100 active | 1 | 30 days of clicks by day, country, device, referrer and UTM campaign | None yet |
+
+A few details the table can't hold:
+
+- **Rebrandly's** free QR codes carry a watermark, and its free plan can't change a link's destination.
+- **Short.io's** 1,000 links are issued once, for the life of the account, rather than every month.
+- **Dub's** pricing page opens on its partner plans. The free link plan is under "Dub Links".
+
+Prices change often, and some of these pages test different prices on different visitors. Check the pricing page itself before you decide. For a closer look at any one of them, see ndle compared with [TinyURL](/alternatives/tinyurl), [Dub](/alternatives/dub), [Short.io](/alternatives/short-io) and [Rebrandly](/alternatives/rebrandly).
+
+## Which free plan fits
+
+- **You need lots of links on your own domain:** Short.io's free plan is the most generous, with 1,000 links and 5 custom domains.
+- **You need a few links with detailed stats:** Dub's free plan tracks events and gives you 3 custom domains.
+- **You just need a short link now and then:** TinyURL's 30 links a month is plenty, without stats.
+- **You print links or QR codes and need them to keep working:** that's the gap ndle was built for. See [ndle and Bitly compared](/alternatives/bitly).
+
+## Where ndle fits
+
+ndle's free plan gives you 100 active links, 1 custom domain and unlimited QR codes. A click goes straight to your page, with no ad page in between, and links on a free account don't expire unless you set a date.
+
+ndle also checks the page behind every short link every 30 minutes. If it returns a 404, times out or fails its certificate check, the link is flagged on your Monitoring page, so a broken link on a flyer or in a newsletter doesn't go unnoticed.

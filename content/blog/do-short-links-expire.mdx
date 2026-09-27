@@ -1,0 +1,61 @@
+import { Figure, GooglTimeline } from "@/app/blog/_components/diagrams";
+
+Mostly, no. The big shorteners don't put an end date on links unless you set one. But "doesn't expire" and "keeps working" aren't the same thing. A short link lasts only as long as the company behind it, your account with them, and the page it points to. Here's what each one promises, from their own help pages, as of 28 September 2026.
+
+## The short answer, by service
+
+| Service | Expire by default? | Can you set an end date? | What else can end a link |
+| --- | --- | --- | --- |
+| Bitly | No | On Growth plans and up | Links on a domain Bitly gave you stop when its registration lapses |
+| TinyURL | No, if they follow its terms | On paid plans; Bulk-plan links expire after 90 days by default | Breaking its Terms of Use |
+| Short.io | Not stated for free links | From the Pro plan | Deleting your account deletes your links |
+| Rebrandly | No | From the Professional plan | An expired link is deleted, not just switched off |
+| goo.gl | Service closed | No | Inactive links stopped working on 25 August 2025 |
+| ndle | No | Up to 30 days ahead on the free plan | Guest links, made without an account, last 7 days |
+
+Sources, in order: [Bitly](https://support.bitly.com/hc/en-us/articles/360002288272-Will-the-links-I-create-on-Bitly-ever-expire), [TinyURL](https://tinyurl.com/blog/do-tinyurls-expire), [Short.io](https://docs.short.io/articles/features/features/how-to-set-up-link-expiration-or-temporary-url), [Rebrandly](https://support.rebrandly.com/en/articles/469550-how-long-does-a-rebrandly-link-last), [Google](https://developers.googleblog.com/en/google-url-shortener-links-will-no-longer-be-available/).
+
+A few details behind the table:
+
+- **Bitly** says its links "never expire" unless you set them to. An expired Bitly link shows a 410 error page, and you can set the date anywhere from 5 minutes to a year ahead ([Bitly Support](https://support.bitly.com/hc/en-us/articles/43445764258957-How-do-I-set-an-expiration-date-for-my-links-and-QR-Codes)). Even if your account is deleted, bit.ly links keep working ([Bitly Support](https://support.bitly.com/hc/en-us/articles/360059651871)).
+- **Short.io** keeps your links working if you cancel a paid plan, within the free plan's limits ([Short.io pricing](https://short.io/pricing)).
+- **Rebrandly** keeps links working if you downgrade to a free account ([Rebrandly Support](https://support.rebrandly.com/en/articles/469550-how-long-does-a-rebrandly-link-last)).
+
+## What happened to goo.gl
+
+Google's shortener is the clearest case of links outliving their promise. In 2018 Google began winding goo.gl down and said existing links would keep redirecting. Six years later it announced they would all stop, noting that more than 99% had no activity in the previous month ([Google for Developers](https://developers.googleblog.com/en/google-url-shortener-links-will-no-longer-be-available/)).
+
+<Figure caption="goo.gl, 2018 to 2025">
+  <GooglTimeline />
+</Figure>
+
+In the end, Google kept links that were still being used and turned off the rest. If a goo.gl link showed "This link will no longer work in the near future", it stopped working after 25 August 2025. If you have some to replace, here's [how to replace goo.gl links](/alternatives/google-url-shortener).
+
+On the same day, Google also shut down Firebase Dynamic Links, and every one of those links stopped working, "both hosted on custom domains and page.link subdomains" ([Firebase](https://firebase.google.com/support/dynamic-links-faq)).
+
+## "Never expires" comes with conditions
+
+Every promise in the table depends on something you don't control:
+
+- **The company keeps running the service.** goo.gl and Firebase Dynamic Links are gone. In 2009, the shortener tr.im announced it was closing and promised to redirect links only until at least the end of that year, before changing its mind ([The Register](https://www.theregister.com/software/2009/08/10/trim-cuts-air-supply-says-no-money-in-tiny-web-20-pot/660990)). The Archive Team, which saves shortener links, calls these services "a ticking timebomb" ([ArchiveTeam](https://wiki.archiveteam.org/index.php/URLTeam)).
+- **Your account stays in good standing.** Bitly deletes accounts that have been inactive for three years ([Bitly Support](https://support.bitly.com/hc/en-us/articles/29064794898189)). Short.io deletes your links along with your account ([Short.io](https://docs.short.io/articles/managing-your-account-and-domains/manage-your-account/how-to-deletedeactivate-my-account)).
+- **The page at the other end still exists.** A short link can redirect forever to a page that's gone. Pew Research found that 38% of webpages that existed in 2013 were no longer accessible a decade later ([Pew Research Center](https://www.pewresearch.org/data-labs/2024/05/17/when-online-content-disappears/)).
+
+## What about QR codes?
+
+A QR code expires only if the link inside it does. A static code holds your page's address directly, so there's nothing in between to end. A dynamic code holds a short link, and "the reliability of the code is dependent on the continued operation of this provider" ([Wikipedia](https://en.wikipedia.org/wiki/Dynamic_QR_code)).
+
+Some generators turn dynamic codes off when a trial ends. QR Code Generator, for example, says its dynamic codes "are deactivated and point to a service page" after the free trial, while static ones keep working ([QR Code Generator](https://support.qr-code-generator.com/hc/en-us/articles/7665046137613)). If a printed code has stopped working, [check the destination first](/blog/qr-code-stopped-working).
+
+## How to keep a link working for years
+
+1. **Use your own domain.** Links on `go.yourbrand.com` can move to another provider: point the domain there and recreate the links. A link on someone else's domain can't move.
+2. **Avoid trials and scan caps** for anything you print.
+3. **Keep the account active,** and don't delete it while links are still in use.
+4. **Watch the page, not just the link.** Pages move and sites go down long after the link is shared.
+
+## Where ndle stands
+
+Links on a free ndle account don't expire unless you give them an end date, which the free plan allows up to 30 days ahead. Guest links, made without signing up, last 7 days. The free plan includes one custom domain, so your links can live on your own domain from the start.
+
+And because the page matters as much as the link, ndle checks the page behind every short link every 30 minutes. When one returns a 404, times out or fails its certificate check, it's flagged on your Monitoring page.

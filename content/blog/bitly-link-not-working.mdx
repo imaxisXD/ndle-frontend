@@ -1,0 +1,71 @@
+import { BitlyPath, Figure } from "@/app/blog/_components/diagrams";
+
+A Bitly link passes through three parts: the short link itself, Bitly's redirect, and the page it points to. When a click fails, one of those three broke, and each fails in its own way. Here's how to tell which, using Bitly's own help pages.
+
+<Figure caption="The link › Bitly's redirect › your page">
+  <BitlyPath />
+</Figure>
+
+## Check where the link goes
+
+Before anything else, find out where the link is supposed to lead. Paste it into Bitly's [Link Checker](https://support.bitly.com/hc/en-us/p/link-checker), which shows the destination without opening it. Bitly's [Trust Center](https://bitly.com/pages/trust) also suggests adding a `+` to the end of a Bitly link to see its destination page.
+
+If the destination looks right, open it directly in your browser. If it fails there too, the problem is the page, not Bitly.
+
+## Problems with the link itself
+
+### A typo, or the wrong capitals
+
+Bitly links are case-sensitive: `bit.ly/Spring-Menu` and `bit.ly/spring-menu` can lead to different places, or to an error page ([Bitly Support](https://support.bitly.com/hc/en-us/articles/360021057871-Are-Bitly-Links-case-sensitive)). Bitly recommends copying and pasting links rather than typing them, and says typos are a common cause of failures, especially on phones.
+
+### The link never existed
+
+If a link leads to Bitly's error page, it may simply be invalid. Bitly notes that AI-written text sometimes contains made-up bit.ly links that go nowhere or somewhere unexpected ([Bitly Support](https://support.bitly.com/hc/en-us/articles/360016353672-Why-does-a-link-lead-to-Bitly-s-error-page)).
+
+### The link was deleted or expired
+
+A deleted Bitly link returns a 404. A hidden one keeps working ([Bitly Support](https://support.bitly.com/hc/en-us/articles/360002288272-Will-the-links-I-create-on-Bitly-ever-expire)). Links never expire by default, but some paid plans can set an expiry date, after which the link goes to a Bitly "410" page ([Bitly Support](https://support.bitly.com/hc/en-us/articles/43445764258957-How-do-I-set-an-expiration-date-for-my-links-and-QR-Codes)).
+
+## Problems with the page it points to
+
+This is the failure a short link can't see. The link redirects perfectly, and the page at the other end is gone:
+
+- **Moved or deleted.** A redesign or a new address leaves the old one returning "404 Not Found".
+- **Certificate expired.** The browser shows a warning that the connection isn't private.
+- **Down.** The server doesn't answer, and the browser says the site can't be reached.
+
+Bitly lists a destination that's down or invalid as the first reason a link shows an error ([Bitly Support](https://support.bitly.com/hc/en-us/articles/16467615857933-Why-is-my-Bitly-Link-not-working)). The fix is on your side: restore the page, or redirect its old address to the new one. On a paid Bitly plan you can also point the link somewhere new, and any QR code for that link follows ([Bitly Support](https://support.bitly.com/hc/en-us/articles/230900588-How-do-I-redirect-a-Bitly-Link)). Changing a destination isn't available on the free plan.
+
+## When Bitly steps in
+
+### A warning or blocked page
+
+Bitly shows a warning page instead of redirecting when a link is flagged as suspicious. Triggers include reports from users or blocklists, content Bitly detects as malicious or inappropriate, a destination hidden behind another shortener, and pages that imitate another site ([Bitly Support](https://support.bitly.com/hc/en-us/articles/360045144371-Why-am-I-seeing-a-warning-page-when-clicking-a-Bitly-link)). A "warn" page still shows the long address; a "blocked" page hides it when visiting could cause harm ([Bitly](https://bitly.com/blog/trust-safety-abuse-system/)). If your own link was flagged by mistake, the warning page links to an appeal form.
+
+### The ad page on free links
+
+Since February 2025, links from free Bitly accounts open a preview page with an ad before your page ([Coywolf](https://coywolf.com/news/social-media/bitly-adds-interstitial-ads-to-shortened-urls-unlocking-new-revenue-stream/)). The link still works, but every visitor sees an ad before your page ([what Bitly's free plan includes](/blog/bitly-free-plan)). A paid plan removes it ([Bitly Support](https://support.bitly.com/hc/en-us/articles/32874287800333-Why-are-there-ads-on-my-links)).
+
+Links made with Bitly's old no-account shortener show the page too, and they can't be claimed or edited; the only way to drop the ad is to recreate them in a paid account ([Bitly Support](https://support.bitly.com/hc/en-us/articles/32500359495565-Free-Short-Link-Generator-Anonymous-Link-FAQ)).
+
+## Custom domain problems
+
+If your links use your own domain, like `go.yourbrand.com`, every one of them depends on that domain's settings:
+
+- **DNS no longer points to Bitly.** Bitly calls wrong DNS settings the most common custom-domain problem, and it breaks every link on the domain at once ([Bitly Support](https://support.bitly.com/hc/en-us/articles/16930964296973-How-do-I-troubleshoot-issues-with-my-custom-domain)).
+- **You removed the domain or downgraded.** Bitly stops renewing the domain's certificate. The links keep redirecting, but visitors can see a "not secure" warning ([Bitly Support](https://support.bitly.com/hc/en-us/articles/360059482031-Will-my-links-still-work-if-I-change-my-custom-domain)).
+- **A domain Bitly gave you with a paid plan expired.** These complimentary domains stop working when their registration lapses ([Bitly Support](https://support.bitly.com/hc/en-us/articles/360029870551-What-happens-when-I-downgrade-to-a-lower-subscription-plan)).
+
+## When the network blocks it
+
+- **Work and school networks.** Some firewalls block bit.ly, or every `.ly` address. Bitly suggests asking IT to allow bit.ly and bitly.com ([Bitly Support](https://support.bitly.com/hc/en-us/articles/4416072698381-How-do-I-allowlist-a-domain)).
+- **Text messages.** Many carriers filter texts that contain links from public shorteners. Twilio tells senders to avoid "shared public URL shorteners, such as TinyUrl or free Bitly links" and to use a dedicated domain instead ([Twilio](https://help.twilio.com/articles/1260803966670-How-do-I-prevent-my-Twilio-messages-from-being-filtered-blocked)). Bitly gives the same advice ([Bitly Support](https://support.bitly.com/hc/en-us/articles/20441769384589-Why-can-t-I-use-Bitly-links-in-some-SMS-campaigns)).
+- **Bitly itself is down.** If many links fail at once, check [status.bitly.com](https://status.bitly.com).
+
+## Keep it from happening again
+
+- **Paste links, never retype them,** and test them on a phone before you send or print them.
+- **Use your own domain** for links in texts and print, so filters trust them and you can move providers later.
+- **Watch the pages, not just the links.** The page behind a working short link can break at any time, and the link itself can't tell you when it does.
+
+That last gap is the one ndle fills. ndle is a free URL shortener that checks the page behind every short link every 30 minutes, and flags it on your Monitoring page when it returns a 404, times out or fails its certificate check. Links open with no ad page in between, they don't expire unless you set a date, and the free plan includes one custom domain.
