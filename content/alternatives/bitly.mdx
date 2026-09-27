@@ -1,0 +1,50 @@
+import { AdDetour, Figure } from "@/app/blog/_components/diagrams";
+
+Bitly's free plan gives you 5 links a month, and since 2025 every free link opens an ad page first. ndle is a free URL shortener built for the part Bitly leaves out: making sure the page behind each link still works.
+
+## ndle and Bitly's free plans, side by side
+
+| | ndle free | Bitly free |
+| --- | --- | --- |
+| Short links | 100 active | 5 a month |
+| QR codes | Unlimited | 2 a month |
+| Your own domain | 1, free | From the Growth plan ($29/month billed annually) |
+| Ad page before your link | Never | Yes |
+| Click history | 30 days: day, country, device, referrer, UTM campaign | None |
+| Checks that your pages still work | Every 30 minutes | Not offered |
+| Cheapest paid plan | No paid plan yet | Core, $10/month billed annually |
+
+Bitly's figures come from its [pricing page](https://bitly.com/pages/pricing) and [support site](https://support.bitly.com/hc/en-us/articles/32874287800333-Why-are-there-ads-on-my-links), as they read on 28 September 2026. Bitly changes its plans often, so check them before you decide.
+
+## Why people look for a Bitly alternative
+
+**The ad page.** In Bitly's own words, "we introduced an interstitial page that includes a preview of the link destination and an ad" ([Bitly Support](https://support.bitly.com/hc/en-us/articles/32874287800333-Why-are-there-ads-on-my-links)). It appears on links from free accounts, including links behind QR codes that are already printed.
+
+<Figure caption="The same click, on two free plans">
+  <AdDetour />
+</Figure>
+
+**Five links a month.** That's enough to try Bitly, not to run a newsletter, a shop or a podcast on it. ndle counts active links instead: keep up to 100 at once on the free plan.
+
+**Your own domain costs extra.** Bitly's free and Core plans don't include one. ndle's free plan does, so links can read `go.yourbrand.com` from day one. That also helps with text messages: carriers often filter links from public shorteners, and both [Bitly](https://support.bitly.com/hc/en-us/articles/20441769384589-Why-can-t-I-use-Bitly-links-in-some-SMS-campaigns) and [Twilio](https://help.twilio.com/articles/1260803966670-How-do-I-prevent-my-Twilio-messages-from-being-filtered-blocked) suggest using your own domain.
+
+**Nobody tells you when a link breaks.** A short link keeps redirecting after the page it points to is gone. Bitly's own advice is to [review the health of your short links](https://bitly.com/blog/troubleshoot-short-link-issues/) yourself. ndle checks the page behind every link every 30 minutes, and flags it on your Monitoring page when it returns a 404, times out or fails its certificate check.
+
+## Where Bitly is ahead
+
+A fair comparison has two sides. Bitly offers things ndle doesn't have yet:
+
+- **Custom back-halves** like `bit.ly/spring-menu`, 3 a month even on the free plan. ndle's links end in six random characters.
+- **Changing where a link goes** after you've shared it, on paid plans.
+- **An API and integrations** with other tools.
+- **A long track record.** Bitly has been around since 2008, with enterprise plans and security certifications.
+
+If you need those today, Bitly's paid plans are worth a look.
+
+## Moving from Bitly
+
+You don't have to move everything at once. Bitly says links on bit.ly keep working even after an account is deleted ([Bitly Support](https://support.bitly.com/hc/en-us/articles/360059651871-What-happens-to-my-personal-information-links-and-QR-Codes-after-my-account-is-deleted)), so existing links won't break when you stop using it. The exception is links on a domain Bitly gave you with a paid plan, which stop when its registration lapses.
+
+1. **Start new campaigns on ndle.** Sign up free, add your domain, and make links as you need them.
+2. **Move the links that matter** as you update the places they appear: your bio, your site, your email signature.
+3. **Reprint QR codes on your own domain** when their materials are next printed, so the next move is easier.

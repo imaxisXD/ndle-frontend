@@ -1,0 +1,48 @@
+import { Figure, GooglTimeline } from "@/app/blog/_components/diagrams";
+
+Google's URL Shortener stopped taking new links years ago, and in 2025 it switched off the ones nobody was using. If you have goo.gl links in documents, slides, printed material or old posts, some of them may now lead nowhere.
+
+<Figure caption="goo.gl, 2018 to 2025">
+  <GooglTimeline />
+</Figure>
+
+## Which goo.gl links still work
+
+Google first planned to turn off every goo.gl link after 25 August 2025. In August 2025 it changed course "in order to preserve actively used links" ([Google for Developers](https://developers.googleblog.com/en/google-url-shortener-links-will-no-longer-be-available/)). So:
+
+- **Links people were still using keep redirecting.** You can't edit them, and there's no dashboard to see them in.
+- **Links with no activity in late 2024 stopped working** after 25 August 2025. Before that, they showed a warning: "This link will no longer work in the near future".
+- **Firebase Dynamic Links**, Google's other short-link service, shut down on the same day. All of those links stopped, including ones on custom domains ([Firebase](https://firebase.google.com/support/dynamic-links-faq)).
+
+To check one, open it. If it lands on your page, it's still alive. If it shows an error, it's gone for good.
+
+## Replace a dead goo.gl link
+
+A dead goo.gl link can't be revived or pointed somewhere new, so the fix is to replace it wherever it appears:
+
+1. **Find where it's used.** Search your documents, website, email templates and social profiles for `goo.gl/`.
+2. **Make a new short link** for the same page, ideally on your own domain.
+3. **Swap it in everywhere you can edit.** For printed material, update it at the next print run.
+4. **Replace the living ones too.** Google is keeping active links for now, but you can't manage them, and the service has already changed its plans twice.
+
+## What to look for in a replacement
+
+goo.gl's story is the risk with any shortener: your links depend on a company you don't control. Choose one that makes the next move easy.
+
+- **Your own domain.** Links on `go.yourbrand.com` can move to another provider by pointing the domain there. Links on someone else's domain can't.
+- **No expiry and no trial.** Some shorteners and QR code generators switch links off when a trial or plan ends.
+- **No ad page.** Some free plans now show an ad before your link opens.
+- **A way to know when a link breaks.** Links outlive pages: a short link can redirect for years to a page that's long gone.
+
+## How ndle compares
+
+| | ndle free | goo.gl today |
+| --- | --- | --- |
+| New short links | 100 active | None |
+| Your own domain | 1, free | No |
+| QR codes | Unlimited | No |
+| Click stats | 30 days: day, country, device, referrer, UTM campaign | None |
+| Ad page before your link | Never | No |
+| Checks that your pages still work | Every 30 minutes | No |
+
+ndle checks the page behind every short link every 30 minutes, and flags it on your Monitoring page when it returns a 404, times out or fails its certificate check. Links on a free account don't expire unless you set a date.
