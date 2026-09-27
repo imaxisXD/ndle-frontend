@@ -73,7 +73,7 @@ export const USE_CASES: UseCasePage[] = [
     updated: "2026-09-28",
     sections: [
       { id: "why-bio-links-go-stale", title: "Why bio links go stale" },
-      { id: "what-ndle-adds-to-a-bio-link", title: "What ndle adds to a bio link" },
+      { id: "what-ndle-does-for-a-bio-link", title: "What ndle does for a bio link" },
       { id: "five-links-one-bio", title: "Five links, one bio" },
       { id: "what-ndle-isnt", title: "What ndle isn't" },
     ],

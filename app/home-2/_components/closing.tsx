@@ -194,11 +194,11 @@ export function Closing({ signedIn }: { signedIn: boolean }) {
             {/* Leading after the size: tailwind-merge drops a leading that a
                 later font size could override. */}
             <h2 id="cta-title" className={cn(INK_TITLE, "text-[clamp(3rem,6vw,4.5rem)] leading-[0.9]")}>
-              Add ndle to
-              <span className="block">your links</span>
+              Add your links
+              <span className="block">to ndle</span>
             </h2>
             <p className="mt-4 max-w-[38ch] font-mono text-[17px] leading-[1.45] text-[#141312]">
-              Short links that tell you when they break. Free plan, no card needed.
+              ndle shortens them, checks every one and tells you when one breaks. Free plan, no card needed.
             </p>
             <div className="mt-7 flex flex-wrap items-center gap-3">
               <ActionLink href={signedIn ? "/dashboard" : "/sign-up?redirect_url=/dashboard"}>

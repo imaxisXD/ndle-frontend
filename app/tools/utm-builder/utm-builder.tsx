@@ -146,7 +146,7 @@ export function UtmBuilder() {
       </div>
 
       <div className="mt-5 flex flex-wrap items-center gap-x-4 gap-y-3 border-t border-[var(--line)] pt-5">
-        <p className="text-sm text-[#141312]">Long link? Shorten it with ndle and see every click by campaign.</p>
+        <p className="text-sm text-[#141312]">Long link? ndle shortens it and counts every click by campaign.</p>
         <ActionLink href={SIGN_UP}>Shorten it free</ActionLink>
       </div>
     </div>

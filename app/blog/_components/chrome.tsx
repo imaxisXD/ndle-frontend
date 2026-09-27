@@ -26,7 +26,7 @@ export function SignupBox({ className }: { className?: string }) {
   return (
     <aside aria-label="Try ndle" className={cn("border-2 border-[#141312] bg-white p-5", className)}>
       <p className="font-[family-name:var(--font-bebas)] text-[28px] leading-[0.95] tracking-[-0.005em] text-[#141312] uppercase">
-        Watch your links, free
+        ndle watches your links, free
       </p>
       <p className="mt-2 font-mono text-[13px] leading-5 text-[#3d3d3d]">
         ndle checks every short link every 30 minutes and flags the ones that break. No ads, and links don&apos;t

@@ -208,7 +208,7 @@ export function LinkChecker({ siteKey }: { siteKey: string }) {
           )}
           <div className="mt-5 flex flex-wrap items-center gap-x-4 gap-y-3 border-t border-[var(--line)] pt-4">
             <p className="text-sm text-[#141312]">Want to know if it breaks later? ndle checks every link every 30 minutes, free.</p>
-            <ActionLink href={SIGN_UP}>Watch your links</ActionLink>
+            <ActionLink href={SIGN_UP}>Let ndle watch it</ActionLink>
           </div>
         </div>
       )}

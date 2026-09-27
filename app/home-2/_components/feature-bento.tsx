@@ -210,7 +210,7 @@ export function FeatureBento({ signedIn = false }: { signedIn?: boolean }) {
         </Panel>
         <Panel
           id="ask"
-          title="Ask your links a question"
+          title="Ask ndle about your links"
           body="Describe the chart you want in plain words, and ndle draws it from your clicks."
           // On phones the answer wraps to more lines; the stage grows so the chart still shows.
           stageClassName="h-[420px] sm:h-[360px]"
