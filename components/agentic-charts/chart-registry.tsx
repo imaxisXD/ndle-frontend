@@ -56,7 +56,7 @@ const CHART_COLORS = [
 ];
 
 const CARD_CLASS =
-  "min-w-0 flex h-full flex-col border-zinc-200 bg-white text-zinc-900";
+  "min-w-0 flex h-full flex-col text-zinc-900";
 const CONTENT_HEIGHT = "clamp(220px, 35vh, 280px)";
 const PIE_CONTENT_HEIGHT = "clamp(220px, 32vh, 260px)";
 const AI_TIME_KEY = "__bklitTime";
@@ -533,9 +533,9 @@ function DataTableComponent({ element }: ComponentRenderProps) {
       isEmpty={tableRows.length === 0}
       emptyMessage="No rows available"
     >
-      <div className="max-h-[320px] overflow-auto rounded-md border border-zinc-200">
+      <div className="border-border max-h-[320px] overflow-auto rounded-md border">
         <Table className="text-xs">
-          <TableHeader className="bg-zinc-50">
+          <TableHeader className="bg-surface-inset">
             <TableRow>
               {tableColumns.map((column) => (
                 <TableHead key={column} className="h-9 font-medium text-zinc-700">

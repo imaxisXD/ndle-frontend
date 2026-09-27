@@ -32,7 +32,7 @@ export function Toaster() {
       toastOptions={{
         classNames: {
           toast:
-            "group w-full sm:w-96 p-2.5 rounded-md bg-gradient-to-t from-background to-popover border border-border shadow-lg text-popover-foreground",
+            "group w-full sm:w-96 p-2.5 rounded-md bg-gradient-to-t from-background to-popover border border-border shadow-floating text-popover-foreground",
           title: "text-sm font-medium tracking-tight",
           description: "text-muted-foreground text-xs tracking-tight mt-1",
           actionButton:

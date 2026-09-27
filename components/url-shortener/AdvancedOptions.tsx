@@ -193,8 +193,8 @@ export function AdvancedOptions({
                         hasError
                           ? "border-destructive"
                           : isExpanded || isEnabled
-                            ? "border-border bg-background shadow-sm"
-                            : "bg-muted/30 hover:bg-muted/50 border-border/40",
+                            ? "border-border bg-surface-raised shadow-raised"
+                            : "bg-surface-inset hover:bg-surface-hover border-border/40",
                       )}
                     >
                       {/* Header Row */}

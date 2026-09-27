@@ -26,7 +26,7 @@ export function AppAccess({ children }: { children?: ReactNode }) {
 
   if (!isAuthenticated) {
     return (
-      <main className="bg-home text-foreground flex min-h-screen flex-col items-center justify-center gap-4 px-6 text-center">
+      <main className="bg-surface-page text-foreground flex min-h-screen flex-col items-center justify-center gap-4 px-6 text-center">
         <div role="alert">
           <h1 className="text-base font-medium">Your account could not load</h1>
           <p className="text-muted-foreground mt-2 max-w-md text-sm">

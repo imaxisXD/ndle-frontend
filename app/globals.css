@@ -31,9 +31,9 @@
   --telegram-red: oklch(0.52 0.22 28);
   --background: oklch(0.97 0 0); /* Light gray background like reference */
   --foreground: oklch(0.145 0 0); /* Black text */
-  --card: oklch(1 0 0); /* White cards on the light gray background */
+  --card: var(--surface-raised); /* White cards on the light gray background */
   --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
+  --popover: var(--surface-raised);
   --popover-foreground: oklch(0.145 0 0);
   --primary: oklch(0.205 0 0); /* Black for primary actions */
   --primary-foreground: oklch(0.985 0 0);
@@ -72,6 +72,49 @@
   --shadow-rim-soft:
     inset 0 1px 0 rgba(255, 255, 255, 0.9),
     inset 0 0 0 1px rgba(17, 17, 17, 0.08);
+  /* Surfaces — the app's layering system (light only).
+     page:   the gray canvas everything sits on.
+     raised: every surface above the page is white; depth comes from the
+             elevation shadow below, never from a different white.
+     inset:  a translucent tint for sections set INTO a raised surface (stat
+             tiles, wells, filter panels). It darkens whatever it sits on.
+     tray:   the inset tint pre-mixed onto the page, for trays sitting on the
+             page itself (Card's accent variant). It has to be opaque: a
+             translucent fill would let the page's dot pattern show through.
+             --surface-tint sets the strength of both.
+     field:  text inputs, textareas, and select triggers. White, so a field
+             stands out both in a white card and on an inset panel.
+     hover:  a translucent state fill that reads on any surface. */
+  --surface-page: var(--home);
+  --surface-raised: oklch(1 0 0);
+  --surface-tint: 3.5%;
+  --surface-inset: color-mix(
+    in oklab,
+    transparent,
+    oklch(0 0 0) var(--surface-tint)
+  );
+  --surface-tray: color-mix(
+    in oklab,
+    var(--surface-page),
+    oklch(0 0 0) var(--surface-tint)
+  );
+  --surface-field: var(--surface-raised);
+  --surface-hover: oklch(0 0 0 / 0.05);
+  /* Elevation — stacked drop layers that double in size per step, so each
+     step reads as further off the page. Cards and popups keep their 1px
+     border as the edge; these shadows only add depth.
+     raised:   cards and panels.
+     floating: popovers, menus, selects, comboboxes, light tooltips.
+     modal:    dialogs and sheets. */
+  --elevation-drop: oklch(0 0 0 / 0.06);
+  --elevation-raised: 0 1px 1px -0.5px var(--elevation-drop);
+  --elevation-floating:
+    0 1px 1px -0.5px var(--elevation-drop),
+    0 3px 3px -1.5px var(--elevation-drop), 0 6px 6px -3px var(--elevation-drop);
+  --elevation-modal:
+    0 1px 1px -0.5px var(--elevation-drop),
+    0 3px 3px -1.5px var(--elevation-drop),
+    0 6px 6px -3px var(--elevation-drop), 0 12px 12px -6px var(--elevation-drop);
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
   --chart-3: oklch(0.398 0.07 227.392);
@@ -353,6 +396,15 @@
   --font-geist-pixel-triangle: var(--font-geist-pixel-triangle);
   --font-geist-pixel-line: var(--font-geist-pixel-line);
   --color-home: var(--home);
+  --color-surface-page: var(--surface-page);
+  --color-surface-raised: var(--surface-raised);
+  --color-surface-inset: var(--surface-inset);
+  --color-surface-tray: var(--surface-tray);
+  --color-surface-field: var(--surface-field);
+  --color-surface-hover: var(--surface-hover);
+  --shadow-raised: var(--elevation-raised);
+  --shadow-floating: var(--elevation-floating);
+  --shadow-modal: var(--elevation-modal);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);

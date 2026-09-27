@@ -16,6 +16,7 @@ import { formatRelative } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { Link as LinkIcon } from "iconoir-react";
 import { trackCollectionUrlAdded } from "@/lib/posthog";
+import { Inset } from "@/components/ui/inset";
 
 interface UrlPickerTableProps {
   collectionId: Id<"collections">;
@@ -122,14 +123,14 @@ export function UrlPickerTable({ collectionId, onClose }: UrlPickerTableProps) {
 
   if (availableUrls.length === 0 && status === "Exhausted") {
     return (
-      <div className="border-border bg-muted/30 rounded-lg border border-dashed p-8 text-center">
+      <Inset className="rounded-lg border-dashed p-8 text-center">
         <LinkIcon className="text-muted-foreground mx-auto mb-4 h-8 w-8" />
         <h3 className="mb-1 text-sm font-medium">No Links Available</h3>
         <p className="text-muted-foreground text-xs">
           All your links are already in this collection, or you haven&apos;t
           created any yet.
         </p>
-      </div>
+      </Inset>
     );
   }
 
@@ -155,7 +156,7 @@ export function UrlPickerTable({ collectionId, onClose }: UrlPickerTableProps) {
       </div>
       <div>
         <input
-          className="border-input bg-background focus:ring-foreground/20 w-full rounded-md border px-3 py-2 text-base focus:ring-2 focus:outline-none sm:text-sm"
+          className="border-input bg-surface-field focus:ring-foreground/20 w-full rounded-md border px-3 py-2 text-base focus:ring-2 focus:outline-none sm:text-sm"
           aria-label="Search loaded links"
           placeholder="Search loaded links…"
           value={search}
@@ -192,7 +193,7 @@ export function UrlPickerTable({ collectionId, onClose }: UrlPickerTableProps) {
                 // The whole row toggles the checkbox, so it's easy to tap.
                 <TableRow
                   key={u._id}
-                  className="hover:bg-muted/50 cursor-pointer"
+                  className="hover:bg-surface-hover cursor-pointer"
                   onClick={() => toggleOne(u._id)}
                 >
                   <TableCell

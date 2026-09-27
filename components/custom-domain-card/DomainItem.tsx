@@ -47,7 +47,7 @@ function CopyButton({ value }: { value: string }) {
       variant={"ghost"}
       size={"icon"}
       onClick={handleCopy}
-      className="hover:bg-gray-100"
+      className="hover:bg-surface-hover"
     >
       {copied ? (
         <CheckIcon weight="bold" className="size-4 text-emerald-500" />
@@ -71,7 +71,7 @@ function DnsRecordTable({
 }) {
   return (
     <div className="rounded-lg border border-gray-200">
-      <div className="border-b border-gray-200 bg-gray-50/50 px-4 py-3">
+      <div className="border-border bg-surface-inset border-b px-4 py-3">
         <h4 className="text-sm font-medium text-gray-900">{title}</h4>
       </div>
 
@@ -269,7 +269,7 @@ function DeleteDialog({
 }) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-card gap-6">
+      <DialogContent className="gap-6">
         <div>
           <DialogTitle className="text-base">
             Remove Domain <span className="text-blue-500">{domain}</span> ?

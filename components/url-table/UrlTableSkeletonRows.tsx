@@ -19,7 +19,7 @@ export function UrlTableSkeletonRows({
   return Array.from({ length: rows }, (_, row) => {
     const rowDelay = delay + row * ROW_STAGGER_MS;
     return (
-      <TableRow key={row} aria-hidden="true" className="bg-muted/30 h-14">
+      <TableRow key={row} aria-hidden="true" className="bg-surface-inset h-14">
         <TableCell
           className="px-4 py-3"
           style={{ width: urlTableColumnSize.status }}

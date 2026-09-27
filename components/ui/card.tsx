@@ -28,8 +28,13 @@ const cardVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-card border border-border shadow-xs",
-        accent: "bg-muted shadow-xs p-1",
+        default: "bg-surface-raised border border-border shadow-raised",
+        // A gray tray on the page holding raised white panels. Inner panels
+        // take the tray's radius minus its 1px border and padding (rounded-md
+        // is radius - 2px), so their corners stay concentric. Set --card-pad
+        // to change the tray padding; the inner radius follows.
+        accent:
+          "bg-surface-tray border border-border p-(--card-pad) [--card-pad:0.25rem] [--card-inner-radius:calc(var(--radius)_-_3px_-_var(--card-pad))]",
       },
     },
     defaultVariants: {
@@ -57,7 +62,8 @@ const cardContentVariants = cva("grow p-5", {
   variants: {
     variant: {
       default: "",
-      accent: "bg-card rounded-t-xl [&:last-child]:rounded-b-xl",
+      accent:
+        "bg-surface-raised shadow-raised rounded-t-(--card-inner-radius) [&:last-child]:rounded-b-(--card-inner-radius)",
     },
   },
   defaultVariants: {
@@ -69,7 +75,7 @@ const cardTableVariants = cva("grid grow", {
   variants: {
     variant: {
       default: "",
-      accent: "bg-card rounded-xl",
+      accent: "bg-surface-raised shadow-raised rounded-(--card-inner-radius)",
     },
   },
   defaultVariants: {
@@ -81,7 +87,8 @@ const cardFooterVariants = cva("flex items-center px-5 min-h-14", {
   variants: {
     variant: {
       default: "border-t border-border",
-      accent: "bg-card rounded-b-xl mt-[2px]",
+      accent:
+        "bg-surface-raised shadow-raised rounded-b-(--card-inner-radius) mt-[2px]",
     },
   },
   defaultVariants: {

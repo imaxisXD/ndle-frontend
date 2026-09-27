@@ -18,6 +18,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { useWatch, type UseFormReturn } from "react-hook-form";
 import type { UrlFormValues } from "../url-shortener";
+import { Inset } from "@/components/ui/inset";
 
 export function OptionScheduling({
   form,
@@ -36,7 +37,7 @@ export function OptionScheduling({
   const [open, setOpen] = useState<boolean>(() => !!expiresEnabled);
 
   return (
-    <div className="border-border bg-muted/20 space-y-4 rounded-lg border p-4">
+    <Inset className="space-y-4 rounded-lg p-4">
       {/* Expiration */}
       <FormField
         control={form.control}
@@ -106,6 +107,6 @@ export function OptionScheduling({
           </div>
         </CollapsiblePanel>
       </Collapsible>
-    </div>
+    </Inset>
   );
 }

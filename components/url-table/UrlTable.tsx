@@ -89,6 +89,8 @@ import { makeShortLinkWithDomain } from "@/lib/config";
 import { ChartBarIcon, CopyIcon, TrashIcon } from "@phosphor-icons/react";
 import { LinkWithFavicon } from "../ui/link-with-favicon";
 import { trackUrlCopied, trackUrlDeleted } from "@/lib/posthog";
+import { Inset } from "@/components/ui/inset";
+import { Card } from "@/components/ui/card";
 interface UrlTableProps {
   showSearch?: boolean;
   showFilters?: boolean;
@@ -218,7 +220,7 @@ function ActionsMenuCell({
         render={
           <button
             type="button"
-            className="text-muted-foreground hover:bg-muted hover:text-foreground rounded-md p-2 transition-colors"
+            className="text-muted-foreground hover:bg-surface-hover hover:text-foreground rounded-md p-2 transition-colors"
             onClick={(e) => {
               e.stopPropagation();
             }}
@@ -337,7 +339,7 @@ function ShortUrlCell({
           variant="link"
           type="button"
           aria-label={copied ? "Copied" : "Copy short link"}
-          className="text-muted-foreground hover:bg-muted flex size-8 shrink-0 items-center justify-center rounded-md transition-colors hover:text-blue-600"
+          className="text-muted-foreground hover:bg-surface-hover flex size-8 shrink-0 items-center justify-center rounded-md transition-colors hover:text-blue-600"
           onClick={(e) => {
             e.stopPropagation();
             onCopy(shortUrl);
@@ -503,7 +505,7 @@ const UrlDataRow = memo(function UrlDataRow({
   const variant = getStatusBadgeVariant(status);
 
   return (
-    <TableRow className="bg-muted/30 h-14">
+    <TableRow className="bg-surface-inset h-14">
       <TableCell
         className="px-4 py-3"
         style={{ width: urlTableColumnSize.status }}
@@ -640,7 +642,7 @@ const UrlTableSearch = memo(function UrlTableSearch({
           value={searchQuery}
           onChange={(e) => onSearchChange(e.target.value)}
           placeholder={searchPlaceholder}
-          className="border-border bg-home focus:ring-foreground/20 w-full rounded-md border py-2.5 pr-10 pl-10 text-base focus:ring-2 focus:outline-none sm:text-sm"
+          className="border-border bg-surface-field focus:ring-foreground/20 w-full rounded-md border py-2.5 pr-10 pl-10 text-base focus:ring-2 focus:outline-none sm:text-sm"
         />
         {searchQuery && (
           <button
@@ -719,7 +721,7 @@ const UrlTableFilters = memo(function UrlTableFilters({
         inert={!showFiltersPanel}
       >
         <div className="min-h-0 overflow-hidden">
-          <div className="bg-muted/30 border-border mt-4 flex flex-col gap-4 rounded-lg border p-4">
+          <Inset className="mt-4 flex flex-col gap-4 rounded-lg p-4">
             {collectionOptions.length > 0 && (
               <div className="flex flex-col gap-2">
                 <span className="text-muted-foreground text-xs font-medium">
@@ -783,7 +785,7 @@ const UrlTableFilters = memo(function UrlTableFilters({
                 ))}
               </div>
             </div>
-          </div>
+          </Inset>
         </div>
       </div>
 
@@ -1329,7 +1331,7 @@ export function UrlTable({
   );
 
   return (
-    <div className="border-border bg-card rounded-md border">
+    <Card>
       {showHeader && (
         <div className="border-border border-b p-6">
           <div className="flex items-center justify-between">
@@ -1673,6 +1675,6 @@ export function UrlTable({
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </Card>
   );
 }

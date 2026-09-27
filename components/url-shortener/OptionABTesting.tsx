@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/form";
 import type { UrlFormValues } from "../url-shortener";
 import { PlusIcon, TrashIcon } from "@phosphor-icons/react/dist/ssr";
+import { Inset } from "@/components/ui/inset";
 
 type Variant = { url?: string; weight?: number };
 
@@ -388,7 +389,7 @@ export function OptionABTesting({
       )}
 
       {/* Original Link Info */}
-      <div className="border-border/50 bg-muted/20 flex items-center justify-between rounded-lg border px-4 py-2.5">
+      <Inset className="border-border/50 flex items-center justify-between rounded-lg px-4 py-2.5">
         <div className="flex items-center gap-2 overflow-hidden">
           {mainFaviconUrl ? (
             <Image
@@ -414,7 +415,7 @@ export function OptionABTesting({
         >
           {originalWeight}%
         </div>
-      </div>
+      </Inset>
 
       {/* Variant Rows */}
       <div className="space-y-4">

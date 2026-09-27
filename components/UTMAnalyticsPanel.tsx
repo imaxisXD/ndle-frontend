@@ -23,6 +23,7 @@ import {
 } from "@/components/charts/bklit-chart-kit";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { UTMAnalyticsData } from "@/types/utm-analytics";
+import { Inset } from "@/components/ui/inset";
 
 const COLORS = [
   "var(--chart-line-primary)",
@@ -117,10 +118,10 @@ export function UTMAnalyticsPanel({ data, isLoading }: UTMAnalyticsPanelProps) {
             Start using UTM parameters when creating short links to track your
             marketing campaigns and see detailed performance analytics here.
           </p>
-          <div className="mt-4 rounded-md bg-gray-50 p-3 text-xs text-gray-600">
+          <Inset className="mt-4 p-3 text-xs text-gray-600">
             <strong>Tip:</strong> Enable &ldquo;UTM Builder&rdquo; in Advanced
             Options when creating a link
-          </div>
+          </Inset>
         </CardContent>
       </Card>
     );

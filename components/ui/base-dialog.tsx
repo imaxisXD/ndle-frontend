@@ -79,7 +79,7 @@ function DialogPopup({
     <DialogPrimitive.Popup
       data-slot="dialog-popup"
       className={cn(
-        `bg-background fixed z-50 grid gap-0 p-6 shadow-lg shadow-black/5 transition-all duration-150 data-[ending-style]:scale-90 data-[ending-style]:opacity-0 data-[starting-style]:scale-90 data-[starting-style]:opacity-0 sm:rounded-lg`,
+        `bg-surface-raised shadow-modal fixed z-50 grid gap-0 p-6 transition-all duration-150 data-[ending-style]:scale-90 data-[ending-style]:opacity-0 data-[starting-style]:scale-90 data-[starting-style]:opacity-0 sm:rounded-lg`,
         fullscreen
           ? "inset-y-0 right-0 left-auto w-full max-w-[520px] sm:rounded-none"
           : "top-[50%] left-[50%] w-full max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] sm:max-w-lg",
@@ -136,10 +136,7 @@ function DialogHeader({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="dialog-header"
-      className={cn(
-        "flex flex-col gap-1 bg-amber-300 text-center sm:text-left",
-        className,
-      )}
+      className={cn("flex flex-col gap-1 text-center sm:text-left", className)}
       {...props}
     />
   );

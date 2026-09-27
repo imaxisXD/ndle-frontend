@@ -192,12 +192,12 @@ export function AgenticChartChat({ className }: AgenticChartChatProps) {
   return (
     <Card
       className={cn(
-        "flex flex-col overflow-hidden border border-zinc-200 bg-white shadow-lg transition-all duration-300",
-        isExpanded ? "fixed inset-4 z-50" : "min-h-[500px]",
+        "flex flex-col overflow-hidden transition-all duration-300",
+        isExpanded ? "shadow-modal fixed inset-4 z-50" : "min-h-[500px]",
         className,
       )}
     >
-      <CardHeader className="flex flex-row items-center justify-between border-b border-zinc-200 bg-zinc-50 py-3">
+      <CardHeader className="bg-surface-inset flex flex-row items-center justify-between py-3">
         <div className="flex items-center gap-2">
           <SparkleIcon className="h-5 w-5 text-amber-500" weight="duotone" />
           <CardTitle className="text-base font-semibold text-zinc-900">
@@ -231,7 +231,7 @@ export function AgenticChartChat({ className }: AgenticChartChatProps) {
         </div>
       </CardHeader>
 
-      <CardContent className="flex flex-1 flex-col gap-4 overflow-hidden bg-white p-4">
+      <CardContent className="flex flex-1 flex-col gap-4 overflow-hidden p-4">
         {/* Messages Area */}
         <div
           ref={messagesContainerRef}
@@ -275,7 +275,7 @@ export function AgenticChartChat({ className }: AgenticChartChatProps) {
                   <button
                     key={i}
                     type="button"
-                    className="rounded-full border border-zinc-200 bg-zinc-50 px-3 py-1.5 text-xs text-zinc-600 transition-colors hover:bg-zinc-100"
+                    className="border-border bg-surface-inset rounded-full border px-3 py-1.5 text-xs text-zinc-600 transition-colors hover:bg-surface-hover"
                     onClick={() => setInput(prompt)}
                   >
                     {prompt}
@@ -290,7 +290,7 @@ export function AgenticChartChat({ className }: AgenticChartChatProps) {
                 <div key={message.id} className="space-y-3">
                   {/* User message */}
                   {message.role === "user" && (
-                    <div className="flex gap-3 rounded-lg bg-zinc-100 p-3">
+                    <div className="bg-surface-inset flex gap-3 rounded-lg p-3">
                       <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-blue-500 text-white">
                         <User className="h-4 w-4" weight="bold" />
                       </div>
@@ -307,7 +307,7 @@ export function AgenticChartChat({ className }: AgenticChartChatProps) {
 
                   {/* Assistant message with chart */}
                   {message.role === "assistant" && (
-                    <div className="flex gap-3 rounded-lg border border-zinc-200 bg-white p-3">
+                    <div className="border-border bg-surface-raised flex gap-3 rounded-lg border p-3">
                       <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-amber-500/20 text-amber-600">
                         <Robot className="h-4 w-4" weight="bold" />
                       </div>
@@ -393,7 +393,7 @@ export function AgenticChartChat({ className }: AgenticChartChatProps) {
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="Describe the chart you want..."
-            className="min-h-[44px] flex-1 resize-none border-zinc-200 bg-white"
+            className="min-h-[44px] flex-1 resize-none"
             rows={1}
             disabled={isStreaming || !isDataReady}
           />

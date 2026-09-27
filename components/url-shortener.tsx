@@ -49,6 +49,7 @@ import {
   SelectContent,
   SelectItem,
 } from "./ui/base-select";
+import { Inset } from "@/components/ui/inset";
 
 const urlFormSchema = z
   .object({
@@ -486,7 +487,7 @@ export function UrlShortener() {
                   <FormLabel>Enter your long link</FormLabel>
                   <FormControl>
                     <div className="flex gap-2">
-                      <InputGroup className="border-border rounded-md border bg-white">
+                      <InputGroup className="bg-surface-field">
                         <InputGroupAddon
                           className={cn(
                             "bg-transparent pl-3 transition-transform duration-200 ease-out",
@@ -537,7 +538,7 @@ export function UrlShortener() {
               name="slugMode"
               render={({ field }) => (
                 <FormItem>
-                  <div className="border-border bg-muted/20 rounded-lg border p-4">
+                  <Inset className="rounded-lg p-4">
                     {/* Domain Selector. Always shown so the form keeps its
                         height while custom domains load; with none it just
                         shows the default domain. */}
@@ -554,7 +555,7 @@ export function UrlShortener() {
                           }
                         }}
                       >
-                        <SelectTrigger className="border-border h-8 w-fit border bg-white text-xs shadow-xs">
+                        <SelectTrigger className="border-border h-8 w-fit text-xs">
                           <SelectValue placeholder="Select domain" />
                         </SelectTrigger>
                         <SelectContent>
@@ -631,7 +632,7 @@ export function UrlShortener() {
                         </div>
                       </RadioGroup>
                     </FormControl>
-                  </div>
+                  </Inset>
                 </FormItem>
               )}
             />
@@ -650,7 +651,7 @@ export function UrlShortener() {
                   }
                   setAdvancedOpen(!advancedOpen);
                 }}
-                className="group hover:bg-muted/70 bg-transparent px-1.5 py-0 text-xs text-black outline-1 hover:font-medium hover:shadow-none"
+                className="group hover:bg-surface-hover bg-transparent px-1.5 py-0 text-xs text-black outline-1 hover:font-medium hover:shadow-none"
               >
                 <span
                   className={cn(

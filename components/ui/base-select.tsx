@@ -122,7 +122,7 @@ function SelectClear({
 // Define size variants for SelectTrigger
 const selectTriggerVariants = cva(
   `
-		group relative flex w-fit items-center justify-between gap-2 rounded-md border whitespace-nowrap select-none
+		group relative flex w-fit items-center justify-between gap-2 rounded-md border bg-surface-field whitespace-nowrap select-none
 		shadow-xs transition-[color,box-shadow,border-color] outline-none
 		focus-visible:border-accent focus-visible:ring-accent/50 focus-visible:ring-[3px]
 		data-[popup-open]:border-accent data-[popup-open]:ring-accent/50 data-[popup-open]:ring-[3px]
@@ -220,7 +220,7 @@ function SelectContent({
         <SelectPrimitive.Popup
           data-slot="select-content"
           className={cn(
-            `bg-popover text-popover-foreground data-[open]:animate-in data-[closed]:animate-out data-[closed]:fade-out-0 data-[open]:fade-in-0 data-[closed]:zoom-out-95 data-[open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 relative z-50 max-h-(--available-height) min-w-(--anchor-width) w-max max-w-(--available-width) origin-[var(--transform-origin)] overflow-x-hidden overflow-y-auto rounded-md border p-1 shadow-md`,
+            `bg-surface-raised text-popover-foreground data-[open]:animate-in data-[closed]:animate-out data-[closed]:fade-out-0 data-[open]:fade-in-0 data-[closed]:zoom-out-95 data-[open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 relative z-50 max-h-(--available-height) min-w-(--anchor-width) w-max max-w-(--available-width) origin-[var(--transform-origin)] overflow-x-hidden overflow-y-auto rounded-md border border-border p-1 shadow-floating`,
             position === "item-aligned" &&
               "[&_*[data-slot=select-item]]:min-w-[var(--anchor-width)]",
             className,

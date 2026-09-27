@@ -37,11 +37,11 @@ export function urlTableCellClassName(columnId: UrlTableColumnId) {
   return cn(
     "px-4 py-3 align-top",
     columnId === "separator" && "hidden md:table-cell",
-    // Opaque version of the row's bg-muted/30 so scrolled cells don't show through.
+    // Opaque version of the row's bg-surface-inset so scrolled cells don't show through.
     columnId === "actions" &&
       cn(
         stickyActions,
-        "max-md:bg-[color-mix(in_oklch,var(--muted)_30%,var(--card))]",
+        "max-md:bg-[color-mix(in_oklab,var(--surface-raised),oklch(0_0_0)_var(--surface-tint))]",
       ),
   );
 }

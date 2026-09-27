@@ -95,7 +95,6 @@ export function AddDomainForm({ onSuccess }: AddDomainFormProps) {
               <FormControl>
                 <Input
                   className={cn(
-                    "border-border rounded-md border bg-white",
                     fieldState.invalid && "border-red-300 ring-1 ring-red-200",
                   )}
                   placeholder="links.yourdomain.com"

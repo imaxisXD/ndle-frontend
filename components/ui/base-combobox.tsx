@@ -10,7 +10,7 @@ import { CheckFatIcon } from "@phosphor-icons/react";
 // Define input size variants (without file: part)
 const inputVariants = cva(
   `
-    flex w-full bg-background border border-input shadow-xs shadow-black/5 transition-[color,box-shadow] text-foreground placeholder:text-muted-foreground/80 
+    flex w-full bg-surface-field border border-input shadow-xs shadow-black/5 transition-[color,box-shadow] text-foreground placeholder:text-muted-foreground/80 
     focus-visible:ring-accent/30 focus-visible:border-accent focus-visible:outline-none focus-visible:ring-[3px]     
     has-[[data-slot=combobox-input]:focus-visible]:ring-accent/30 
     has-[[data-slot=combobox-input]:focus-visible]:border-accent
@@ -18,7 +18,7 @@ const inputVariants = cva(
     has-[[data-slot=combobox-input]:focus-visible]:ring-[3px]
     [&_[data-slot=combobox-input]]:grow
     disabled:cursor-not-allowed disabled:opacity-60 
-    [&[readonly]]:bg-muted/80 [&[readonly]]:cursor-not-allowed
+    [&[readonly]]:opacity-70 [&[readonly]]:cursor-not-allowed
     aria-invalid:border-destructive/60 aria-invalid:ring-destructive/10
   `,
   {
@@ -186,8 +186,8 @@ function ComboboxPopup({
       data-slot="combobox-popup"
       className={cn(
         "max-h-[min(var(--available-height),23rem)] w-[var(--anchor-width)] max-w-[var(--available-width)] py-1",
-        "scroll-pt-2 scroll-pb-2 overflow-y-auto overscroll-contain bg-[canvas]",
-        "border-border bg-popover text-popover-foreground rounded-md border shadow-md shadow-black/5",
+        "scroll-pt-2 scroll-pb-2 overflow-y-auto overscroll-contain",
+        "border-border bg-surface-raised text-popover-foreground shadow-floating rounded-md border",
         "origin-[var(--transform-origin)] transition-[transform,scale,opacity] data-[ending-style]:scale-90",
         "data-[ending-style]:opacity-0 data-[starting-style]:scale-90 data-[starting-style]:opacity-0",
         className,
@@ -246,7 +246,7 @@ function ComboboxItem({
         "relative flex cursor-default items-center",
         "text-foreground relative items-center gap-2 rounded-md py-1.5 ps-7 pe-2 text-sm outline-hidden transition-colors select-none data-disabled:pointer-events-none data-disabled:opacity-50",
         "[&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*=size-])]:size-4 [&_svg:not([role=img]):not([class*=text-])]:opacity-60",
-        "data-[highlighted]:text-foreground data-[highlighted]:before:bg-muted/80 data-[highlighted]:relative data-[highlighted]:z-0 data-[highlighted]:before:absolute data-[highlighted]:before:inset-x-1 data-[highlighted]:before:inset-y-0 data-[highlighted]:before:z-[-1] data-[highlighted]:before:rounded-sm",
+        "data-[highlighted]:text-foreground data-[highlighted]:before:bg-surface-hover data-[highlighted]:relative data-[highlighted]:z-0 data-[highlighted]:before:absolute data-[highlighted]:before:inset-x-1 data-[highlighted]:before:inset-y-0 data-[highlighted]:before:z-[-1] data-[highlighted]:before:rounded-sm",
         className,
       )}
       {...props}

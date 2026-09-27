@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Bookmark, EditPencil, Check } from "iconoir-react";
 import { formatRelativeDate } from "@/lib/utils";
+import { Inset } from "@/components/ui/inset";
 
 interface LinkNotesPanelProps {
   shortUrl: string;
@@ -117,17 +118,14 @@ export function LinkNotesPanel({ shortUrl, fullUrl }: LinkNotesPanelProps) {
         {notes.length > 0 ? (
           <div className="space-y-2">
             {notes.map((note) => (
-              <div
-                key={note.id}
-                className="bg-muted/30 border-border rounded-lg border p-3"
-              >
+              <Inset key={note.id} className="rounded-lg p-3">
                 <p className="text-sm [overflow-wrap:anywhere]">
                   {note.content}
                 </p>
                 <p className="text-muted-foreground mt-2 text-xs">
                   {formatRelativeDate(note.createdAt)}
                 </p>
-              </div>
+              </Inset>
             ))}
           </div>
         ) : (

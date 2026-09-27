@@ -175,7 +175,7 @@ export function CreateCollectionButton({
                   <FormControl>
                     <Textarea
                       placeholder="Short description e.g. Product Documentation, Personal Links, etc."
-                      className="resize-none bg-white"
+                      className="resize-none"
                       rows={2}
                       {...field}
                     />
