@@ -7,10 +7,13 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      # v5 and later run on Node 24; v4 ran on the deprecated Node 20.
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
           node-version: 26
+          # pnpm is installed in the next step, so there's nothing to cache yet.
+          package-manager-cache: false
       - run: npm install --global pnpm@11.9.0
       - run: pnpm install --frozen-lockfile
       - run: pnpm check
