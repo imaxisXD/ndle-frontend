@@ -1439,14 +1439,7 @@ export function UrlTable({
                         style={{ width: header.getSize() }}
                       >
                         {header.isPlaceholder ? null : (
-                          <div
-                            className="flex items-center justify-start gap-2"
-                            onClick={() => {
-                              if (header.column.getCanSort()) {
-                                header.column.getIsSorted();
-                              }
-                            }}
-                          >
+                          <div className="flex items-center justify-start gap-2">
                             {flexRender(
                               header.column.columnDef.header,
                               header.getContext(),

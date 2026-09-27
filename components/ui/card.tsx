@@ -202,6 +202,7 @@ function CardToolbar({
 
 function CardTitle({
   className,
+  children,
   ...props
 }: React.HTMLAttributes<HTMLHeadingElement>) {
   return (
@@ -212,7 +213,9 @@ function CardTitle({
         className,
       )}
       {...props}
-    />
+    >
+      {children}
+    </h3>
   );
 }
 

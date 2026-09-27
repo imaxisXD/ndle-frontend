@@ -421,7 +421,9 @@ function Button({
           Record<string, unknown>,
           string | React.JSXElementConstructor<unknown>
         >)
-      : render || <button />;
+      : // A placeholder for useRender: its label (children) arrives through finalProps.
+        // oxlint-disable-next-line jsx-a11y/control-has-associated-label
+        render || <button />;
 
   // When using asChild, children becomes the element props, otherwise use children normally
   const finalProps =

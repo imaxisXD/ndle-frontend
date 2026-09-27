@@ -8,11 +8,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 
-function InputGroup({ className, ...props }: React.ComponentProps<"div">) {
+function InputGroup({ className, ...props }: React.ComponentProps<"fieldset">) {
   return (
-    <div
+    <fieldset
       data-slot="input-group"
-      role="group"
       className={cn(
         "group/input-group border-border relative flex w-full items-center rounded-md border shadow-xs transition-[color,box-shadow] outline-none",
         "h-9 min-w-0 has-[>textarea]:h-auto",
@@ -63,8 +62,10 @@ function InputGroupAddon({
   ...props
 }: React.ComponentProps<"div"> & VariantProps<typeof inputGroupAddonVariants>) {
   return (
+    // A layout wrapper, not a control: clicking it focuses the input as a pointer
+    // shortcut, and keyboard users reach the input itself with Tab.
     <div
-      role="group"
+      role="presentation"
       data-slot="input-group-addon"
       data-align={align}
       className={cn(inputGroupAddonVariants({ align }), className)}

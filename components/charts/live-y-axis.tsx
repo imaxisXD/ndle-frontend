@@ -207,11 +207,11 @@ const LiveYAxisInner = memo(function LiveYAxisInner({
               exit={{ opacity: 0 }}
               initial={{ opacity: 0, y: tick.y }}
               key={tick.key}
-              style={{
-                ...(isLeft
+              style={
+                isLeft
                   ? { right: 0, paddingRight: 8, textAlign: "right" }
-                  : { left: 0, paddingLeft: 8, textAlign: "left" }),
-              }}
+                  : { left: 0, paddingLeft: 8, textAlign: "left" }
+              }
               transition={tickSpring}
             >
               <span className="whitespace-nowrap font-mono text-chart-label text-xs">

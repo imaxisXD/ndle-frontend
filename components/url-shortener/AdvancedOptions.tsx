@@ -197,13 +197,18 @@ export function AdvancedOptions({
                             : "bg-surface-inset hover:bg-surface-hover border-border/40",
                       )}
                     >
-                      {/* Header Row */}
-                      <div
-                        className="flex cursor-pointer items-center justify-between p-3 select-none"
-                        onClick={() => handleRowClick(item.key)}
-                      >
-                        <div className="flex items-center gap-3 overflow-hidden">
-                          <div
+                      {/* Header Row. The label is a real button whose hit
+                          area (::after) stretches over the whole row, so the
+                          row still opens on click and now works from the
+                          keyboard too. The switch sits above that area. */}
+                      <div className="relative flex items-center justify-between p-3 select-none">
+                        <button
+                          type="button"
+                          onClick={() => handleRowClick(item.key)}
+                          aria-expanded={isExpanded}
+                          className="flex min-w-0 cursor-pointer items-center gap-3 overflow-hidden text-left after:absolute after:inset-0 after:rounded-lg after:content-[''] focus-visible:outline-none focus-visible:after:ring-[3px] focus-visible:after:ring-accent/50"
+                        >
+                          <span
                             className={cn(
                               "border-border flex size-8 shrink-0 items-center justify-center rounded-md border transition-colors",
                               isEnabled
@@ -215,20 +220,20 @@ export function AdvancedOptions({
                               className="size-4"
                               weight={isEnabled ? "duotone" : "regular"}
                             />
-                          </div>
-                          <div className="flex min-w-0 flex-col">
+                          </span>
+                          <span className="flex min-w-0 flex-col">
                             <span className="truncate text-sm font-medium">
                               {item.label}
                             </span>
                             <span className="text-muted-foreground truncate text-xs">
                               {item.description}
                             </span>
-                          </div>
-                        </div>
+                          </span>
+                        </button>
 
                         <div className="flex shrink-0 items-center gap-3 pl-3">
                           {item.enableKey && (
-                            <SwitchWrapper onClick={(e) => e.stopPropagation()}>
+                            <SwitchWrapper className="z-10" onClick={(e) => e.stopPropagation()}>
                               <Switch
                                 checked={isEnabled}
                                 onCheckedChange={(checked) =>

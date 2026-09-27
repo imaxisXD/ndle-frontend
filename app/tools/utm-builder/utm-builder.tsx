@@ -96,7 +96,9 @@ export function UtmBuilder() {
             {field.suggestions && (
               <datalist id={`${field.key}-options`}>
                 {field.suggestions.map((option) => (
-                  <option key={option} value={option} />
+                  <option key={option} value={option}>
+                    {option}
+                  </option>
                 ))}
               </datalist>
             )}

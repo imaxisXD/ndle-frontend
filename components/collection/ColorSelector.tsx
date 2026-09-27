@@ -20,10 +20,9 @@ export function ColorSelector({
   showTransparentOption = false,
 }: Props) {
   return (
-    <div
-      role="group"
+    <fieldset
       aria-label="Color choices"
-      className={cn("flex flex-wrap gap-3", className)}
+      className={cn("flex min-w-0 flex-wrap gap-3", className)}
     >
       <button
         type="button"
@@ -90,6 +89,6 @@ export function ColorSelector({
           </button>
         );
       })}
-    </div>
+    </fieldset>
   );
 }

@@ -316,6 +316,7 @@ export function OptionQRCode({ form, isPro = false }: Props) {
                       className="flex flex-wrap gap-2"
                     >
                       <label
+                        htmlFor="qr-logo-brand"
                         className={cn(
                           "border-border hover:bg-surface-hover inline-flex cursor-pointer items-center justify-center gap-2 rounded-md border px-4 py-2.5 text-sm font-medium whitespace-nowrap transition-colors",
                           field.value === "brand" &&
@@ -331,6 +332,7 @@ export function OptionQRCode({ form, isPro = false }: Props) {
                       </label>
 
                       <label
+                        htmlFor="qr-logo-custom"
                         className={cn(
                           "border-border inline-flex cursor-pointer items-center justify-center gap-2 rounded-md border px-4 py-2.5 text-sm font-medium whitespace-nowrap transition-colors",
                           field.value === "custom" &&
@@ -355,6 +357,7 @@ export function OptionQRCode({ form, isPro = false }: Props) {
                       </label>
 
                       <label
+                        htmlFor="qr-logo-none"
                         className={cn(
                           "border-border inline-flex cursor-pointer items-center justify-center gap-2 rounded-md border px-4 py-2.5 text-sm font-medium whitespace-nowrap transition-colors",
                           field.value === "none" &&

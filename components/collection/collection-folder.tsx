@@ -189,7 +189,10 @@ export function CollectionFolder({
       )}
       {...props}
     >
+      {/* Decorative: hovering or tapping fans the preview sheets out. It holds
+          no content of its own, so it's presentational for assistive tech. */}
       <div
+        role="presentation"
         className="relative select-none"
         style={{
           width: BASE_WIDTH * scale,

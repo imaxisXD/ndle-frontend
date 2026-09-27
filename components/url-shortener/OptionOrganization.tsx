@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, usePaginatedQuery } from "convex/react";
 import { UseFormReturn, useWatch } from "react-hook-form";
 import { api } from "@/convex/_generated/api";
@@ -79,6 +79,11 @@ export function OptionOrganization({
   const [nameError, setNameError] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
   const [isEditingName, setIsEditingName] = useState(false);
+  const editNameRef = useRef<HTMLInputElement>(null);
+  // The rename field only appears after "edit" is pressed, so move focus to it then.
+  useEffect(() => {
+    if (isEditingName) editNameRef.current?.focus();
+  }, [isEditingName]);
   const [editNameValue, setEditNameValue] = useState("");
 
   const collectionOptions: CollectionOption[] = useMemo(() => {
@@ -364,7 +369,7 @@ export function OptionOrganization({
                       value={editNameValue}
                       onChange={(e) => setEditNameValue(e.target.value)}
                       className="h-7 w-32 text-xs"
-                      autoFocus
+                      ref={editNameRef}
                       onKeyDown={(e) => {
                         if (e.key === "Enter") {
                           const err = getWindowsFolderNameError(editNameValue);

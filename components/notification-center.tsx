@@ -218,21 +218,21 @@ export function NotificationCenter() {
               <div className="divide-border divide-y">
                 {notifications.map((notification) => (
                   <div
-                    role="button"
-                    tabIndex={0}
                     key={notification.id}
                     className={`group relative p-4 transition-colors hover:bg-surface-hover ${
                       !notification.read ? "bg-blue-50/50" : ""
                     }`}
-                    onClick={() => markAsRead(notification.id)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" || e.key === " ") {
-                        e.preventDefault();
-                        markAsRead(notification.id);
-                      }
-                    }}
                   >
-                    <div className="flex gap-3">
+                    {/* The whole row marks it read: a real button under the
+                        content, which lets clicks through to it. The delete
+                        button sits above it. */}
+                    <button
+                      type="button"
+                      aria-label={`Mark "${notification.title}" as read`}
+                      onClick={() => markAsRead(notification.id)}
+                      className="focus-visible:ring-accent/50 absolute inset-0 focus-visible:ring-2 focus-visible:outline-none"
+                    />
+                    <div className="pointer-events-none relative flex gap-3">
                       <div className="mt-0.5 flex-shrink-0">
                         {getIcon(notification.type)}
                       </div>
@@ -259,11 +259,12 @@ export function NotificationCenter() {
                       </div>
                       <button
                         type="button"
+                        aria-label="Delete notification"
                         onClick={(e) => {
                           e.stopPropagation();
                           deleteNotification(notification.id);
                         }}
-                        className="text-muted-foreground hover:text-foreground opacity-0 transition-opacity group-hover:opacity-100"
+                        className="text-muted-foreground hover:text-foreground pointer-events-auto opacity-0 transition-opacity group-hover:opacity-100 focus-visible:opacity-100"
                       >
                         <XmarkCircle className="size-4" />
                       </button>

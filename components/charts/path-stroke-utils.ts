@@ -46,6 +46,10 @@ export function usePathStrokeMetrics(
 ): PathStrokeMetrics {
   const [metrics, setMetrics] = useState<PathStrokeMetrics>(EMPTY_METRICS);
 
+  // The caller's `deps` are the dependency list (oxlint can't see through the
+  // variable, so it reports none), and setMetrics bails out when nothing
+  // changed, so this can't loop.
+  // oxlint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     const path = pathRef.current;
     if (!path) {

@@ -934,8 +934,10 @@ export function DotMatrixBase({
 
   if (useWrapper) {
     return (
-      <div
-        role="status"
+      // A status region (<output>) for screen readers; the hover handlers only
+      // restart the decorative animation, so it stays non-interactive.
+      // oxlint-disable-next-line jsx-a11y/no-noninteractive-element-interactions
+      <output
         aria-live="polite"
         aria-label={ariaLabel}
         className={className}
@@ -953,13 +955,14 @@ export function DotMatrixBase({
         onMouseLeave={onMouseLeave}
       >
         {matrix}
-      </div>
+      </output>
     );
   }
 
   return (
-    <div
-      role="status"
+    // See the wrapper above: a status region whose hover only drives the animation.
+    // oxlint-disable-next-line jsx-a11y/no-noninteractive-element-interactions
+    <output
       aria-live="polite"
       aria-label={ariaLabel}
       className={cx(
@@ -977,7 +980,7 @@ export function DotMatrixBase({
       <div className="dmx-grid" style={{ gap }}>
         {dots}
       </div>
-    </div>
+    </output>
   );
 }
 

@@ -11,28 +11,41 @@ import { cn } from "@/lib/utils";
 const FOCUS =
   "rounded-sm focus-visible:ring-[3px] focus-visible:ring-[oklch(0.86_0.17_88/0.5)] focus-visible:ring-offset-2 focus-visible:outline-none";
 
-function Anchor({ href = "", className, ...props }: ComponentPropsWithoutRef<"a">) {
+function Anchor({ href = "", className, children, ...props }: ComponentPropsWithoutRef<"a">) {
   const style = cn(
     "text-[var(--fg)] underline decoration-[var(--sig)] decoration-2 underline-offset-4 hover:decoration-[oklch(0.72_0.16_82)]",
     FOCUS,
     className,
   );
-  if (href.startsWith("/") || href.startsWith("#")) return <Link href={href} className={style} {...props} />;
-  return <a href={href} className={style} rel="noopener" {...props} />;
+  if (href.startsWith("/") || href.startsWith("#"))
+    return (
+      <Link href={href} className={style} {...props}>
+        {children}
+      </Link>
+    );
+  return (
+    <a href={href} className={style} rel="noopener" {...props}>
+      {children}
+    </a>
+  );
 }
 
 const components: MDXComponents = {
-  h2: ({ className, ...props }) => (
+  h2: ({ className, children, ...props }) => (
     <h2
       className={cn(
         "mt-14 mb-3 scroll-mt-24 font-[family-name:var(--font-bebas)] text-[2.4rem] leading-[0.95] tracking-[-0.005em] text-balance text-[#141312] uppercase",
         className,
       )}
       {...props}
-    />
+    >
+      {children}
+    </h2>
   ),
-  h3: ({ className, ...props }) => (
-    <h3 className={cn("mt-8 mb-2 scroll-mt-24 text-lg font-medium text-[var(--fg)]", className)} {...props} />
+  h3: ({ className, children, ...props }) => (
+    <h3 className={cn("mt-8 mb-2 scroll-mt-24 text-lg font-medium text-[var(--fg)]", className)} {...props}>
+      {children}
+    </h3>
   ),
   p: ({ className, ...props }) => (
     <p className={cn("my-5 text-[1.0625rem] leading-8 text-pretty text-[var(--fg-2)]", className)} {...props} />

@@ -501,6 +501,9 @@ export const Matrix = React.forwardRef<HTMLDivElement, MatrixProps>(
     return (
       <div
         ref={ref}
+        // One picture drawn from many cells, so role="img" on the container:
+        // an <img> element can't hold the cells.
+        // oxlint-disable-next-line jsx-a11y/prefer-tag-over-role
         role="img"
         aria-label={ariaLabel ?? "matrix display"}
         aria-live={isAnimating ? "polite" : undefined}
