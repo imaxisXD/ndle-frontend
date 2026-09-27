@@ -356,7 +356,7 @@ export function FilterBar({
                           "mx-1 flex items-center justify-between rounded-md px-2 py-2 text-xs transition-colors",
                           isUsed
                             ? "text-muted-foreground/50 cursor-not-allowed"
-                            : "text-foreground/80 hover:bg-muted hover:text-foreground cursor-pointer",
+                            : "text-foreground/80 hover:bg-surface-hover hover:text-foreground cursor-pointer",
                         )}
                       >
                         <div className="flex items-center gap-2.5">
@@ -389,7 +389,7 @@ export function FilterBar({
                         "mx-1 flex items-center justify-between rounded-md px-2 py-2 text-xs transition-colors",
                         excludeBots
                           ? "text-muted-foreground/50 cursor-not-allowed"
-                          : "text-foreground/80 hover:bg-muted hover:text-foreground cursor-pointer",
+                          : "text-foreground/80 hover:bg-surface-hover hover:text-foreground cursor-pointer",
                       )}
                     >
                       <div className="flex items-center gap-2.5">
@@ -413,7 +413,7 @@ export function FilterBar({
                   <div className="flex items-center gap-2 border-b border-border px-2 py-2">
                     <button
                       onClick={() => setSelectedCategory(null)}
-                      className="text-muted-foreground hover:bg-muted hover:text-foreground rounded p-1 transition-colors"
+                      className="text-muted-foreground hover:bg-surface-hover hover:text-foreground rounded p-1 transition-colors"
                     >
                       <CaretRightIcon className="h-3.5 w-3.5 rotate-180" />
                     </button>
@@ -445,7 +445,7 @@ export function FilterBar({
                         <button
                           key={option.value}
                           onClick={() => handleSelectOption(option.value)}
-                          className="text-foreground/80 hover:bg-muted hover:text-foreground mx-1 flex w-[calc(100%-8px)] cursor-pointer items-center rounded-md px-2 py-2 text-xs transition-colors"
+                          className="text-foreground/80 hover:bg-surface-hover hover:text-foreground mx-1 flex w-[calc(100%-8px)] cursor-pointer items-center rounded-md px-2 py-2 text-xs transition-colors"
                         >
                           <span
                             className="max-w-[180px] truncate font-medium"
@@ -481,7 +481,7 @@ export function FilterBar({
       >
         <SelectTrigger
           size="md"
-          className="border-border bg-card hover:bg-muted w-46 rounded-md px-3 text-xs shadow-xs"
+          className="border-border hover:bg-surface-hover w-46 rounded-md px-3 text-xs"
         >
           <SelectValue>
             <div className="flex items-center gap-1.5">
@@ -515,7 +515,7 @@ export function FilterBar({
 
   return (
     <div className={cn("", className)}>
-      <div className="flex items-center gap-3 rounded-md border border-border bg-card px-4 py-2.5 shadow-[0_1px_2px_rgba(0,0,0,0.04),0_4px_10px_-2px_rgba(0,0,0,0.08)]">
+      <div className="flex items-center gap-3 rounded-md border border-border bg-surface-raised px-4 py-2.5 shadow-raised">
         {barInner}
       </div>
     </div>

@@ -49,7 +49,7 @@ export default function MemoryRoute() {
           {items.map((item) => (
             <article
               key={item.link}
-              className="border-border bg-card rounded-lg border p-6"
+              className="border-border bg-surface-raised shadow-raised rounded-lg border p-6"
             >
               <div className="flex items-start justify-between">
                 <div className="flex-1">

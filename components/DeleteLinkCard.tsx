@@ -63,7 +63,7 @@ export function DeleteLinkCard({
         </p>
       </CardContent>
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="bg-card gap-6">
+        <DialogContent className="gap-6">
           <div>
             <DialogTitle className="pr-8 text-base">
               Permanently delete this link?

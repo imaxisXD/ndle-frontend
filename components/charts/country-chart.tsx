@@ -74,17 +74,17 @@ export function CountryChart({
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="hover:bg-muted hover:text-foreground"
+                    className="hover:bg-surface-hover hover:text-foreground"
                   >
                     <Expand className="h-4 w-4" />
                   </Button>
                 }
               />
               <DialogContent className="flex flex-col gap-5 sm:max-w-2xl">
-                <DialogHeader className="bg-transparent">
+                <DialogHeader>
                   <DialogTitle>All Countries</DialogTitle>
                 </DialogHeader>
-                <DialogBody className="bg-card rounded-sm p-2">
+                <DialogBody className="p-2">
                   <div className="max-h-[70vh] overflow-y-auto px-2 py-4">
                     <BklitHorizontalBarChart
                       barWidth={28}

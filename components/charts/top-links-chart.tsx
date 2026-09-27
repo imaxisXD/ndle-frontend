@@ -185,7 +185,7 @@ export function TopLinksChart({
                         <NavLink
                           to={`/link/${slug}`}
                           aria-label="View analytics"
-                          className="text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:ring-accent/50 flex shrink-0 items-center justify-center rounded-md p-2 transition-colors outline-none focus-visible:ring-2"
+                          className="text-muted-foreground hover:bg-surface-hover hover:text-foreground focus-visible:ring-accent/50 flex shrink-0 items-center justify-center rounded-md p-2 transition-colors outline-none focus-visible:ring-2"
                         >
                           <NavArrowRight className="size-4" strokeWidth={2} />
                         </NavLink>

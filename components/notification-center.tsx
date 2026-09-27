@@ -174,7 +174,7 @@ export function NotificationCenter() {
         <DialogContent
           showBackdrop={true}
           showDismissButton={false}
-          className="bg-card bottom-3 left-76 z-[100] w-96 max-w-[calc(100vw-2rem)] rounded-lg p-0 shadow-xl"
+          className="bottom-3 left-76 z-[100] w-96 max-w-[calc(100vw-2rem)] rounded-lg p-0"
         >
           <DialogHeader className="border-border flex flex-row items-center justify-between gap-0 rounded-t-lg border-b bg-black/90 p-4">
             <DialogTitle className="font-doto roundness-100 text-base font-bold tracking-tighter text-white">
@@ -221,7 +221,7 @@ export function NotificationCenter() {
                     role="button"
                     tabIndex={0}
                     key={notification.id}
-                    className={`group relative p-4 transition-colors hover:bg-white ${
+                    className={`group relative p-4 transition-colors hover:bg-surface-hover ${
                       !notification.read ? "bg-blue-50/50" : ""
                     }`}
                     onClick={() => markAsRead(notification.id)}

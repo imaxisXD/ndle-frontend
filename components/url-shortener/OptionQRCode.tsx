@@ -25,6 +25,7 @@ import {
   normalizeQrStyle,
 } from "@/lib/qr";
 import { makeShortLink } from "@/lib/config";
+import { Inset } from "@/components/ui/inset";
 
 // Generated slugs never contain "-", so this placeholder can never open a real link.
 const PLACEHOLDER_QR_VALUE = `https://${makeShortLink("your-link")}`;
@@ -208,7 +209,7 @@ export function OptionQRCode({ form, isPro = false }: Props) {
   };
 
   return (
-    <div className="border-border bg-muted/20 rounded-lg border p-4 md:p-6">
+    <Inset className="rounded-lg p-4 md:p-6">
       {/* Layout: controls on left, preview on right */}
       <div className="flex flex-col gap-8 lg:flex-row">
         <div className="flex-1 space-y-8">
@@ -316,7 +317,7 @@ export function OptionQRCode({ form, isPro = false }: Props) {
                     >
                       <label
                         className={cn(
-                          "border-border hover:bg-muted/50 inline-flex cursor-pointer items-center justify-center gap-2 rounded-md border px-4 py-2.5 text-sm font-medium whitespace-nowrap transition-colors",
+                          "border-border hover:bg-surface-hover inline-flex cursor-pointer items-center justify-center gap-2 rounded-md border px-4 py-2.5 text-sm font-medium whitespace-nowrap transition-colors",
                           field.value === "brand" &&
                             "bg-accent text-accent-foreground border-primary/20",
                         )}
@@ -395,7 +396,6 @@ export function OptionQRCode({ form, isPro = false }: Props) {
                           placeholder="https://example.com/logo.png"
                           value={field.value ?? ""}
                           onChange={(e) => field.onChange(e.target.value)}
-                          className="bg-background"
                         />
                       </FormControl>
                       <FormMessage />
@@ -415,7 +415,7 @@ export function OptionQRCode({ form, isPro = false }: Props) {
 
           <div
             ref={previewRef}
-            className="border-border/50 relative flex items-center justify-center overflow-hidden rounded-xl border bg-white shadow-sm ring-1 ring-black/5"
+            className="border-border/50 relative flex items-center justify-center overflow-hidden rounded-xl border bg-white shadow-raised ring-1 ring-black/5"
             style={{
               width: "240px",
               height: "240px",
@@ -515,6 +515,6 @@ export function OptionQRCode({ form, isPro = false }: Props) {
           )}
         </div>
       </div>
-    </div>
+    </Inset>
   );
 }

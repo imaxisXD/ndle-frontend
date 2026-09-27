@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { Inset } from "@/components/ui/inset";
 
 type Option = { key: string; label: string };
 
@@ -14,7 +15,7 @@ export function OptionToggleBar({
   onToggle: (key: string) => void;
 }) {
   return (
-    <div className="border-border bg-muted/20 flex w-full flex-wrap gap-2 rounded-lg border p-2">
+    <Inset className="flex w-full flex-wrap gap-2 rounded-lg p-2">
       {options.map((opt) => {
         const active = value.includes(opt.key);
         return (
@@ -30,6 +31,6 @@ export function OptionToggleBar({
           </Button>
         );
       })}
-    </div>
+    </Inset>
   );
 }

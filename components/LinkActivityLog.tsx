@@ -102,7 +102,7 @@ export function LinkActivityLog({ linkSlug }: LinkActivityLogProps) {
             {activities.map((activity) => (
               <div
                 key={activity._id}
-                className="hover:bg-muted/30 flex items-center justify-between gap-4 px-4 py-3 transition-colors sm:px-5"
+                className="hover:bg-surface-hover flex items-center justify-between gap-4 px-4 py-3 transition-colors sm:px-5"
               >
                 {/* Left side: Time and Location (stacked on phones) */}
                 <div className="flex min-w-0 flex-1 flex-col gap-0.5 sm:flex-row sm:items-center sm:gap-4">
@@ -145,7 +145,7 @@ export function LinkActivityLog({ linkSlug }: LinkActivityLogProps) {
 
         {/* Footer */}
         {activities && activities.length > 0 && (
-          <div className="bg-muted/20 border-border border-t px-5 py-3">
+          <div className="bg-surface-inset border-border border-t px-5 py-3">
             <p className="text-muted-foreground text-center text-xs">
               Real-time updates • {activities.length} recent clicks
             </p>

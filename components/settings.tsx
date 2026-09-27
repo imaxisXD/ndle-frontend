@@ -438,7 +438,7 @@ export function Settings() {
         </div>
 
         <div className="space-y-4">
-          <div className="flex flex-col items-start gap-3 rounded-lg border border-red-200 bg-white p-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="bg-surface-raised flex flex-col items-start gap-3 rounded-lg border border-red-200 p-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <h4 className="text-sm font-medium text-red-900">
                 Delete All Links

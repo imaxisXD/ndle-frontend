@@ -323,7 +323,7 @@ const MonitoringDataRow = memo(function MonitoringDataRow({
   uptime,
 }: MonitoringDataRowProps) {
   return (
-    <TableRow className="group bg-card hover:bg-muted/30">
+    <TableRow className="group bg-card hover:bg-surface-hover">
       <TableCell
         className="px-3 py-4 md:px-5 md:py-5"
         style={{ width: monitoringColumnSize.status }}
@@ -540,7 +540,7 @@ const MonitoredLinksTable = memo(function MonitoredLinksTable({
   const rows = table.getRowModel().rows;
 
   return (
-    <div className="border-border bg-card overflow-hidden rounded-md border">
+    <Card className="overflow-hidden">
       <ul className="divide-border divide-y md:hidden">
         {rows.map((row) => (
           <MonitoringLinkCard key={row.id} {...row.original} />
@@ -575,7 +575,7 @@ const MonitoredLinksTable = memo(function MonitoredLinksTable({
           </TableBody>
         </Table>
       </div>
-    </div>
+    </Card>
   );
 });
 
@@ -587,7 +587,7 @@ const MonitoringStats = memo(function MonitoringStats({
   return (
     <div className="grid grid-cols-2 gap-3 md:gap-4 lg:grid-cols-4">
       {stats.map((stat) => (
-        <Card key={stat.label} className="rounded-sm bg-white">
+        <Card key={stat.label} className="rounded-sm">
           <CardContent className="flex items-center justify-between p-4 md:p-6">
             <div className="space-y-2">
               <p className="text-muted-foreground text-xs font-medium tracking-wider uppercase">
@@ -627,7 +627,7 @@ function MonitoringSkeleton() {
         ))}
       </div>
 
-      <div className="border-border bg-card overflow-hidden rounded-md border">
+      <Card className="overflow-hidden">
         <ul className="divide-border divide-y md:hidden">
           {[1, 2, 3].map((row) => (
             <li key={row} className="space-y-3 px-4 py-4">
@@ -695,9 +695,9 @@ function MonitoringSkeleton() {
             ))}
           </TableBody>
         </Table>
-      </div>
+      </Card>
 
-      <div className="border-border rounded-xl border bg-white p-4 sm:p-6">
+      <Card className="p-4 sm:p-6">
         <div className="mb-6">
           <Skeleton className="h-5 w-36" />
           <Skeleton className="mt-2 h-3 w-56" />
@@ -724,7 +724,7 @@ function MonitoringSkeleton() {
             </div>
           ))}
         </div>
-      </div>
+      </Card>
     </div>
   );
 }

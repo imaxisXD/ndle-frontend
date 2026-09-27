@@ -11,6 +11,7 @@ import {
 import { Badge } from "@ui/badge";
 
 import { Skeleton } from "./ui/skeleton";
+import { Card } from "@/components/ui/card";
 
 export type Incident = {
   id: string;
@@ -143,7 +144,7 @@ export function RecentIncidents({
   const currentPage = table.getState().pagination.pageIndex + 1;
 
   return (
-    <div className="border-border bg-card rounded-md border p-4 sm:p-6">
+    <Card className="p-4 sm:p-6">
       <div className="mb-6">
         <h3 className="text-base font-medium">Recent Incidents</h3>
         <p className="text-muted-foreground mt-1 text-xs">
@@ -253,6 +254,6 @@ export function RecentIncidents({
           )}
         </>
       )}
-    </div>
+    </Card>
   );
 }

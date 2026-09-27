@@ -62,7 +62,7 @@ export function CustomDomainSettings() {
   };
 
   return (
-    <Card variant="accent" className="border-border border">
+    <Card variant="accent">
       <CardHeader>
         <CustomDomainCardTitle
           subtitle={`Use your own domain for shortened links [${limits.used}/${limits.limit} used]`}

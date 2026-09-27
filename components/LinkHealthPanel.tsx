@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Inset } from "@/components/ui/inset";
 import { ShieldCheck, Clock, CheckCircle } from "iconoir-react";
 import { Id } from "@/convex/_generated/dataModel";
 import {
@@ -131,8 +132,8 @@ export function LinkHealthPanel({ urlId }: LinkHealthPanelProps) {
     return (
       <div className="space-y-6">
         {/* Status Overview Skeleton */}
-        <Card>
-          <CardHeader>
+        <Card variant="accent">
+          <CardHeader className="py-6">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <Skeleton className="size-6 rounded-full" />
@@ -147,14 +148,14 @@ export function LinkHealthPanel({ urlId }: LinkHealthPanelProps) {
           <CardContent>
             <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3">
               {[1, 2, 3].map((i) => (
-                <div
+                <Inset
                   key={i}
-                  className="bg-muted/30 rounded-lg border p-4 last:col-span-2 sm:last:col-span-1"
+                  className="rounded-sm p-3 last:col-span-2 sm:last:col-span-1"
                 >
                   <Skeleton className="h-4 w-20" />
                   <Skeleton className="mt-2 h-8 w-24" />
                   <Skeleton className="mt-1 h-3 w-16" />
-                </div>
+                </Inset>
               ))}
             </div>
           </CardContent>
@@ -225,7 +226,7 @@ export function LinkHealthPanel({ urlId }: LinkHealthPanelProps) {
   return (
     <div className="space-y-6">
       {/* Status Overview */}
-      <Card variant={"accent"} className="border-border border px-2 py-2">
+      <Card variant="accent">
         <CardHeader className="py-6">
           <CardTitle className="flex items-center gap-2 text-base font-medium">
             {getStatusIcon(status)}
@@ -239,10 +240,10 @@ export function LinkHealthPanel({ urlId }: LinkHealthPanelProps) {
                 : "Checked about every 30 minutes"}
           </CardDescription>
         </CardHeader>
-        <CardContent className="rounded-sm [&:last-child]:rounded-b-sm">
+        <CardContent>
           {/* Phones: two tiles per row, Last Checked across the bottom. */}
           <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3">
-            <div className="bg-muted/30 border-border rounded-sm border p-3">
+            <Inset className="rounded-sm p-3">
               <div className="flex items-center gap-2">
                 <ShieldCheckIcon className="text-muted-foreground size-4" />
                 <span className="text-muted-foreground text-xs">Uptime</span>
@@ -253,9 +254,9 @@ export function LinkHealthPanel({ urlId }: LinkHealthPanelProps) {
                 {uptime === null ? "No recent checks" : `[${uptime}%]`}
               </p>
               <p className="text-muted-foreground mt-1 text-xs">Last 30 days</p>
-            </div>
+            </Inset>
 
-            <div className="bg-muted/30 border-border rounded-sm border p-3">
+            <Inset className="rounded-sm p-3">
               <div className="flex items-center gap-2">
                 <LightningIcon className="text-muted-foreground size-4" />
                 <span className="text-muted-foreground text-xs">
@@ -272,9 +273,9 @@ export function LinkHealthPanel({ urlId }: LinkHealthPanelProps) {
                 ]
               </p>
               <p className="text-muted-foreground mt-1 text-xs">Latest check</p>
-            </div>
+            </Inset>
 
-            <div className="bg-muted/30 border-border col-span-2 rounded-sm border p-3 sm:col-span-1">
+            <Inset className="col-span-2 rounded-sm p-3 sm:col-span-1">
               <div className="flex items-center gap-2">
                 <Clock className="text-muted-foreground size-4" />
                 <span className="text-muted-foreground text-xs">
@@ -287,7 +288,7 @@ export function LinkHealthPanel({ urlId }: LinkHealthPanelProps) {
               <p className="text-muted-foreground mt-1 text-xs">
                 {healthData.incidentData?.length ?? 0} incidents
               </p>
-            </div>
+            </Inset>
           </div>
         </CardContent>
       </Card>
@@ -319,7 +320,7 @@ export function LinkHealthPanel({ urlId }: LinkHealthPanelProps) {
               {healthData.incidentData?.map((incident) => (
                 <div
                   key={incident._id}
-                  className="hover:bg-muted/30 flex flex-wrap items-center gap-x-3 gap-y-1 px-4 py-3 transition-colors sm:flex-nowrap sm:px-5"
+                  className="hover:bg-surface-hover flex flex-wrap items-center gap-x-3 gap-y-1 px-4 py-3 transition-colors sm:flex-nowrap sm:px-5"
                 >
                   <div className="shrink-0 sm:w-24">
                     <Badge

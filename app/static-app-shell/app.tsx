@@ -19,7 +19,7 @@ export default function App() {
     <ConvexQueryCacheProvider>
       <BrowserRouter>
         <Toaster />
-        <div className="bg-home text-foreground dot flex min-h-screen w-full gap-4 overflow-hidden">
+        <div className="bg-surface-page text-foreground dot flex min-h-screen w-full gap-4 overflow-hidden">
           <Sidebar />
           <main className="flex min-h-screen w-full min-w-0 flex-1 items-start justify-center overflow-y-auto px-4 pt-4 pb-24 md:py-8">
             <div className="flex w-full max-w-6xl flex-col space-y-8 py-4 md:px-6 md:py-8">

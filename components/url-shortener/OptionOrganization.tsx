@@ -40,6 +40,7 @@ import {
 } from "iconoir-react";
 import { FolderPlusIcon } from "@phosphor-icons/react";
 import type { UrlFormValues } from "../url-shortener";
+import { Inset } from "@/components/ui/inset";
 
 type CollectionOption = {
   id: string;
@@ -168,7 +169,7 @@ export function OptionOrganization({
   }, [collectionOptions, searchValue]);
 
   return (
-    <div className="border-border bg-muted/20 space-y-5 rounded-lg border p-4">
+    <Inset className="space-y-5 rounded-lg p-4">
       {/* Collection selector */}
       <div className="space-y-2">
         <div className="flex items-center gap-1.5">
@@ -197,7 +198,7 @@ export function OptionOrganization({
             }
           }}
         >
-          <ComboboxTrigger className="border-border hover:border-accent focus-visible:border-accent focus-visible:ring-accent/30 flex w-full items-center gap-2.5 rounded-md border bg-white px-3 py-2 text-left text-sm shadow-xs shadow-black/5 transition-[color,box-shadow] focus-visible:ring-[3px] focus-visible:outline-none">
+          <ComboboxTrigger className="border-border hover:border-accent focus-visible:border-accent focus-visible:ring-accent/30 bg-surface-field flex w-full items-center gap-2.5 rounded-md border px-3 py-2 text-left text-sm shadow-xs shadow-black/5 transition-[color,box-shadow] focus-visible:ring-[3px] focus-visible:outline-none">
             <ComboboxValue>
               {() =>
                 selectedCollection ? (
@@ -222,7 +223,7 @@ export function OptionOrganization({
                   </>
                 ) : (
                   <>
-                    <div className="bg-muted/30 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg">
+                    <div className="bg-surface-inset flex h-8 w-8 shrink-0 items-center justify-center rounded-lg">
                       <Folder className="text-muted-foreground h-4 w-4" />
                     </div>
                     <span className="text-muted-foreground flex-1 truncate">
@@ -466,6 +467,6 @@ export function OptionOrganization({
           </Card>
         )}
       </div>
-    </div>
+    </Inset>
   );
 }

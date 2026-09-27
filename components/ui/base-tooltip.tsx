@@ -40,7 +40,7 @@ const tooltipVariants = cva(
         default:
           "border border-border backdrop-blur-md text-white bg-black/80 text-white shadow-sm shadow-accent/10",
         light:
-          "border border-border bg-background backdrop-blur-sm text-foreground shadow-md shadow-black/5",
+          "border border-border bg-surface-raised text-foreground shadow-floating",
       },
     },
     defaultVariants: {
@@ -98,7 +98,7 @@ const tooltipArrowBackgroundVariants = cva("", {
   variants: {
     variant: {
       default: "fill-zinc-950",
-      light: "fill-background",
+      light: "fill-surface-raised",
     },
   },
   defaultVariants: {

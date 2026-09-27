@@ -1,5 +1,13 @@
 import { clsx, type ClassValue } from "clsx";
-import { twMerge } from "tailwind-merge";
+import { extendTailwindMerge } from "tailwind-merge";
+
+// tailwind-merge only knows Tailwind's default shadow sizes, so it would read
+// the elevation shadows from globals.css as shadow colors and keep both when a
+// caller passes its own shadow. Registering them lets `shadow-xl` replace
+// `shadow-raised` the way it replaces `shadow-sm`.
+const twMerge = extendTailwindMerge({
+  extend: { theme: { shadow: ["raised", "floating", "modal"] } },
+});
 
 /**
  * Merges Tailwind class names, resolving any conflicts.

@@ -26,7 +26,7 @@ export function AccountCard() {
   const isPro = viewer?.membership === "pro";
 
   return (
-    <Card variant={"accent"} className="border-border border">
+    <Card variant="accent">
       <CardHeader>
         <CardTitle className="flex items-center gap-3 text-base font-medium">
           <div className="rounded-lg bg-purple-200 p-2">

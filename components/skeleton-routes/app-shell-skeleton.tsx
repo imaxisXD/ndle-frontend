@@ -37,6 +37,7 @@ import { UrlTableSkeletonRows } from "@/components/url-table/UrlTableSkeletonRow
 import { PlanNote } from "@/components/url-shortener/PlanNote";
 import { getShortDomain } from "@/lib/config";
 import { cn } from "@/lib/utils";
+import { Inset } from "@/components/ui/inset";
 
 // Mirrors app/static-app-shell/app.tsx, components/sidebar.tsx,
 // routes/HomeRoute.tsx, components/url-shortener.tsx and the dashboard
@@ -94,7 +95,7 @@ function SidebarSkeleton({ pathname }: { pathname: string | null }) {
   };
 
   return (
-    <div className="fixed inset-x-3 bottom-[calc(env(safe-area-inset-bottom)+0.75rem)] z-40 flex h-14 flex-row items-center justify-between rounded-sm border border-dashed border-gray-400/60 bg-white px-2 shadow-2xs md:static md:my-auto md:ml-4 md:h-[65vh] md:w-16 md:shrink-0 md:flex-col md:justify-start md:px-0 md:py-2">
+    <div className="bg-surface-raised shadow-raised fixed inset-x-3 bottom-[calc(env(safe-area-inset-bottom)+0.75rem)] z-40 flex h-14 flex-row items-center justify-between rounded-sm border border-dashed border-gray-400/60 px-2 md:static md:my-auto md:ml-4 md:h-[65vh] md:w-16 md:shrink-0 md:flex-col md:justify-start md:px-0 md:py-2">
       <div className="flex flex-row gap-1 md:flex-1 md:flex-col md:gap-4">
         {primaryNav.map(navSlot)}
       </div>
@@ -128,7 +129,7 @@ function ShortenerSkeleton() {
         </div>
 
         <div className="flex flex-col gap-2.5">
-          <div className="border-border bg-muted/20 rounded-lg border p-4">
+          <Inset className="rounded-lg p-4">
             <div className="mb-4">
               <div className="text-muted-foreground mb-2 text-xs">Domain</div>
               <SkeletonBone className="h-8 w-28 rounded-md" delay={60} />
@@ -160,7 +161,7 @@ function ShortenerSkeleton() {
                 </span>
               </div>
             </div>
-          </div>
+          </Inset>
         </div>
 
         <div className="space-y-3">
@@ -326,7 +327,7 @@ export function AppShellSkeleton() {
   return (
     <div
       aria-hidden="true"
-      className="bg-home text-foreground dot flex min-h-screen w-full gap-4 overflow-hidden"
+      className="bg-surface-page text-foreground dot flex min-h-screen w-full gap-4 overflow-hidden"
     >
       <SidebarSkeleton pathname={pathname} />
       <div className="flex min-h-screen w-full min-w-0 flex-1 items-start justify-center overflow-y-auto px-4 pt-4 pb-24 md:py-8">

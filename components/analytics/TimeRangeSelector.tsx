@@ -44,7 +44,7 @@ export function TimeRangeSelector({
     >
       <SelectTrigger
         size="md"
-        className="bg-background flex items-center justify-between gap-2 font-medium shadow-xs drop-shadow-xs max-sm:h-10"
+        className="flex items-center justify-between gap-2 font-medium shadow-xs drop-shadow-xs max-sm:h-10"
       >
         <Calendar className="text-primary size-4" strokeWidth={2} />
         <SelectValue placeholder="Select range" />
