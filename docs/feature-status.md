@@ -26,7 +26,7 @@ table and the copy together.
 | 100 short links **per month** | 100 **active** links in total on the free plan. | Copy fixed to "100 active links" | `convex/ownership.ts` (`FREE_ACTIVE_LINK_LIMIT`) |
 | 1 custom domain free | `MAX_DOMAINS_FREE = 1` (Pro: 3). | **Ships** | `convex/customDomains.ts` |
 | Guest links: no sign-up, last 7 days | 7-day expiry, 5 guest links a day per guest. | **Ships** | `convex/ownership.ts` |
-| Unlimited QR codes | QR style and download support on every link. | **Ships** | `lib/qr.ts`, `urls.qrEnabled` |
+| Unlimited QR codes | QR style and download (SVG, PNG) on every link. On the free plan the code carries ndle's brand mark; "no mark" and custom logos are Pro-only in the form. Don't call free codes unmarked. | **Ships** | `lib/qr.ts`, `components/url-shortener/OptionQRCode.tsx` |
 | Custom back-halves (`ndle.fyi/spring-menu`) | Not offered. Slugs are six random characters, or readable words on Pro. Examples in copy must look like `ndle.fyi/k3x9qa`. | **Pending** | `convex/utils.ts` (`createSlug`) |
 | Link expiry dates | Up to 30 days ahead on the free plan; longer on Pro. | **Ships** | `convex/urlMainFuction.ts` (`validateSignedInPlan`) |
 | A/B split links, readable-word slugs, custom QR logos | Pro only, and Pro isn't sold yet. Don't list them as free features. | Pro only | same |

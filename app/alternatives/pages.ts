@@ -181,9 +181,9 @@ export const ALTERNATIVES: AlternativePage[] = [
     competitor: "Rebrandly",
     title: "Free Rebrandly alternative with 100 links",
     description:
-      "Rebrandly's free plan gives 10 links and 10 watermarked QR codes a month. ndle's gives 100 active links, unlimited QR codes and checks every 30 minutes.",
+      "Rebrandly's free plan gives 10 links and 10 QR codes a month. ndle's gives 100 active links, unlimited QR codes and a check on every link every 30 minutes.",
     h1: "A Rebrandly alternative with room to grow for free",
-    lede: "100 active links, your own domain and unlimited, unmarked QR codes on the free plan, and a check on every link's page every 30 minutes.",
+    lede: "100 active links, your own domain and unlimited QR codes on the free plan, and a check on every link's page every 30 minutes.",
     checked: "2026-09-28",
     sections: [
       { id: "ndle-and-rebrandlys-free-plans-side-by-side", title: "ndle and Rebrandly's free plans, side by side" },

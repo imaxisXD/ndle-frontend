@@ -32,7 +32,7 @@ export const USE_CASES: UseCasePage[] = [
     topic: "QR codes",
     title: "Free QR codes that keep working, with no scan limit",
     description:
-      "Free, unlimited QR codes with no trial, no watermark and no ad page. ndle checks the page behind every code every 30 minutes, so you know when one breaks.",
+      "Free, unlimited QR codes with no trial, no scan limit and no ad page. ndle checks the page behind every code every 30 minutes, so you know when one breaks.",
     h1: "QR codes that don't stop working",
     lede: "Unlimited QR codes on the free plan, with no trial to run out and no ad page in front. And a check on the page behind every code every 30 minutes.",
     updated: "2026-09-28",
