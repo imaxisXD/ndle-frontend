@@ -8,6 +8,7 @@ import { accountCounter, accountCountsReady } from "./accountCounters";
 import { incrementCollectionClicks } from "./collectionMangament";
 import { toOwnerLinkView } from "./moderation";
 import { matchesSecret } from "./secrets";
+import { recordPlatformClick } from "./publicStats";
 
 export const counter = new ShardedCounter(components.shardedCounter);
 
@@ -86,6 +87,7 @@ export const mutateUrlAnalytics = mutation({
     }
 
     await counter.inc(ctx, `url:${normalisedUrlId}`);
+    await recordPlatformClick(ctx);
     if (url.userTableId && url.accountCountersIncluded) await accountCounter.inc(ctx, `user-clicks:${url.userTableId}`);
 
     await incrementCollectionClicks(ctx, normalisedUrlId);

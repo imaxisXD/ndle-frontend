@@ -276,6 +276,15 @@ export default defineSchema({
     .index("by_user", ["userId"])
     .index("by_user_and_name", ["userId", "name"]),
 
+  // Aggregates that are safe to show on public pages, one row per stat.
+  // A cron refreshes them, so public readers never touch the hot counters.
+  publicStats: defineTable({
+    name: v.string(),
+    total: v.number(),
+    updatedAt: v.number(),
+    seededAt: v.optional(v.number()),
+  }).index("by_name", ["name"]),
+
   // Click events for real-time activity tracking
   clickEvents: defineTable({
     linkSlug: v.string(),

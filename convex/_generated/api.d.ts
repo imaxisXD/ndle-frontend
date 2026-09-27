@@ -21,6 +21,7 @@ import type * as guestTokens from "../guestTokens.js";
 import type * as linkHealth from "../linkHealth.js";
 import type * as moderation from "../moderation.js";
 import type * as ownership from "../ownership.js";
+import type * as publicStats from "../publicStats.js";
 import type * as redisAction from "../redisAction.js";
 import type * as redisProjection from "../redisProjection.js";
 import type * as secrets from "../secrets.js";
@@ -53,6 +54,7 @@ declare const fullApi: ApiFromModules<{
   linkHealth: typeof linkHealth;
   moderation: typeof moderation;
   ownership: typeof ownership;
+  publicStats: typeof publicStats;
   redisAction: typeof redisAction;
   redisProjection: typeof redisProjection;
   secrets: typeof secrets;

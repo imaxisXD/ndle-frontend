@@ -50,4 +50,13 @@ crons.interval(
   internal.collectionMangament.migrateCollectionMembers,
 );
 
+// Copy the platform click total into the public stats row. Readers on the
+// landing page see at most one update per interval, however busy links get.
+crons.interval(
+  "refresh-public-stats",
+  { seconds: 30 },
+  internal.publicStats.refresh,
+  {},
+);
+
 export default crons;
