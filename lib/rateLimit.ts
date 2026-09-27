@@ -14,6 +14,7 @@ let redisInstance: Redis | null = null;
 let rateLimitInstance: Ratelimit | null = null;
 let analyticsRateLimitInstance: Ratelimit | null = null;
 let guestSessionNetworkLimitInstance: Ratelimit | null = null;
+let linkCheckLimitInstance: Ratelimit | null = null;
 
 function getRedis() {
   if (!redisInstance) {
@@ -77,4 +78,20 @@ export function getGuestSessionNetworkRateLimit() {
     });
   }
   return guestSessionNetworkLimitInstance;
+}
+
+/**
+ * Public link checks per network, behind Turnstile: each check sends up to 11
+ * requests to someone else's site, so a person gets plenty and a script
+ * doesn't get far. Key it `link-check:<client IP>`.
+ */
+export function getLinkCheckRateLimit() {
+  if (!linkCheckLimitInstance) {
+    linkCheckLimitInstance = new Ratelimit({
+      redis: getRedis(),
+      limiter: Ratelimit.slidingWindow(20, "1 h"),
+      prefix: "@upstash/ratelimit:link-check",
+    });
+  }
+  return linkCheckLimitInstance;
 }

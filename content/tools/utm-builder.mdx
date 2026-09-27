@@ -1,0 +1,22 @@
+## What each field does
+
+Google Analytics reads these parameters from the link and files the visit under them ([Google Analytics Help](https://support.google.com/analytics/answer/10917952)):
+
+| Field | Parameter | Example |
+| --- | --- | --- |
+| Source | `utm_source` | `newsletter`, `google`, `instagram` |
+| Medium | `utm_medium` | `email`, `cpc`, `social` |
+| Campaign | `utm_campaign` | `spring_sale` |
+| Content | `utm_content` | `header_button`, to tell two links in one email apart |
+| Term | `utm_term` | the paid keyword |
+| Campaign ID | `utm_id` | your ad platform's campaign ID |
+
+Google says to always set source, medium and campaign. The builder warns you when one is missing.
+
+## Name them the same way every time
+
+Values are case sensitive: `utm_source=Facebook` and `utm_source=facebook` show up as two different sources. Pick lowercase, use underscores instead of spaces, and write your names down so the whole team uses the same ones. There's more in [UTM parameters, explained](/blog/utm-parameters-explained).
+
+## Shorten the result
+
+Campaign links get long. Shortened with ndle, the same link fits in a post, a text or a QR code, and ndle's stats break its clicks down by UTM campaign. ndle checks the page behind every short link every 30 minutes, too, so a campaign doesn't keep running to a page that's gone.

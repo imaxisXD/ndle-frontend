@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/base-select";
 import { useWatch, type UseFormReturn } from "react-hook-form";
 import type { UrlFormValues } from "../url-shortener";
+import { buildUtmUrl } from "@/lib/utm";
 
 // Common UTM source presets
 const CUSTOM_PRESET_VALUE = "__custom__";
@@ -48,23 +49,6 @@ const MEDIUM_PRESETS = [
   { value: "affiliate", label: "Affiliate" },
   { value: "banner", label: "Banner" },
 ];
-
-function buildUtmUrl(baseUrl: string, params: Record<string, string>) {
-  try {
-    // Add protocol if missing
-    let urlString = baseUrl;
-    if (!/^https?:\/\//i.test(urlString)) {
-      urlString = `https://${urlString}`;
-    }
-    const url = new URL(urlString);
-    Object.entries(params).forEach(([k, v]) => {
-      if (v && v.trim() !== "") url.searchParams.set(k, v.trim());
-    });
-    return url.toString();
-  } catch {
-    return "";
-  }
-}
 
 export function OptionUTMBuilder({
   form,

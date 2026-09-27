@@ -1,0 +1,30 @@
+import { Figure, StatusCodes } from "@/app/blog/_components/diagrams";
+
+## What this checks
+
+Paste any public link and the checker asks for it the way a browser would, then follows every redirect to the end. You get:
+
+- **A verdict:** working, slow, broken, or couldn't tell.
+- **The status code** the page answered with, and what it means.
+- **Every hop,** if the link redirects, with how long each one took.
+
+It uses the same rules as ndle's own monitoring, so a link that passes here would pass there.
+
+## Reading the result
+
+<Figure caption="The status codes worth knowing">
+  <StatusCodes />
+</Figure>
+
+- **Working** means the page answered with a success or a redirect that ended somewhere, in under three seconds.
+- **Slow** means it answered, but took longer than three seconds. People leave slow pages.
+- **Broken** means the page is missing (404 or 410), the server failed, the connection didn't go through, or the link redirected in a loop.
+- **Couldn't tell** means the site answered 401, 403, 429 or 503. These usually mean the site blocks automated checks or is limiting requests, not that the page is down. Open the link in a browser to be sure.
+
+## What it can't see
+
+A status code can't tell you everything. A page can answer "200 OK" and still be wrong for your readers: a product that's "currently unavailable", a "page not found" message on a normal-looking page, or a sign-in screen. For links that earn money, open the page and read it. There's more in [how to check if a link is working](/blog/check-if-link-is-working).
+
+## Check it again tomorrow
+
+A link that works today can break next month. ndle checks the page behind every short link every 30 minutes with these same rules, and flags it on your Monitoring page when it breaks. It's free for up to 100 active links.
