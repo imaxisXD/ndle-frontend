@@ -1,11 +1,7 @@
 "use client";
 
-import { useQuery } from "convex/react";
-import { QuietBoundary } from "@/components/quiet-boundary";
 import { CheckIcon, TagIcon, XIcon } from "@phosphor-icons/react/dist/ssr";
 import { COUNTER_TEXTURE } from "@/components/charts/live-click-hero";
-import { LiveDot } from "@/components/ui/live-dot";
-import { api } from "@/convex/_generated/api";
 import { cn } from "@/lib/utils";
 import { ActionLink, INK_TITLE, InkBadge } from "./kit";
 
@@ -32,6 +28,13 @@ const ROWS: Array<{
 
 const ALSO = ["UTM builder", "Saved UTM templates", "Link expiry dates", "Collections", "Analytics by country, device and referrer"];
 
+/* The banner's right side: the offer's own numbers. */
+const FIGURES = [
+  { value: "100", label: "active links" },
+  { value: "1", label: "custom domain" },
+  { value: "30", label: "minutes between checks" },
+];
+
 const PLANS = [
   { key: "ndle", name: "ndle" },
   { key: "bitly", name: "Bitly" },
@@ -48,8 +51,7 @@ const FEATURES = ROWS;
 /* The plans, after capy.ai's Pricing: a centred head, a black banner with
    the offer, then one ink card per free plan. ndle's card is the inverted
    one, as capy's featured plan is, with yellow checks where no other free
-   plan has the feature. The banner carries the real click total when there
-   is one. */
+   plan has the feature. */
 export function Compare({ signedIn = false }: { signedIn?: boolean }) {
   return (
     <section id="pricing" aria-labelledby="pricing-title" className="mx-auto max-w-[1240px] scroll-mt-20 px-5 py-24 sm:px-8 lg:py-28">
@@ -82,11 +84,17 @@ export function Compare({ signedIn = false }: { signedIn?: boolean }) {
             {signedIn ? "Open your dashboard" : "Get ndle free"}
           </ActionLink>
         </div>
-        {/* The real click total, live; until there is one, or if it can't be
-            read, the offer's number. */}
-        <QuietBoundary label="Live click total" fallback={<TotalFigure live={null} />}>
-          <LiveTotal />
-        </QuietBoundary>
+        {/* Captioned the counter's way: yellow, in brackets. */}
+        <ul aria-label="The free plan" className="grid shrink-0 grid-cols-3 gap-4 lg:grid-cols-1 lg:gap-5 lg:text-right">
+          {FIGURES.map((figure) => (
+            <li key={figure.label}>
+              <span className="font-doto roundness-100 block text-[clamp(2.25rem,4vw,3.25rem)] leading-none font-black text-white/90 tabular-nums">
+                {figure.value}
+              </span>
+              <span className="mt-2 block font-mono text-xs text-[var(--sig)]">[{figure.label}]</span>
+            </li>
+          ))}
+        </ul>
       </div>
 
       {/* One card per free plan */}
@@ -175,30 +183,5 @@ function Mark({ has, ours, only }: { has: boolean; ours: boolean; only: boolean 
     >
       <CheckIcon size={11} weight="bold" />
     </span>
-  );
-}
-
-function LiveTotal() {
-  return <TotalFigure live={useQuery(api.publicStats.getLiveClickTotal) ?? null} />;
-}
-
-/* Captioned the counter's way: yellow, in brackets. */
-function TotalFigure({ live }: { live: { total: number } | null }) {
-  return (
-    <div className="shrink-0 lg:text-right">
-      <p className="font-doto roundness-100 text-[clamp(3rem,6vw,4.75rem)] leading-none font-black text-white/90 tabular-nums">
-        {live ? live.total.toLocaleString("en-US") : "100"}
-      </p>
-      <p className="mt-3 flex items-center gap-2 font-mono text-xs text-[var(--sig)] lg:justify-end">
-        {live ? (
-          <>
-            <LiveDot />
-            [clicks counted on ndle]
-          </>
-        ) : (
-          "[free links, every one checked]"
-        )}
-      </p>
-    </div>
   );
 }
