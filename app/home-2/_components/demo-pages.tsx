@@ -54,9 +54,9 @@ import { COUNTRY_CLICKS, SHORT_DOMAIN, WEEKLY_CLICKS } from "./sample-data";
    Classes here are unprefixed on purpose; the pane is scaled, not reflowed,
    so viewport breakpoints would pick the wrong layout. */
 
-const FIELD_FOCUS = "border-[oklch(0.78_0.15_88)] ring-[3px] ring-[oklch(0.86_0.17_88/0.35)]";
+export const FIELD_FOCUS = "border-[oklch(0.78_0.15_88)] ring-[3px] ring-[oklch(0.86_0.17_88/0.35)]";
 
-function PageHeader({ title, sub }: { title: string; sub: string }) {
+export function PageHeader({ title, sub }: { title: string; sub: string }) {
   return (
     <header>
       <h2 className="font-doto roundness-100 text-4xl font-black">{title}</h2>
@@ -77,7 +77,7 @@ const RECENT = [
   { slug: "deck", destination: "https://figma.com/deck/acme", clicks: 86, created: "1 week ago" },
 ];
 
-const RECENT_COLS = "grid grid-cols-[120px_minmax(0,1fr)_120px_130px] items-center gap-4 px-5";
+export const RECENT_COLS = "grid grid-cols-[120px_minmax(0,1fr)_120px_130px] items-center gap-4 px-5";
 
 export function HomePage() {
   const typed = useDemo((t) => typedAt(LONG_URL, T.typeUrl, TYPE.url, t));
@@ -188,7 +188,7 @@ function NewLinkRow() {
   );
 }
 
-function LinkRow({
+export function LinkRow({
   slug,
   destination,
   status,
@@ -515,14 +515,14 @@ function Metric({
    incident it just came through, all on one page. Opened on its Health tab,
    straight from the Monitoring row. */
 
-const LINK_ACTIONS = [
+export const LINK_ACTIONS = [
   { label: "Copy", Icon: CopyIcon },
   { label: "Share", Icon: ShareNetworkIcon },
   { label: "QR", Icon: QrCodeIcon, iconOnly: true },
   { label: "Open", Icon: ArrowSquareOutIcon },
 ];
 
-const LINK_TABS = [
+export const LINK_TABS = [
   { label: "Analytics", Icon: GraphUp },
   { label: "Activity", Icon: List },
   { label: "Notes", Icon: Bookmark },
@@ -659,7 +659,7 @@ function LinkClicks() {
   return <LiveClickHero counterValue={count} />;
 }
 
-function HealthTile({
+export function HealthTile({
   Icon,
   label,
   note,

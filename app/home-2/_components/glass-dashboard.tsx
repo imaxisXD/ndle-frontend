@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useRef, useState, type ComponentType } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, type ComponentType, type ReactNode } from "react";
 import { useInView, useReducedMotion } from "motion/react";
 import {
   ArrowCounterClockwiseIcon,
@@ -36,7 +36,7 @@ import { useFitScale } from "./use-fit-scale";
 /** Let the pane finish rising into the hero before the pass starts. */
 const AUTOPLAY_DELAY = 900;
 
-export function GlassDashboard() {
+export function GlassDashboard({ paused = false }: { paused?: boolean }) {
   const [clock] = useState(() => createDemoClock(T.end));
   const frameRef = useRef<HTMLDivElement>(null);
   const stageRef = useRef<HTMLDivElement>(null);
@@ -57,7 +57,8 @@ export function GlassDashboard() {
       if (status === "idle") clock.seek(clock.end);
       return;
     }
-    if (!inView) {
+    // Held while the visitor's own pass is playing over it (your-link-takeover.tsx)
+    if (!inView || paused) {
       if (status === "playing") {
         autoPaused.current = true;
         clock.pause();
@@ -72,7 +73,7 @@ export function GlassDashboard() {
       autoPaused.current = false;
       clock.play();
     }
-  }, [clock, inView, reduce]);
+  }, [clock, inView, paused, reduce]);
 
   const toggle = () => {
     autoPaused.current = false;
@@ -100,6 +101,7 @@ export function GlassDashboard() {
         </figcaption>
         <div
           ref={frameRef}
+          data-hero-pane
           className="relative mx-auto w-full"
           style={{ maxWidth: STAGE.width, aspectRatio: `${STAGE.width} / ${STAGE.height}` }}
         >
@@ -139,7 +141,7 @@ function Lights() {
 }
 
 /** The blurred pill of light behind the pane, wider than the pane itself. */
-function Glow({ colors, className }: { colors: string; className?: string }) {
+export function Glow({ colors, className }: { colors: string; className?: string }) {
   return (
     <div
       aria-hidden
@@ -157,24 +159,38 @@ function Glow({ colors, className }: { colors: string; className?: string }) {
 function Pane() {
   const page = useDemo(pageAt);
   return (
+    <PaneShell rail={page}>
+      <div className="relative min-w-0 flex-1">
+        {page === "home" && <HomePage />}
+        {page === "analytics" && <AnalyticsPage />}
+        {page === "monitoring" && <MonitoringPage />}
+        {page === "link" && <LinkPage />}
+      </div>
+      <BottomFade />
+      <HomeToast />
+      <AlertToasts />
+    </PaneShell>
+  );
+}
+
+/** The glass and the dashboard inside it, with its rail. Also the frame of
+    the visitor's own pass (your-link-takeover.tsx). It's a picture, inert,
+    unless the pass has come to rest on a page whose controls work. */
+export function PaneShell({ rail, interactive = false, children }: { rail: Page; interactive?: boolean; children: ReactNode }) {
+  return (
     <div
-      inert
-      aria-hidden
-      className="relative flex h-full w-full overflow-hidden rounded-2xl bg-[#f0f0f0]/60 font-mono shadow-[inset_0_1px_0_rgba(255,255,255,0.75)] outline-[0.5px] outline-black/[0.08] backdrop-blur-[24px] backdrop-saturate-150 outline-solid select-none"
+      inert={!interactive}
+      aria-hidden={interactive ? undefined : true}
+      // Smoked glass: the page's warm ink, translucent and desaturated (so the
+      // yellow light behind doesn't turn it olive), lit along its top
+      // edge (the rim light dark surfaces get), round the light dashboard
+      className="relative flex h-full w-full overflow-hidden rounded-2xl bg-[#141312]/55 font-mono shadow-[inset_0_1px_0_rgba(255,255,255,0.14),inset_0_0_0_1px_rgba(255,255,255,0.06)] outline-[0.5px] outline-black/40 backdrop-blur-[24px] backdrop-saturate-[0.6] outline-solid select-none"
     >
       {/* The dashboard, opaque, inside the glass */}
       <div className="relative m-1.5 flex flex-1 overflow-hidden rounded-xl shadow-[0_0_0_0.5px_rgba(0,0,0,0.1),0_10px_30px_-12px_rgba(0,0,0,0.18)]">
         <div className="dot-page absolute inset-0" />
-        <Rail page={page} />
-        <div className="relative min-w-0 flex-1">
-          {page === "home" && <HomePage />}
-          {page === "analytics" && <AnalyticsPage />}
-          {page === "monitoring" && <MonitoringPage />}
-          {page === "link" && <LinkPage />}
-        </div>
-        <BottomFade />
-        <HomeToast />
-        <AlertToasts />
+        <Rail page={rail} />
+        {children}
       </div>
     </div>
   );

@@ -272,6 +272,35 @@
   }
 }
 
+/* A rule drawn across from the left (the shortener's card opening). */
+.h2-wipe {
+  animation: h2-wipe 480ms cubic-bezier(0.65, 0, 0.35, 1) both;
+}
+
+@keyframes h2-wipe {
+  from {
+    clip-path: inset(0 100% 0 0);
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+/* The same light, red and fainter, over a field that refused a link. */
+.h2-alarm {
+  animation: h2-alarm 1400ms ease-out both;
+}
+
+@keyframes h2-alarm {
+  from,
+  20% {
+    background-color: oklch(0.63 0.22 27 / 0.07);
+  }
+  to {
+    background-color: transparent;
+  }
+}
+
 /* The statement's "+1": rises off the click count and fades. */
 .h2-plus-one {
   animation: h2-plus-one 600ms cubic-bezier(0.16, 1, 0.3, 1) both;
@@ -355,6 +384,8 @@
   .h2-caret,
   .h2-row-open,
   .h2-fresh,
+  .h2-alarm,
+  .h2-wipe,
   .h2-press,
   .h2-ripple,
   .h2-plus-one,
