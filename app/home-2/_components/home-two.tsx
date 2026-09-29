@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState, type CSSProperties } from "react";
-import dynamic from "next/dynamic";
 import { useAuth } from "@clerk/nextjs";
 import { makeShortLink } from "@/lib/config";
 import { cn } from "@/lib/utils";
@@ -16,10 +15,6 @@ import { SiteNav } from "./site-nav";
 import { Statement } from "./statement";
 import type { YourLink } from "./your-link-pages";
 import { YourLinkTakeover } from "./your-link-takeover";
-
-/* DialKit's dock, for tuning the "See it in ndle" pass in development.
-   Never built for production. */
-const DevDock = process.env.NODE_ENV === "development" ? dynamic(() => import("./dev-dock"), { ssr: false }) : null;
 
 /* ─────────────────────────────────────────────────────────
  * HERO STORYBOARD   (CSS, runs before hydration)
@@ -50,7 +45,7 @@ export function HomeTwo() {
   const [preview, setPreview] = useState<YourLink | null>(null);
 
   // Development: `?pass` opens the pass straight away with a sample link, to
-  // tune it in DialKit's dock without shortening a link each time.
+  // look at it without shortening a link each time.
   useEffect(() => {
     if (process.env.NODE_ENV !== "development") return;
     if (!new URLSearchParams(window.location.search).has("pass")) return;
@@ -120,7 +115,6 @@ export function HomeTwo() {
         <Closing signedIn={signedIn} />
       </div>
       {preview && <YourLinkTakeover link={preview} onClose={() => setPreview(null)} />}
-      {DevDock && <DevDock />}
     </>
   );
 }

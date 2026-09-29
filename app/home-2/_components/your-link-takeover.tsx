@@ -4,12 +4,12 @@ import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from
 import { createPortal } from "react-dom";
 import { GeistSans } from "geist/font/sans";
 import { useReducedMotion } from "motion/react";
-import { useDialTimeline, type TimelineConfig } from "dialkit";
 import { LockSimpleIcon, TimerIcon, XIcon } from "@phosphor-icons/react/dist/ssr";
 import { cn } from "@/lib/utils";
 import { PointerGlyph } from "./demo-cursor";
 import { CURSOR, STAGE } from "./demo-script";
 import { Glow, PaneShell } from "./glass-dashboard";
+import { sampleTimeline, usePlayhead, type Timeline } from "./pass-timeline";
 import { ActionLink, FOCUS } from "./kit";
 import { YourHomePage, YourLinkPage, type YourLink } from "./your-link-pages";
 
@@ -25,9 +25,9 @@ import { YourHomePage, YourLinkPage, type YourLink } from "./your-link-pages";
    a new dashboard with one link in it, no clicks and no check yet. Nothing
    is sent anywhere; the choice at the end is plain links.
 
-   The choreography is authored on DialKit timelines ("Your link" and "Your
-   link · back"), so every beat can be retimed and scrubbed in the dock in
-   development. */
+   The choreography is two timelines, PASS and BACK below, sampled every
+   frame from one playhead each with Motion's spring and easing curves
+   (pass-timeline.ts): every beat is one number to retime. */
 
 /* ─────────────────────────────────────────────────────────
  * YOUR LINK   (s after Shorten is pressed, or See it in ndle)
@@ -204,7 +204,7 @@ const PASS = {
       transition: { type: "spring", visualDuration: 0.5, bounce: 0.1 },
     },
   },
-} satisfies TimelineConfig;
+} satisfies Timeline;
 
 const BACK = {
   duration: 0.8,
@@ -226,7 +226,7 @@ const BACK = {
   },
   handback: { at: 0.6, duration: 0 },
   swap: { at: 0.6, duration: 0.2, from: { opacity: 1 }, to: { opacity: 0 } },
-} satisfies TimelineConfig;
+} satisfies Timeline;
 
 /* Where the camera leaves the pane: centred, as large as fits, under the
    caption. On phones the end card sits under the pane instead of on it. */
@@ -291,20 +291,10 @@ export function YourLinkTakeover({ link, onClose }: { link: YourLink; onClose: (
   const reduce = useReducedMotion();
   const [closing, setClosing] = useState(false);
 
-  // TODO(production): DialKit's clip.current values are the scrubbable authoring preview.
-  // Replace them with equivalent real Motion animations using the tuned timeline
-  // timings and transitions, then remove useDialTimeline and <DialTimeline />.
-  const pass = useDialTimeline("Your link", PASS, {
-    id: "your-link-v2",
-    persist: process.env.NODE_ENV === "development",
-    autoplay: false,
-  });
-  // TODO(production): as above, for the way back.
-  const back = useDialTimeline("Your link · back", BACK, {
-    id: "your-link-back-v2",
-    persist: process.env.NODE_ENV === "development",
-    autoplay: false,
-  });
+  const passHead = usePlayhead(PASS.duration);
+  const backHead = usePlayhead(BACK.duration);
+  const pass = sampleTimeline(PASS, passHead.time);
+  const back = sampleTimeline(BACK, backHead.time);
 
   const heroRef = useRef<HTMLElement | null>(null);
   const [frame, setFrame] = useState<{ box: Box; phone: boolean } | null>(null);
@@ -344,8 +334,8 @@ export function YourLinkTakeover({ link, onClose }: { link: YourLink; onClose: (
   }, [drawn]);
 
   useEffect(() => {
-    if (reduce) pass.seek(PASS.duration);
-    else pass.replay();
+    if (reduce) passHead.end();
+    else passHead.replay();
     // Once, on open
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -355,11 +345,11 @@ export function YourLinkTakeover({ link, onClose }: { link: YourLink; onClose: (
     // Still covering the hero's pane where it stands: nothing to set back down
     if (reduce || !pass.camera.handoff.started) return onClose();
     setClosing(true);
-    back.replay();
+    backHead.replay();
   };
 
   // Gone once the way back has played out.
-  const backDone = closing && !back.playing && back.time >= BACK.duration - 0.001;
+  const backDone = closing && backHead.ended;
   useEffect(() => {
     if (backDone) onClose();
   }, [backDone, onClose]);
@@ -436,9 +426,9 @@ export function YourLinkTakeover({ link, onClose }: { link: YourLink; onClose: (
     : { left: box.left + box.width / 2, top: box.top + box.height * CARD_AT, translate: "-50% -50%" };
 
   return createPortal(
-    // Not showModal(): the top layer would make DialKit's dock inert too.
-    // Under z-50, so the dashboard's tooltips (portalled to the body) show over it.
-    // The page is made inert instead (home-two.tsx), and Esc is handled here.
+    // Not showModal(): the top layer would cover the dashboard's tooltips,
+    // which portal to the body; at z-45 they show over it. The page is made
+    // inert instead (home-two.tsx), and Esc is handled here.
     <dialog
       open
       aria-modal="true"
