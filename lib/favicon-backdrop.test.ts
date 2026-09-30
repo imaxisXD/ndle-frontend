@@ -21,23 +21,23 @@ const inCenter = (x: number, y: number, half: number) =>
   Math.abs(x + 0.5 - SIZE / 2) < half && Math.abs(y + 0.5 - SIZE / 2) < half;
 
 describe("washesOut", () => {
-  test("moves light favicons to the dark container", () => {
-    const whiteLogo = favicon((x, y) => (inCenter(x, y, 10) ? WHITE : CLEAR));
-    const whiteSquareWithMark = favicon((x, y) => (inCenter(x, y, 4) ? BLACK : WHITE));
+  test("puts light marks on a clear background on the dark disc", () => {
+    const whiteLogo = favicon((x, y) => (inCenter(x, y, 8) ? WHITE : CLEAR));
     const blueLineArt = favicon((x) => (x % 8 === 0 ? [0, 135, 203, 248] : CLEAR));
     expect(washesOut(whiteLogo, SIZE)).toBe(true);
-    expect(washesOut(whiteSquareWithMark, SIZE)).toBe(true);
     expect(washesOut(blueLineArt, SIZE)).toBe(true);
   });
 
-  test("keeps dark and colorful favicons on the light container", () => {
+  test("keeps favicons with their own background on the light container", () => {
+    const whiteSquareWithMark = favicon((x, y) => (inCenter(x, y, 4) ? BLACK : WHITE));
     const blackBadge = favicon((x, y) => (inCenter(x, y, 5) ? WHITE : BLACK));
     const purple = favicon(() => [120, 60, 220, 255]);
+    expect(washesOut(whiteSquareWithMark, SIZE)).toBe(false);
     expect(washesOut(blackBadge, SIZE)).toBe(false);
     expect(washesOut(purple, SIZE)).toBe(false);
   });
 
-  test("keeps a small dark mark on a clear background on the light container", () => {
+  test("keeps dark marks on a clear background on the light container", () => {
     const smallMark = favicon((x, y) => (inCenter(x, y, 4) ? BLACK : CLEAR));
     expect(washesOut(smallMark, SIZE)).toBe(false);
   });

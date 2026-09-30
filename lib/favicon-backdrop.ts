@@ -1,14 +1,10 @@
-/* Picks the favicon container's color. Most favicons show up on the light
-   container, but a light one (a white logo, a white square behind a small
-   mark, or thin light line art) washes out into it, so it sits on a dark
-   container instead. */
+/* Picks what a favicon sits on. Most favicons show up on the light container,
+   but light marks on a clear background (a white logo, or thin light line art)
+   wash out into it, so they sit on a dark disc instead, the way the black
+   favicons around them look. */
 
 /** Favicons are read at the size the favicon service returns them. */
 const SAMPLE_SIZE = 32;
-/** The light container's color as an sRGB channel value (bg-muted, bg-zinc-100). */
-const LIGHT_BACKDROP = 240;
-/** Lightness, from 0 to 1, above which a pixel blends into the light container. */
-const BLENDS_IN = 0.8;
 
 function toLinear(channel: number) {
   const c = channel / 255;
@@ -21,15 +17,14 @@ function lightness(r: number, g: number, b: number) {
 }
 
 /**
- * Whether a square favicon's RGBA pixels wash out on the light container. They
- * do when more than half of the round crop blends into the container, as long
- * as the favicon's own colors are light enough to show up on a dark one. (A
- * small black mark on a clear background blends in too, but it'd vanish on dark.)
+ * Whether a square favicon's RGBA pixels are light marks on a clear background.
+ * More than half of the round crop has to be clear, and what's drawn has to be
+ * light enough to show up on a dark disc. Favicons with their own background,
+ * even a white one, already show their shape, so they don't count.
  */
 export function washesOut(pixels: ArrayLike<number>, size: number): boolean {
   const radius = size / 2;
   let area = 0;
-  let blended = 0;
   let ink = 0;
   let inkLightness = 0;
   for (let y = 0; y < size; y++) {
@@ -37,25 +32,19 @@ export function washesOut(pixels: ArrayLike<number>, size: number): boolean {
       // The favicon is cropped to a circle, so its corners don't count.
       if (Math.hypot(x + 0.5 - radius, y + 0.5 - radius) > radius) continue;
       const i = (y * size + x) * 4;
-      const r = pixels[i];
-      const g = pixels[i + 1];
-      const b = pixels[i + 2];
       const alpha = pixels[i + 3] / 255;
-      const over = (channel: number) => alpha * channel + (1 - alpha) * LIGHT_BACKDROP;
       area += 1;
-      if (lightness(over(r), over(g), over(b)) > BLENDS_IN) blended += 1;
       ink += alpha;
-      inkLightness += alpha * lightness(r, g, b);
+      inkLightness += alpha * lightness(pixels[i], pixels[i + 1], pixels[i + 2]);
     }
   }
-  return blended / area > 0.5 && ink > 0 && inkLightness / ink > 0.5;
+  return ink > 0 && ink / area < 0.5 && inkLightness / ink > 0.5;
 }
 
 let canvas: HTMLCanvasElement | undefined;
 
-/** Whether a loaded favicon should sit on the dark container. The image has to
-    be same-origin or loaded with CORS to be read; if it can't be, it keeps the
-    light container. */
+/** Whether a loaded favicon should sit on the dark disc. The image has to be
+    same-origin or loaded with CORS to be read; if it can't be, it doesn't. */
 export function needsDarkBackdrop(image: HTMLImageElement): boolean {
   if (!canvas) {
     canvas = document.createElement("canvas");
