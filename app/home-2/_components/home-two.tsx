@@ -27,7 +27,7 @@ import { YourLinkTakeover } from "./your-link-takeover";
  *   540ms   form           rises as one block; what it does once a link is
  *                          sent is in hero-shortener.tsx
  *
- *   680ms   the dashboard rises behind glass; once it is on screen it
+ *   680ms   the dashboard rises in its window; once it is on screen it
  *           plays a pass through the product (glass-dashboard.tsx), with
  *           chapters and Replay under it
  * ───────────────────────────────────────────────────────── */

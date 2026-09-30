@@ -9,20 +9,23 @@ import { LinkWithFavicon } from "@/components/ui/link-with-favicon";
 import { getBrandBadgeDataUrl } from "@/lib/qr";
 import { cn } from "@/lib/utils";
 import { PointerGlyph } from "./demo-cursor";
+import { BoltDoodle, HeartDoodle, SparkleDoodle } from "./dot-doodles";
 import { ActionLink, INK_TITLE } from "./kit";
-import { SHORT_DOMAIN } from "./sample-data";
+import { SHORT_DOMAIN, sampleFavicon } from "./sample-data";
 import { SiteFooter } from "./site-footer";
 import { ShortLink, Toast } from "./toast";
 import { useFitScale } from "./use-fit-scale";
 import { useStillAfterMount } from "./use-loop-time";
 
 /* The close, after capy.ai's "Add capy to your team": the words and the two
-   actions low on the left, and on the right a comic finale. Five thin
-   panels stand fanned like portals; through their slots you glimpse the
-   dashboard, and the product bursts out of them: a glass folder leaps out
-   to the left, the black alert toast, a QR code, a healthy chip, with the
-   pointer and Signal Yellow LEDs flying where capy has its bees, and ink
-   speed lines around it all. Then the site footer (site-footer.tsx).
+   actions low on the left, and on the right a comic finale. ndle's Link
+   Monitoring card sits in the middle, whole and readable, one link down,
+   and the product bursts out of it: a glass folder leaps out to the left,
+   the black alert toast for the broken link, a QR code, a healthy chip,
+   with the pointer and three dotted doodles (dot-doodles.tsx, the
+   statement's hearts' hand) flying where capy has its bees, and ink speed
+   lines around it all. Then the site footer
+   (site-footer.tsx).
 
    The finale is drawn on a 640 × 560 stage and scaled to its column. It's a
    picture, not controls: aria-hidden and inert. */
@@ -30,8 +33,8 @@ import { useStillAfterMount } from "./use-loop-time";
 /* ─────────────────────────────────────────────────────────
  * STORYBOARD   (once, when the finale is a third in view)
  *
- *      0ms   the panels and the dashboard behind them are there
- *    120ms   the pieces burst out from the panels' middle, one after
+ *      0ms   the Link Monitoring card is there
+ *    120ms   the pieces burst out from the card's middle, one after
  *            another (90ms apart), with a small comic overshoot
  *   +300ms   each piece's speed lines flick in after it
  *
@@ -49,32 +52,21 @@ const BURST = {
   from: { x: 360, y: 250 }, // stage point the pieces burst from
 };
 
-/* The panels, clockwise from top-left, leaning like capy's. */
-const PANELS: Array<Array<[number, number]>> = [
-  [[196, 44], [238, 34], [306, 468], [266, 478]],
-  [[286, 16], [334, 6], [390, 420], [344, 430]],
-  [[372, 62], [414, 54], [446, 504], [404, 510]],
-  [[440, 30], [490, 22], [516, 396], [468, 402]],
-  [[512, 74], [572, 66], [592, 352], [532, 358]],
-];
-
-const toPath = (pts: Array<[number, number]>) => `M${pts.map(([x, y]) => `${x} ${y}`).join("L")}Z`;
-const PANEL_PATHS = PANELS.map(toPath);
-/** Every slot at once, for clipping the dashboard behind them. */
-const SLOTS = `path("${PANEL_PATHS.join("")}")`;
+/* The card the pieces burst from: where it sits on the stage, and its lean. */
+const CARD = { x: 150, y: 86, width: 410, rotate: -6 };
 
 /* Ink speed lines: short strokes in clusters, one per piece, and pale
-   wedges fanning out behind. */
+   wedges fanning out behind the card. */
 const TICKS = [
   "M52 262 L20 250 M60 238 L34 214 M76 222 L66 190",
   "M612 20 L632 4 M620 44 L640 38 M598 8 L604 -12",
-  "M606 300 L630 296 M600 326 L622 338",
+  "M612 344 L636 340 M606 370 L628 382",
   "M232 540 L220 560 M258 536 L262 558",
   "M118 118 L100 100 M132 108 L128 86",
 ];
 
 const WEDGES = [
-  // Thin rays, tapering in toward the panels, outside the cluster
+  // Thin rays, tapering in toward the card, outside the cluster
   "M186 300 L64 352 L72 368 Z",
   "M262 486 L196 556 L212 560 Z",
   "M598 236 L660 206 L664 222 Z",
@@ -125,8 +117,9 @@ const PIECES: Array<{ x: number; y: number; rotate: number; z: number; node: Rea
     ),
   },
   {
-    x: 470,
-    y: 250,
+    // Low on the card's right, clear of its rows
+    x: 474,
+    y: 296,
     rotate: 9,
     z: 3,
     node: (
@@ -168,20 +161,24 @@ const PIECES: Array<{ x: number; y: number; rotate: number; z: number; node: Rea
   },
 ];
 
-/* Signal Yellow LEDs flying like capy's bees, after the pieces. */
-const LEDS = [
-  { x: 118, y: 196, size: 18 },
-  { x: 586, y: 214, size: 14 },
-  { x: 300, y: 350, size: 11 },
+/* Dotted doodles flying like capy's bees, after the pieces, each in its own
+   marker: sparkles by the folder and over the card, hearts by the toast and
+   under the folder, a bolt by the healthy chip. */
+const DOODLES: Array<{ x: number; y: number; rotate: number; node: ReactNode }> = [
+  { x: 86, y: 160, rotate: -10, node: <SparkleDoodle color="yellow" className="size-11" /> },
+  { x: 592, y: 196, rotate: 12, node: <HeartDoodle color="pink" className="size-10" /> },
+  { x: 566, y: 470, rotate: -8, node: <BoltDoodle color="violet" className="size-10" /> },
+  { x: 240, y: 26, rotate: 14, node: <SparkleDoodle color="blue" className="size-8" /> },
+  { x: 58, y: 468, rotate: -16, node: <HeartDoodle color="orange" className="size-9" /> },
 ];
 
-/* A glimpse of the dashboard behind the panels: Link Monitoring, one row
-   down, and the hourly bars. Only the slots show it. */
+/* The card: Link Monitoring, the launch link down (the toast's link), the
+   rest healthy at the hero demo's latencies, and today's clicks under it. */
 const ROWS = [
-  { slug: "launch", destination: "https://acme.com/launch-week", down: true },
-  { slug: "docs", destination: "https://notion.so/acme/docs", down: false },
-  { slug: "repo", destination: "https://github.com/acme/app", down: false },
-  { slug: "deck", destination: "https://figma.com/deck/acme", down: false },
+  { slug: "launch", destination: "https://acme.com/launch-week", down: true, latency: "" },
+  { slug: "docs", destination: "https://notion.so/acme/docs", down: false, latency: "88ms" },
+  { slug: "repo", destination: "https://github.com/acme/app", down: false, latency: "64ms" },
+  { slug: "deck", destination: "https://figma.com/deck/acme", down: false, latency: "120ms" },
 ];
 const BARS = [22, 30, 46, 64, 82, 96, 88, 70, 58, 66, 84, 92, 74, 50];
 
@@ -244,25 +241,26 @@ function Finale() {
           {WEDGES.map((d) => (
             <path key={d} d={d} fill="#e7e6e2" />
           ))}
-          {PANEL_PATHS.map((d) => (
-            <path key={d} d={d} fill="#ffffff" />
-          ))}
         </svg>
 
-        {/* The dashboard, seen only through the slots */}
-        <div className="absolute inset-0 font-mono" style={{ clipPath: SLOTS }}>
-          <div className="absolute top-[40px] left-[150px] w-[500px] -rotate-6 overflow-hidden rounded-[12px] border-2 border-[#141312] bg-white">
-            <div className="border-b border-zinc-200 bg-zinc-50 px-4 py-2.5 text-xs font-medium text-zinc-700">Link Monitoring</div>
-            {ROWS.map((row) => (
-              <div key={row.slug} className={cn("flex items-center gap-3 border-t border-zinc-100 px-4 py-2.5", row.down && "bg-red-50/80")}>
-                <Badge variant={row.down ? "red" : "green"} className="w-[62px] shrink-0 justify-center">
-                  {row.down ? "error" : "healthy"}
-                </Badge>
-                <LinkWithFavicon url={`https://${SHORT_DOMAIN}/${row.slug}`} originalUrl={row.destination} tabIndex={-1} size="sm" />
-                <span className={cn("ml-auto text-xs", row.down ? "text-red-600" : "text-green-600")}>{row.down ? "404" : "142ms"}</span>
-              </div>
-            ))}
-            <div className="flex h-[150px] items-end gap-1.5 border-t border-zinc-100 px-4 pb-4">
+        {/* The dashboard card, whole: the pieces burst out of it */}
+        <div
+          className="absolute top-0 left-0 overflow-hidden rounded-[12px] border-2 border-[#141312] bg-white font-mono shadow-[3px_4px_0_0_#141312]"
+          style={{ width: CARD.width, transform: `translate(${CARD.x}px, ${CARD.y}px) rotate(${CARD.rotate}deg)` }}
+        >
+          <div className="border-b border-zinc-200 bg-zinc-50 px-4 py-2.5 text-xs font-medium text-zinc-700">Link Monitoring</div>
+          {ROWS.map((row) => (
+            <div key={row.slug} className={cn("flex items-center gap-3 border-t border-zinc-100 px-4 py-2.5 first-of-type:border-t-0", row.down && "bg-red-50/80")}>
+              <Badge variant={row.down ? "red" : "green"} className="w-[62px] shrink-0 justify-center">
+                {row.down ? "error" : "healthy"}
+              </Badge>
+              <LinkWithFavicon url={`https://${SHORT_DOMAIN}/${row.slug}`} originalUrl={row.destination} faviconSrc={sampleFavicon(row.destination)} tabIndex={-1} size="sm" />
+              <span className={cn("ml-auto text-xs tabular-nums", row.down ? "text-red-600" : "text-green-600")}>{row.down ? "404" : row.latency}</span>
+            </div>
+          ))}
+          <div className="border-t border-zinc-200 px-4 pt-2.5 pb-3">
+            <p className="text-[11px] text-zinc-500">Clicks, last 14 hours</p>
+            <div className="mt-2 flex h-[88px] items-end gap-1.5">
               {BARS.map((h, i) => (
                 <span key={i} className="flex-1 rounded-t-[3px] bg-[#ffc921]" style={{ height: `${h}%` }} />
               ))}
@@ -271,9 +269,6 @@ function Finale() {
         </div>
 
         <svg className="absolute inset-0 overflow-visible" width={STAGE.width} height={STAGE.height} fill="none">
-          {PANEL_PATHS.map((d) => (
-            <path key={d} d={d} stroke={INK} strokeWidth={2} strokeLinejoin="round" />
-          ))}
           {/* Speed lines, each cluster just after its piece lands */}
           {TICKS.map((d, i) =>
             reduce ? (
@@ -298,9 +293,9 @@ function Finale() {
             {piece.node}
           </Burst>
         ))}
-        {LEDS.map((led, i) => (
-          <Burst key={`led-${i}`} x={led.x} y={led.y} rotate={0} index={PIECES.length + i} out={out} reduce={reduce} z={5}>
-            <span className="h2-led block" style={{ width: led.size, height: led.size, marginLeft: 0 }} />
+        {DOODLES.map((doodle, i) => (
+          <Burst key={`doodle-${i}`} x={doodle.x} y={doodle.y} rotate={doodle.rotate} index={PIECES.length + i} out={out} reduce={reduce} z={5}>
+            {doodle.node}
           </Burst>
         ))}
       </div>
@@ -308,7 +303,7 @@ function Finale() {
   );
 }
 
-/** One piece bursting out of the panels to its resting place. */
+/** One piece bursting out of the card to its resting place. */
 function Burst({
   x,
   y,

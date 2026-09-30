@@ -10,6 +10,8 @@ export interface LinkWithFaviconProps extends Omit<
   url: string;
   originalUrl: string;
   showFavicon?: boolean;
+  /** Use this image for the favicon instead of looking it up. */
+  faviconSrc?: string;
   /** Extra classes for the favicon slot, e.g. to hide it on small screens. */
   faviconClassName?: string;
   showIcon?: boolean;
@@ -27,6 +29,7 @@ const LinkWithFavicon = React.forwardRef<
       url,
       originalUrl,
       showFavicon = true,
+      faviconSrc,
       faviconClassName,
       showIcon = true,
       asCode = false,
@@ -45,7 +48,7 @@ const LinkWithFavicon = React.forwardRef<
       <div className="flex min-w-0 items-center gap-0.5">
         {showFavicon && (
           <span className={cn("contents", faviconClassName)}>
-            <UrlFavicon url={originalUrl} size={size} />
+            <UrlFavicon url={originalUrl} src={faviconSrc} size={size} />
           </span>
         )}
         <LinkWithIcon

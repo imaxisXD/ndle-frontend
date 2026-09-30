@@ -45,7 +45,7 @@ import {
   stepAt,
   typedAt,
 } from "./demo-script";
-import { COUNTRY_CLICKS, SHORT_DOMAIN, WEEKLY_CLICKS } from "./sample-data";
+import { COUNTRY_CLICKS, SHORT_DOMAIN, WEEKLY_CLICKS, sampleFavicon } from "./sample-data";
 
 /* The dashboard pages the hero demo walks through, built from the
    dashboard's own pieces (cards, badges, tables, charts, favicons) and laid
@@ -109,7 +109,7 @@ export function HomePage() {
             >
               {value.includes("acme.com") && (
                 <span className="h2-settle -ml-1 shrink-0">
-                  <UrlFavicon url={NEW_LINK.destination} size="sm" />
+                  <UrlFavicon url={NEW_LINK.destination} src={sampleFavicon(NEW_LINK.destination)} size="sm" />
                 </span>
               )}
               <span className="flex min-w-0 items-center">
@@ -212,7 +212,12 @@ export function LinkRow({
         </Badge>
       </span>
       <div className="flex min-w-0 flex-col space-y-1">
-        <LinkWithFavicon url={`https://${SHORT_DOMAIN}/${slug}`} originalUrl={destination} tabIndex={-1} />
+        <LinkWithFavicon
+          url={`https://${SHORT_DOMAIN}/${slug}`}
+          originalUrl={destination}
+          faviconSrc={sampleFavicon(destination)}
+          tabIndex={-1}
+        />
         <p className="text-muted-foreground truncate text-xs">{destination}</p>
       </div>
       <div>
@@ -442,7 +447,12 @@ function LinkCell({ row }: { row: MonitoredRow }) {
     <TableCell className="px-5 py-4">
       <div className="flex min-w-0 flex-col space-y-1">
         <span data-demo={`${row.id}-link`} className="w-fit">
-          <LinkWithFavicon url={`https://${SHORT_DOMAIN}/${row.slug}`} originalUrl={row.destination} tabIndex={-1} />
+          <LinkWithFavicon
+            url={`https://${SHORT_DOMAIN}/${row.slug}`}
+            originalUrl={row.destination}
+            faviconSrc={sampleFavicon(row.destination)}
+            tabIndex={-1}
+          />
         </span>
         <p className="text-muted-foreground max-w-[260px] truncate text-xs">{row.destination}</p>
       </div>

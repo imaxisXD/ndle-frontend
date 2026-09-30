@@ -6,6 +6,12 @@ import { getShortDomain } from "@/lib/config";
 
 export const SHORT_DOMAIN = getShortDomain();
 
+/** The sample links' own site (acme.com) wears ndle's icon, not the real
+    acme.com's; other sample sites keep their real favicons. */
+export function sampleFavicon(destination: string) {
+  return /^(https?:\/\/)?([a-z0-9-]+\.)*acme\.com(\/|$)/i.test(destination) ? "/favicon.ico" : undefined;
+}
+
 export type Health = "healthy" | "degraded" | "down";
 
 /** The 29 days before today, oldest first. Today's bar follows live state. */

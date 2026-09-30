@@ -22,11 +22,12 @@ import { CHAPTERS, STAGE, T, between, chapterAt, chapterEnd, pageAt, type Page }
 import { FOCUS } from "./kit";
 import { useFitScale } from "./use-fit-scale";
 
-/* The hero is the dashboard itself, behind glass, and it plays: one pass
-   through the product with sample data. A link is shortened, its clicks come
-   in, ndle is asked when they land, and then the link breaks, the alert goes
-   out, and it comes back. It ends on that link's own page: the clicks and
-   the incident, in one place, the page a customer would keep open. The light behind the glass is ndle's: Signal Yellow
+/* The hero is the dashboard itself, in a window framed like the bento's,
+   and it plays: one pass through the product with sample data. A link is
+   shortened, its clicks come in, ndle is asked when they land, and then the
+   link breaks, the alert goes out, and it comes back. It ends on that link's
+   own page: the clicks and the incident, in one place, the page a customer
+   would keep open. The light behind the window is ndle's: Signal Yellow
    while every link is healthy, red while one is down.
 
    The storyboard lives in demo-script.ts and the pages in demo-pages.tsx.
@@ -122,7 +123,7 @@ export function GlassDashboard({ paused = false }: { paused?: boolean }) {
 }
 
 
-/* ───────── The light behind the glass ───────── */
+/* ───────── The light behind the window ───────── */
 
 function Lights() {
   const down = useDemo((t) => between(t, T.down, T.recovered));
@@ -173,7 +174,7 @@ function Pane() {
   );
 }
 
-/** The glass and the dashboard inside it, with its rail. Also the frame of
+/** The dashboard in its window, with its rail. Also the frame of
     the visitor's own pass (your-link-takeover.tsx). It's a picture, inert,
     unless the pass has come to rest on a page whose controls work. */
 export function PaneShell({ rail, interactive = false, children }: { rail: Page; interactive?: boolean; children: ReactNode }) {
@@ -181,17 +182,14 @@ export function PaneShell({ rail, interactive = false, children }: { rail: Page;
     <div
       inert={!interactive}
       aria-hidden={interactive ? undefined : true}
-      // Smoked glass: the page's warm ink, translucent and desaturated (so the
-      // yellow light behind doesn't turn it olive), lit along its top
-      // edge (the rim light dark surfaces get), round the light dashboard
-      className="relative flex h-full w-full overflow-hidden rounded-2xl bg-[#141312]/55 font-mono shadow-[inset_0_1px_0_rgba(255,255,255,0.14),inset_0_0_0_1px_rgba(255,255,255,0.06)] outline-[0.5px] outline-black/40 backdrop-blur-[24px] backdrop-saturate-[0.6] outline-solid select-none"
+      // Framed as the bento frames its product windows (WINDOW in
+      // feature-bento.tsx): white, a solid ink edge and a hard ink shadow
+      // dropped down and to the right, a touch heavier for the bigger window
+      className="relative flex h-full w-full overflow-hidden rounded-[16px] border-[2.5px] border-[#141312] bg-white font-mono shadow-[4px_5px_0_0_#141312] select-none"
     >
-      {/* The dashboard, opaque, inside the glass */}
-      <div className="relative m-1.5 flex flex-1 overflow-hidden rounded-xl shadow-[0_0_0_0.5px_rgba(0,0,0,0.1),0_10px_30px_-12px_rgba(0,0,0,0.18)]">
-        <div className="dot-page absolute inset-0" />
-        <Rail page={rail} />
-        {children}
-      </div>
+      <div className="dot-page absolute inset-0" />
+      <Rail page={rail} />
+      {children}
     </div>
   );
 }

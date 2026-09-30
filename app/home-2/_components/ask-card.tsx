@@ -1,8 +1,9 @@
-import { PaperPlaneRightIcon, RobotIcon, SparkleIcon, UserIcon } from "@phosphor-icons/react/dist/ssr";
+import { PaperPlaneRightIcon, SparkleIcon, UserIcon } from "@phosphor-icons/react/dist/ssr";
 import { BklitVerticalBarChart } from "@/components/charts/bklit-chart-kit";
 import { HourlyActivityChart } from "@/components/charts/hourly-activity-chart";
 import { cn } from "@/lib/utils";
 import { HOURLY_CLICKS } from "./sample-data";
+import { AskBlip } from "./blip";
 
 /* The AI chart builder's own layout: the question, a thinking beat, then the
    chart it draws, built with the dashboard's hourly chart. Shared by the
@@ -63,9 +64,9 @@ export function AskCard({
         )}
         {asked && (
           <div className="flex gap-3 rounded-lg border border-zinc-200 bg-white p-3">
-            <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-amber-500/20 text-amber-600">
-              <RobotIcon size={16} weight="bold" />
-            </span>
+            {/* ndle answers as Blip, its mascot: curious, then thinking
+                while the question's open, pleased once it answers */}
+            <AskBlip answered={answered} className="size-12 -my-1 -rotate-3" />
             <div className="min-w-0 flex-1">
               <p className="mb-2 text-xs font-medium text-zinc-500">ndle</p>
               {answered ? (

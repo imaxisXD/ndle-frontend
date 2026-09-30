@@ -1,9 +1,10 @@
 "use client";
 
-import { CheckIcon, TagIcon, XIcon } from "@phosphor-icons/react/dist/ssr";
+import { CheckIcon, XIcon } from "@phosphor-icons/react/dist/ssr";
 import { COUNTER_TEXTURE } from "@/components/charts/live-click-hero";
 import { cn } from "@/lib/utils";
-import { ActionLink, INK_TITLE, InkBadge } from "./kit";
+import { TagDoodle } from "./dot-doodles";
+import { ActionLink, CUT_FROM_LG, INK_TITLE, cutStyle, slantedCut } from "./kit";
 
 /* Competitor facts carried over from the current home page (public plans,
    April 2026). ndle's rows claim only what ships (docs/feature-status.md). */
@@ -26,7 +27,13 @@ const ROWS: Array<{
   { label: "No ad page before the link", ndle: true, bitly: false, dub: true, shortio: true },
 ];
 
-const ALSO = ["UTM builder", "Saved UTM templates", "Link expiry dates", "Collections", "Analytics by country, device and referrer"];
+const ALSO = [
+  "UTM builder",
+  "Saved UTM templates",
+  "Link expiry dates",
+  "Collections",
+  "Analytics by country, device and referrer",
+];
 
 /* The banner's right side: the offer's own numbers. */
 const FIGURES = [
@@ -51,17 +58,29 @@ const FEATURES = ROWS;
 /* The plans, after capy.ai's Pricing: a centred head, a black banner with
    the offer, then one ink card per free plan. ndle's card is the inverted
    one, as capy's featured plan is, with yellow checks where no other free
-   plan has the feature. */
+   plan has the feature. From lg, where they stand side by side, the cards
+   are cut like a row of the bento's panels: every gutter leaning the same
+   way, as the bento's last row leans, so the row reads as one sheared
+   strip. */
+
+/* Side by side: gutters CUT.gap px wide, leaning CUT.slant px over a card's
+   height; each card's box reaches CUT.reach px into its neighbour's. */
+const CUT = { gap: 22, slant: 40, reach: 9 }; // reach: (slant - gap) / 2
 export function Compare({ signedIn = false }: { signedIn?: boolean }) {
   return (
-    <section id="pricing" aria-labelledby="pricing-title" className="mx-auto max-w-[1240px] scroll-mt-20 px-5 py-24 sm:px-8 lg:py-28">
+    <section
+      id="pricing"
+      aria-labelledby="pricing-title"
+      className="mx-auto max-w-[1240px] scroll-mt-20 px-5 py-24 sm:px-8 lg:py-28"
+    >
       <div className="flex flex-col items-center text-center">
-        <InkBadge>
-          <TagIcon size={30} weight="bold" />
-        </InkBadge>
-        <h2 id="pricing-title" className={cn(INK_TITLE, "mt-5")}>
-          Free plan, compared
-        </h2>
+        {/* The drawing on the title's line, leading into it */}
+        <div className="flex items-center gap-3">
+          <TagDoodle color="green" className="size-12 shrink-0 sm:size-14" />
+          <h2 id="pricing-title" className={INK_TITLE}>
+            Free plan, compared
+          </h2>
+        </div>
         <p className="mt-4 font-mono text-[17px] leading-[1.45] text-[#141312]">Broken-link checks, free.</p>
       </div>
 
@@ -77,10 +96,13 @@ export function Compare({ signedIn = false }: { signedIn?: boolean }) {
             <span className="block text-[var(--sig)]">Every one checked.</span>
           </p>
           <p className="mt-4 max-w-[46ch] font-mono text-[15px] leading-[1.5] text-white/75">
-            The free plan has 100 active links, 1 custom domain and unlimited QR codes, and every link is checked every
-            30 minutes. No card needed.
+            The free plan has 100 active links, 1 custom domain and unlimited QR codes, and every link is checked every 30
+            minutes. No card needed.
           </p>
-          <ActionLink href={signedIn ? "/dashboard" : "/sign-up?redirect_url=/dashboard"} className="mt-6 focus-visible:ring-offset-black">
+          <ActionLink
+            href={signedIn ? "/dashboard" : "/sign-up?redirect_url=/dashboard"}
+            className="mt-6 focus-visible:ring-offset-black"
+          >
             {signedIn ? "Open your dashboard" : "Get ndle free"}
           </ActionLink>
         </div>
@@ -98,9 +120,9 @@ export function Compare({ signedIn = false }: { signedIn?: boolean }) {
       </div>
 
       {/* One card per free plan */}
-      <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-        {PLANS.map((plan) => (
-          <Plan key={plan.key} plan={plan.key} name={plan.name} />
+      <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-4 lg:gap-x-0">
+        {PLANS.map((plan, i) => (
+          <Plan key={plan.key} plan={plan.key} name={plan.name} index={i} />
         ))}
       </div>
 
@@ -118,55 +140,70 @@ export function Compare({ signedIn = false }: { signedIn?: boolean }) {
   );
 }
 
-function Plan({ plan, name }: { plan: PlanKey; name: string }) {
+function Plan({ plan, name, index }: { plan: PlanKey; name: string; index: number }) {
   const ours = plan === "ndle";
+  const first = index === 0;
+  const last = index === PLANS.length - 1;
   return (
     <article
       aria-label={`${name} free plan`}
-      className={cn("flex flex-col border-2 border-[#141312] p-6", ours ? "bg-[#141312] text-white" : "bg-white text-[#141312]")}
+      // Reaching into each neighbour, so the cut leaves a gutter CUT.gap wide
+      className={cn(CUT_FROM_LG.outer, !first && "lg:-ml-[9px]", !last && "lg:-mr-[9px]")}
+      style={cutStyle(slantedCut(index, PLANS.length, CUT.slant, "across", { parallel: true, flip: true }))}
     >
-      <div className="flex items-center gap-2">
-        {ours ? (
-          <h3 className="font-doto roundness-100 text-[26px] leading-none font-black">ndle</h3>
-        ) : (
-          <h3 className="font-[family-name:var(--font-bebas)] text-[28px] leading-none uppercase">{name}</h3>
+      <div
+        className={cn(
+          CUT_FROM_LG.inner,
+          // Clear of the slant on the cut sides: the slant, and room to breathe
+          "flex flex-col p-6",
+          !first && "lg:pl-12",
+          !last && "lg:pr-12",
+          ours ? "bg-[#141312] text-white" : "bg-white text-[#141312]",
+        )}
+      >
+        <div className="flex items-center gap-2">
+          {ours ? (
+            <h3 className="font-doto roundness-100 text-[26px] leading-none font-black">ndle</h3>
+          ) : (
+            <h3 className="font-[family-name:var(--font-bebas)] text-[28px] leading-none uppercase">{name}</h3>
+          )}
+        </div>
+        <p className={cn("mt-1 font-mono text-xs", ours ? "text-white/55" : "text-[#6b6b6b]")}>Free plan</p>
+
+        <ul className="mt-6 space-y-3 font-mono text-[13px] leading-5">
+          {FEATURES.map((row) => {
+            const value = row[plan];
+            const has = value !== false;
+            return (
+              <li key={row.label} className={cn("flex items-start gap-2.5", !has && (ours ? "text-white/40" : "text-[#9a9a9a]"))}>
+                <Mark has={has} ours={ours} only={ours && !!row.only} />
+                <span className="min-w-0 flex-1">
+                  {row.label}
+                  {typeof value === "string" && (
+                    <span className={cn("block font-medium", ours ? "text-white" : "text-[#141312]")}>{value}</span>
+                  )}
+                  {!has && <span className="sr-only"> (not included)</span>}
+                  {ours && row.only && <span className="sr-only"> (no other free plan includes it)</span>}
+                </span>
+              </li>
+            );
+          })}
+        </ul>
+
+        {/* ndle's benefit, said plainly and pinned to the foot of its card, so
+          the four feature lists stay level. The LED is the hero's. */}
+        {ours && (
+          <div className="mt-auto pt-6">
+            <p className="flex items-start gap-3 border-t border-white/15 pt-4 font-mono text-[13px] leading-5">
+              <span aria-hidden className="h2-led mt-[6px] ml-0 shrink-0 text-[48px]" />
+              <span>
+                <span className="block font-medium text-white">Watches every link</span>
+                <span className="text-white/60">Checked every 30 minutes.</span>
+              </span>
+            </p>
+          </div>
         )}
       </div>
-      <p className={cn("mt-1 font-mono text-xs", ours ? "text-white/55" : "text-[#6b6b6b]")}>Free plan</p>
-
-      <ul className="mt-6 space-y-3 font-mono text-[13px] leading-5">
-        {FEATURES.map((row) => {
-          const value = row[plan];
-          const has = value !== false;
-          return (
-            <li key={row.label} className={cn("flex items-start gap-2.5", !has && (ours ? "text-white/40" : "text-[#9a9a9a]"))}>
-              <Mark has={has} ours={ours} only={ours && !!row.only} />
-              <span className="min-w-0 flex-1">
-                {row.label}
-                {typeof value === "string" && (
-                  <span className={cn("block font-medium", ours ? "text-white" : "text-[#141312]")}>{value}</span>
-                )}
-                {!has && <span className="sr-only"> (not included)</span>}
-                {ours && row.only && <span className="sr-only"> (no other free plan includes it)</span>}
-              </span>
-            </li>
-          );
-        })}
-      </ul>
-
-      {/* ndle's benefit, said plainly and pinned to the foot of its card, so
-          the four feature lists stay level. The LED is the hero's. */}
-      {ours && (
-        <div className="mt-auto pt-6">
-          <p className="flex items-start gap-3 border-t border-white/15 pt-4 font-mono text-[13px] leading-5">
-            <span aria-hidden className="h2-led mt-[6px] ml-0 shrink-0 text-[48px]" />
-            <span>
-              <span className="block font-medium text-white">Watches every link</span>
-              <span className="text-white/60">Checked every 30 minutes.</span>
-            </span>
-          </p>
-        </div>
-      )}
     </article>
   );
 }

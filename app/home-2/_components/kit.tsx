@@ -1,5 +1,5 @@
 import Link from "next/link";
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import { ArrowRightIcon } from "@phosphor-icons/react/dist/ssr";
 import { cn } from "@/lib/utils";
 
@@ -68,17 +68,70 @@ export function ActionLink({
 export const INK_TITLE =
   "font-[family-name:var(--font-bebas)] text-[clamp(2.75rem,5vw,3.5rem)] leading-[0.9] tracking-[-0.01em] text-[#141312] uppercase";
 
-/** The round badge over a section title: an icon on Signal Yellow, tilted. */
-export function InkBadge({ children, className }: { children: ReactNode; className?: string }) {
-  return (
-    <span
-      aria-hidden
-      className={cn(
-        "flex size-16 -rotate-6 items-center justify-center rounded-full border-2 border-[#141312] bg-[var(--sig)] text-[#141312]",
-        className,
-      )}
-    >
-      {children}
-    </span>
-  );
+/* ───────── Panels cut like the bento's ───────── */
+
+/* The bento's panels share slanted edges across a gutter, cut like comic
+   panels (feature-bento.tsx). The other comic sections cut their cards the
+   same way: each corner of a card can be pulled in, in px, and a neighbour
+   pulled in at the opposite ends, so the gutter between them runs on a
+   slant. The ink edge is the card's ink showing round a copy of the cut
+   pulled in by the edge's width. */
+
+/** How far each corner is pulled in, as [x, y] px, clockwise from top left. */
+export type Cut = { tl?: [number, number]; tr?: [number, number]; br?: [number, number]; bl?: [number, number] };
+
+const EDGE = 2; // the ink edge, as the bento's outlines
+
+function cutPolygon(cut: Cut, inset: number) {
+  const [tlx, tly] = cut.tl ?? [0, 0];
+  const [trx, tr_y] = cut.tr ?? [0, 0];
+  const [brx, bry] = cut.br ?? [0, 0];
+  const [blx, bly] = cut.bl ?? [0, 0];
+  const px = (n: number) => `${n + inset}px`;
+  const far = (n: number) => `calc(100% - ${n + inset}px)`;
+  return `polygon(${px(tlx)} ${px(tly)}, ${far(trx)} ${px(tr_y)}, ${far(brx)} ${far(bry)}, ${px(blx)} ${far(bly)})`;
+}
+
+/** The cut, and the edge's inner line, as CSS variables for the classes below. */
+export function cutStyle(cut: Cut) {
+  return { "--cut": cutPolygon(cut, 0), "--cut-in": cutPolygon(cut, EDGE) } as CSSProperties;
+}
+
+/** A white card cut at every size, drawn behind its content (so it needs no
+    wrapper, e.g. a <dl>'s group): the ink, then white inside it. */
+export const CUT_BEHIND =
+  "relative isolate before:absolute before:inset-0 before:-z-10 before:bg-[#141312] before:[clip-path:var(--cut)] after:absolute after:inset-0 after:-z-10 after:bg-white after:[clip-path:var(--cut-in)]";
+
+/** A plain ink box that's cut from lg, where the cards stand side by side. */
+export const CUT_FROM_LG = {
+  outer: "border-2 border-[#141312] lg:border-0 lg:bg-[#141312] lg:[clip-path:var(--cut)]",
+  inner: "h-full lg:[clip-path:var(--cut-in)]",
+};
+
+/** The cut for card `i` of `n` in a row (`across`) or a stack (`down`), its
+    gutters leaning `slant` px from one end to the other: alternately, or all
+    the same way (`parallel`), as a row of the bento's panels would. `flip`
+    turns every gutter the other way. The cards' boxes overlap by
+    (slant - gap) / 2 at each gutter, so the gutter's width stays `gap`; the
+    caller sets those overlaps as negative margins. */
+export function slantedCut(
+  i: number,
+  n: number,
+  slant: number,
+  direction: "across" | "down",
+  { parallel = false, flip = false }: { parallel?: boolean; flip?: boolean } = {},
+): Cut {
+  const cut: Cut = {};
+  // Which way gutter k leans: 0 one way, 1 the other
+  const lean = (k: number) => ((parallel ? 0 : k) + (flip ? 1 : 0)) % 2;
+  const before = i - 1;
+  const after = i;
+  if (direction === "across") {
+    if (i > 0) cut[lean(before) === 0 ? "tl" : "bl"] = [slant, 0];
+    if (i < n - 1) cut[lean(after) === 0 ? "br" : "tr"] = [slant, 0];
+  } else {
+    if (i > 0) cut[lean(before) === 0 ? "tr" : "tl"] = [0, slant];
+    if (i < n - 1) cut[lean(after) === 0 ? "bl" : "br"] = [0, slant];
+  }
+  return cut;
 }

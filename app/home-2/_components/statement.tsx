@@ -1,28 +1,31 @@
 "use client";
 
-import { useCallback, useEffect, useId, useRef, useState, type CSSProperties, type MouseEvent, type ReactNode } from "react";
+import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState, type CSSProperties, type MouseEvent, type ReactNode } from "react";
 import { motion, useAnimate, useInView } from "motion/react";
 import { AnimatedMetricNumber } from "@/components/animated-metric-number";
 import { LiveDot } from "@/components/ui/live-dot";
 import { cn } from "@/lib/utils";
-import { PointerGlyph } from "./demo-cursor";
+import { PointerDoodle } from "./dot-doodles";
 import { bebas } from "./fonts";
 import { FOCUS } from "./kit";
 import { useStillAfterMount } from "./use-loop-time";
 
 /* The pivot line, set large on the page itself, right before the plans that
    prove it, in the bento's tall capitals: the other shorteners' half in
-   grey, ndle's half in ink. Each time it comes into view it acts itself out,
-   in order, and scrolling away resets it for next time:
+   grey, their clicks in a quiet blue, ndle's half in ink. Each time it
+   comes into view it acts itself out, in order, and scrolling away resets
+   it for next time:
 
-     clicks   the hero's pointer taps it a few times; a click count on its
+     clicks   a pointing hand, drawn like the page's dotted doodles, pops
+              onto the word and taps it a few times; a click count on its
               side, dressed like the dashboard's Live Click Counter (black,
               the green live dot, the dot-face number that rolls), goes up
               with each tap. It's a real button: every click squashes the word, sends
               a ripple out from the click and adds one
-     ndle     a black highlighter swipes in behind it and it turns into the
-              Signal Yellow wordmark; two small hand-drawn hearts pop onto
-              its corner and beat once
+     ndle     a black highlighter swipes in behind it, and as it passes, the
+              word turns from ink in the wordmark's sans into Signal Yellow
+              dot-matrix (Doto), letter by letter; two small hand-drawn
+              hearts pop onto its corner and beat once
      break    a crack runs down its middle, the halves snap apart and chips
               fall out; the red alert LED lights as its full stop, and a
               yellow ring is drawn around it: caught. Hover it (or tap it)
@@ -34,12 +37,12 @@ import { useStillAfterMount } from "./use-loop-time";
 /* ─────────────────────────────────────────────────────────
  * STORYBOARD   (s after the line comes into view)
  *
- *  0.25   the pointer taps "clicks", every 0.32 (five taps): each tap
+ *  0.00   the hand pops onto "clicks"
+ *  0.25   it taps, every 0.32 (five taps): each tap bends its finger,
  *         squashes the word and rolls the count up one, "+1" rising
  *  1.00   ndle's highlighter swipes in (0.45)
  *  1.40   two hand-drawn hearts pop onto its corner, then beat once
  *  1.70   "break": the crack draws down the middle (0.3)
- *  1.80   the pointer fades out
  *  2.00   the halves snap apart, chips fall
  *  2.25   the red LED full stop lights
  *  2.45   the yellow ring draws around it (0.7)
@@ -53,13 +56,21 @@ const SIG = "var(--sig)";
 const RED = "#f13936"; // oklch(0.63 0.22 27), the alert LED
 const UNLIT = "#cbc9c2"; // the LED before it lights
 
-const DEMO = { first: 0.25, every: 0.32, taps: 5, fadeAt: 1.8 };
+const DEMO = { first: 0.25, every: 0.32, taps: 5 };
 const NDLE_AT = 1.0;
 const BREAK = { at: 1.7, crack: 0.3, split: 0.3, led: 0.55, ring: 0.75, ringFor: 0.7 };
 const SPLIT_SPRING = { type: "spring" as const, stiffness: 320, damping: 13, mass: 0.8 };
 
 /* A word pressed like a button: in a little, then back past where it was. */
 const PRESS = { scale: [1, 0.93, 1.03, 1], duration: 0.32 };
+
+/* The hand on "clicks": it pops on as the line comes in, and on every tap,
+   the demo's or yours, its finger bends to press and the hand dips a
+   little toward the fingertip. */
+const HAND = {
+  pop: { type: "spring" as const, stiffness: 460, damping: 17 },
+  tap: { scale: [1, 0.93, 1.02, 1], y: ["0em", "0.02em", "0em", "0em"], duration: 0.3 },
+};
 
 /* The click count starts here; every tap adds one. */
 const COUNT_FROM = 1_203;
@@ -100,7 +111,7 @@ type Ripple = { id: number; x: number; y: number };
 
 function Clicks({ playing, still }: { playing: boolean; still: boolean }) {
   const [scope, animate] = useAnimate<HTMLSpanElement>();
-  // Your clicks stay counted; the pointer's taps are for this showing only.
+  // Your clicks stay counted; the hand's taps are for this showing only.
   const [yours, setYours] = useState(0);
   const [demo, setDemo] = useState(0);
   const [ripples, setRipples] = useState<Ripple[]>([]);
@@ -108,12 +119,15 @@ function Clicks({ playing, still }: { playing: boolean; still: boolean }) {
   const [bursts, setBursts] = useState(0);
   const rippleId = useRef(0);
 
+  const hand = useRef<HTMLSpanElement>(null);
+
   const press = useCallback(() => {
     if (still || !scope.current) return;
     animate(scope.current, { scale: PRESS.scale }, { duration: PRESS.duration, ease: "easeOut" });
+    if (hand.current) animate(hand.current, { scale: HAND.tap.scale, y: HAND.tap.y }, { duration: HAND.tap.duration, ease: "easeOut" });
   }, [animate, scope, still]);
 
-  // The pointer's taps, each time the line comes into view.
+  // The hand's taps, each time the line comes into view.
   useEffect(() => {
     if (!playing || still) {
       setDemo(0);
@@ -158,7 +172,7 @@ function Clicks({ playing, still }: { playing: boolean; still: boolean }) {
       onClick={click}
       aria-label={`clicks (press to count one, ${count.toLocaleString("en-US")} so far)`}
       className={cn(
-        "relative inline-block cursor-pointer rounded-[0.06em] bg-transparent p-0 text-[#8d8a82] uppercase transition-colors duration-150 hover:text-[#6f6c65] [-webkit-tap-highlight-color:transparent]",
+        "relative inline-block cursor-pointer rounded-[0.06em] bg-transparent p-0 text-[#7f9bc6] uppercase transition-colors duration-150 hover:text-[#5f7fb3] [-webkit-tap-highlight-color:transparent]",
         FOCUS,
       )}
     >
@@ -220,25 +234,23 @@ function Clicks({ playing, still }: { playing: boolean; still: boolean }) {
         )}
       </span>
 
-      {/* The pointer, tapping, while the line plays */}
-      {!still && playing && (
-        <span
-          aria-hidden
-          className="pointer-events-none absolute top-[0.3em] right-[0.02em] text-[0.3em]"
-          style={{ animation: `h2-fade-out 300ms ease-out ${DEMO.fadeAt}s both` }}
+      {/* The hand, in the gap before the word, mirrored to point in at its
+          first letter: the count has the other end to itself. It pops on as
+          the line comes in; each tap bends its finger and dips it toward the
+          fingertip, and the demo's taps send a ring out from it. */}
+      <span aria-hidden className="pointer-events-none absolute top-[0.5em] -left-[0.25em] size-[0.42em] -scale-x-100">
+        <motion.span
+          className="block size-full origin-[31%_12%]"
+          initial={false}
+          animate={still || playing ? { opacity: 1, scale: 1, x: "0em", y: "0em" } : { opacity: 0, scale: 0.4, x: "0.2em", y: "0.24em" }}
+          transition={still || !playing ? INSTANT : HAND.pop}
         >
-          <span
-            className="h2-ripple absolute -top-[0.7em] -left-[0.7em] size-[1.4em] rounded-full"
-            style={{ animationDuration: `${DEMO.every}s`, animationDelay: `${DEMO.first}s`, animationIterationCount: DEMO.taps }}
-          />
-          <span
-            className="block origin-top-left scale-[2.2]"
-            style={{ animation: `h2-press ${DEMO.every}s cubic-bezier(0.33, 1, 0.68, 1) ${DEMO.first}s ${DEMO.taps} both` }}
-          >
-            <PointerGlyph />
+          {!still && demo > 0 && <span key={demo} className="h2-ripple absolute top-[-0.12em] left-[-0.05em] size-[0.34em] rounded-full" />}
+          <span ref={hand} className="block size-full origin-[31%_12%]">
+            <PointerDoodle color="blue" taps={still ? 0 : bursts} className="size-full -rotate-12" />
           </span>
-        </span>
-      )}
+        </motion.span>
+      </span>
     </button>
   );
 }
@@ -246,27 +258,33 @@ function Clicks({ playing, still }: { playing: boolean; still: boolean }) {
 /* ───────── ndle: highlighted, and turned into the wordmark ───────── */
 
 function Ndle({ lit, still }: { lit: boolean; still: boolean }) {
-  // The wordmark's own letters: lowercase, tight. The copy under the swipe is
-  // built the same way, so the two sets of letters sit exactly on each other.
-  const letters = "relative font-sans text-[0.92em] font-semibold tracking-[-0.05em] normal-case";
+  // Before: the wordmark's own letters, in ink. Under the highlighter: Doto,
+  // the dot-matrix face the dashboard's counters use, in Signal Yellow. The
+  // two share one grid cell at the same width, so the box fits the wider
+  // word, and the swipe turns one into the other where it passes: the
+  // highlighter is revealed from the left as the ink word is cut away from
+  // the left, at the same edge (the ink's tall letters would otherwise show
+  // above the bar).
+  const box = "col-start-1 row-start-1 px-[0.14em] text-center";
+  const before = cn(box, "font-sans text-[0.92em] font-semibold tracking-[-0.05em] normal-case");
+  const after = "relative font-doto roundness-100 text-[0.92em] font-black tracking-[-0.09em] normal-case";
   const swiping = lit && !still;
+  const swipe = cn("ease-[cubic-bezier(0.65,0,0.35,1)]", swiping ? "transition-[clip-path] duration-[450ms]" : "transition-none");
+  const delay = { transitionDelay: swiping ? `${NDLE_AT}s` : "0s" };
   return (
-    <span className="relative mx-[0.02em] inline-block -rotate-2 px-[0.14em]">
-      <span className={letters} style={{ color: INK }}>
+    <span className="relative mx-[0.02em] inline-grid -rotate-2">
+      <span className={cn(before, swipe)} style={{ color: INK, clipPath: lit ? "inset(0 0 0 100%)" : "inset(0 0 0 0)", ...delay }}>
         ndle
       </span>
       {/* The highlighter: a black bar with the word in Signal Yellow, swiped
           in from the left on its beat; it clears at once when reset */}
       <span
         aria-hidden
-        className={cn(
-          "absolute inset-0 px-[0.14em] ease-[cubic-bezier(0.65,0,0.35,1)]",
-          swiping ? "transition-[clip-path] duration-[450ms]" : "transition-none",
-        )}
-        style={{ clipPath: lit ? "inset(0 0 0 0)" : "inset(0 100% 0 0)", transitionDelay: swiping ? `${NDLE_AT}s` : "0s" }}
+        className={cn("relative", box, swipe)}
+        style={{ clipPath: lit ? "inset(0 0 0 0)" : "inset(0 100% 0 0)", ...delay }}
       >
         <span className="absolute inset-x-0 top-[0.12em] bottom-[0.04em] rounded-[0.06em] bg-[#141312]" />
-        <span className={letters} style={{ color: SIG }}>
+        <span className={after} style={{ color: SIG }}>
           ndle
         </span>
       </span>
@@ -454,8 +472,29 @@ const CHIPS = [
 /* Comic ticks bursting off the crack, in the word's 100 × 100 box. */
 const TICKS = "M60 -18 L66 -34 M44 -16 L38 -32 M66 118 L74 132 M40 120 L32 134";
 
-/* A quick hand-drawn ring, a little wider than the word. */
-const RING = "M52 5C26 3 6 10 5 21c-1 10 18 16 46 15 27-1 46-9 45-18C95 9 76 3 50 5c-6 .4-11 1.4-15 3";
+/* A quick hand-drawn ring, a little wider than the word, on a 100 × 40 box:
+   where the pen starts, then each curve's two controls and its end, the last
+   running on past the start. */
+const RING = {
+  from: [52, 5],
+  curves: [
+    [26, 3, 6, 10, 5, 21],
+    [4, 31, 23, 37, 51, 36],
+    [78, 35, 97, 27, 96, 18],
+    [95, 9, 76, 3, 50, 5],
+    [44, 5.4, 39, 6.4, 35, 8],
+  ],
+};
+
+/** The ring stretched over a w × h px box. It's drawn in px, not scaled
+    with the box: a scaled stroke needs non-scaling-stroke to keep its
+    width, and that breaks the draw-on into dashes. */
+function ringPath(w: number, h: number) {
+  const x = (n: number) => +((n * w) / 100).toFixed(1);
+  const y = (n: number) => +((n * h) / 40).toFixed(1);
+  const [fx, fy] = RING.from;
+  return `M${x(fx)} ${y(fy)}` + RING.curves.map(([a, b, c, d, e, f]) => ` C${x(a)} ${y(b)} ${x(c)} ${y(d)} ${x(e)} ${y(f)}`).join("");
+}
 
 /* Beats, in s after the line comes into view. Resetting is instant. */
 const at = (s: number) => BREAK.at + s;
@@ -663,6 +702,51 @@ function Plaster() {
   );
 }
 
+/** The ring round the word, a little wider than it: measured, so it's drawn
+    in the box's own px. */
+function Ring({ broken, animated }: { broken: boolean; animated: boolean }) {
+  const ref = useRef<HTMLSpanElement>(null);
+  const [size, setSize] = useState<{ w: number; h: number } | null>(null);
+  useLayoutEffect(() => {
+    const box = ref.current;
+    if (!box) return;
+    const measure = () => {
+      const w = box.clientWidth;
+      const h = box.clientHeight;
+      setSize((s) => (s?.w === w && s.h === h ? s : { w, h }));
+    };
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(box);
+    return () => observer.disconnect();
+  }, []);
+
+  const d = size && ringPath(size.w, size.h);
+  const pen = { d: d ?? "", stroke: SIG, strokeLinecap: "round" as const, style: { strokeWidth: RING_STROKE } };
+  return (
+    <span
+      ref={ref}
+      aria-hidden
+      className="pointer-events-none absolute -top-[0.2em] -left-[0.22em] -z-10 h-[calc(100%+0.4em)] w-[calc(100%+0.44em)]"
+    >
+      {size && (
+        <svg viewBox={`0 0 ${size.w} ${size.h}`} className="absolute inset-0 size-full overflow-visible" fill="none">
+          {animated ? (
+            <motion.path
+              {...pen}
+              initial={false}
+              animate={broken ? { pathLength: 1, opacity: 1 } : { pathLength: 0, opacity: 0 }}
+              transition={broken ? { delay: at(BREAK.ring), duration: BREAK.ringFor, ease: [0.65, 0, 0.35, 1] } : INSTANT}
+            />
+          ) : (
+            <path {...pen} />
+          )}
+        </svg>
+      )}
+    </span>
+  );
+}
+
 /** The word's box, with its ring behind and its LED full stop after. */
 function BreakFrame({
   broken,
@@ -674,28 +758,7 @@ function BreakFrame({
     // A little extra room on the left, where the left half leans back.
     <span className="relative isolate ml-[0.08em] inline-block whitespace-nowrap" style={{ color: INK }} {...handlers}>
       {/* The ring, drawn behind the word once it's caught */}
-      <svg
-        aria-hidden
-        viewBox="0 0 100 40"
-        preserveAspectRatio="none"
-        className="pointer-events-none absolute -top-[0.2em] -left-[0.22em] -z-10 h-[calc(100%+0.4em)] w-[calc(100%+0.44em)] overflow-visible"
-        fill="none"
-      >
-        {animated ? (
-          <motion.path
-            d={RING}
-            stroke={SIG}
-            strokeLinecap="round"
-            vectorEffect="non-scaling-stroke"
-            style={{ strokeWidth: RING_STROKE }}
-            initial={false}
-            animate={broken ? { pathLength: 1, opacity: 1 } : { pathLength: 0, opacity: 0 }}
-            transition={broken ? { delay: at(BREAK.ring), duration: BREAK.ringFor, ease: [0.65, 0, 0.35, 1] } : INSTANT}
-          />
-        ) : (
-          <path d={RING} stroke={SIG} strokeLinecap="round" vectorEffect="non-scaling-stroke" style={{ strokeWidth: RING_STROKE }} />
-        )}
-      </svg>
+      <Ring broken={broken} animated={animated} />
 
       <span className="relative inline-block">
         {/* Takes the word's space; the pieces draw over it */}

@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useId, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState, type CSSProperties, type RefObject } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useAuth } from "@clerk/nextjs";
+import { useAuth, useClerk } from "@clerk/nextjs";
 import { useHotkeys } from "react-hotkeys-hook";
 import { CheckIcon, CopyIcon } from "@phosphor-icons/react/dist/ssr";
 import { cn } from "@/lib/utils";
@@ -12,11 +12,20 @@ import { FOCUS, HOME_PATH, Wordmark } from "./kit";
 /* The site's nav, shared by the landing page and the blog. On the landing page
    its section links are in-page anchors; elsewhere (`home`) they lead back to
    the landing page's sections. S and G jump to sign-in and sign-up. The bar is
-   an ink trapezium hanging from the top edge, with a dithered glow and a dashed
-   edge (NavShape). */
+   an ink trapezium, textured as a board of unlit LEDs, with a dashed edge
+   (NavShape). It hangs from the page's frame (PageFrame): the same ink run
+   round the window's edges, with rounded corners inside. */
 
 const SIGN_IN = "/sign-in?redirect_url=/dashboard";
 const SIGN_UP = "/sign-up?redirect_url=/dashboard";
+
+/** The ink's texture, on the bar and the page's frame: a board of unlit LEDs,
+    barely there: a texture you notice, not a pattern you read. */
+const LEDS = "radial-gradient(circle, rgb(255 255 255 / 0.045) 1.1px, transparent 1.6px)";
+const LED_PITCH = "6px 6px";
+
+/** The dashed edge, the bar's and the frame's. */
+const DASH = { color: "rgb(255 255 255 / 0.55)", pattern: "4 4" };
 
 function Kbd({ children, onAccent }: { children: string; onAccent?: boolean }) {
   return (
@@ -31,16 +40,74 @@ function Kbd({ children, onAccent }: { children: string; onAccent?: boolean }) {
   );
 }
 
+/* The nav's entrance. The page is prerendered, so whether the visitor is
+   signed in is only known once Clerk has loaded in the browser, a moment
+   after the page shows. The actions wait for it, hidden, and rise in once
+   it's known, so the first actions anyone sees are their own (Sign in and
+   Get ndle, or Dashboard), never one set swapping for the other. The logo
+   and the links are the same for everyone, so they don't wait on Clerk:
+   they rise from the first paint, in CSS, before the page's scripts have
+   run, so a slow Clerk never holds them back and nothing about them changes
+   when it answers. Both sets of actions share one cell (Actions), so the bar
+   is its final width from the first paint, whichever set shows. */
+
+/* ─────────────────────────────────────────────────────────
+ * NAV ENTRANCE   (a fresh page load)
+ *
+ *     0ms   the logo       fades in as it rises 4px, over 250ms
+ *    40ms   the links      one after another, 40ms apart (from md); the
+ *                          last is in by 450ms
+ *
+ *           the actions    once Clerk has loaded, the visitor's own: the
+ *                          first straight away, the next 40ms after
+ * ───────────────────────────────────────────────────────── */
+
+/** Between one item's entrance and the next's. */
+const STEP = 40;
+
+/** Each item's entrance: tw-animate-css's `enter`, from clear and 4px down
+    (fade-in, slide-in-from-bottom-1). `backwards` keeps the item hidden
+    through its delay. With reduced motion there's none: the item is just
+    there. */
+const RISE =
+  "fade-in slide-in-from-bottom-1 animate-[enter_250ms_cubic-bezier(0.16,1,0.3,1)_backwards] motion-reduce:animate-none";
+
+/** The `n`th item's delay into the entrance. */
+function beat(n: number): CSSProperties {
+  return { animationDelay: `${n * STEP}ms` };
+}
+
+/** What this page load has shown so far: the nav, and the visitor's actions.
+    Each rises in only the first time. Kept outside the nav, since it
+    outlasts any one nav: Clerk loading remounts the whole page (the account
+    boundary in ConvexClientProvider), and moving to another page with the
+    nav mounts a new one. The server never sets it. */
+const seen = { nav: false, actions: false };
+
 /** `home`: prefix for the section links, "" on the landing page itself. */
 export function SiteNav({ home = "" }: { home?: string }) {
-  const { isSignedIn } = useAuth();
+  const { isLoaded, isSignedIn } = useAuth();
+  const { status } = useClerk();
+  // Clerk has said whether the visitor is signed in. If it can't load at
+  // all, the signed-out actions show, so there's still a way in.
+  const known = isLoaded || status === "error";
   const signedIn = !!isSignedIn;
+  // A fresh page load: the logo and links rise with the first paint, and the
+  // actions once they show. After that, a nav is simply there.
+  const [entering] = useState(() => ({ nav: !seen.nav, actions: !seen.actions }));
+  useEffect(() => {
+    seen.nav = true;
+    if (known) seen.actions = true;
+  }, [known]);
   const router = useRouter();
 
-  useHotkeys("s", () => router.push(SIGN_IN), { enabled: !signedIn });
-  useHotkeys("g", () => router.push(signedIn ? "/dashboard" : SIGN_UP));
+  // Only once the visitor's actions show, and to where they lead
+  useHotkeys("s", () => router.push(SIGN_IN), { enabled: known && !signedIn });
+  useHotkeys("g", () => router.push(signedIn ? "/dashboard" : SIGN_UP), { enabled: known });
 
-  const navLink = cn("rounded-sm px-2 py-1 text-sm text-white/65 transition-colors hover:text-white", FOCUS);
+  const rise = entering.nav ? RISE : undefined;
+  const navLink = cn("rounded-sm px-2 py-1 text-sm text-white/65 transition-colors hover:text-white", FOCUS, rise);
+  const barRef = useRef<HTMLDivElement>(null);
 
   return (
     <>
@@ -53,54 +120,38 @@ export function SiteNav({ home = "" }: { home?: string }) {
       >
         Skip to content
       </a>
+      <PageFrame bar={barRef} />
       {/* The bar is only as wide as what it holds; the strip either side of it
-          lets clicks through to the page. */}
-      <header className="pointer-events-none sticky top-0 z-40">
+          lets clicks through to the page. It sits just under the frame's top,
+          so its flared sides curve out of the frame. */}
+      <header className="pointer-events-none sticky top-0 z-40 pt-[var(--frame)] [--frame:6px] sm:[--frame:10px]">
         {/* --bg is the bar's own ink here, so FOCUS rings offset against it. The
             side padding clears the slant, then leaves room to breathe. */}
-        <div className="pointer-events-auto relative isolate mx-auto flex h-16 w-fit max-w-full items-center gap-6 px-12 [--bg:var(--ink-deep)] md:gap-8 md:px-14 lg:gap-12 lg:px-16">
+        <div
+          ref={barRef}
+          className="pointer-events-auto relative isolate mx-auto flex h-16 w-fit max-w-full items-center gap-6 px-12 [--bg:var(--ink-deep)] md:gap-8 md:px-14 lg:gap-12 lg:px-16">
           <NavShape />
-          <LogoWithMenu />
+          <LogoWithMenu className={rise} />
           <nav aria-label="Main" className="hidden items-center gap-1 md:flex lg:gap-3">
-            <a href={`${home}#monitoring`} className={navLink}>
+            <a href={`${home}#monitoring`} className={navLink} style={beat(1)}>
               Monitoring
             </a>
-            <a href={`${home}#analytics`} className={navLink}>
+            <a href={`${home}#analytics`} className={navLink} style={beat(2)}>
               Analytics
             </a>
-            <a href={`${home}#collections`} className={navLink}>
+            <a href={`${home}#collections`} className={navLink} style={beat(3)}>
               Collections
             </a>
-            <a href={`${home}#pricing`} className={navLink}>
+            <a href={`${home}#pricing`} className={navLink} style={beat(4)}>
               Free plan
             </a>
-            <Link href="/blog" className={navLink}>
+            <Link href="/blog" className={navLink} style={beat(5)}>
               Blog
             </Link>
           </nav>
-          <div className="flex items-center gap-2">
-            {!signedIn && (
-              <Link
-                href={SIGN_IN}
-                className={cn(
-                  "inline-flex h-9 items-center gap-2 rounded-md px-3 text-sm text-white transition-colors hover:bg-white/10",
-                  FOCUS,
-                )}
-              >
-                Sign in
-                <Kbd>S</Kbd>
-              </Link>
-            )}
-            <Link
-              href={signedIn ? "/dashboard" : SIGN_UP}
-              className={cn(
-                "bg-accent text-accent-foreground hover:bg-accent/90 inline-flex h-9 items-center gap-2 rounded-md px-3.5 text-sm font-medium transition-colors",
-                FOCUS,
-              )}
-            >
-              {signedIn ? "Dashboard" : "Get ndle"}
-              <Kbd onAccent>G</Kbd>
-            </Link>
+          <div className="grid justify-items-end">
+            <Actions signedIn={false} shown={known && !signedIn} rise={entering.actions} />
+            <Actions signedIn shown={known && signedIn} rise={entering.actions} />
           </div>
         </div>
       </header>
@@ -108,15 +159,152 @@ export function SiteNav({ home = "" }: { home?: string }) {
   );
 }
 
+/** The actions for a visitor signed out (Sign in, Get ndle) or signed in
+    (Dashboard). Both sets are always there, in the same grid cell, so the
+    cell is as wide as the wider set, signed out, and the bar keeps one width
+    before either shows and whichever does. A signed-in visitor's Dashboard
+    sits at the cell's end, where Get ndle would be. The set that isn't shown
+    is invisible, which also keeps it out of the tab order, screen readers
+    and clicks, and it doesn't prefetch where it leads. `rise`: play the
+    entrance as the set shows. */
+function Actions({ signedIn, shown, rise }: { signedIn: boolean; shown: boolean; rise: boolean }) {
+  const enter = shown && rise ? RISE : undefined;
+  const prefetch = shown ? undefined : false;
+  return (
+    <div className={cn("col-start-1 row-start-1 flex items-center gap-2", !shown && "invisible")}>
+      {!signedIn && (
+        <Link
+          href={SIGN_IN}
+          prefetch={prefetch}
+          style={beat(0)}
+          className={cn(
+            "inline-flex h-9 items-center gap-2 rounded-md px-3 text-sm text-white transition-colors hover:bg-white/10",
+            FOCUS,
+            enter,
+          )}
+        >
+          Sign in
+          <Kbd>S</Kbd>
+        </Link>
+      )}
+      <Link
+        href={signedIn ? "/dashboard" : SIGN_UP}
+        prefetch={prefetch}
+        style={beat(signedIn ? 0 : 1)}
+        className={cn(
+          "bg-accent text-accent-foreground hover:bg-accent/90 inline-flex h-9 items-center gap-2 rounded-md px-3.5 text-sm font-medium transition-colors",
+          FOCUS,
+          enter,
+        )}
+      >
+        {signedIn ? "Dashboard" : "Get ndle"}
+        <Kbd onAccent>G</Kbd>
+      </Link>
+    </div>
+  );
+}
+
+/* The page's frame: the bar's ink and its LED board carried round the
+   window's edges, as if the page were set in it, so the bar and the frame
+   are one piece. Four strips along the edges and four corner pieces rounding
+   the window inside (the ink outside a quarter circle). The board's dots are
+   laid against the window, not each piece (the bar's too), so they run on
+   unbroken from one piece to the next and into the bar. The bar's dashed edge
+   carries on round the frame's inside, from where the bar leaves the top
+   edge on one side to where it comes back on the other. Thinner on phones.
+   It's over the page (and under dialogs and tooltips), and lets every click
+   through. */
+const INK_BOARD: CSSProperties = {
+  backgroundColor: "var(--ink-deep)",
+  backgroundImage: LEDS,
+  backgroundSize: LED_PITCH,
+  backgroundAttachment: "fixed",
+};
+
+/** Each corner piece: where it sits, and where its quarter circle is centred. */
+const FRAME_CORNERS = [
+  { place: "top-[var(--t)] left-[var(--t)]", at: "100% 100%" },
+  { place: "top-[var(--t)] right-[var(--t)]", at: "0% 100%" },
+  { place: "bottom-[var(--t)] left-[var(--t)]", at: "100% 0%" },
+  { place: "right-[var(--t)] bottom-[var(--t)]", at: "0% 0%" },
+];
+
+/** The frame's dashed line: round its inside, 1px into the ink, leaving out
+    the stretch of the top edge the bar hangs from (`from` to `to`). */
+function frameDashes({ w, h, t, r, from, to }: { w: number; h: number; t: number; r: number; from: number; to: number }) {
+  const e = t - 0.5; // the line's centre, just inside the ink
+  const k = r + 0.5; // the corner, followed round at the line's radius
+  return [
+    `M${from} ${e}`,
+    `H${e + k}`,
+    `A${k} ${k} 0 0 0 ${e} ${e + k}`,
+    `V${h - e - k}`,
+    `A${k} ${k} 0 0 0 ${e + k} ${h - e}`,
+    `H${w - e - k}`,
+    `A${k} ${k} 0 0 0 ${w - e} ${h - e - k}`,
+    `V${e + k}`,
+    `A${k} ${k} 0 0 0 ${w - e - k} ${e}`,
+    `H${to}`,
+  ].join(" ");
+}
+
+function PageFrame({ bar }: { bar: RefObject<HTMLDivElement | null> }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [dashes, setDashes] = useState<{ d: string; w: number; h: number } | null>(null);
+
+  // Where the bar leaves and rejoins the top edge, and the frame's size
+  useEffect(() => {
+    const frame = ref.current;
+    const nav = bar.current;
+    if (!frame || !nav) return;
+    const measure = () => {
+      const style = getComputedStyle(frame);
+      const t = parseFloat(style.getPropertyValue("--t"));
+      const r = parseFloat(style.getPropertyValue("--r"));
+      // The frame's own box: the window less any scrollbar, which the
+      // window's inner size would count
+      const { clientWidth: w, clientHeight: h } = frame;
+      const box = nav.getBoundingClientRect();
+      setDashes({ w, h, d: frameDashes({ w, h, t, r, from: box.left, to: box.right }) });
+    };
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(nav);
+    observer.observe(frame);
+    return () => observer.disconnect();
+  }, [bar]);
+
+  return (
+    <div ref={ref} aria-hidden className="pointer-events-none fixed inset-0 z-[41] [--r:14px] [--t:6px] sm:[--r:20px] sm:[--t:10px]">
+      {["inset-x-0 top-0 h-[var(--t)]", "inset-x-0 bottom-0 h-[var(--t)]", "inset-y-0 left-0 w-[var(--t)]", "inset-y-0 right-0 w-[var(--t)]"].map(
+        (edge) => (
+          <div key={edge} className={cn("absolute", edge)} style={INK_BOARD} />
+        ),
+      )}
+      {FRAME_CORNERS.map(({ place, at }) => (
+        <div
+          key={at}
+          className={cn("absolute size-[var(--r)]", place)}
+          style={{
+            ...INK_BOARD,
+            maskImage: `radial-gradient(circle at ${at}, transparent calc(var(--r) - 0.5px), #000 var(--r))`,
+          }}
+        />
+      ))}
+      {dashes && (
+        <svg viewBox={`0 0 ${dashes.w} ${dashes.h}`} preserveAspectRatio="none" className="absolute inset-0 size-full">
+          <path d={dashes.d} fill="none" stroke={DASH.color} strokeWidth={1} strokeDasharray={DASH.pattern} />
+        </svg>
+      )}
+    </div>
+  );
+}
+
 /* The bar's shape: a trapezium hanging from the top edge, its sides leaning in
    by SLANT over its height, flaring into the top edge and rounded at the
-   bottom. The ink carries an ordered dither (Bayer 8×8) of a glow that gathers
-   along the bottom edge: a broad band sweeps it left to right while a finer
-   ripple runs back against it, and dots brighten a little where the glow is
-   strongest, so the sweep reads even though the dots are faint. One canvas
-   pixel per 2px cell, scaled up without smoothing, redrawn at a steppy 20fps,
-   still under reduced motion. The dashed edge runs down the sides and along
-   the bottom. */
+   bottom. The ink is a dot-matrix sign's board, the frame's (INK_BOARD): a
+   grid of unlit LEDs, and the wordmark is the part that's lit. A dashed edge
+   runs down the sides and along the bottom, and on round the frame. */
 
 const SLANT = 32; // how far each side leans in over the bar's height
 const FLARE = 12; // the concave curve where each side leaves the top edge
@@ -144,97 +332,30 @@ function edgePath(w: number, h: number) {
   ].join(" ");
 }
 
-const CELL = 2;
-const FPS = 20;
-const DIM = [22, 21, 19]; // the faintest dots: a warm grey, barely lifted off the ink
-const LIT = [58, 56, 52]; // dots where the glow is strongest
-
-const BAYER_8 = [
-  0, 32, 8, 40, 2, 34, 10, 42,
-  48, 16, 56, 24, 50, 18, 58, 26,
-  12, 44, 4, 36, 14, 46, 6, 38,
-  60, 28, 52, 20, 62, 30, 54, 22,
-  3, 35, 11, 43, 1, 33, 9, 41,
-  51, 19, 59, 27, 49, 17, 57, 25,
-  15, 47, 7, 39, 13, 45, 5, 37,
-  63, 31, 55, 23, 61, 29, 53, 21,
-];
-
-/** Glow at `px` CSS pixels across, `t` down (0 top, 1 bottom) and `s` seconds
-    in, from 0 to 1. */
-function glow(px: number, t: number, s: number) {
-  const band = 0.5 + 0.5 * Math.sin(px / 80 - s * 1.2); // ~500px wide, ~95px/s
-  const ripple = 0.5 + 0.5 * Math.sin(px / 26 + s * 2.1 + t * 2.4); // ~160px wide, ~55px/s
-  return t ** 1.3 * (0.1 + 0.7 * band + 0.2 * ripple) * 0.85;
-}
-
 function NavShape() {
-  const ref = useRef<HTMLCanvasElement>(null);
+  const ref = useRef<HTMLDivElement>(null);
   const clipId = useId();
   const [size, setSize] = useState<{ w: number; h: number } | null>(null);
   const edge = size && edgePath(size.w, size.h);
 
   useEffect(() => {
-    const canvas = ref.current;
-    const ctx = canvas?.getContext("2d");
-    if (!canvas || !ctx) return;
-    let image: ImageData | null = null;
-    let seconds = 0;
-
-    const draw = () => {
-      if (!image) return;
-      const { width: cols, height: rows, data } = image;
-      data.fill(0);
-      for (let y = 0; y < rows; y++) {
-        const t = rows > 1 ? y / (rows - 1) : 1;
-        for (let x = 0; x < cols; x++) {
-          const v = glow(x * CELL, t, seconds);
-          if (v <= (BAYER_8[(y % 8) * 8 + (x % 8)] + 0.5) / 64) continue;
-          const i = (y * cols + x) * 4;
-          for (let c = 0; c < 3; c++) data[i + c] = DIM[c] + (LIT[c] - DIM[c]) * v;
-          data[i + 3] = 255;
-        }
-      }
-      ctx.putImageData(image, 0, 0);
-    };
-
-    const resize = ([entry]: ResizeObserverEntry[]) => {
+    const ink = ref.current;
+    if (!ink) return;
+    const observer = new ResizeObserver(([entry]) => {
       const { width, height } = entry.contentRect;
-      const cols = Math.ceil(width / CELL);
-      const rows = Math.ceil(height / CELL);
-      canvas.width = cols;
-      canvas.height = rows;
-      image = cols && rows ? ctx.createImageData(cols, rows) : null;
-      draw();
       setSize({ w: width, h: height });
-    };
-    const observer = new ResizeObserver(resize);
-    observer.observe(canvas);
-
-    let frame = 0;
-    let last = -Infinity;
-    const tick = (now: number) => {
-      frame = requestAnimationFrame(tick);
-      if (now - last < 1000 / FPS) return;
-      last = now;
-      seconds = now / 1000;
-      draw();
-    };
-    if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches) frame = requestAnimationFrame(tick);
-
-    return () => {
-      observer.disconnect();
-      cancelAnimationFrame(frame);
-    };
+    });
+    observer.observe(ink);
+    return () => observer.disconnect();
   }, []);
 
   return (
     <>
-      <canvas
+      <div
         ref={ref}
         aria-hidden
-        style={{ clipPath: edge ? `path("${edge} Z")` : TRAPEZIUM }}
-        className="pointer-events-none absolute inset-0 -z-10 size-full bg-[var(--bg)] [image-rendering:pixelated]"
+        style={{ ...INK_BOARD, clipPath: edge ? `path("${edge} Z")` : TRAPEZIUM }}
+        className="pointer-events-none absolute inset-0 -z-10 size-full"
       />
       {size && edge && (
         <svg aria-hidden viewBox={`0 0 ${size.w} ${size.h}`} className="pointer-events-none absolute inset-0 -z-10 size-full">
@@ -246,9 +367,9 @@ function NavShape() {
             d={edge}
             clipPath={`url(#${clipId})`}
             fill="none"
-            stroke="rgb(255 255 255 / 0.55)"
+            stroke={DASH.color}
             strokeWidth={2}
-            strokeDasharray="4 4"
+            strokeDasharray={DASH.pattern}
           />
         </svg>
       )}
@@ -256,8 +377,10 @@ function NavShape() {
   );
 }
 
-/* Right-click the logo to copy the wordmark as an SVG. */
-function LogoWithMenu() {
+/* Right-click the logo to copy the wordmark as an SVG. `className` goes on
+   the logo's link, not round the menu: the entrance's transform would carry
+   the fixed menu with it. */
+function LogoWithMenu({ className }: { className?: string }) {
   const wrapRef = useRef<HTMLSpanElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const [menu, setMenu] = useState<{ x: number; y: number } | null>(null);
@@ -310,7 +433,7 @@ function LogoWithMenu() {
           setCopied(false);
           setMenu({ x: event.clientX, y: event.clientY });
         }}
-        className={cn("-m-1 rounded-sm p-1", FOCUS)}
+        className={cn("-m-1 rounded-sm p-1", FOCUS, className)}
       >
         <span ref={wrapRef} className="block">
           {/* The yellow needs no amber hairline on black. */}

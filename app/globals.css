@@ -496,16 +496,20 @@
     @apply border-border outline-ring/50;
   }
 
+  /* No rubber-band bounce or scroll chaining past the page's edges, on the
+     landing page and in the dashboard alike. */
   html {
     width: 100%;
     max-width: 100%;
     overflow-x: clip;
+    overscroll-behavior: none;
     scrollbar-gutter: auto;
     scrollbar-width: thin;
   }
 
   body {
     @apply bg-background text-foreground font-mono;
+    overscroll-behavior: none;
     scrollbar-width: thin;
     scrollbar-color: oklch(0.9 0 0) transparent;
     width: 100%;

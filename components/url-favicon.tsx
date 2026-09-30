@@ -6,6 +6,8 @@ import { useFavicon } from "@/hooks/use-favicon";
 
 interface UrlFaviconProps {
   url: string;
+  /** Show this image instead of looking the site's favicon up. */
+  src?: string;
   /** Size variant: 'sm' (24px) or 'md' (32px, default) */
   size?: "sm" | "md";
 }
@@ -23,9 +25,11 @@ const sizeStyles = {
   },
 };
 
-export function UrlFavicon({ url, size = "md" }: UrlFaviconProps) {
+export function UrlFavicon({ url, src, size = "md" }: UrlFaviconProps) {
   const [imgError, setImgError] = useState(false);
-  const { faviconUrl, isLoading } = useFavicon(url);
+  const fetched = useFavicon(src ? null : url);
+  const faviconUrl = src ?? fetched.faviconUrl;
+  const isLoading = !src && fetched.isLoading;
 
   const showPlaceholder = isLoading || !faviconUrl || imgError;
   const styles = sizeStyles[size];
