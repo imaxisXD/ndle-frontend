@@ -96,8 +96,6 @@ export default defineSchema({
     .index("by_user", ["userTableId"])
     .index("by_guest", ["guestId"])
     .index("by_fullurl", ["fullurl"])
-    .index("by_user_url", ["userTableId", "fullurl"])
-    .index("by_guest_url", ["guestId", "fullurl"])
     .index("by_user_slug", ["userTableId", "slugAssigned"])
     .index("by_guest_slug", ["guestId", "slugAssigned"])
     .index("by_owner_key", ["analyticsOwnerKey"])

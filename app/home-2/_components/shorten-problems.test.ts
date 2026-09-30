@@ -26,10 +26,6 @@ describe("serverReason", () => {
 
 describe("problemFor", () => {
   it.each([
-    [
-      "You already have a short link for this destination. Copy it from your links list instead.",
-      { title: "You've already shortened this link.", signUp: "and ndle moves it into your account." },
-    ],
     ["Guest mode allows up to 5 links each day.", { title: "You've made today's 5 guest links.", signUp: "to keep shortening." }],
     [
       "Guest links from your network reached today's limit of 10. Sign in to keep creating links.",

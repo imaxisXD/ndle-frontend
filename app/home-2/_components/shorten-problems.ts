@@ -4,8 +4,7 @@ import { ConvexError } from "convex/values";
    production Convex hides a failed call's message behind "[Request ID: …]
    Server Error", so the reason has to come from a ConvexError's data, never
    from `error.message`. The server's reasons are written for the dashboard;
-   the ones below are reworded for a guest on the home page, who has no
-   links list to go and look in. */
+   the ones below are reworded for a guest on the home page. */
 
 export type Problem = {
   /** What went wrong, in one short sentence. */
@@ -39,13 +38,6 @@ export const PROBLEMS = {
    link failed validation, is already written for people and is shown as it
    is. */
 const REWORDED: Array<{ match: RegExp; problem: (found: RegExpMatchArray) => Problem }> = [
-  {
-    match: /already have a short link for this destination/i,
-    problem: () => ({
-      title: "You've already shortened this link.",
-      signUp: "and ndle moves it into your account.",
-    }),
-  },
   {
     match: /allows up to (\d+) links each day/i,
     problem: ([, limit]) => ({ title: `You've made today's ${limit} guest links.`, signUp: "to keep shortening." }),

@@ -15,7 +15,6 @@ import type { MadeLink } from "./your-link-pages";
 const REDACTED = "[CONVEX M(urlMainFuction:createGuestUrl)] [Request ID: 0000000000000000] Server Error\n  Called by client";
 
 const REASONS = {
-  duplicate: "You already have a short link for this destination. Copy it from your links list instead.",
   limit: "Guest mode allows up to 5 links each day.",
   network: "Guest links from your network reached today's limit of 10. Sign in to keep creating links.",
   paused: "Guest links are paused for now because of unusually high demand. Sign in to keep creating links, or try again later.",

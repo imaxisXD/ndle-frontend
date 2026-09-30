@@ -241,3 +241,27 @@ describe("clearClaimedGuestExpiry migration", () => {
     expect(remaining).toHaveLength(0);
   });
 });
+
+describe("the same destination twice", () => {
+  test("a guest gets a second short link for a link it already shortened", async () => {
+    const { backend } = await setup();
+    const guestId = crypto.randomUUID();
+    const { guestToken } = await createGuestSessionToken(guestId);
+    const args = { url: "https://example.org/again", guestId, guestToken };
+
+    const first = await backend.mutation(api.urlMainFuction.createGuestUrl, args);
+    const second = await backend.mutation(api.urlMainFuction.createGuestUrl, args);
+
+    expect(second.slug).not.toBe(first.slug);
+  });
+
+  test("an account gets a second short link for a link it already shortened", async () => {
+    const { client } = await setup();
+    const args = { url: "https://example.org/again", slugType: "random" as const, trackingEnabled: true };
+
+    const first = await client.mutation(api.urlMainFuction.createUrl, args);
+    const second = await client.mutation(api.urlMainFuction.createUrl, args);
+
+    expect(second.slug).not.toBe(first.slug);
+  });
+});

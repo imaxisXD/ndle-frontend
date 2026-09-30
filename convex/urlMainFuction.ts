@@ -325,40 +325,6 @@ async function ensureBelowGuestLimits(
   }
 }
 
-async function ensureNoDuplicateForOwner(
-  ctx: MutationCtx,
-  args: {
-    userId?: Id<"users">;
-    guestId?: string;
-    url: string;
-    customDomain?: string;
-  },
-) {
-  const existingUrls = args.userId
-    ? await ctx.db
-        .query("urls")
-        .withIndex("by_user_url", (q) =>
-          q.eq("userTableId", args.userId!).eq("fullurl", args.url),
-        )
-        .collect()
-    : await ctx.db
-        .query("urls")
-        .withIndex("by_guest_url", (q) =>
-          q.eq("guestId", args.guestId!).eq("fullurl", args.url),
-        )
-        .collect();
-
-  const duplicateExists = existingUrls.some((url) =>
-    args.customDomain ? url.customDomain === args.customDomain : !url.customDomain,
-  );
-
-  if (duplicateExists) {
-    throw new ConvexError(
-      "You already have a short link for this destination. Copy it from your links list instead.",
-    );
-  }
-}
-
 async function createUniqueSlug(ctx: MutationCtx, slugType: "random" | "human") {
   let slug: string;
   let existingSlug: Doc<"urls"> | null;
@@ -493,12 +459,6 @@ export const createUrl = mutation({
       ...(abVariantsWithIds ?? []).map((variant) => variant.url),
     ]);
 
-    await ensureNoDuplicateForOwner(ctx, {
-      userId: user._id,
-      url: normalizedUrl,
-      customDomain: normalizedCustomDomain,
-    });
-
     const slug = await createUniqueSlug(ctx, args.slugType);
     const ownerKey = makeUserOwnerKey(user._id);
 
@@ -594,11 +554,6 @@ export const createGuestUrl = mutation({
     const normalizedUrl = normalizeDestination(args.url);
     await ensureDestinationsAllowed(ctx, [normalizedUrl]);
     await ensureBelowGuestLimits(ctx, guestId, networkKey);
-    await ensureNoDuplicateForOwner(ctx, {
-      guestId,
-      url: normalizedUrl,
-    });
-
     await upsertGuestSession(ctx, guestId, args.guestEmail);
 
     const slug = await createUniqueSlug(ctx, "random");
