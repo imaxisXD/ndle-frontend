@@ -22,7 +22,7 @@ import { ASK, AskCard } from "./ask-card";
 import { PointerGlyph } from "./demo-cursor";
 import { bebas } from "./fonts";
 import { LinkDoodle } from "./dot-doodles";
-import { ActionLink, FOCUS, INK_TITLE } from "./kit";
+import { ActionLink, ByAuth, FOCUS, INK_TITLE, type Auth } from "./kit";
 import { CAMPAIGN_BARS, SAMPLE_COLLECTIONS, SHORT_DOMAIN, sampleFavicon } from "./sample-data";
 import { LinkAlertToasts } from "./toast";
 import { useLoopTime, useStillAfterMount } from "./use-loop-time";
@@ -182,7 +182,7 @@ function useDrawnOnce(at: number) {
   return { ref, drawn };
 }
 
-export function FeatureBento({ signedIn = false }: { signedIn?: boolean }) {
+export function FeatureBento({ auth }: { auth: Auth }) {
   return (
     <section
       id="features"
@@ -203,9 +203,20 @@ export function FeatureBento({ signedIn = false }: { signedIn?: boolean }) {
             behind every campaign.
           </p>
         </div>
-        <ActionLink href={signedIn ? "/dashboard" : SIGN_UP} className="self-start lg:self-end">
-          {signedIn ? "Open your dashboard" : "Get ndle free"}
-        </ActionLink>
+        <ByAuth
+          auth={auth}
+          className="self-start lg:self-end lg:justify-items-end"
+          signedOut={(link) => (
+            <ActionLink href={SIGN_UP} {...link}>
+              Get ndle free
+            </ActionLink>
+          )}
+          signedIn={(link) => (
+            <ActionLink href="/dashboard" {...link}>
+              Open your dashboard
+            </ActionLink>
+          )}
+        />
       </div>
 
       <div className="relative mt-10 grid gap-6 sm:grid-cols-2 xl:block xl:aspect-[1130/1395]">

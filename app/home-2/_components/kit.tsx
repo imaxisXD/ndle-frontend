@@ -31,16 +31,19 @@ export function ActionLink({
   href,
   children,
   tone = "primary",
+  prefetch,
   className,
 }: {
   href: string;
   children: ReactNode;
   tone?: "primary" | "outline" | "onDark";
+  prefetch?: false;
   className?: string;
 }) {
   return (
     <Link
       href={href}
+      prefetch={prefetch}
       className={cn(
         "inline-flex h-10 items-center justify-center gap-2 rounded-md px-5 text-sm font-medium transition-[background-color,box-shadow,scale] duration-150 active:scale-[0.98]",
         tone === "primary"
@@ -55,6 +58,47 @@ export function ActionLink({
       {children}
       {tone === "primary" && <ArrowRightIcon size={16} />}
     </Link>
+  );
+}
+
+/* Whether the visitor is signed in: "unknown" until Clerk has loaded in the
+   browser, since the page is prerendered signed out. */
+export type Auth = "unknown" | "in" | "out";
+
+/** A call to action with a signed-out and a signed-in version. Both are
+    always there, in one grid cell, so the cell is as wide as the wider and
+    nothing moves when Clerk finds out who's visiting; then the visitor's
+    fades in. The other is invisible, which keeps it out of the tab order,
+    screen readers and clicks, and its links don't prefetch. Each version is
+    drawn by a function given the props for its links. */
+export function ByAuth({
+  auth,
+  signedOut,
+  signedIn,
+  className,
+}: {
+  auth: Auth;
+  signedOut: (link: { prefetch?: false }) => ReactNode;
+  signedIn: (link: { prefetch?: false }) => ReactNode;
+  className?: string;
+}) {
+  return (
+    <div className={cn("grid", className)}>
+      {(["out", "in"] as const).map((side) => {
+        const shown = auth === side;
+        return (
+          <div
+            key={side}
+            className={cn(
+              "col-start-1 row-start-1 flex flex-wrap items-center gap-3 transition-[opacity,visibility] duration-300 ease-out motion-reduce:transition-none",
+              shown ? "visible opacity-100" : "invisible opacity-0",
+            )}
+          >
+            {(side === "out" ? signedOut : signedIn)(shown ? {} : { prefetch: false })}
+          </div>
+        );
+      })}
+    </div>
   );
 }
 

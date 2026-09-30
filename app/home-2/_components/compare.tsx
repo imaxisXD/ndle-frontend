@@ -4,7 +4,7 @@ import { CheckIcon, XIcon } from "@phosphor-icons/react/dist/ssr";
 import { COUNTER_TEXTURE } from "@/components/charts/live-click-hero";
 import { cn } from "@/lib/utils";
 import { TagDoodle } from "./dot-doodles";
-import { ActionLink, CUT_FROM_LG, INK_TITLE, cutStyle, slantedCut } from "./kit";
+import { ActionLink, ByAuth, CUT_FROM_LG, INK_TITLE, cutStyle, slantedCut, type Auth } from "./kit";
 
 /* Competitor facts carried over from the current home page (public plans,
    April 2026). ndle's rows claim only what ships (docs/feature-status.md). */
@@ -66,7 +66,7 @@ const FEATURES = ROWS;
 /* Side by side: gutters CUT.gap px wide, leaning CUT.slant px over a card's
    height; each card's box reaches CUT.reach px into its neighbour's. */
 const CUT = { gap: 22, slant: 40, reach: 9 }; // reach: (slant - gap) / 2
-export function Compare({ signedIn = false }: { signedIn?: boolean }) {
+export function Compare({ auth }: { auth: Auth }) {
   return (
     <section
       id="pricing"
@@ -99,12 +99,20 @@ export function Compare({ signedIn = false }: { signedIn?: boolean }) {
             The free plan has 100 active links, 1 custom domain and unlimited QR codes, and every link is checked every 30
             minutes. No card needed.
           </p>
-          <ActionLink
-            href={signedIn ? "/dashboard" : "/sign-up?redirect_url=/dashboard"}
-            className="mt-6 focus-visible:ring-offset-black"
-          >
-            {signedIn ? "Open your dashboard" : "Get ndle free"}
-          </ActionLink>
+          <ByAuth
+            auth={auth}
+            className="mt-6"
+            signedOut={(link) => (
+              <ActionLink href="/sign-up?redirect_url=/dashboard" className="focus-visible:ring-offset-black" {...link}>
+                Get ndle free
+              </ActionLink>
+            )}
+            signedIn={(link) => (
+              <ActionLink href="/dashboard" className="focus-visible:ring-offset-black" {...link}>
+                Open your dashboard
+              </ActionLink>
+            )}
+          />
         </div>
         {/* Captioned the counter's way: yellow, in brackets. */}
         <ul aria-label="The free plan" className="grid shrink-0 grid-cols-3 gap-4 lg:grid-cols-1 lg:gap-5 lg:text-right">

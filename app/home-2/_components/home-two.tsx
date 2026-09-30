@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, type CSSProperties } from "react";
-import { useAuth } from "@clerk/nextjs";
+import { useAuth, useClerk } from "@clerk/nextjs";
 import { makeShortLink } from "@/lib/config";
 import { cn } from "@/lib/utils";
 import { Closing } from "./closing";
@@ -11,6 +11,7 @@ import { FeatureBento } from "./feature-bento";
 import { bebas } from "./fonts";
 import { GlassDashboard } from "./glass-dashboard";
 import { HeroShortener } from "./hero-shortener";
+import type { Auth } from "./kit";
 import { SiteNav } from "./site-nav";
 import { Statement } from "./statement";
 import type { YourLink } from "./your-link-pages";
@@ -39,8 +40,12 @@ function delay(ms: number) {
 }
 
 export function HomeTwo() {
-  const { isSignedIn } = useAuth();
-  const signedIn = !!isSignedIn;
+  const { isLoaded, isSignedIn } = useAuth();
+  const { status } = useClerk();
+  // The sections' calls to action hold their place until Clerk knows who's
+  // visiting (ByAuth in kit.tsx), like the nav's; if Clerk fails to load, the
+  // visitor is taken as signed out.
+  const auth: Auth = isLoaded ? (isSignedIn ? "in" : "out") : status === "error" ? "out" : "unknown";
   // The visitor's link, while it plays through the dashboard
   const [preview, setPreview] = useState<YourLink | null>(null);
 
@@ -105,14 +110,14 @@ export function HomeTwo() {
             </div>
           </section>
 
-          <FeatureBento signedIn={signedIn} />
+          <FeatureBento auth={auth} />
 
           <Statement />
-          <Compare signedIn={signedIn} />
+          <Compare auth={auth} />
           <Faq />
         </main>
 
-        <Closing signedIn={signedIn} />
+        <Closing auth={auth} />
       </div>
       {preview && <YourLinkTakeover link={preview} onClose={() => setPreview(null)} />}
     </>

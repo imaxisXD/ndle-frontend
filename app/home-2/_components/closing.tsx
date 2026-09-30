@@ -10,7 +10,7 @@ import { getBrandBadgeDataUrl } from "@/lib/qr";
 import { cn } from "@/lib/utils";
 import { PointerGlyph } from "./demo-cursor";
 import { BoltDoodle, HeartDoodle, SparkleDoodle } from "./dot-doodles";
-import { ActionLink, INK_TITLE } from "./kit";
+import { ActionLink, ByAuth, INK_TITLE, type Auth } from "./kit";
 import { SHORT_DOMAIN, sampleFavicon } from "./sample-data";
 import { SiteFooter } from "./site-footer";
 import { ShortLink, Toast } from "./toast";
@@ -182,7 +182,7 @@ const ROWS = [
 ];
 const BARS = [22, 30, 46, 64, 82, 96, 88, 70, 58, 66, 84, 92, 74, 50];
 
-export function Closing({ signedIn }: { signedIn: boolean }) {
+export function Closing({ auth }: { auth: Auth }) {
   return (
     <>
       <section aria-labelledby="cta-title" className="mx-auto max-w-[1240px] px-5 pt-20 pb-24 sm:px-8 lg:pt-28 lg:pb-32">
@@ -197,16 +197,25 @@ export function Closing({ signedIn }: { signedIn: boolean }) {
             <p className="mt-4 max-w-[38ch] font-mono text-[17px] leading-[1.45] text-[#141312]">
               ndle shortens them, checks every one and tells you when one breaks. Free plan, no card needed.
             </p>
-            <div className="mt-7 flex flex-wrap items-center gap-3">
-              <ActionLink href={signedIn ? "/dashboard" : "/sign-up?redirect_url=/dashboard"}>
-                {signedIn ? "Open your dashboard" : "Get started free"}
-              </ActionLink>
-              {!signedIn && (
-                <ActionLink href="/sign-in?redirect_url=/dashboard" tone="outline">
-                  Sign in
+            <ByAuth
+              auth={auth}
+              className="mt-7"
+              signedOut={(link) => (
+                <>
+                  <ActionLink href="/sign-up?redirect_url=/dashboard" {...link}>
+                    Get started free
+                  </ActionLink>
+                  <ActionLink href="/sign-in?redirect_url=/dashboard" tone="outline" {...link}>
+                    Sign in
+                  </ActionLink>
+                </>
+              )}
+              signedIn={(link) => (
+                <ActionLink href="/dashboard" {...link}>
+                  Open your dashboard
                 </ActionLink>
               )}
-            </div>
+            />
           </div>
           <Finale />
         </div>
