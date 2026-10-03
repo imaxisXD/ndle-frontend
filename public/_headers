@@ -2,3 +2,9 @@
 # https://developers.cloudflare.com/workers/static-assets/headers/
 /_next/static/*
   Cache-Control: public, max-age=31536000, immutable
+
+# Files served straight from static assets skip Next, so they miss the
+# headers in next.config.ts.
+/*
+  Strict-Transport-Security: max-age=31536000
+  X-Content-Type-Options: nosniff

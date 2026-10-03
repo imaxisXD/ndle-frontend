@@ -14,6 +14,25 @@ const nextConfig: NextConfig = {
     optimizePackageImports: ["@phosphor-icons/react"],
   },
   reactCompiler: true,
+  poweredByHeader: false,
+  // Every page, including prerendered ones OpenNext serves from its cache.
+  // The CSP only blocks framing, plugins and <base> rewrites; a script
+  // allowlist needs Clerk, Convex, PostHog, Turnstile, orangereplay and the
+  // DuckDB CDN tested first. Static files get theirs from public/_headers.
+  async headers() {
+    return [
+      {
+        source: "/:path*",
+        headers: [
+          { key: "Content-Security-Policy", value: "frame-ancestors 'none'; object-src 'none'; base-uri 'self'" },
+          { key: "X-Frame-Options", value: "DENY" },
+          { key: "Strict-Transport-Security", value: "max-age=31536000" },
+          { key: "X-Content-Type-Options", value: "nosniff" },
+          { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+        ],
+      },
+    ];
+  },
   // The landing page took over "/"; its old addresses, and the old second
   // landing page's, send visitors there.
   async redirects() {
