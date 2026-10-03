@@ -63,20 +63,38 @@ export function getQrMarginSize(style?: Partial<QrStyle> | null) {
   return normalized.includeMargin ? normalized.margin : 0;
 }
 
+// The favicon's dot-matrix "n" on a 5×6 grid, as [column, row]: the left
+// stem, three dots stepping down across the shoulder, and the right stem.
+const BADGE_DOTS: Array<[number, number]> = [
+  [0, 1],
+  [0, 2],
+  [0, 3],
+  [0, 4],
+  [0, 5],
+  [1, 0],
+  [2, 1],
+  [3, 2],
+  [4, 0],
+  [4, 1],
+  [4, 2],
+  [4, 3],
+  [4, 4],
+  [4, 5],
+];
+
+/**
+ * ndle's mark for the middle of a QR code: the favicon, black dots on Signal
+ * Yellow, in a rounded square like the code's corner finders. A thin outline
+ * in the code's colour keeps its edge on any background, yellow included.
+ */
 export function getBrandBadgeSvg(fg: string) {
-  const safeFg = fg.trim() || "#000000";
-  return `
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none">
-      <circle cx="50" cy="50" r="36" fill="white" />
-      <path
-        d="M38 66V37M38 49C38 41.268 44.268 35 52 35C59.732 35 66 41.268 66 49V66"
-        stroke="${safeFg}"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-        stroke-width="12"
-      />
-    </svg>
-  `.trim();
+  const outline = fg.trim().replace(/"/g, "") || "#000000";
+  // 12 between dots, 10 across each (the favicon's 5:6), centred in 100.
+  const dots = BADGE_DOTS.map(
+    ([column, row]) =>
+      `<circle cx="${26 + column * 12}" cy="${20 + row * 12}" r="5" fill="#000000"/>`,
+  ).join("");
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect x="2" y="2" width="96" height="96" rx="24" fill="#ffc700" stroke="${outline}" stroke-width="4"/>${dots}</svg>`;
 }
 
 export function getBrandBadgeDataUrl(fg: string) {
