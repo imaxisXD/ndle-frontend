@@ -98,3 +98,16 @@ export function getQrOverlaySize(style?: Partial<QrStyle> | null) {
   const normalized = normalizeQrStyle(style);
   return Math.max(8, Math.round(normalized.size * normalized.logoScale));
 }
+
+/** The logo to draw in the middle of a code with this style, if any.
+    Uploaded logos sit on a white square so they read on any colour. */
+export function getQrLogo(style?: Partial<QrStyle> | null) {
+  const normalized = normalizeQrStyle(style);
+  const href = getQrOverlaySrc(normalized);
+  if (!href) return undefined;
+  return {
+    href,
+    size: getQrOverlaySize(normalized),
+    backdrop: normalized.logoMode === "custom" && !!normalized.customLogoUrl,
+  };
+}

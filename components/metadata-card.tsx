@@ -6,7 +6,7 @@ import { AntennaSignal, Clock, Link, OpenInBrowser } from "iconoir-react";
 import { Skeleton, SkeletonReveal } from "./ui/skeleton";
 import LinkWithIcon from "./ui/link-with-icon";
 import { makeShortLinkWithDomain } from "@/lib/config";
-import { QRCodeSVG } from "qrcode.react";
+import { QrCode } from "./ui/qr-code";
 import {
   Dialog,
   DialogContent,
@@ -19,9 +19,8 @@ import { Button } from "./ui/button";
 import { QrCodeIcon } from "@phosphor-icons/react/dist/ssr";
 import {
   type QrStyle,
+  getQrLogo,
   getQrMarginSize,
-  getQrOverlaySize,
-  getQrOverlaySrc,
   normalizeQrStyle,
 } from "@/lib/qr";
 
@@ -50,7 +49,6 @@ export default function MetadataCard({
     ...normalizeQrStyle(qrStyle),
     size: 200,
   };
-  const overlaySrc = getQrOverlaySrc(displayStyle);
 
   return (
     <Card>
@@ -90,26 +88,14 @@ export default function MetadataCard({
                   </DialogHeader>
                   <DialogBody className="flex flex-col items-center justify-center gap-4 p-6">
                     <div className="relative rounded-lg border bg-white p-4">
-                      <QRCodeSVG
+                      <QrCode
                         value={qrTarget}
                         size={displayStyle.size}
-                        level={displayStyle.ecc}
-                        fgColor={displayStyle.fg}
-                        bgColor={displayStyle.bg}
-                        marginSize={getQrMarginSize(displayStyle)}
-                        imageSettings={
-                          overlaySrc
-                            ? {
-                                src: overlaySrc,
-                                height: getQrOverlaySize(displayStyle),
-                                width: getQrOverlaySize(displayStyle),
-                                excavate: true,
-                                crossOrigin: overlaySrc.startsWith("data:")
-                                  ? undefined
-                                  : "anonymous",
-                              }
-                            : undefined
-                        }
+                        ecc={displayStyle.ecc}
+                        fg={displayStyle.fg}
+                        bg={displayStyle.bg}
+                        margin={getQrMarginSize(displayStyle)}
+                        logo={getQrLogo(displayStyle)}
                         className="rounded-sm"
                       />
                     </div>

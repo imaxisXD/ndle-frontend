@@ -5,13 +5,19 @@ import { useEffect, useMemo, useState } from "react";
 import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { getShortDomain } from "@/lib/config";
 import { ensureGuestSession, type GuestSession } from "@/lib/guest";
 import { QrCodeIcon } from "@phosphor-icons/react/dist/ssr";
-import { QRCodeSVG } from "qrcode.react";
+import { QrCode } from "@/components/ui/qr-code";
 
 export function GuestShortenerCard() {
   const { add } = useToast();
@@ -75,11 +81,14 @@ export function GuestShortenerCard() {
       add({
         type: "success",
         title: "Short link ready",
-        description: "Sign in later and we will move this link into your account.",
+        description:
+          "Sign in later and we will move this link into your account.",
       });
     } catch (error) {
       const message =
-        error instanceof Error ? error.message : "We could not shorten that link.";
+        error instanceof Error
+          ? error.message
+          : "We could not shorten that link.";
       add({
         type: "error",
         title: "Create failed",
@@ -142,16 +151,16 @@ export function GuestShortenerCard() {
         {shortLink ? (
           <div className="space-y-4 rounded-lg border border-dashed border-zinc-300 bg-zinc-50 p-4">
             <div className="space-y-1">
-              <p className="text-xs font-medium uppercase tracking-wide text-zinc-500">
+              <p className="text-xs font-medium tracking-wide text-zinc-500 uppercase">
                 Your guest link
               </p>
-              <div className="break-all text-sm font-medium">{shortLink}</div>
+              <div className="text-sm font-medium break-all">{shortLink}</div>
             </div>
 
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex items-center gap-3">
                 <div className="rounded-lg border bg-white p-2">
-                  <QRCodeSVG value={shortLink} size={72} />
+                  <QrCode value={shortLink} size={72} ecc="M" margin={0} />
                 </div>
                 <div className="text-muted-foreground text-xs">
                   <div className="flex items-center gap-1 font-medium text-zinc-700">

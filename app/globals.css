@@ -1800,3 +1800,64 @@
     transition: none;
   }
 }
+
+/* ── QR code refresh (components/ui/qr-code.tsx) ─────────────────────── */
+
+/* Each dot and finder carries --qr-delay: when the scan reaches its row.
+   Dots going dark pop in with a small overshoot; dots going light drop out
+   quickly. Colour changes follow the scan too. */
+.qr-dot {
+  transform-box: fill-box;
+  transform-origin: center;
+  scale: 0;
+  transition:
+    scale 160ms cubic-bezier(0.4, 0, 1, 1) var(--qr-delay),
+    fill 200ms linear var(--qr-delay);
+}
+
+.qr-dot[data-on] {
+  scale: 1;
+  transition:
+    scale 280ms cubic-bezier(0.34, 1.56, 0.64, 1) var(--qr-delay),
+    fill 200ms linear var(--qr-delay);
+}
+
+.qr-finder {
+  transition:
+    fill 200ms linear var(--qr-delay),
+    stroke 200ms linear var(--qr-delay);
+}
+
+/* The scan's flicker: every lit dot dims once as the scan passes, like an LED
+   board redrawing. Two identical keyframes, alternated per change, so a new
+   change replays it. */
+[data-scan="0"] .qr-dot[data-on] {
+  animation: qr-scan-0 300ms ease-out var(--qr-delay);
+}
+
+[data-scan="1"] .qr-dot[data-on] {
+  animation: qr-scan-1 300ms ease-out var(--qr-delay);
+}
+
+@keyframes qr-scan-0 {
+  35% {
+    opacity: 0.25;
+  }
+}
+
+@keyframes qr-scan-1 {
+  35% {
+    opacity: 0.25;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .qr-dot,
+  .qr-dot[data-on],
+  .qr-finder {
+    transition: none;
+  }
+  [data-scan] .qr-dot[data-on] {
+    animation: none;
+  }
+}

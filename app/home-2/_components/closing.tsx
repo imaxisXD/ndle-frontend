@@ -2,7 +2,7 @@
 
 import { useRef, type ReactNode } from "react";
 import { motion, useInView } from "motion/react";
-import { QRCodeSVG } from "qrcode.react";
+import { QrCode } from "@/components/ui/qr-code";
 import { Badge } from "@ui/badge";
 import { GlassFolder } from "@/components/collection/glass-folder";
 import { LinkWithFavicon } from "@/components/ui/link-with-favicon";
@@ -124,14 +124,14 @@ const PIECES: Array<{ x: number; y: number; rotate: number; z: number; node: Rea
     z: 3,
     node: (
       <span className="block rounded-[12px] border-2 border-[#141312] bg-white p-2.5">
-        <QRCodeSVG
+        <QrCode
           value={`https://${SHORT_DOMAIN}/launch`}
           size={104}
-          level="H"
-          fgColor={INK}
-          bgColor="#ffffff"
-          marginSize={0}
-          imageSettings={{ src: getBrandBadgeDataUrl(INK), width: 24, height: 24, excavate: true }}
+          ecc="H"
+          fg={INK}
+          bg="#ffffff"
+          margin={0}
+          logo={{ href: getBrandBadgeDataUrl(INK), size: 24 }}
         />
       </span>
     ),

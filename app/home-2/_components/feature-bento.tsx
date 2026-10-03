@@ -2,7 +2,7 @@
 
 import { memo, useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode, type RefObject } from "react";
 import { useInView, useReducedMotion } from "motion/react";
-import { QRCodeSVG } from "qrcode.react";
+import { QrCode } from "@/components/ui/qr-code";
 import {
   ArrowsSplitIcon,
   DownloadSimpleIcon,
@@ -649,15 +649,15 @@ const CHECKER: CSSProperties = {
 /* A real, scannable code for the sample link, with ndle's badge. */
 const Qr = memo(function Qr({ color, bg, size, title }: { color: string; bg: string; size: number; title?: string }) {
   return (
-    <QRCodeSVG
+    <QrCode
       title={title}
       value={`https://${QR_LINK}`}
       size={size}
-      level="H"
-      fgColor={color}
-      bgColor={bg}
-      marginSize={1}
-      imageSettings={{ src: getBrandBadgeDataUrl(color), width: size * 0.2, height: size * 0.2, excavate: true }}
+      ecc="H"
+      fg={color}
+      bg={bg}
+      margin={1}
+      logo={{ href: getBrandBadgeDataUrl(color), size: size * 0.2 }}
       style={{ width: "100%", height: "100%" }}
     />
   );

@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Resvg } from "@cf-wasm/resvg";
-import QRCode from "qrcode";
 import { getCacheHeadersPreset } from "@/lib/cacheHeaders";
 import { makeShortLink } from "@/lib/config";
 import { getBrandBadgeDataUrl } from "@/lib/qr";
+import { type QrLogo, qrCodeSvg } from "@/lib/qr-code";
 import { lookup } from "node:dns/promises";
 import net from "node:net";
 
@@ -34,7 +34,10 @@ function parseNumber(value: string | null, fallback: number): number {
 
 function isPrivateIpv4(ip: string): boolean {
   const parts = ip.split(".").map((part) => Number(part));
-  if (parts.length !== 4 || parts.some((part) => !Number.isInteger(part) || part < 0 || part > 255)) {
+  if (
+    parts.length !== 4 ||
+    parts.some((part) => !Number.isInteger(part) || part < 0 || part > 255)
+  ) {
     return true;
   }
   const [a, b] = parts;
@@ -130,57 +133,6 @@ async function fetchImageAsDataUrl(url: string): Promise<string | null> {
   }
 }
 
-function ensureSizeAttrs(svg: string, size: number): string {
-  // Ensure xmlns and normalize width/height on root <svg>
-  return svg.replace(/<svg\b([^>]*)>/, (_m, attrs) => {
-    // Strip any existing conflicting attributes
-    let cleaned = attrs.replace(
-      /\s*(xmlns|width|height|viewBox)\s*=\s*"[^"]*"/g,
-      "",
-    );
-    // Ensure xmlns exists
-    if (!/xmlns\s*=/.test(attrs)) {
-      cleaned += ` xmlns="http://www.w3.org/2000/svg"`;
-    }
-    // Add normalized size and viewBox for consistent rendering
-    cleaned += ` width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" shape-rendering="crispEdges"`;
-    return `<svg${cleaned}>`;
-  });
-}
-
-function maybeMakeBackgroundTransparent(svg: string, bg: string): string {
-  if (bg !== "transparent") return svg;
-  // Try to remove/neutralize the background rect if present
-  // Replace a top-level rect fill with none/transparent
-  let out = svg.replace(/(<rect\b[^>]*\bfill=")[^"]+("[^>]*\/>)/i, `$1none$2`);
-  // Also replace any light color fills with none for background paths
-  out = out.replace(/fill="transparent"/gi, `fill="none"`);
-  return out;
-}
-
-function addImageOverlay(
-  svg: string,
-  size: number,
-  dataUrl: string,
-  scale: number,
-  addBackdrop = false,
-) {
-  const diameter = clamp(Math.round(size * scale), 8, Math.round(size * 0.5));
-  const x = size / 2 - diameter / 2;
-  const y = size / 2 - diameter / 2;
-  const overlay = [
-    `<g pointer-events="none" aria-label="custom logo">`,
-    addBackdrop
-      ? `<rect x="${x}" y="${y}" width="${diameter}" height="${diameter}" rx="${Math.round(
-          diameter / 5,
-        )}" fill="white" opacity="0.95"/>`
-      : "",
-    `<image href="${dataUrl}" x="${x}" y="${y}" width="${diameter}" height="${diameter}" preserveAspectRatio="xMidYMid slice" crossOrigin="anonymous"/>`,
-    `</g>`,
-  ].join("");
-  return svg.replace(/<\/svg>\s*$/i, `${overlay}</svg>`);
-}
-
 export async function GET(
   req: NextRequest,
   ctx: { params: Promise<{ slug: string }> },
@@ -230,9 +182,10 @@ export async function GET(
       0,
       8,
     );
-    const ecc: EccLevel =
-      ((requestUrl.searchParams.get("ecc") || "H").toUpperCase() as EccLevel) ||
-      "H";
+    const eccParam = (requestUrl.searchParams.get("ecc") || "H").toUpperCase();
+    const ecc: EccLevel = ["L", "M", "Q", "H"].includes(eccParam)
+      ? (eccParam as EccLevel)
+      : "H";
     const fg = parseHexColor(requestUrl.searchParams.get("fg"), "#000000");
     const bgRaw = requestUrl.searchParams.get("bg");
     const bg =
@@ -254,44 +207,34 @@ export async function GET(
     log("params", { slug, size, margin, ecc, fg, bg, logoMode, logoScale });
     log("target", target);
 
-    // Generate base QR as SVG
+    // The logo, if any. A custom logo that can't be fetched falls back to
+    // ndle's badge.
+    const logoSize = Math.max(8, Math.round(size * logoScale));
+    let logo: QrLogo | undefined;
+    if (logoMode === "brand") {
+      log("overlay", "brand");
+      logo = { href: getBrandBadgeDataUrl(fg), size: logoSize };
+    } else if (logoMode === "custom" && logoUrl) {
+      log("overlay", "custom", logoUrl);
+      const dataUrl = await fetchImageAsDataUrl(logoUrl);
+      if (dataUrl) {
+        logo = { href: dataUrl, size: logoSize, backdrop: true };
+      } else {
+        log("custom logo fetch failed, fallback brand");
+        logo = { href: getBrandBadgeDataUrl(fg), size: logoSize };
+      }
+    }
+
+    // Drawn by the same renderer as the in-app preview (lib/qr-code.ts).
     let svg: string;
     try {
-      svg = await QRCode.toString(target, {
-        type: "svg",
-        errorCorrectionLevel: ecc,
-        margin,
-        color: {
-          dark: fg,
-          light: bg,
-        },
-      });
+      svg = qrCodeSvg(target, { size, fg, bg, ecc, margin, logo });
     } catch (e) {
       logError("qrcode generation failed", e);
       return NextResponse.json(
         { error: "QR generation failed" },
         { status: 500, headers: getCacheHeadersPreset("ERROR") },
       );
-    }
-
-    // Normalize root size and background transparency
-    svg = ensureSizeAttrs(svg, size);
-    svg = maybeMakeBackgroundTransparent(svg, bg);
-
-    // Add overlays
-    if (logoMode === "brand") {
-      log("overlay", "brand");
-      svg = addImageOverlay(svg, size, getBrandBadgeDataUrl(fg), logoScale);
-    } else if (logoMode === "custom" && logoUrl) {
-      log("overlay", "custom", logoUrl);
-      const dataUrl = await fetchImageAsDataUrl(logoUrl);
-      if (dataUrl) {
-        svg = addImageOverlay(svg, size, dataUrl, logoScale, true);
-      } else {
-        // Fallback to brand overlay if custom logo fails
-        log("custom logo fetch failed, fallback brand");
-        svg = addImageOverlay(svg, size, getBrandBadgeDataUrl(fg), logoScale);
-      }
     }
 
     log("svg-length", svg.length);

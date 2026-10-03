@@ -8,9 +8,9 @@ import { OptionQRCode } from "@/components/url-shortener/OptionQRCode";
 import type { UrlFormValues } from "@/components/url-shortener";
 import { makeShortLink } from "@/lib/config";
 
-// Expose the encoded value; the real component only renders module paths.
-vi.mock("qrcode.react", () => ({
-  QRCodeSVG: ({ value }: { value: string }) =>
+// Expose the encoded value; the real component only renders dots.
+vi.mock("@/components/ui/qr-code", () => ({
+  QrCode: ({ value }: { value: string }) =>
     createElement("svg", { "data-qr-value": value }),
 }));
 

@@ -9,14 +9,15 @@ import {
   ShieldCheckIcon,
   LockSimpleIcon,
 } from "@phosphor-icons/react/dist/ssr";
-import { useEffect, useRef, useState, type CSSProperties } from "react";
+import { useEffect, useState, type CSSProperties } from "react";
 import { useReducedMotion } from "motion/react";
-import { QRCodeCanvas } from "qrcode.react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@ui/card";
 import { LiveClickHero } from "@/components/charts/live-click-hero";
 import { LinkActionsBar } from "@/components/LinkActionsBar";
 import LinkWithIcon from "@/components/ui/link-with-icon";
-import { getQrMarginSize, getQrOverlaySize, getQrOverlaySrc, normalizeQrStyle } from "@/lib/qr";
+import { getQrLogo, getQrMarginSize, normalizeQrStyle } from "@/lib/qr";
+import { qrCodeSvg } from "@/lib/qr-code";
+import { downloadQrPng } from "@/lib/qr-file";
 import { cn } from "@/lib/utils";
 import { FIELD_FOCUS, HealthTile, LINK_TABS, LinkRow, PageHeader, RECENT_COLS } from "./demo-pages";
 import { SHORT_DOMAIN } from "./sample-data";
@@ -190,17 +191,16 @@ export function YourLinkPage({
   interactive: boolean;
 }) {
   const { short } = link;
-  const qrRef = useRef<HTMLDivElement>(null);
-  const overlay = getQrOverlaySrc(QR_STYLE);
-  const overlaySize = getQrOverlaySize(QR_STYLE);
-
   const downloadQr = () => {
-    const canvas = qrRef.current?.querySelector("canvas");
-    if (!canvas) return;
-    const anchor = document.createElement("a");
-    anchor.href = canvas.toDataURL("image/png");
-    anchor.download = `${short.slice(short.indexOf("/") + 1) || "ndle"}-qr.png`;
-    anchor.click();
+    const svg = qrCodeSvg(`https://${short}`, {
+      size: QR_STYLE.size,
+      fg: QR_STYLE.fg,
+      bg: QR_STYLE.bg,
+      ecc: QR_STYLE.ecc,
+      margin: getQrMarginSize(QR_STYLE),
+      logo: getQrLogo(QR_STYLE),
+    });
+    void downloadQrPng(svg, QR_STYLE.size, `${short.slice(short.indexOf("/") + 1) || "ndle"}-qr.png`, 1);
   };
 
   return (
@@ -221,19 +221,6 @@ export function YourLinkPage({
           <p className="text-muted-foreground/70 text-xs">[Created just now]</p>
         </div>
         <LinkActionsBar shortUrl={short} fullUrl={link.destination} qrEnabled onDownloadQR={downloadQr} />
-        {short && (
-          <div ref={qrRef} className="hidden">
-            <QRCodeCanvas
-              value={`https://${short}`}
-              size={QR_STYLE.size}
-              level={QR_STYLE.ecc}
-              fgColor={QR_STYLE.fg}
-              bgColor={QR_STYLE.bg}
-              marginSize={getQrMarginSize(QR_STYLE)}
-              imageSettings={overlay ? { src: overlay, height: overlaySize, width: overlaySize, excavate: true } : undefined}
-            />
-          </div>
-        )}
       </header>
 
       <LockedCounter locked={locked.blur} />

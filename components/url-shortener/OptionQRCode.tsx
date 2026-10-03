@@ -1,7 +1,7 @@
 "use client";
 
-import { useMemo, useRef } from "react";
-import { QRCodeSVG } from "qrcode.react";
+import { useMemo } from "react";
+import { QrCode } from "@/components/ui/qr-code";
 import { Input } from "@/components/ui/input";
 import {
   FormField,
@@ -18,12 +18,9 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { cn } from "@/lib/utils";
 import { Palette, Download, CloudDownload } from "iconoir-react";
 import { COLLECTION_COLORS } from "@/components/collection/colors";
-import {
-  getQrMarginSize,
-  getQrOverlaySize,
-  getQrOverlaySrc,
-  normalizeQrStyle,
-} from "@/lib/qr";
+import { getQrLogo, getQrMarginSize, normalizeQrStyle } from "@/lib/qr";
+import { qrCodeSvg } from "@/lib/qr-code";
+import { downloadQrPng, downloadQrSvg } from "@/lib/qr-file";
 import { makeShortLink } from "@/lib/config";
 import { Inset } from "@/components/ui/inset";
 
@@ -36,8 +33,6 @@ type Props = {
 };
 
 export function OptionQRCode({ form, isPro = false }: Props) {
-  const previewRef = useRef<HTMLDivElement>(null);
-
   const [
     size,
     margin,
@@ -116,96 +111,27 @@ export function OptionQRCode({ form, isPro = false }: Props) {
     ],
   );
 
-  const overlaySrc = useMemo(() => getQrOverlaySrc(qrStyle), [qrStyle]);
+  const logo = useMemo(() => getQrLogo(qrStyle), [qrStyle]);
 
-  const imageSettings = useMemo(() => {
-    if (!overlaySrc) return undefined;
-    const px = getQrOverlaySize(qrStyle);
-    return {
-      src: overlaySrc,
-      height: px,
-      width: px,
-      excavate: true,
-      crossOrigin: overlaySrc.startsWith("data:")
-        ? undefined
-        : ("anonymous" as const),
-    };
-  }, [overlaySrc, qrStyle]);
-
-  // ensure QRCodeSVG fully re-renders on any visual change
-  const qrKey = useMemo(
-    () =>
-      [
-        qrValue,
-        qrStyle.size,
-        getQrMarginSize(qrStyle),
-        qrStyle.ecc,
-        qrStyle.fg,
-        qrStyle.bg,
-        overlaySrc || "none",
-        Number.isFinite(qrStyle.logoScale)
-          ? qrStyle.logoScale.toFixed(3)
-          : "0.18",
-      ].join("|"),
-    [qrValue, qrStyle, overlaySrc],
-  );
-
-  const svgElement = () => {
-    const container = previewRef.current;
-    if (!container) return null;
-    return container.querySelector("svg") as SVGSVGElement | null;
-  };
+  // Downloads are drawn fresh from the same renderer as the preview.
+  const fileSvg = () =>
+    qrCodeSvg(qrValue, {
+      size: qrStyle.size,
+      fg: qrStyle.fg,
+      bg: qrStyle.bg,
+      ecc: qrStyle.ecc,
+      margin: getQrMarginSize(qrStyle),
+      logo,
+    });
 
   const downloadSvg = () => {
     if (!createdShortLink) return;
-    const svg = svgElement();
-    if (!svg) return;
-    const clone = svg.cloneNode(true) as SVGSVGElement;
-    clone.setAttribute("xmlns", "http://www.w3.org/2000/svg");
-    clone.setAttribute("width", String(qrStyle.size));
-    clone.setAttribute("height", String(qrStyle.size));
-    const xml = new XMLSerializer().serializeToString(clone);
-    const blob = new Blob([xml], { type: "image/svg+xml;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "qr.svg";
-    a.click();
-    URL.revokeObjectURL(url);
+    downloadQrSvg(fileSvg(), "qr.svg");
   };
 
   const downloadPng = async () => {
     if (!createdShortLink) return;
-    const svg = svgElement();
-    if (!svg) return;
-    const clone = svg.cloneNode(true) as SVGSVGElement;
-    clone.setAttribute("xmlns", "http://www.w3.org/2000/svg");
-    clone.setAttribute("width", String(qrStyle.size));
-    clone.setAttribute("height", String(qrStyle.size));
-    const xml = new XMLSerializer().serializeToString(clone);
-    const svgBlob = new Blob([xml], { type: "image/svg+xml;charset=utf-8" });
-    const url = URL.createObjectURL(svgBlob);
-    const img = new Image();
-    img.crossOrigin = "anonymous";
-    await new Promise<void>((resolve, reject) => {
-      img.onload = () => resolve();
-      img.onerror = reject;
-      img.src = url;
-    });
-    const scale = 2;
-    const canvas = document.createElement("canvas");
-    canvas.width = qrStyle.size * scale;
-    canvas.height = qrStyle.size * scale;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-    ctx.imageSmoothingEnabled = true;
-    ctx.imageSmoothingQuality = "high";
-    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-    URL.revokeObjectURL(url);
-    const a = document.createElement("a");
-    a.href = canvas.toDataURL("image/png");
-    a.download = "qr.png";
-    a.click();
+    await downloadQrPng(fileSvg(), qrStyle.size, "qr.png");
   };
 
   return (
@@ -417,8 +343,7 @@ export function OptionQRCode({ form, isPro = false }: Props) {
           </div>
 
           <div
-            ref={previewRef}
-            className="border-border/50 relative flex items-center justify-center overflow-hidden rounded-xl border bg-white shadow-raised ring-1 ring-black/5"
+            className="border-border/50 shadow-raised relative flex items-center justify-center overflow-hidden rounded-xl border bg-white ring-1 ring-black/5"
             style={{
               width: "240px",
               height: "240px",
@@ -436,15 +361,21 @@ export function OptionQRCode({ form, isPro = false }: Props) {
               />
             )}
             <div className="relative z-10 scale-[0.85]">
-              <QRCodeSVG
-                key={qrKey}
+              {/* No key: the code refreshes in place when the link is
+                  created or the style changes, instead of remounting. */}
+              <QrCode
                 value={qrValue}
                 size={qrStyle.size}
-                level={qrStyle.ecc}
-                fgColor={qrStyle.fg}
-                bgColor={qrStyle.bg}
-                imageSettings={imageSettings}
-                marginSize={getQrMarginSize(qrStyle)}
+                ecc={qrStyle.ecc}
+                fg={qrStyle.fg}
+                bg={qrStyle.bg}
+                margin={getQrMarginSize(qrStyle)}
+                logo={logo}
+                title={
+                  createdShortLink
+                    ? `QR code for ${qrValue}`
+                    : "Placeholder QR code"
+                }
               />
             </div>
           </div>
@@ -500,10 +431,7 @@ export function OptionQRCode({ form, isPro = false }: Props) {
                 params.set("margin", String(getQrMarginSize(qrStyle)));
                 params.set("ecc", qrStyle.ecc);
                 params.set("logoMode", hostedLogoMode);
-                if (
-                  hostedLogoMode === "custom" &&
-                  qrStyle.customLogoUrl
-                ) {
+                if (hostedLogoMode === "custom" && qrStyle.customLogoUrl) {
                   params.set("logoUrl", qrStyle.customLogoUrl);
                 }
                 if (Number.isFinite(qrStyle.logoScale)) {
