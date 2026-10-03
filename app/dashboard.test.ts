@@ -55,9 +55,9 @@ test.each(["Exhausted", "CanLoadMore"])(
   (status) => {
     links.status = status;
     const html = renderPage(React.createElement(HomeRoute));
-    const rows = html.match(/<tbody[^>]*>([\s\S]*?)<\/tbody>/)?.[1];
+    const rows = html.match(/data-slot="url-table-row"/g);
 
-    expect(rows?.match(/<tr\b/g)).toHaveLength(5);
+    expect(rows).toHaveLength(5);
     expect(html).toContain('href="/urls"');
     expect(html).toContain("[View All Links]");
     expect(html).not.toContain("links loaded");

@@ -47,15 +47,13 @@ import {
   SelectItem,
   SelectValue,
 } from "../ui/base-select";
-import { Tooltip, TooltipTrigger, TooltipContent } from "../ui/base-tooltip";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "../ui/table";
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+  tooltipVariants,
+} from "../ui/base-tooltip";
+import { Popover as PopoverPrimitive } from "@base-ui/react/popover";
 import {
   Menu,
   MenuContent,
@@ -74,14 +72,14 @@ import {
   DialogClose,
 } from "../ui/base-dialog";
 import { type DisplayUrl } from "./types";
-import {
-  urlTableCellClassName,
-  urlTableColumnSize,
-  urlTableHeadClassName,
-  urlTableStyle,
-} from "./column-sizes";
+import { UrlTableFrame, UrlTableHeader } from "./UrlTableFrame";
 import { UrlTableSkeletonRows } from "./UrlTableSkeletonRows";
-import { formatRelative, cn, getMonitoringStatus } from "@/lib/utils";
+import {
+  formatRelative,
+  formatRelativeTimeCompact,
+  cn,
+  getMonitoringStatus,
+} from "@/lib/utils";
 import { EmptyStateImage } from "@/components/empty-state-image";
 import { AnimatedMetricNumber } from "@/components/animated-metric-number";
 import { makeShortLinkWithDomain } from "@/lib/config";
@@ -277,6 +275,8 @@ function ActionsMenuCell({
   );
 }
 
+// The short link and its copy button. The original URL under it is its own
+// grid cell, so the two can glide apart when the table narrows.
 function ShortUrlCell({
   shortUrl,
   originalUrl,
@@ -322,70 +322,58 @@ function ShortUrlCell({
     ? shortUrl
     : `https://${shortUrl}`;
   return (
-    <div className="w-full space-y-1">
-      <div className="flex items-center justify-start gap-1">
-        <LinkWithFavicon
-          url={normalizedHref}
-          originalUrl={originalUrl}
-          onClick={(e) => e.stopPropagation()}
-          iconClassName="size-3"
-          asCode
-        >
-          {shortUrl}
-        </LinkWithFavicon>
+    <div className="flex min-w-0 items-center justify-start gap-1">
+      <LinkWithFavicon
+        url={normalizedHref}
+        originalUrl={originalUrl}
+        onClick={(e) => e.stopPropagation()}
+        iconClassName="g-external size-3"
+        asCode
+      >
+        {shortUrl}
+      </LinkWithFavicon>
 
-        <Button
-          size="icon"
-          variant="link"
-          type="button"
-          aria-label={copied ? "Copied" : "Copy short link"}
-          className="text-muted-foreground hover:bg-surface-hover flex size-8 shrink-0 items-center justify-center rounded-md transition-colors hover:text-blue-600"
-          onClick={(e) => {
-            e.stopPropagation();
-            onCopy(shortUrl);
-            setCopied(true);
-            if (revertTimerRef.current) clearTimeout(revertTimerRef.current);
-            revertTimerRef.current = setTimeout(() => setCopied(false), 2000);
-          }}
-        >
-          {/* Icon slot: clipboard (a) cross-fades to the success check (b)
+      <Button
+        size="icon"
+        variant="link"
+        type="button"
+        aria-label={copied ? "Copied" : "Copy short link"}
+        className="text-muted-foreground hover:bg-surface-hover flex size-8 shrink-0 items-center justify-center rounded-md transition-colors hover:text-blue-600"
+        onClick={(e) => {
+          e.stopPropagation();
+          onCopy(shortUrl);
+          setCopied(true);
+          if (revertTimerRef.current) clearTimeout(revertTimerRef.current);
+          revertTimerRef.current = setTimeout(() => setCopied(false), 2000);
+        }}
+      >
+        {/* Icon slot: clipboard (a) cross-fades to the success check (b)
               the moment the link is copied. */}
-          <span className="t-icon-swap" data-state={copied ? "b" : "a"}>
-            <span className="t-icon" data-icon="a" aria-hidden="true">
-              <CopyIcon
-                className="size-3.5"
-                weight="duotone"
-                strokeWidth={2.5}
-              />
-            </span>
-            <span className="t-icon" data-icon="b" aria-hidden="true">
-              {/* success-check: plays the celebratory draw on copy */}
-              <span
-                ref={checkWrapRef}
-                className="t-success-check size-3.5 text-green-600"
-                data-state="out"
-              >
-                <svg viewBox="0 0 24 24" fill="none" className="size-3.5">
-                  <path
-                    ref={checkPathRef}
-                    d="M5 12.5 L10 17.5 L19 6.5"
-                    stroke="currentColor"
-                    strokeWidth={2.5}
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              </span>
+        <span className="t-icon-swap" data-state={copied ? "b" : "a"}>
+          <span className="t-icon" data-icon="a" aria-hidden="true">
+            <CopyIcon className="size-3.5" weight="duotone" strokeWidth={2.5} />
+          </span>
+          <span className="t-icon" data-icon="b" aria-hidden="true">
+            {/* success-check: plays the celebratory draw on copy */}
+            <span
+              ref={checkWrapRef}
+              className="t-success-check size-3.5 text-green-600"
+              data-state="out"
+            >
+              <svg viewBox="0 0 24 24" fill="none" className="size-3.5">
+                <path
+                  ref={checkPathRef}
+                  d="M5 12.5 L10 17.5 L19 6.5"
+                  stroke="currentColor"
+                  strokeWidth={2.5}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
             </span>
           </span>
-        </Button>
-      </div>
-      <p
-        className="text-muted-foreground truncate pl-1 text-xs"
-        title={originalUrl}
-      >
-        {originalUrl}
-      </p>
+        </span>
+      </Button>
     </div>
   );
 }
@@ -477,6 +465,49 @@ function ClickCountNumber({
   );
 }
 
+const statusDotColor = {
+  green: "bg-green-500",
+  yellow: "bg-yellow-400",
+  red: "bg-red-500",
+  default: "bg-zinc-400",
+} as const;
+
+// Narrow rows have no room for the status badge, so status rides on the
+// favicon's corner as a dot. It's a popover that also opens on hover rather
+// than a tooltip: tooltips only open on hover and focus, so a phone could
+// never reveal the status. This opens on hover with a mouse and on tap with a
+// finger.
+function StatusDot({ status }: { status: string }) {
+  return (
+    <PopoverPrimitive.Root>
+      <PopoverPrimitive.Trigger
+        openOnHover
+        delay={0}
+        aria-label={`Status: ${status}`}
+        // The dot is 10px; the invisible ring around it makes a 22px target.
+        className={cn(
+          "g-status-dot ring-surface-inset relative size-2.5 cursor-default rounded-full ring-2 before:absolute before:-inset-1.5 before:content-[''] focus-visible:outline-2 focus-visible:outline-offset-2",
+          statusDotColor[getStatusBadgeVariant(status)],
+        )}
+        data-glide
+        data-glide-pair="status"
+      />
+      <PopoverPrimitive.Portal>
+        <PopoverPrimitive.Positioner side="top" sideOffset={8} className="z-50">
+          <PopoverPrimitive.Popup
+            className={cn(
+              tooltipVariants({ variant: "default" }),
+              "capitalize",
+            )}
+          >
+            {status}
+          </PopoverPrimitive.Popup>
+        </PopoverPrimitive.Positioner>
+      </PopoverPrimitive.Portal>
+    </PopoverPrimitive.Root>
+  );
+}
+
 type UrlDataRowProps = {
   createdAt: number;
   id: string;
@@ -504,86 +535,84 @@ const UrlDataRow = memo(function UrlDataRow({
 }: UrlDataRowProps) {
   const variant = getStatusBadgeVariant(status);
 
+  // Every piece marked data-glide moves to its new place when the table's
+  // layout changes (the "Links table layouts" in app/globals.css).
   return (
-    <TableRow className="bg-surface-inset h-14">
-      <TableCell
-        className="px-4 py-3"
-        style={{ width: urlTableColumnSize.status }}
+    <div
+      role="row"
+      data-slot="url-table-row"
+      data-glide-row
+      className="glide-row bg-surface-inset border-border border-b last:border-b-0"
+    >
+      <div
+        role="cell"
+        className="g-status self-center"
+        data-glide
+        data-glide-pair="status"
       >
-        <div className="pl-2">
-          <Badge
-            variant={variant}
-            className={
-              status === "healed"
-                ? "inline-flex items-center gap-1.5"
-                : undefined
-            }
-          >
-            {status === "healed" && (
-              <span className="bg-success h-1.5 w-1.5 rounded-full" />
-            )}
-            {status}
-          </Badge>
-        </div>
-      </TableCell>
+        <Badge
+          variant={variant}
+          className={
+            status === "healed" ? "inline-flex items-center gap-1.5" : undefined
+          }
+        >
+          {status === "healed" && (
+            <span className="bg-success h-1.5 w-1.5 rounded-full" />
+          )}
+          {status}
+        </Badge>
+      </div>
 
-      <TableCell
-        className="px-4 py-3 align-top"
-        style={{ width: urlTableColumnSize.shortUrl }}
-      >
+      <div role="cell" className="g-link" data-glide>
         <ShortUrlCell
           shortUrl={shortUrl}
           originalUrl={originalUrl}
           onCopy={onCopy}
         />
-      </TableCell>
+      </div>
 
-      <TableCell
-        className={urlTableCellClassName("separator")}
-        style={{ width: urlTableColumnSize.separator }}
-      />
+      <StatusDot status={status} />
 
-      <TableCell
-        className="px-4 py-3 align-top"
-        style={{ width: urlTableColumnSize.clicks }}
+      <p
+        className="g-orig text-muted-foreground truncate pl-1 text-xs"
+        title={originalUrl}
+        data-glide
       >
-        <div className="flex flex-col items-start space-y-1">
-          <div className="flex h-8 items-center">
-            <p className="pl-5 text-sm font-medium tabular-nums">
-              <ClickCountNumber
-                clickCountId={id}
-                startingClicks={startingClicks}
-              />
-            </p>
-          </div>
-          <p className="text-muted-foreground text-xs">[clicks]</p>
-        </div>
-      </TableCell>
+        {originalUrl}
+      </p>
 
-      <TableCell
-        className="px-4 py-3 align-top"
-        style={{ width: urlTableColumnSize.createdAt }}
-      >
-        <div className="flex h-8 items-center">
-          <p className="text-muted-foreground translate-y-px text-xs">
-            {formatRelative(createdAt)}
-          </p>
-        </div>
-      </TableCell>
+      <div role="cell" className="g-clicks">
+        <span
+          className="flex h-8 items-center text-sm font-medium tabular-nums"
+          data-glide
+        >
+          <ClickCountNumber clickCountId={id} startingClicks={startingClicks} />
+        </span>
+        <span className="text-muted-foreground text-xs" data-glide>
+          [clicks]
+        </span>
+      </div>
 
-      <TableCell
-        className={urlTableCellClassName("actions")}
-        style={{ width: urlTableColumnSize.actions }}
+      {/* Narrow rows show the short form; the two cross-fade as they glide. */}
+      <div
+        role="cell"
+        className="g-created text-muted-foreground text-xs"
+        data-glide
       >
-        <div className="flex h-8 items-center">
-          <ActionsMenuCell
-            shortUrl={shortUrl}
-            onNavigateToAnalytics={onNavigateToAnalytics}
-            onDeleteClick={onDeleteClick}
-          />
-        </div>
-      </TableCell>
-    </TableRow>
+        <span className="when-long">{formatRelative(createdAt)}</span>
+        <span className="when-short" aria-hidden="true">
+          {formatRelativeTimeCompact(createdAt)}
+        </span>
+      </div>
+
+      <div role="cell" className="g-actions flex h-8 items-center" data-glide>
+        <ActionsMenuCell
+          shortUrl={shortUrl}
+          onNavigateToAnalytics={onNavigateToAnalytics}
+          onDeleteClick={onDeleteClick}
+        />
+      </div>
+    </div>
   );
 }, areUrlDataRowPropsEqual);
 
@@ -1139,7 +1168,7 @@ export function UrlTable({
     () => [
       {
         accessorKey: "status",
-        header: () => <span className="pl-2 text-sm font-medium">Status</span>,
+        header: () => <span className="text-sm font-medium">Status</span>,
         cell: ({ row }) => {
           const status = row.original.status;
           const variant = getStatusBadgeVariant(status);
@@ -1162,9 +1191,6 @@ export function UrlTable({
           );
         },
         enableSorting: false,
-        size: urlTableColumnSize.status,
-        maxSize: urlTableColumnSize.status,
-        minSize: urlTableColumnSize.status,
       },
       {
         accessorKey: "shortUrl",
@@ -1180,17 +1206,6 @@ export function UrlTable({
           );
         },
         enableSorting: false,
-        size: urlTableColumnSize.shortUrl,
-      },
-      // Visual separator column
-      {
-        id: "separator",
-        header: () => null,
-        cell: () => null,
-        enableSorting: false,
-        size: urlTableColumnSize.separator,
-        maxSize: urlTableColumnSize.separator,
-        minSize: urlTableColumnSize.separator,
       },
       {
         accessorKey: "clicks",
@@ -1221,9 +1236,6 @@ export function UrlTable({
             </div>
           );
         },
-        size: urlTableColumnSize.clicks,
-        maxSize: urlTableColumnSize.clicks,
-        minSize: urlTableColumnSize.clicks,
       },
       {
         accessorKey: "createdAt",
@@ -1249,18 +1261,11 @@ export function UrlTable({
             </p>
           );
         },
-        size: urlTableColumnSize.createdAt,
-        maxSize: urlTableColumnSize.createdAt,
-        minSize: urlTableColumnSize.createdAt,
       },
       {
         id: "actions",
-        // The narrow sticky column on phones only fits the menu button.
-        header: () => (
-          <span className="sr-only text-sm font-medium md:not-sr-only">
-            Options
-          </span>
-        ),
+        // Narrow tables hide this heading visually (app/globals.css).
+        header: () => <span className="text-sm font-medium">Options</span>,
         cell: ({ row }) => {
           const url = row.original;
           return (
@@ -1271,7 +1276,6 @@ export function UrlTable({
             />
           );
         },
-        size: urlTableColumnSize.actions,
       },
     ],
     [handleCopy, handleNavigateToAnalytics, handleDeleteClick],
@@ -1304,30 +1308,24 @@ export function UrlTable({
     },
   });
 
-  const columns_count = table.getAllColumns().length;
-
-  // Shared by the loading and empty states; the loaded table adds sorting.
-  const plainTableHeader = (
-    <TableHeader className="bg-card sticky top-0">
-      {table.getHeaderGroups().map((headerGroup) => (
-        <TableRow key={headerGroup.id} className="hover:bg-transparent">
-          {headerGroup.headers.map((header) => (
-            <TableHead
-              key={header.id}
-              className={urlTableHeadClassName(header.column.id)}
-              style={{ width: header.getSize() }}
-            >
-              {header.isPlaceholder
-                ? null
-                : flexRender(
-                    header.column.columnDef.header,
-                    header.getContext(),
-                  )}
-            </TableHead>
-          ))}
-        </TableRow>
-      ))}
-    </TableHeader>
+  const headings = Object.fromEntries(
+    table
+      .getHeaderGroups()[0]
+      .headers.map((header) => [
+        header.column.id,
+        header.isPlaceholder
+          ? null
+          : flexRender(header.column.columnDef.header, header.getContext()),
+      ]),
+  );
+  const tableHeader = (
+    <UrlTableHeader
+      status={headings.status}
+      shortUrl={headings.shortUrl}
+      clicks={headings.clicks}
+      createdAt={headings.createdAt}
+      actions={headings.actions}
+    />
   );
 
   return (
@@ -1369,20 +1367,16 @@ export function UrlTable({
         />
       )}
 
-      <div className="border-border border-b">
+      <UrlTableFrame className="border-border border-b">
         {isLoading ? (
-          <Table
-            aria-busy="true"
-            aria-label="Loading your links"
-            style={urlTableStyle}
-          >
-            {plainTableHeader}
-            <TableBody>
+          <div role="table" aria-busy="true" aria-label="Loading your links">
+            {tableHeader}
+            <div role="rowgroup">
               <UrlTableSkeletonRows
                 rows={table.getState().pagination.pageSize}
               />
-            </TableBody>
-          </Table>
+            </div>
+          </div>
         ) : collectionIsUpdating ? (
           <output className="block px-6 py-12 text-center">
             <span className="block text-sm font-medium">
@@ -1393,66 +1387,35 @@ export function UrlTable({
             </span>
           </output>
         ) : hasLoadProblem || isEmpty || filteredUrls.length === 0 ? (
-          <Table style={urlTableStyle}>
-            {plainTableHeader}
-            <TableBody>
-              <TableRow>
-                <TableCell colSpan={columns_count} className="my-auto">
-                  <div className="my-auto flex min-h-[360px] flex-col items-center justify-center px-6 py-10 text-center">
-                    <EmptyStateImage
-                      alt=""
-                      className={cn(
-                        "mb-5 w-full",
-                        hasLoadProblem ? "max-w-[560px]" : "max-w-[430px]",
-                      )}
-                      name={hasLoadProblem ? "errorLinks" : "noLinks"}
-                    />
-                    <h3 className="mt-4 text-sm font-medium">
-                      {hasLoadProblem
-                        ? "Links could not load"
-                        : "No links found"}
-                    </h3>
-                    <p className="text-muted-foreground mt-2 max-w-sm text-xs">
-                      {hasLoadProblem
-                        ? "Try refreshing the page. Your saved links stay safe."
-                        : urls.length > 0
-                          ? "No loaded links match these filters. Try another search or load more links."
-                          : pageStatus !== "Exhausted"
-                            ? "Load more links to continue."
-                            : "Create your first shortened link to get started"}
-                    </p>
-                  </div>
-                </TableCell>
-              </TableRow>
-            </TableBody>
-          </Table>
+          <div role="table" aria-label="Your links">
+            {tableHeader}
+            <div className="bg-surface-inset flex min-h-[360px] flex-col items-center justify-center px-6 py-10 text-center">
+              <EmptyStateImage
+                alt=""
+                className={cn(
+                  "mb-5 w-full",
+                  hasLoadProblem ? "max-w-[560px]" : "max-w-[430px]",
+                )}
+                name={hasLoadProblem ? "errorLinks" : "noLinks"}
+              />
+              <h3 className="mt-4 text-sm font-medium">
+                {hasLoadProblem ? "Links could not load" : "No links found"}
+              </h3>
+              <p className="text-muted-foreground mt-2 max-w-sm text-xs">
+                {hasLoadProblem
+                  ? "Try refreshing the page. Your saved links stay safe."
+                  : urls.length > 0
+                    ? "No loaded links match these filters. Try another search or load more links."
+                    : pageStatus !== "Exhausted"
+                      ? "Load more links to continue."
+                      : "Create your first shortened link to get started"}
+              </p>
+            </div>
+          </div>
         ) : (
-          <Table style={urlTableStyle}>
-            <TableHeader className="bg-card sticky top-0">
-              {table.getHeaderGroups().map((headerGroup) => (
-                <TableRow key={headerGroup.id} className="hover:bg-transparent">
-                  {headerGroup.headers.map((header) => {
-                    return (
-                      <TableHead
-                        key={header.id}
-                        className={urlTableHeadClassName(header.column.id)}
-                        style={{ width: header.getSize() }}
-                      >
-                        {header.isPlaceholder ? null : (
-                          <div className="flex items-center justify-start gap-2">
-                            {flexRender(
-                              header.column.columnDef.header,
-                              header.getContext(),
-                            )}
-                          </div>
-                        )}
-                      </TableHead>
-                    );
-                  })}
-                </TableRow>
-              ))}
-            </TableHeader>
-            <TableBody>
+          <div role="table" aria-label="Your links">
+            {tableHeader}
+            <div role="rowgroup">
               {table.getRowModel().rows.map((row) => {
                 const url = row.original;
 
@@ -1471,11 +1434,10 @@ export function UrlTable({
                   />
                 );
               })}
-              {/* Removed padding rows to avoid rendering empty rows */}
-            </TableBody>
-          </Table>
+            </div>
+          </div>
         )}
-      </div>
+      </UrlTableFrame>
 
       {!isLoading && (showLoadMoreLinks || showLoadMoreCollections) && (
         <div className="flex flex-wrap items-center justify-between gap-3 px-6 py-4">

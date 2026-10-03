@@ -22,17 +22,9 @@ import {
 } from "@/components/ui/card";
 import { SkeletonBone } from "@/components/ui/skeleton-bone";
 import {
-  Table,
-  TableBody,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
-  urlTableColumnSize,
-  urlTableHeadClassName,
-  urlTableStyle,
-} from "@/components/url-table/column-sizes";
+  UrlTableFrame,
+  UrlTableHeader,
+} from "@/components/url-table/UrlTableFrame";
 import { UrlTableSkeletonRows } from "@/components/url-table/UrlTableSkeletonRows";
 import { PlanNote } from "@/components/url-shortener/PlanNote";
 import { getShortDomain } from "@/lib/config";
@@ -201,39 +193,6 @@ function SkeletonColumnLabel({
 }
 
 function RecentLinksSkeleton() {
-  const columns = [
-    {
-      key: "status",
-      width: urlTableColumnSize.status,
-      label: <span className="pl-2 text-sm font-medium">Status</span>,
-    },
-    {
-      key: "shortUrl",
-      width: urlTableColumnSize.shortUrl,
-      label: <SkeletonColumnLabel label="Short Link" />,
-    },
-    { key: "separator", width: urlTableColumnSize.separator, label: null },
-    {
-      key: "clicks",
-      width: urlTableColumnSize.clicks,
-      label: <SkeletonColumnLabel label="Clicks" sortable />,
-    },
-    {
-      key: "createdAt",
-      width: urlTableColumnSize.createdAt,
-      label: <SkeletonColumnLabel label="Created" sortable />,
-    },
-    {
-      key: "actions",
-      width: urlTableColumnSize.actions,
-      label: (
-        <span className="sr-only text-sm font-medium md:not-sr-only">
-          Options
-        </span>
-      ),
-    },
-  ];
-
   return (
     <div className="skel-frame rounded-md" style={fadeFrom("45%")}>
       <div className="border-border border-b p-6">
@@ -247,26 +206,18 @@ function RecentLinksSkeleton() {
         </div>
       </div>
 
-      <div className="border-border border-b">
-        <Table style={urlTableStyle}>
-          <TableHeader className="bg-card">
-            <TableRow className="hover:bg-transparent">
-              {columns.map((column) => (
-                <TableHead
-                  key={column.key}
-                  className={urlTableHeadClassName(column.key)}
-                  style={{ width: column.width }}
-                >
-                  {column.label}
-                </TableHead>
-              ))}
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            <UrlTableSkeletonRows rows={DASHBOARD_LINK_ROWS} delay={300} />
-          </TableBody>
-        </Table>
-      </div>
+      <UrlTableFrame className="border-border border-b">
+        <div role="table" aria-busy="true" aria-label="Loading your links">
+          <UrlTableHeader
+            status={<span className="text-sm font-medium">Status</span>}
+            shortUrl={<SkeletonColumnLabel label="Short Link" />}
+            clicks={<SkeletonColumnLabel label="Clicks" sortable />}
+            createdAt={<SkeletonColumnLabel label="Created" sortable />}
+            actions={<span className="text-sm font-medium">Options</span>}
+          />
+          <UrlTableSkeletonRows rows={DASHBOARD_LINK_ROWS} delay={300} />
+        </div>
+      </UrlTableFrame>
 
       <div className="px-6 py-5">
         <div className="flex items-center justify-center">
