@@ -1,3 +1,4 @@
+import { auth } from "@clerk/nextjs/server";
 import { NextRequest, NextResponse } from "next/server";
 import { getGuestSessionNetworkRateLimit, getRateLimit } from "@/lib/rateLimit";
 import {
@@ -38,7 +39,10 @@ export async function POST(request: NextRequest) {
     }
   } else {
     // Renewing a valid credential is free; each brand-new session counts for the network.
-    if (!(await getGuestSessionNetworkRateLimit().limit(`guest-session-new:${networkKey}`)).success) {
+    // Signed-in visitors skip the count: they rotate their guest ID after a claim
+    // and make links on their account, so the limit has nothing to protect.
+    const { userId } = await auth();
+    if (!userId && !(await getGuestSessionNetworkRateLimit().limit(`guest-session-new:${networkKey}`)).success) {
       return NextResponse.json(
         { error: "Too many new guest sessions from your network today. Sign in to keep creating links.", code: "guest_session_limit" },
         { status: 429 },

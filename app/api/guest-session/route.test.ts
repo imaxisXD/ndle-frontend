@@ -19,7 +19,10 @@ vi.mock("@/lib/rateLimit", () => ({
     },
   }),
 }));
+const clerk = vi.hoisted(() => ({ userId: null as string | null }));
+vi.mock("@clerk/nextjs/server", () => ({ auth: async () => ({ userId: clerk.userId }) }));
 afterEach(() => {
+  clerk.userId = null;
   vi.useRealTimers();
   vi.unstubAllEnvs();
   newSessionLimit.keys = [];
@@ -108,6 +111,13 @@ describe("guest network limits", () => {
     expect(renewed.status).toBe(200);
     expect((await renewed.json()).guestId).toBe(session.guestId);
     expect(newSessionLimit.keys).toHaveLength(2);
+  });
+  test("lets a signed-in visitor rotate after claiming without using the network's count", async () => {
+    newSessionLimit.allow = false;
+    clerk.userId = "user_123";
+    const rotated = await POST(request({ startNew: true }, undefined, undefined, "203.0.113.7"));
+    expect(rotated.status).toBe(200);
+    expect(newSessionLimit.keys).toHaveLength(0);
   });
   test("renews a v1 credential into one carrying the current network", async () => {
     const ownId = crypto.randomUUID();
