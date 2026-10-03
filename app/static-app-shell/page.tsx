@@ -58,7 +58,8 @@ function StoreUser() {
         plan: result.membership,
       });
 
-      await ensureGuestSession(true);
+      // A claimed guest ID can't make guest links again, so swap it only then.
+      if (result.guestSessionClaimed) await ensureGuestSession(true);
       if (result.claimedLinkCount > 0) {
         setClaimedLinkCount(result.claimedLinkCount);
         toast.success(`Moved ${result.claimedLinkCount} guest links to your account.`);

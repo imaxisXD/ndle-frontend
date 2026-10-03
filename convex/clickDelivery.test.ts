@@ -66,13 +66,13 @@ describe("click delivery", () => {
     });
     const before = await backend.run(ctx => ctx.db.query("clickEvents").collect());
     const claimed = await client.mutation(api.users.store, { guestId, guestToken: token.guestToken });
-    expect(claimed.claimedLinkCount).toBe(1);
+    expect(claimed).toMatchObject({ claimedLinkCount: 1, guestSessionClaimed: true });
     expect(await backend.run(ctx => ctx.db.query("clickEvents").collect())).toEqual(before);
     expect(await client.query(api.urlAnalytics.getUsersTotalClicks, {})).toBe(4);
     expect(await client.query(api.clickEvents.getRecentByLinkSlug, { linkSlug: guest.slug })).toHaveLength(4);
     const ownerJob = await backend.run(ctx => ctx.db.query("serviceSyncJobs").withIndex("by_key", q => q.eq("key", `owner:${claimed.id}:guest:${guestId}`)).unique());
     expect(ownerJob?.target).toMatchObject({ ownerKeys: expect.arrayContaining([`guest:${guestId}`]) });
-    expect((await client.mutation(api.users.store, { guestId, guestToken: token.guestToken })).claimedLinkCount).toBe(0);
+    expect(await client.mutation(api.users.store, { guestId, guestToken: token.guestToken })).toMatchObject({ claimedLinkCount: 0, guestSessionClaimed: false });
     expect(await client.query(api.urlAnalytics.getUsersTotalClicks, {})).toBe(4);
   });
 });

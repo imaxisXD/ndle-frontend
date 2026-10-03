@@ -34,6 +34,8 @@ export const store = mutation({
     metadataUpdated: v.boolean(),
     membership: v.string(),
     claimedLinkCount: v.number(),
+    /** This browser's guest ID now belongs to the account; issue a fresh one. */
+    guestSessionClaimed: v.boolean(),
   }),
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity();
@@ -52,7 +54,7 @@ export const store = mutation({
       if (typeof identity.name === "string" && existingUser.name !== identity.name) {
         await ctx.db.patch(existingUser._id, { name: identity.name });
       }
-      const claimedLinkCount = await claimGuestLinksForUser(
+      const { claimedLinkCount, guestSessionClaimed } = await claimGuestLinksForUser(
         ctx,
         existingUser,
         args.guestId,
@@ -70,6 +72,7 @@ export const store = mutation({
         metadataUpdated: false,
         membership: existingUser.membership,
         claimedLinkCount,
+        guestSessionClaimed,
       };
     }
 
@@ -94,7 +97,7 @@ export const store = mutation({
 
     await queueServiceSync(ctx, `clerk:${userId}`, { kind: "clerk", userId, clerkUserId });
 
-    const claimedLinkCount = await claimGuestLinksForUser(
+    const { claimedLinkCount, guestSessionClaimed } = await claimGuestLinksForUser(
       ctx,
       newUser,
       args.guestId,
@@ -109,6 +112,7 @@ export const store = mutation({
       metadataUpdated: false,
       membership,
       claimedLinkCount,
+      guestSessionClaimed,
     };
   },
 });
@@ -229,7 +233,7 @@ async function claimGuestLinksForUser(
 
   const sessions = await getClaimableGuestSessions(ctx, verifiedGuestId);
   if (sessions.length === 0) {
-    return 0;
+    return { claimedLinkCount: 0, guestSessionClaimed: false };
   }
 
   const guestIds = Array.from(new Set(sessions.map((session) => session.guestId)));
@@ -280,5 +284,5 @@ async function claimGuestLinksForUser(
     for (const ownerKey of ownerKeys) await queueServiceSync(ctx, `owner:${user._id}:${ownerKey}`, { kind: "owner", userId: user._id, ownerKeys: [ownerKey] });
   }
 
-  return claimedLinkCount;
+  return { claimedLinkCount, guestSessionClaimed: true };
 }

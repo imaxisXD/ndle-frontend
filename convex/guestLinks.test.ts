@@ -265,3 +265,25 @@ describe("the same destination twice", () => {
     expect(second.slug).not.toBe(first.slug);
   });
 });
+
+describe("guest ID rotation after sign-in", () => {
+  test("asks for a fresh guest ID even when the guest's links have expired", async () => {
+    const { backend, client } = await setup();
+    const { guestId, token, link } = await createGuestLink(backend);
+    expect(await runScheduledDeletion(backend, link.docId)).toBeNull();
+
+    expect(
+      await client.mutation(api.users.store, { guestId, guestToken: token.guestToken }),
+    ).toMatchObject({ claimedLinkCount: 0, guestSessionClaimed: true });
+  });
+
+  test("keeps the guest ID when it never made a link", async () => {
+    const { client } = await setup();
+    const guestId = crypto.randomUUID();
+    const token = await createGuestSessionToken(guestId);
+
+    expect(
+      await client.mutation(api.users.store, { guestId, guestToken: token.guestToken }),
+    ).toMatchObject({ claimedLinkCount: 0, guestSessionClaimed: false });
+  });
+});
