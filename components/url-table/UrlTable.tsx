@@ -487,7 +487,13 @@ function StatusDot({ status }: { status: string }) {
         // The dot is 10px; the invisible ring around it makes a 22px target.
         className={cn(
           "g-status-dot ring-surface-inset relative size-2.5 cursor-default rounded-full ring-2 before:absolute before:-inset-1.5 before:content-[''] focus-visible:outline-2 focus-visible:outline-offset-2",
-          statusDotColor[getStatusBadgeVariant(status)],
+          // Healed shares healthy's green, so it's a hollow ring to tell
+          // the two apart at a glance. Its middle is the row's colour made
+          // opaque (bg-surface-inset is a tint), so the favicon can't show
+          // through.
+          status === "healed"
+            ? "border-2 border-green-500 bg-[color-mix(in_oklab,var(--surface-raised),oklch(0_0_0)_var(--surface-tint))]"
+            : statusDotColor[getStatusBadgeVariant(status)],
         )}
         data-glide
         data-glide-pair="status"
