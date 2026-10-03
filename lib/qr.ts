@@ -94,7 +94,7 @@ export function getBrandBadgeSvg(fg: string) {
     ([column, row]) =>
       `<circle cx="${26 + column * 12}" cy="${20 + row * 12}" r="5" fill="#000000"/>`,
   ).join("");
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect x="2" y="2" width="96" height="96" rx="24" fill="#ffc700" stroke="${outline}" stroke-width="4"/>${dots}</svg>`;
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect x="1" y="1" width="98" height="98" rx="24" fill="#ffc700" stroke="${outline}" stroke-width="2"/>${dots}</svg>`;
 }
 
 export function getBrandBadgeDataUrl(fg: string) {
