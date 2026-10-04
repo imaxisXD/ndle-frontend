@@ -20,7 +20,10 @@ overrides:
   form-data: 4.0.6
   js-yaml: 4.2.0
   lodash: 4.18.1
-  path-to-regexp: 8.4.2
+  # Pinned per major: OpenNext's router needs 6.x to read next.config
+  # patterns like "/:path*" (8.x throws on them); express and router need 8.x.
+  "path-to-regexp@^6": 6.3.0
+  "path-to-regexp@^8": 8.4.2
   picomatch: 4.0.4
   preact: 10.29.2
   qs: 6.15.2
