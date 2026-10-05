@@ -22,6 +22,13 @@ const isPublicRoute = createRouteMatcher([
 const isAppRoute = createRouteMatcher(["/static-app-shell(.*)"]);
 
 export default clerkMiddleware(async (auth, req) => {
+  // Nothing is published under /.well-known/. Without this, a request for one
+  // (say, ai-catalog.json) redirects to sign-in, and crawlers read that page
+  // as the file.
+  if (req.nextUrl.pathname.startsWith("/.well-known/")) {
+    return new NextResponse(null, { status: 404 });
+  }
+
   if (isPublicRoute(req)) {
     return;
   }
