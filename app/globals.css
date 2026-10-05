@@ -376,7 +376,6 @@
   --font-doto: var(--font-doto);
   --font-sigmar: var(--font-sigmar);
   --font-hand: var(--font-caveat);
-  --font-comic: var(--font-bangers);
   --color-poster: var(--poster);
   --color-poster-deep: var(--poster-deep);
   --color-pulp-orange: var(--pulp-orange);
@@ -390,11 +389,6 @@
   --color-telegram-ink: var(--telegram-ink);
   --color-telegram-green: var(--telegram-green);
   --color-telegram-red: var(--telegram-red);
-  --font-geist-pixel-square: var(--font-geist-pixel-square);
-  --font-geist-pixel-grid: var(--font-geist-pixel-grid);
-  --font-geist-pixel-circle: var(--font-geist-pixel-circle);
-  --font-geist-pixel-triangle: var(--font-geist-pixel-triangle);
-  --font-geist-pixel-line: var(--font-geist-pixel-line);
   --color-home: var(--home);
   --color-surface-page: var(--surface-page);
   --color-surface-raised: var(--surface-raised);

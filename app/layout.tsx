@@ -1,14 +1,7 @@
 import type { Metadata } from "next";
 import { ClerkProvider } from "@clerk/nextjs";
 import Script from "next/script";
-import { Bangers, Caveat, Doto, Geist_Mono, Sigmar } from "next/font/google";
-import {
-  GeistPixelSquare,
-  GeistPixelGrid,
-  GeistPixelCircle,
-  GeistPixelTriangle,
-  GeistPixelLine,
-} from "geist/font/pixel";
+import { Caveat, Doto, Geist_Mono, Sigmar } from "next/font/google";
 import type React from "react";
 import "./globals.css";
 import ConvexClientProvider from "@/components/ConvexClientProvider";
@@ -26,22 +19,20 @@ const doto = Doto({
   axes: ["ROND"],
 });
 
+// Sigmar (sign-in and sign-up) and Caveat (a few doodles) are used on few
+// pages, so they load when used instead of being preloaded on every page.
 const sigmar = Sigmar({
   variable: "--font-sigmar",
   subsets: ["latin"],
   weight: "400",
-});
-
-const bangers = Bangers({
-  variable: "--font-bangers",
-  subsets: ["latin"],
-  weight: "400",
+  preload: false,
 });
 
 const caveat = Caveat({
   variable: "--font-caveat",
   subsets: ["latin"],
   weight: ["500", "600", "700"],
+  preload: false,
 });
 
 export const metadata: Metadata = {
@@ -85,7 +76,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistMono.variable} ${doto.variable} ${sigmar.variable} ${caveat.variable} ${bangers.variable} ${GeistPixelSquare.variable} ${GeistPixelGrid.variable} ${GeistPixelCircle.variable} ${GeistPixelTriangle.variable} ${GeistPixelLine.variable} antialiased`}
+      className={`${geistMono.variable} ${doto.variable} ${sigmar.variable} ${caveat.variable} antialiased`}
     >
       <body>
         {/* Replay is off on sign-in and sign-up. SessionReplayGuard covers moves between pages. */}
