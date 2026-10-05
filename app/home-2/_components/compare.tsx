@@ -183,7 +183,7 @@ function Plan({ plan, name, index }: { plan: PlanKey; name: string; index: numbe
             const value = row[plan];
             const has = value !== false;
             return (
-              <li key={row.label} className={cn("flex items-start gap-2.5", !has && (ours ? "text-white/40" : "text-[#9a9a9a]"))}>
+              <li key={row.label} className={cn("flex items-start gap-2.5", !has && (ours ? "text-white/40" : "text-[#767676]"))}>
                 <Mark has={has} ours={ours} only={ours && !!row.only} />
                 <span className="min-w-0 flex-1">
                   {row.label}
