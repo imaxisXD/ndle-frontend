@@ -1,16 +1,53 @@
 import type { Metadata } from "next";
 import { ClerkProvider } from "@clerk/nextjs";
 import Script from "next/script";
-import { Caveat, Doto, Geist_Mono, Sigmar } from "next/font/google";
+import { Caveat, Doto, Sigmar } from "next/font/google";
+import localFont from "next/font/local";
 import type React from "react";
 import "./globals.css";
 import ConvexClientProvider from "@/components/ConvexClientProvider";
 import { SessionReplayGuard } from "@/components/session-replay-guard";
 import { REPLAY_PAUSED_PATH, REPLAY_RECORDER_URL } from "@/lib/session-replay";
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
+// Paper Mono (paper.design/mono, OFL 1.1), self-hosted. The upstream variable
+// font is cut to weights 400-800 (nothing here is lighter than 400) and split
+// the way Google Fonts splits subsets, so first paint downloads 26 KB instead
+// of 53 KB. The core file (Latin, punctuation, arrows, hotkey symbols) is
+// preloaded. The extended file (Latin Extended, box drawing, maths, other
+// symbols) downloads only on a page that uses one of its characters. Each
+// unicode-range must match the characters in its file. --font-mono in
+// globals.css lists the extended family first: the browser skips it for
+// characters outside its range, and it has to come before "paperMono
+// Fallback", which covers every character.
+const paperMono = localFont({
+  src: "../assets/fonts/PaperMono-Core.woff2",
+  variable: "--font-paper-mono",
+  weight: "400 800",
+  display: "swap",
+  fallback: ["ui-monospace", "SFMono-Regular", "Menlo", "monospace"],
+  declarations: [
+    {
+      prop: "unicode-range",
+      value:
+        "U+0-FF,U+131,U+152-153,U+2BB-2BC,U+2C6,U+2DA,U+2DC,U+304,U+308,U+329,U+2000-206F,U+20AC,U+2122,U+2190-21FF,U+2212,U+2215,U+2264-2265,U+2300-23FF,U+FEFF,U+FFFD",
+    },
+  ],
+});
+
+const paperMonoExtended = localFont({
+  src: "../assets/fonts/PaperMono-Extended.woff2",
+  variable: "--font-paper-mono-extended",
+  weight: "400 800",
+  display: "swap",
+  preload: false,
+  adjustFontFallback: false,
+  declarations: [
+    {
+      prop: "unicode-range",
+      value:
+        "U+100-113,U+116-12B,U+12E-130,U+132-137,U+139-148,U+14A-14D,U+150-151,U+154-17E,U+18F,U+192,U+1CD-1CE,U+1E4-1E9,U+218-21B,U+237,U+259,U+2C7,U+2D8-2D9,U+2DB,U+2DD,U+300-303,U+306-307,U+30A-30C,U+312,U+326-328,U+335-338,U+39B,U+3A9,U+3BB-3BC,U+3C0,U+E3F,U+1E20-1E21,U+1E80-1E85,U+1E9E,U+1EBC-1EBD,U+1EF2-1EF3,U+1EF8-1EF9,U+2070,U+2074-2079,U+2080-2089,U+20AA,U+20B1,U+20B4,U+20B9,U+20BD,U+2116-2117,U+2153-2155,U+215B-215E,U+2202,U+2206,U+220F,U+2211,U+221A,U+221E,U+222B,U+2236,U+2248,U+2260,U+2460-2468,U+24EA,U+24FF-259F,U+25CA-25CB,U+25CF,U+25E6,U+2776-277E,U+3003,U+301C,U+A78B-A78C,U+F8FF,U+FB01-FB02",
+    },
+  ],
 });
 
 const doto = Doto({
@@ -76,7 +113,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistMono.variable} ${doto.variable} ${sigmar.variable} ${caveat.variable} antialiased`}
+      className={`${paperMono.variable} ${paperMonoExtended.variable} ${doto.variable} ${sigmar.variable} ${caveat.variable} antialiased`}
     >
       <body>
         {/* Replay is off on sign-in and sign-up. SessionReplayGuard covers moves between pages. */}

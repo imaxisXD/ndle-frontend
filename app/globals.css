@@ -372,7 +372,7 @@
 
 @theme inline {
   --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-mono: var(--font-paper-mono-extended), var(--font-paper-mono);
   --font-doto: var(--font-doto);
   --font-sigmar: var(--font-sigmar);
   --font-hand: var(--font-caveat);

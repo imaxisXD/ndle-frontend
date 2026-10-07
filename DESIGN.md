@@ -24,37 +24,37 @@ colors:
   cork-tan: "oklch(0.62 0.09 62)"
 typography:
   display:
-    fontFamily: "Sigmar, Geist Mono, monospace"
+    fontFamily: "Sigmar, Paper Mono, monospace"
     fontSize: "clamp(2.5rem, 6vw, 4.5rem)"
     fontWeight: 400
     lineHeight: 1
     letterSpacing: "-0.02em"
   headline:
-    fontFamily: "Geist Mono, ui-monospace, monospace"
+    fontFamily: "Paper Mono, ui-monospace, monospace"
     fontSize: "1.25rem"
     fontWeight: 600
     lineHeight: 1.2
     letterSpacing: "-0.01em"
   title:
-    fontFamily: "Geist Mono, ui-monospace, monospace"
+    fontFamily: "Paper Mono, ui-monospace, monospace"
     fontSize: "1rem"
     fontWeight: 600
     lineHeight: 1.1
     letterSpacing: "-0.01em"
   body:
-    fontFamily: "Geist Mono, ui-monospace, monospace"
+    fontFamily: "Paper Mono, ui-monospace, monospace"
     fontSize: "0.875rem"
     fontWeight: 400
     lineHeight: 1.5
     letterSpacing: "normal"
   label:
-    fontFamily: "Geist Mono, ui-monospace, monospace"
+    fontFamily: "Paper Mono, ui-monospace, monospace"
     fontSize: "0.75rem"
     fontWeight: 500
     lineHeight: 1.3
     letterSpacing: "normal"
   readout:
-    fontFamily: "Doto, Geist Mono, monospace"
+    fontFamily: "Doto, Paper Mono, monospace"
     fontSize: "0.875rem"
     fontWeight: 900
     lineHeight: 1
@@ -129,7 +129,7 @@ This system explicitly rejects the **generic SaaS / Bitly-clone** look (corporat
 > Note: NDLE ships two registers. This spec governs the **product** app. The public/marketing home (`PublicHome`, `GuestShortenerCard`) is a **brand** surface that draws on the Scene palette below (pulp-poster blue/orange, telegram sepia, cork) and runs louder — billboard flicker, 3D pulp titles, vintage signage. Keep the two register treatments distinct; don't bleed pulp theatrics into the dashboard, or dashboard restraint into the home.
 
 **Key Characteristics:**
-- Monospace-first: Geist Mono carries body, labels, data, and most headings.
+- Monospace-first: Paper Mono carries body, labels, data, and most headings.
 - One voice of color: a single Signal Yellow accent, rationed to ≤10% of any screen.
 - Border-defined structure: solid hairlines for surfaces, dashed lines for the "pin-board" framing.
 - Light-mode, near-white surfaces; warm-leaning ink, never dead pure black.
@@ -171,22 +171,22 @@ A near-monochrome, near-white workspace with one bright accent and a disciplined
 
 ## 3. Typography
 
-**Display Font:** Sigmar (heavy single-weight display, with Geist Mono fallback) — brand home only.
-**Body Font:** Geist Mono (with `ui-monospace, monospace` fallback) — the workhorse for the entire product.
+**Display Font:** Sigmar (heavy single-weight display, with Paper Mono fallback) — brand home only.
+**Body Font:** Paper Mono (with `ui-monospace, monospace` fallback) — the workhorse for the entire product.
 **Label / Readout Font:** Doto (variable dot-matrix / LED font) — for badges, "PRO" marks, and signage-style numeric readouts.
 
-**Character:** Monospace-first and proud of it. Geist Mono gives the product a precise, mechanical, terminal-adjacent voice where URLs, slugs, counts, and timestamps all sit in their natural element. Display moments borrow Sigmar's blocky weight; numeric "readouts" borrow Doto's dot-matrix glow. The pairing is contrast-by-medium (signage display + monospace body), never two similar sans.
+**Character:** Monospace-first and proud of it. Paper Mono gives the product a precise, mechanical, terminal-adjacent voice where URLs, slugs, counts, and timestamps all sit in their natural element. Display moments borrow Sigmar's blocky weight; numeric "readouts" borrow Doto's dot-matrix glow. The pairing is contrast-by-medium (signage display + monospace body), never two similar sans.
 
 ### Hierarchy
 - **Display** (Sigmar 400, `clamp(2.5rem, 6vw, 4.5rem)`, line-height 1): Brand-home hero wordmarks and pulp titles. Not used in the dashboard.
-- **Headline** (Geist Mono 600, 1.25rem/20px, tight tracking): Route and section titles in the app.
-- **Title** (Geist Mono 600, 1rem/16px, `tracking-tight`): Card titles, panel headers (`CardTitle`).
-- **Body** (Geist Mono 400, 0.875rem/14px, line-height 1.5): Default UI and prose text. Cap prose at 65–75ch; data tables may run denser to 120ch+.
-- **Label** (Geist Mono 500, 0.75rem/12px): Field labels, badges, table headers, supporting metadata.
+- **Headline** (Paper Mono 600, 1.25rem/20px, tight tracking): Route and section titles in the app.
+- **Title** (Paper Mono 600, 1rem/16px, `tracking-tight`): Card titles, panel headers (`CardTitle`).
+- **Body** (Paper Mono 400, 0.875rem/14px, line-height 1.5): Default UI and prose text. Cap prose at 65–75ch; data tables may run denser to 120ch+.
+- **Label** (Paper Mono 500, 0.75rem/12px): Field labels, badges, table headers, supporting metadata.
 - **Readout** (Doto 900, ~0.875rem, slight positive tracking): LED-style counters, "PRO" badges, live-blip indicators — used sparingly as signage flavor.
 
 ### Named Rules
-**The Monospace-Body Rule.** The product body font is Geist Mono, always. Do not introduce a proportional sans for UI text "to look cleaner" — the monospace voice is the identity. Proportional/serif type is off-limits in the app.
+**The Monospace-Body Rule.** The product body font is Paper Mono, always. Do not introduce a proportional sans for UI text "to look cleaner" — the monospace voice is the identity. Proportional/serif type is off-limits in the app.
 
 **The Signage-Sparingly Rule.** Sigmar and Doto are seasoning. Display in the dashboard, dot-matrix readouts everywhere — both are tells of trying too hard. Reserve Sigmar for the brand home; reserve Doto for true numeric/LED moments.
 
@@ -253,7 +253,7 @@ NDLE is **flat by default, subtly lifted on purpose.** At rest, structure comes 
 ## 6. Do's and Don'ts
 
 ### Do:
-- **Do** keep Geist Mono as the body/UI font everywhere in the product. The monospace voice is the identity.
+- **Do** keep Paper Mono as the body/UI font everywhere in the product. The monospace voice is the identity.
 - **Do** ration Signal Yellow to ≤10% of a screen — primary action, active state, focus, selection. Dark ink always sits on yellow fills.
 - **Do** draw structure with borders first: hairline `border` for surfaces, the dashed `gray-400/60` frame for pin-board shells.
 - **Do** keep card radius at `rounded-md`/`rounded-lg` (10–12px) and use full-pill only for tags/badges.
@@ -270,5 +270,5 @@ NDLE is **flat by default, subtly lifted on purpose.** At rest, structure comes 
 - **Don't** use Signal Yellow as a text color on white, or as decoration.
 - **Don't** pair a 1px border with a ≥16px soft drop shadow (the ghost-card tell); cap lift at 8px blur.
 - **Don't** over-round — no 24/28/32px+ radii on cards, sections, or inputs.
-- **Don't** introduce a proportional sans or serif for product UI text, or scatter Doto/Sigmar where plain Geist Mono belongs.
+- **Don't** introduce a proportional sans or serif for product UI text, or scatter Doto/Sigmar where plain Paper Mono belongs.
 - **Don't** nest cards more than the single sanctioned `accent`-tray level.

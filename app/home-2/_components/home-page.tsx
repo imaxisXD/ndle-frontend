@@ -63,7 +63,7 @@ const STRUCTURED_DATA = {
 };
 
 export function HomePage() {
-  // Marketing copy is set in Geist Sans; the product views keep Geist Mono.
+  // Marketing copy is set in Geist Sans; the product views keep Paper Mono.
   return (
     <div className={GeistSans.variable}>
       <script

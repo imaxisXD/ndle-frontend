@@ -36,7 +36,7 @@ useful and a pleasure to use.
 ## Brand Personality
 
 **Retro-industrial · utilitarian · with a point of view.** Monospace by default
-(Geist Mono), a single confident yellow/gold accent, dashed "blueprint" borders,
+(Paper Mono), a single confident yellow/gold accent, dashed "blueprint" borders,
 and LED / billboard-flicker motion give NDLE an evidence-board, dispatch-desk,
 vintage-signage character. The voice is direct and a little wry — "Short. Sharp.
 Smarter." is attitude, not filler. The personality is a feature, not decoration:

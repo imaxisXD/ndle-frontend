@@ -21,7 +21,7 @@ export async function blogCard({ title, tags, footer }: { title: string; tags: s
   const [bebas, geist, mono] = await Promise.all([
     font("assets/fonts/BebasNeue-Regular.ttf"),
     font("node_modules/geist/dist/fonts/geist-sans/Geist-SemiBold.ttf"),
-    font("node_modules/geist/dist/fonts/geist-mono/GeistMono-Regular.ttf"),
+    font("assets/fonts/PaperMono-Regular.ttf"),
   ]);
 
   return new ImageResponse(
@@ -36,7 +36,7 @@ export async function blogCard({ title, tags, footer }: { title: string; tags: s
           padding: "64px 72px",
           backgroundColor: "#ffffff",
           borderBottom: `12px solid ${INK}`,
-          fontFamily: "Geist Mono",
+          fontFamily: "Paper Mono",
           color: INK,
         }}
       >
@@ -91,7 +91,7 @@ export async function blogCard({ title, tags, footer }: { title: string; tags: s
       fonts: [
         { name: "Bebas Neue", data: bebas, weight: 400, style: "normal" },
         { name: "Geist", data: geist, weight: 600, style: "normal" },
-        { name: "Geist Mono", data: mono, weight: 400, style: "normal" },
+        { name: "Paper Mono", data: mono, weight: 400, style: "normal" },
       ],
     },
   );

@@ -54,7 +54,7 @@ export default async function Image() {
     font("assets/fonts/BebasNeue-Regular.ttf"),
     font("node_modules/geist/dist/fonts/geist-sans/Geist-Medium.ttf"),
     font("node_modules/geist/dist/fonts/geist-sans/Geist-SemiBold.ttf"),
-    font("node_modules/geist/dist/fonts/geist-mono/GeistMono-Regular.ttf"),
+    font("assets/fonts/PaperMono-Regular.ttf"),
   ]);
 
   return new ImageResponse(
@@ -68,7 +68,7 @@ export default async function Image() {
           position: "relative",
           backgroundColor: "#ffffff",
           borderBottom: `12px solid ${INK}`,
-          fontFamily: "Geist Mono",
+          fontFamily: "Paper Mono",
           color: INK,
         }}
       >
@@ -216,7 +216,7 @@ export default async function Image() {
             </div>
             <div style={{ display: "flex", flexDirection: "column" }}>
               <div style={{ display: "flex", fontSize: 22 }}>
-                <span style={{ fontFamily: "Geist Mono" }}>ndle.fyi/launch</span>&nbsp;is back online
+                <span style={{ fontFamily: "Paper Mono" }}>ndle.fyi/launch</span>&nbsp;is back online
               </div>
               <div style={{ display: "flex", marginTop: 6, fontSize: 19, color: "rgba(255,255,255,0.55)" }}>
                 Back on the next check.
@@ -232,7 +232,7 @@ export default async function Image() {
         { name: "Bebas Neue", data: bebas, weight: 400, style: "normal" },
         { name: "Geist", data: geist, weight: 500, style: "normal" },
         { name: "Geist Semi", data: geistSemi, weight: 600, style: "normal" },
-        { name: "Geist Mono", data: mono, weight: 400, style: "normal" },
+        { name: "Paper Mono", data: mono, weight: 400, style: "normal" },
       ],
     },
   );
