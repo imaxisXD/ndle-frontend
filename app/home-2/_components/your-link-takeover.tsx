@@ -264,11 +264,19 @@ function frameFor(): { box: Box; phone: boolean } {
   const phone = vw < FRAME.phone;
   const margin = phone ? FRAME.marginPhone : FRAME.margin;
   const room = vh - margin * 2 - FRAME.caption - (phone ? FRAME.cardBelow : 0);
-  const width = Math.max(0, Math.min(STAGE.width, vw - margin * 2, (room * STAGE.width) / STAGE.height));
+  const width = Math.max(
+    0,
+    Math.min(STAGE.width, vw - margin * 2, (room * STAGE.width) / STAGE.height),
+  );
   const height = (width * STAGE.height) / STAGE.width;
   return {
     phone,
-    box: { left: (vw - width) / 2, top: margin + FRAME.caption + Math.max(0, (room - height) / 2), width, height },
+    box: {
+      left: (vw - width) / 2,
+      top: margin + FRAME.caption + Math.max(0, (room - height) / 2),
+      width,
+      height,
+    },
   };
 }
 
@@ -309,7 +317,9 @@ export function YourLinkTakeover({ link, onClose }: { link: YourLink; onClose: (
     const measure = () => {
       setFrame(frameFor());
       const rect = pane?.getBoundingClientRect();
-      setOrigin(rect ? { left: rect.left, top: rect.top, width: rect.width, height: rect.height } : null);
+      setOrigin(
+        rect ? { left: rect.left, top: rect.top, width: rect.width, height: rect.height } : null,
+      );
     };
     heroRef.current = pane;
     measure();
@@ -414,7 +424,10 @@ export function YourLinkTakeover({ link, onClose }: { link: YourLink; onClose: (
   const dx = mix(from.left + from.width / 2 - (box.left + box.width / 2), 0, lift);
   const dy = mix(from.top + from.height / 2 - (box.top + box.height / 2), 0, lift);
 
-  const points: Point[] = [CURSOR.enter, ...stops.map((stop, i) => stop ?? (i === 0 ? CURSOR.enter : { x: 0, y: 0 }))];
+  const points: Point[] = [
+    CURSOR.enter,
+    ...stops.map((stop, i) => stop ?? (i === 0 ? CURSOR.enter : { x: 0, y: 0 })),
+  ];
   const at = Math.max(0, Math.min(points.length - 2, Math.floor(leg)));
   const pointer = {
     x: mix(points[at].x, points[at + 1].x, leg - at),
@@ -423,7 +436,11 @@ export function YourLinkTakeover({ link, onClose }: { link: YourLink; onClose: (
 
   const cardStyle: CSSProperties = phone
     ? { left: FRAME.marginPhone, right: FRAME.marginPhone, top: box.top + box.height + 16 }
-    : { left: box.left + box.width / 2, top: box.top + box.height * CARD_AT, translate: "-50% -50%" };
+    : {
+        left: box.left + box.width / 2,
+        top: box.top + box.height * CARD_AT,
+        translate: "-50% -50%",
+      };
 
   return createPortal(
     // Not showModal(): the top layer would cover the dashboard's tooltips,
@@ -471,7 +488,11 @@ export function YourLinkTakeover({ link, onClose }: { link: YourLink; onClose: (
         <div
           ref={stageRef}
           className="absolute top-0 left-0 origin-top-left"
-          style={{ width: STAGE.width, height: STAGE.height, transform: `scale(${box.width / STAGE.width})` }}
+          style={{
+            width: STAGE.width,
+            height: STAGE.height,
+            transform: `scale(${box.width / STAGE.width})`,
+          }}
         >
           <PaneShell rail={page} interactive={settled}>
             <div className="relative min-w-0 flex-1">
@@ -498,7 +519,10 @@ export function YourLinkTakeover({ link, onClose }: { link: YourLink; onClose: (
           <div
             aria-hidden
             className="pointer-events-none absolute top-0 left-0 z-20"
-            style={{ transform: `translate(${pointer.x}px, ${pointer.y}px)`, opacity: pointerOpacity }}
+            style={{
+              transform: `translate(${pointer.x}px, ${pointer.y}px)`,
+              opacity: pointerOpacity,
+            }}
           >
             {ripple && (
               <span
@@ -525,7 +549,10 @@ export function YourLinkTakeover({ link, onClose }: { link: YourLink; onClose: (
         }}
       >
         <p id="your-link-title" className="flex min-w-0 items-center gap-2">
-          <span aria-hidden className="size-1.5 shrink-0 rounded-full bg-[var(--sig)] shadow-[0_0_6px_oklch(0.86_0.17_88/0.9)]" />
+          <span
+            aria-hidden
+            className="size-1.5 shrink-0 rounded-full bg-[var(--sig)] shadow-[0_0_6px_oklch(0.86_0.17_88/0.9)]"
+          />
           <span className="truncate">
             Preview · <span className="text-[var(--fg)]">your link</span> with a free account
           </span>
@@ -546,8 +573,16 @@ export function YourLinkTakeover({ link, onClose }: { link: YourLink; onClose: (
 
       {/* Act 3: the choice */}
       <div
-        className={cn("absolute", !phone && "w-[min(480px,calc(100vw-64px))]", !cardUp && "pointer-events-none")}
-        style={{ ...cardStyle, opacity: card.opacity * chrome, transform: `translateY(${card.y}px)` }}
+        className={cn(
+          "absolute",
+          !phone && "w-[min(480px,calc(100vw-64px))]",
+          !cardUp && "pointer-events-none",
+        )}
+        style={{
+          ...cardStyle,
+          opacity: card.opacity * chrome,
+          transform: `translateY(${card.y}px)`,
+        }}
         inert={!cardUp}
       >
         <div className="rounded-xl border border-black/[0.08] bg-white p-5 text-left shadow-[0_1px_2px_rgb(0_0_0/0.06),0_24px_60px_-20px_rgb(0_0_0/0.35)]">
@@ -559,8 +594,8 @@ export function YourLinkTakeover({ link, onClose }: { link: YourLink; onClose: (
             Unlock your link&apos;s clicks and checks
           </p>
           <p className="mt-2 text-sm leading-6 text-[var(--fg-2)]">
-            They&apos;re on your free account: live clicks, where they come from, and a check every 30 minutes. Sign up and this
-            link moves into your account, where it doesn&apos;t expire.
+            They&apos;re on your free account: live clicks, where they come from, and a check every
+            30 minutes. Sign up and this link moves into your account, where it doesn&apos;t expire.
           </p>
           <div className="mt-4 flex flex-wrap items-center gap-2">
             <ActionLink href={SIGN_UP}>Sign up free</ActionLink>

@@ -4,11 +4,7 @@ import { memo, useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { useChartStable, useYScale } from "./chart-context";
 import type { YAxisOrientation } from "./y-axis-scales";
-import {
-  integerTicks,
-  resolveYAxisTickCount,
-  Y_AXIS_DEFAULT_TICK_COUNT,
-} from "./y-axis-ticks";
+import { integerTicks, resolveYAxisTickCount, Y_AXIS_DEFAULT_TICK_COUNT } from "./y-axis-ticks";
 
 export interface YAxisProps {
   /** Scale group id (Recharts `yAxisId`). Default: `"left"`. */
@@ -31,7 +27,7 @@ export interface YAxisProps {
 function formatLabel(
   value: number,
   formatLargeNumbers: boolean,
-  formatValue?: (value: number) => string
+  formatValue?: (value: number) => string,
 ): string {
   if (formatValue) {
     return formatValue(value);
@@ -79,24 +75,13 @@ const YAxisInner = memo(function YAxisInner({
       y: (yScale(value) ?? 0) + margin.top,
       label: formatLabel(value, formatLargeNumbers, formatValue),
     }));
-  }, [
-    yScale,
-    margin.top,
-    numTicks,
-    formatLargeNumbers,
-    formatValue,
-    allowDecimals,
-  ]);
+  }, [yScale, margin.top, numTicks, formatLargeNumbers, formatValue, allowDecimals]);
 
   return createPortal(
     <div className="pointer-events-none absolute inset-0">
       <div
         className="absolute top-0 bottom-0"
-        style={
-          isLeft
-            ? { left: 0, width: margin.left }
-            : { right: 0, width: margin.right }
-        }
+        style={isLeft ? { left: 0, width: margin.left } : { right: 0, width: margin.right }}
       >
         {ticks.map((tick) => (
           <div
@@ -115,7 +100,7 @@ const YAxisInner = memo(function YAxisInner({
         ))}
       </div>
     </div>,
-    container
+    container,
   );
 });
 

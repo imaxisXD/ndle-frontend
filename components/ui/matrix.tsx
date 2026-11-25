@@ -219,25 +219,13 @@ export const Matrix = React.forwardRef<HTMLDivElement, MatrixProps>(
           <defs>
             <radialGradient id={pixelOnId} cx="50%" cy="50%" r="50%">
               <stop offset="0%" stopColor="var(--matrix-on)" stopOpacity="1" />
-              <stop
-                offset="70%"
-                stopColor="var(--matrix-on)"
-                stopOpacity="0.85"
-              />
-              <stop
-                offset="100%"
-                stopColor="var(--matrix-on)"
-                stopOpacity="0.6"
-              />
+              <stop offset="70%" stopColor="var(--matrix-on)" stopOpacity="0.85" />
+              <stop offset="100%" stopColor="var(--matrix-on)" stopOpacity="0.6" />
             </radialGradient>
 
             <radialGradient id={pixelOffId} cx="50%" cy="50%" r="50%">
               <stop offset="0%" stopColor="var(--matrix-off)" stopOpacity="1" />
-              <stop
-                offset="100%"
-                stopColor="var(--matrix-off)"
-                stopOpacity="0.7"
-              />
+              <stop offset="100%" stopColor="var(--matrix-off)" stopOpacity="0.7" />
             </radialGradient>
 
             <filter id={glowId} x="-50%" y="-50%" width="200%" height="200%">

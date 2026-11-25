@@ -1,10 +1,17 @@
-'use client';
+"use client";
 
-import * as React from 'react';
-import { cn } from '@/lib/utils';
-import { Label } from '@/components/ui/label';
-import { Label as LabelPrimitive, Slot } from 'radix-ui';
-import { Controller, ControllerProps, FieldPath, FieldValues, FormProvider, useFormContext } from 'react-hook-form';
+import * as React from "react";
+import { cn } from "@/lib/utils";
+import { Label } from "@/components/ui/label";
+import { Label as LabelPrimitive, Slot } from "radix-ui";
+import {
+  Controller,
+  ControllerProps,
+  FieldPath,
+  FieldValues,
+  FormProvider,
+  useFormContext,
+} from "react-hook-form";
 
 const Form = FormProvider;
 
@@ -38,7 +45,7 @@ const useFormField = () => {
   const fieldState = getFieldState(fieldContext.name, formState);
 
   if (!fieldContext) {
-    throw new Error('useFormField should be used within <FormField>');
+    throw new Error("useFormField should be used within <FormField>");
   }
 
   const { id } = itemContext;
@@ -65,7 +72,12 @@ function FormItem({ className, ...props }: React.HTMLAttributes<HTMLDivElement>)
 
   return (
     <FormItemContext.Provider value={{ id }}>
-      <div data-slot="form-item" className={cn('flex flex-col gap-2.5', className)} data-invalid={!!error} {...props} />
+      <div
+        data-slot="form-item"
+        className={cn("flex flex-col gap-2.5", className)}
+        data-invalid={!!error}
+        {...props}
+      />
     </FormItemContext.Provider>
   );
 }
@@ -76,7 +88,10 @@ function FormLabel({ className, ...props }: React.ComponentProps<typeof LabelPri
   return (
     <Label
       data-slot="form-label"
-      className={cn('font-medium text-foreground peer-disabled:cursor-not-allowed peer-disabled:opacity-50', className)}
+      className={cn(
+        "font-medium text-foreground peer-disabled:cursor-not-allowed peer-disabled:opacity-50",
+        className,
+      )}
       htmlFor={formItemId}
       {...props}
     />
@@ -108,13 +123,17 @@ function FormDescription({ className, ...props }: React.HTMLAttributes<HTMLParag
     <div
       data-slot="form-description"
       id={formDescriptionId}
-      className={cn('text-xs text-muted-foreground -mt-0.5', className)}
+      className={cn("text-xs text-muted-foreground -mt-0.5", className)}
       {...props}
     />
   );
 }
 
-function FormMessage({ className, children, ...props }: React.HTMLAttributes<HTMLParagraphElement>) {
+function FormMessage({
+  className,
+  children,
+  ...props
+}: React.HTMLAttributes<HTMLParagraphElement>) {
   const { error, formMessageId } = useFormField();
   const body = error ? String(error?.message) : children;
 
@@ -126,7 +145,7 @@ function FormMessage({ className, children, ...props }: React.HTMLAttributes<HTM
     <div
       data-slot="form-message"
       id={formMessageId}
-      className={cn('-mt-0.5 text-xs font-normal text-destructive', className)}
+      className={cn("-mt-0.5 text-xs font-normal text-destructive", className)}
       {...props}
     >
       {body}
@@ -134,4 +153,13 @@ function FormMessage({ className, children, ...props }: React.HTMLAttributes<HTM
   );
 }
 
-export { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage, useFormField };
+export {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+  useFormField,
+};

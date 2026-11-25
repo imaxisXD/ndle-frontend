@@ -32,7 +32,9 @@ function Kbd({ children, onAccent }: { children: string; onAccent?: boolean }) {
     <kbd
       className={cn(
         "hidden h-[18px] min-w-[18px] items-center justify-center rounded-[4px] border px-1 font-mono text-xs leading-none sm:inline-flex",
-        onAccent ? "border-black/20 bg-black/[0.06]" : "border-white/15 bg-white/[0.06] text-white/60",
+        onAccent
+          ? "border-black/20 bg-black/[0.06]"
+          : "border-white/15 bg-white/[0.06] text-white/60",
       )}
     >
       {children}
@@ -106,7 +108,11 @@ export function SiteNav({ home = "" }: { home?: string }) {
   useHotkeys("g", () => router.push(signedIn ? "/dashboard" : SIGN_UP), { enabled: known });
 
   const rise = entering.nav ? RISE : undefined;
-  const navLink = cn("rounded-sm px-2 py-1 text-sm text-white/65 transition-colors hover:text-white", FOCUS, rise);
+  const navLink = cn(
+    "rounded-sm px-2 py-1 text-sm text-white/65 transition-colors hover:text-white",
+    FOCUS,
+    rise,
+  );
   const barRef = useRef<HTMLDivElement>(null);
 
   return (
@@ -129,7 +135,8 @@ export function SiteNav({ home = "" }: { home?: string }) {
             side padding clears the slant, then leaves room to breathe. */}
         <div
           ref={barRef}
-          className="pointer-events-auto relative isolate mx-auto flex h-16 w-fit max-w-full items-center gap-6 px-12 [--bg:var(--ink-deep)] md:gap-8 md:px-14 lg:gap-12 lg:px-16">
+          className="pointer-events-auto relative isolate mx-auto flex h-16 w-fit max-w-full items-center gap-6 px-12 [--bg:var(--ink-deep)] md:gap-8 md:px-14 lg:gap-12 lg:px-16"
+        >
           <NavShape />
           <LogoWithMenu className={rise} />
           <nav aria-label="Main" className="hidden items-center gap-1 md:flex lg:gap-3">
@@ -231,7 +238,21 @@ const FRAME_CORNERS = [
 
 /** The frame's dashed line: round its inside, 1px into the ink, leaving out
     the stretch of the top edge the bar hangs from (`from` to `to`). */
-function frameDashes({ w, h, t, r, from, to }: { w: number; h: number; t: number; r: number; from: number; to: number }) {
+function frameDashes({
+  w,
+  h,
+  t,
+  r,
+  from,
+  to,
+}: {
+  w: number;
+  h: number;
+  t: number;
+  r: number;
+  from: number;
+  to: number;
+}) {
   const e = t - 0.5; // the line's centre, just inside the ink
   const k = r + 0.5; // the corner, followed round at the line's radius
   return [
@@ -275,12 +296,19 @@ function PageFrame({ bar }: { bar: RefObject<HTMLDivElement | null> }) {
   }, [bar]);
 
   return (
-    <div ref={ref} aria-hidden className="pointer-events-none fixed inset-0 z-[41] [--r:14px] [--t:6px] sm:[--r:20px] sm:[--t:10px]">
-      {["inset-x-0 top-0 h-[var(--t)]", "inset-x-0 bottom-0 h-[var(--t)]", "inset-y-0 left-0 w-[var(--t)]", "inset-y-0 right-0 w-[var(--t)]"].map(
-        (edge) => (
-          <div key={edge} className={cn("absolute", edge)} style={INK_BOARD} />
-        ),
-      )}
+    <div
+      ref={ref}
+      aria-hidden
+      className="pointer-events-none fixed inset-0 z-[41] [--r:14px] [--t:6px] sm:[--r:20px] sm:[--t:10px]"
+    >
+      {[
+        "inset-x-0 top-0 h-[var(--t)]",
+        "inset-x-0 bottom-0 h-[var(--t)]",
+        "inset-y-0 left-0 w-[var(--t)]",
+        "inset-y-0 right-0 w-[var(--t)]",
+      ].map((edge) => (
+        <div key={edge} className={cn("absolute", edge)} style={INK_BOARD} />
+      ))}
       {FRAME_CORNERS.map(({ place, at }) => (
         <div
           key={at}
@@ -292,8 +320,18 @@ function PageFrame({ bar }: { bar: RefObject<HTMLDivElement | null> }) {
         />
       ))}
       {dashes && (
-        <svg viewBox={`0 0 ${dashes.w} ${dashes.h}`} preserveAspectRatio="none" className="absolute inset-0 size-full">
-          <path d={dashes.d} fill="none" stroke={DASH.color} strokeWidth={1} strokeDasharray={DASH.pattern} />
+        <svg
+          viewBox={`0 0 ${dashes.w} ${dashes.h}`}
+          preserveAspectRatio="none"
+          className="absolute inset-0 size-full"
+        >
+          <path
+            d={dashes.d}
+            fill="none"
+            stroke={DASH.color}
+            strokeWidth={1}
+            strokeDasharray={DASH.pattern}
+          />
         </svg>
       )}
     </div>
@@ -358,7 +396,11 @@ function NavShape() {
         className="pointer-events-none absolute inset-0 -z-10 size-full"
       />
       {size && edge && (
-        <svg aria-hidden viewBox={`0 0 ${size.w} ${size.h}`} className="pointer-events-none absolute inset-0 -z-10 size-full">
+        <svg
+          aria-hidden
+          viewBox={`0 0 ${size.w} ${size.h}`}
+          className="pointer-events-none absolute inset-0 -z-10 size-full"
+        >
           <clipPath id={clipId}>
             <path d={`${edge} Z`} />
           </clipPath>

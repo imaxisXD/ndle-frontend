@@ -25,12 +25,8 @@ describe("file proxy URL", () => {
 
   test("without the build setting, local development keeps the development proxy", () => {
     vi.stubEnv("NEXT_PUBLIC_FILE_PROXY_URL", "");
-    expect(getFileProxyUrl("localhost")).toBe(
-      "https://proxy-file-worker.sunny735084.workers.dev",
-    );
-    expect(getFileProxyUrl("")).toBe(
-      "https://proxy-file-worker.sunny735084.workers.dev",
-    );
+    expect(getFileProxyUrl("localhost")).toBe("https://proxy-file-worker.sunny735084.workers.dev");
+    expect(getFileProxyUrl("")).toBe("https://proxy-file-worker.sunny735084.workers.dev");
   });
 
   test("server-side file proxy origin ignores relative browser paths like /apiv2", () => {

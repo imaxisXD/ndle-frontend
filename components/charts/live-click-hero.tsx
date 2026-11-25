@@ -29,9 +29,7 @@ export function LiveClickHero({ counterValue }: { counterValue: number }) {
               <LiveDot />
               Live Click Counter
             </h2>
-            <p className="text-muted-foreground mt-1 text-xs">
-              The realtime link click counter
-            </p>
+            <p className="text-muted-foreground mt-1 text-xs">The realtime link click counter</p>
           </div>
         </div>
 

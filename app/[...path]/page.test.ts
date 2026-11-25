@@ -30,12 +30,10 @@ describe("app pages", () => {
       isAuthenticated: true,
     });
 
-    expect(
-      renderToStaticMarkup(await Page(appParams(["dashboard"]))),
-    ).toContain("Account access");
-    expect(
-      renderToStaticMarkup(await Page(appParams(["link", "my-slug"]))),
-    ).toContain("Account access");
+    expect(renderToStaticMarkup(await Page(appParams(["dashboard"])))).toContain("Account access");
+    expect(renderToStaticMarkup(await Page(appParams(["link", "my-slug"])))).toContain(
+      "Account access",
+    );
   });
 
   test("send signed-out visitors to sign-in", async () => {
@@ -47,19 +45,13 @@ describe("app pages", () => {
       redirectToSignIn,
     });
 
-    await expect(Page(appParams(["dashboard"]))).rejects.toThrow(
-      "Sign-in redirect",
-    );
+    await expect(Page(appParams(["dashboard"]))).rejects.toThrow("Sign-in redirect");
     expect(redirectToSignIn).toHaveBeenCalledOnce();
   });
 
   test("return 404 for unknown paths before checking auth", async () => {
-    await expect(Page(appParams(["does-not-exist"]))).rejects.toThrow(
-      "NEXT_NOT_FOUND",
-    );
-    await expect(Page(appParams(["dashboard", "extra"]))).rejects.toThrow(
-      "NEXT_NOT_FOUND",
-    );
+    await expect(Page(appParams(["does-not-exist"]))).rejects.toThrow("NEXT_NOT_FOUND");
+    await expect(Page(appParams(["dashboard", "extra"]))).rejects.toThrow("NEXT_NOT_FOUND");
     expect(notFound).toHaveBeenCalledTimes(2);
     expect(auth).not.toHaveBeenCalled();
   });

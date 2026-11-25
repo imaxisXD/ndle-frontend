@@ -5,7 +5,8 @@ import { FOCUS } from "@/app/home-2/_components/kit";
 import { Tag } from "./_components/chrome";
 import { POSTS, formatDate, type Post } from "./posts";
 
-const DESCRIPTION = "Guides to short links, QR codes and keeping links working, from the maker of ndle.";
+const DESCRIPTION =
+  "Guides to short links, QR codes and keeping links working, from the maker of ndle.";
 
 export const metadata = buildPageMetadata({
   title: "Blog | ndle",
@@ -21,7 +22,9 @@ export default function BlogIndex() {
           <h1 className="font-[family-name:var(--font-bebas)] text-[clamp(3.5rem,8vw,6rem)] leading-[0.85] tracking-[-0.005em] text-[#141312] uppercase">
             Blog
           </h1>
-          <p className="mt-4 max-w-[52ch] font-mono text-[15px] leading-[1.5] text-[#3d3d3d]">{DESCRIPTION}</p>
+          <p className="mt-4 max-w-[52ch] font-mono text-[15px] leading-[1.5] text-[#3d3d3d]">
+            {DESCRIPTION}
+          </p>
         </div>
       </header>
 
@@ -69,7 +72,9 @@ function PostCard({ post, featured = false }: { post: Post; featured?: boolean }
         >
           {post.title}
         </h2>
-        <p className="max-w-[52ch] font-mono text-[13px] leading-5 text-[#3d3d3d]">{post.description}</p>
+        <p className="max-w-[52ch] font-mono text-[13px] leading-5 text-[#3d3d3d]">
+          {post.description}
+        </p>
       </div>
       {/* On phones the diagram stacks tall, so the card shows only its words. */}
       <div

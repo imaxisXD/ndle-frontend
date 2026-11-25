@@ -90,9 +90,7 @@ function TooltipIndicatorInner({
   const effectiveSpring = springConfig ?? tooltipSpring;
 
   const pixelWidth =
-    span !== undefined && columnWidth !== undefined
-      ? span * columnWidth
-      : resolveWidth(width);
+    span !== undefined && columnWidth !== undefined ? span * columnWidth : resolveWidth(width);
 
   const rectX = x - pixelWidth / 2;
   const animatedX = useSpring(rectX, effectiveSpring);
@@ -111,17 +109,11 @@ function TooltipIndicatorInner({
     <g>
       <defs>
         <linearGradient id={gradientId} x1="0%" x2="0%" y1="0%" y2="100%">
-          <stop
-            offset="0%"
-            style={{ stopColor: colorEdge, stopOpacity: edgeOpacity }}
-          />
+          <stop offset="0%" style={{ stopColor: colorEdge, stopOpacity: edgeOpacity }} />
           <stop offset="10%" style={{ stopColor: colorEdge, stopOpacity: 1 }} />
           <stop offset="50%" style={{ stopColor: colorMid, stopOpacity: 1 }} />
           <stop offset="90%" style={{ stopColor: colorEdge, stopOpacity: 1 }} />
-          <stop
-            offset="100%"
-            style={{ stopColor: colorEdge, stopOpacity: edgeOpacity }}
-          />
+          <stop offset="100%" style={{ stopColor: colorEdge, stopOpacity: edgeOpacity }} />
         </linearGradient>
       </defs>
       {animate ? (
@@ -133,13 +125,7 @@ function TooltipIndicatorInner({
           y={0}
         />
       ) : (
-        <rect
-          fill={`url(#${gradientId})`}
-          height={height}
-          width={pixelWidth}
-          x={rectX}
-          y={0}
-        />
+        <rect fill={`url(#${gradientId})`} height={height} width={pixelWidth} x={rectX} y={0} />
       )}
     </g>
   );

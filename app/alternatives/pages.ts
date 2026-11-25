@@ -38,8 +38,14 @@ export const ALTERNATIVES: AlternativePage[] = [
     lede: "100 active links, a custom domain and unlimited QR codes on the free plan. No ad page before your links, and a check on every one of them every 30 minutes.",
     checked: "2026-09-28",
     sections: [
-      { id: "ndle-and-bitlys-free-plans-side-by-side", title: "ndle and Bitly's free plans, side by side" },
-      { id: "why-people-look-for-a-bitly-alternative", title: "Why people look for a Bitly alternative" },
+      {
+        id: "ndle-and-bitlys-free-plans-side-by-side",
+        title: "ndle and Bitly's free plans, side by side",
+      },
+      {
+        id: "why-people-look-for-a-bitly-alternative",
+        title: "Why people look for a Bitly alternative",
+      },
       { id: "where-bitly-is-ahead", title: "Where Bitly is ahead" },
       { id: "moving-from-bitly", title: "Moving from Bitly" },
     ],
@@ -102,8 +108,14 @@ export const ALTERNATIVES: AlternativePage[] = [
     lede: "Click stats, your own domain and unlimited QR codes on the free plan, and a check on the page behind every link every 30 minutes.",
     checked: "2026-09-28",
     sections: [
-      { id: "ndle-and-tinyurls-free-plans-side-by-side", title: "ndle and TinyURL's free plans, side by side" },
-      { id: "why-people-look-for-a-tinyurl-alternative", title: "Why people look for a TinyURL alternative" },
+      {
+        id: "ndle-and-tinyurls-free-plans-side-by-side",
+        title: "ndle and TinyURL's free plans, side by side",
+      },
+      {
+        id: "why-people-look-for-a-tinyurl-alternative",
+        title: "Why people look for a TinyURL alternative",
+      },
       { id: "where-tinyurl-is-ahead", title: "Where TinyURL is ahead" },
       { id: "moving-from-tinyurl", title: "Moving from TinyURL" },
     ],
@@ -130,8 +142,14 @@ export const ALTERNATIVES: AlternativePage[] = [
     lede: "100 active links, click stats and unlimited QR codes on the free plan, and a check on every link's page every 30 minutes.",
     checked: "2026-09-28",
     sections: [
-      { id: "ndle-and-dubs-free-plans-side-by-side", title: "ndle and Dub's free plans, side by side" },
-      { id: "why-people-look-for-a-dub-alternative", title: "Why people look for a Dub alternative" },
+      {
+        id: "ndle-and-dubs-free-plans-side-by-side",
+        title: "ndle and Dub's free plans, side by side",
+      },
+      {
+        id: "why-people-look-for-a-dub-alternative",
+        title: "Why people look for a Dub alternative",
+      },
       { id: "where-dub-is-ahead", title: "Where Dub is ahead" },
       { id: "moving-from-dub", title: "Moving from Dub" },
     ],
@@ -158,8 +176,14 @@ export const ALTERNATIVES: AlternativePage[] = [
     lede: "100 active links, a custom domain and unlimited QR codes on the free plan, and a check on the page behind every link every 30 minutes.",
     checked: "2026-09-28",
     sections: [
-      { id: "ndle-and-shortios-free-plans-side-by-side", title: "ndle and Short.io's free plans, side by side" },
-      { id: "why-people-look-for-a-shortio-alternative", title: "Why people look for a Short.io alternative" },
+      {
+        id: "ndle-and-shortios-free-plans-side-by-side",
+        title: "ndle and Short.io's free plans, side by side",
+      },
+      {
+        id: "why-people-look-for-a-shortio-alternative",
+        title: "Why people look for a Short.io alternative",
+      },
       { id: "where-shortio-is-ahead", title: "Where Short.io is ahead" },
       { id: "moving-from-shortio", title: "Moving from Short.io" },
     ],
@@ -186,8 +210,14 @@ export const ALTERNATIVES: AlternativePage[] = [
     lede: "100 active links, your own domain and unlimited QR codes on the free plan, and a check on every link's page every 30 minutes.",
     checked: "2026-09-28",
     sections: [
-      { id: "ndle-and-rebrandlys-free-plans-side-by-side", title: "ndle and Rebrandly's free plans, side by side" },
-      { id: "why-people-look-for-a-rebrandly-alternative", title: "Why people look for a Rebrandly alternative" },
+      {
+        id: "ndle-and-rebrandlys-free-plans-side-by-side",
+        title: "ndle and Rebrandly's free plans, side by side",
+      },
+      {
+        id: "why-people-look-for-a-rebrandly-alternative",
+        title: "Why people look for a Rebrandly alternative",
+      },
       { id: "where-rebrandly-is-ahead", title: "Where Rebrandly is ahead" },
       { id: "moving-from-rebrandly", title: "Moving from Rebrandly" },
     ],

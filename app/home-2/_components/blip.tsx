@@ -56,21 +56,45 @@ const EYE: Record<Mood, { x: number; y: number; r: number; eye: number }> = {
 const SCAN = { from: 28.2, to: 35.8, every: 1.4 };
 
 /* The whole head's move into each mood, from its foot. */
-const BODY: Record<Mood, { animate: { rotate?: number | number[]; y?: number | number[]; scaleY?: number | number[] }; transition: Transition }> =
+const BODY: Record<
+  Mood,
   {
-    curious: { animate: { rotate: 7, y: 0, scaleY: 1 }, transition: { type: "spring", stiffness: 300, damping: 16 } },
-    thinking: { animate: { rotate: -3, y: 0, scaleY: 1 }, transition: { type: "spring", stiffness: 260, damping: 20 } },
-    alert: { animate: { rotate: 0, y: [0, -2.4, 0], scaleY: [1, 1.05, 1] }, transition: { duration: 0.3, ease: "easeOut" } },
-    surprised: { animate: { rotate: 0, y: [0, -4, 0], scaleY: [1, 1.08, 0.97, 1] }, transition: { duration: 0.45, ease: "easeOut" } },
-    happy: { animate: { rotate: 0, y: [0, -1.6, 0], scaleY: 1 }, transition: { duration: 0.4, ease: "easeOut" } },
-    smitten: { animate: { rotate: [0, -6, 5, 0], y: 0, scaleY: 1 }, transition: { duration: 0.7, ease: "easeInOut" } },
-  };
+    animate: { rotate?: number | number[]; y?: number | number[]; scaleY?: number | number[] };
+    transition: Transition;
+  }
+> = {
+  curious: {
+    animate: { rotate: 7, y: 0, scaleY: 1 },
+    transition: { type: "spring", stiffness: 300, damping: 16 },
+  },
+  thinking: {
+    animate: { rotate: -3, y: 0, scaleY: 1 },
+    transition: { type: "spring", stiffness: 260, damping: 20 },
+  },
+  alert: {
+    animate: { rotate: 0, y: [0, -2.4, 0], scaleY: [1, 1.05, 1] },
+    transition: { duration: 0.3, ease: "easeOut" },
+  },
+  surprised: {
+    animate: { rotate: 0, y: [0, -4, 0], scaleY: [1, 1.08, 0.97, 1] },
+    transition: { duration: 0.45, ease: "easeOut" },
+  },
+  happy: {
+    animate: { rotate: 0, y: [0, -1.6, 0], scaleY: 1 },
+    transition: { duration: 0.4, ease: "easeOut" },
+  },
+  smitten: {
+    animate: { rotate: [0, -6, 5, 0], y: 0, scaleY: 1 },
+    transition: { duration: 0.7, ease: "easeInOut" },
+  },
+};
 
 const SPRING: Transition = { type: "spring", stiffness: 420, damping: 24 };
 const FADE: Transition = { duration: 0.18, ease: "easeOut" };
 const BLINK = { scaleY: [1, 0.1, 1] };
 
-const HEART = "M0 -1.6 C-1.6 -4.4 -5.8 -3.6 -5.6 -0.4 C-5.4 2.2 -2.6 3.8 0 6 C2.6 3.8 5.4 2.2 5.6 -0.4 C5.8 -3.6 1.6 -4.4 0 -1.6 Z";
+const HEART =
+  "M0 -1.6 C-1.6 -4.4 -5.8 -3.6 -5.6 -0.4 C-5.4 2.2 -2.6 3.8 0 6 C2.6 3.8 5.4 2.2 5.6 -0.4 C5.8 -3.6 1.6 -4.4 0 -1.6 Z";
 const pen = { stroke: INK, strokeLinecap: "round", strokeLinejoin: "round", fill: "none" } as const;
 /* Scaled and faded from its own middle. */
 const own = { transformBox: "fill-box", originX: 0.5, originY: 0.5 } as const;
@@ -105,9 +129,19 @@ export function Blip({ mood, className }: { mood: Mood; className?: string }) {
           style={own}
           initial={false}
           animate={
-            still ? { opacity: 1, scale: 1 } : mood === "thinking" ? { opacity: [1, 0.35, 1], scale: 1 } : mood === "alert" ? { opacity: 1, scale: [1, 1.45, 1] } : { opacity: 1, scale: 1 }
+            still
+              ? { opacity: 1, scale: 1 }
+              : mood === "thinking"
+                ? { opacity: [1, 0.35, 1], scale: 1 }
+                : mood === "alert"
+                  ? { opacity: 1, scale: [1, 1.45, 1] }
+                  : { opacity: 1, scale: 1 }
           }
-          transition={mood === "thinking" ? { duration: 0.9, repeat: Infinity, ease: "easeInOut" } : { duration: 0.3 }}
+          transition={
+            mood === "thinking"
+              ? { duration: 0.9, repeat: Infinity, ease: "easeInOut" }
+              : { duration: 0.3 }
+          }
         />
         <Colored d={HEAD.fill} shade={HEAD.shade} ids={ids} p={P} />
         <path d={HEAD.shine} stroke={P.shine} strokeWidth={2.8} strokeLinecap="round" />
@@ -126,7 +160,9 @@ function Face({ mood, still }: { mood: Mood; still: boolean }) {
   const blink = useBlink(mood, open, still);
   const at = (x: number) => (scanning ? [null, SCAN.to + x, SCAN.from + x] : eye.x + x);
   const glide: Transition = still ? { duration: 0 } : SPRING;
-  const move: Transition = scanning ? { duration: SCAN.every, repeat: Infinity, ease: "easeInOut" } : glide;
+  const move: Transition = scanning
+    ? { duration: SCAN.every, repeat: Infinity, ease: "easeInOut" }
+    : glide;
   const glint = { dx: -eye.r * 0.38, dy: -eye.r * 0.4, r: Math.max(0.9, eye.r * 0.3) };
 
   return (
@@ -148,7 +184,16 @@ function Face({ mood, still }: { mood: Mood; still: boolean }) {
         transition={still ? { duration: 0 } : { duration: 0.16, ease: "easeInOut" }}
       >
         <g ref={blink} className="origin-center [transform-box:fill-box]">
-          <motion.circle cx={32} cy={33} fill={WHITE} {...ink} strokeWidth={2.4} initial={false} animate={{ r: eye.eye }} transition={glide} />
+          <motion.circle
+            cx={32}
+            cy={33}
+            fill={WHITE}
+            {...ink}
+            strokeWidth={2.4}
+            initial={false}
+            animate={{ r: eye.eye }}
+            transition={glide}
+          />
           <motion.circle
             fill={INK}
             initial={false}
@@ -158,7 +203,12 @@ function Face({ mood, still }: { mood: Mood; still: boolean }) {
           <motion.circle
             fill={WHITE}
             initial={false}
-            animate={{ cx: at(glint.dx), cy: eye.y + glint.dy, r: glint.r, opacity: smitten ? 0 : 1 }}
+            animate={{
+              cx: at(glint.dx),
+              cy: eye.y + glint.dy,
+              r: glint.r,
+              opacity: smitten ? 0 : 1,
+            }}
             transition={{ default: glide, cx: move, opacity: FADE }}
           />
           {/* Smitten's pupil */}
@@ -171,7 +221,13 @@ function Face({ mood, still }: { mood: Mood; still: boolean }) {
               style={own}
               initial={false}
               animate={{ scale: smitten ? 0.95 : 0 }}
-              transition={still ? { duration: 0 } : smitten ? { type: "spring", stiffness: 520, damping: 13 } : FADE}
+              transition={
+                still
+                  ? { duration: 0 }
+                  : smitten
+                    ? { type: "spring", stiffness: 520, damping: 13 }
+                    : FADE
+              }
             />
           </g>
         </g>
@@ -188,7 +244,11 @@ function Face({ mood, still }: { mood: Mood; still: boolean }) {
       />
       <Mouth mood={mood} still={still} />
       {/* Blush, when it's pleased */}
-      <motion.g initial={false} animate={{ opacity: mood === "happy" || smitten ? 0.55 : 0 }} transition={still ? { duration: 0 } : FADE}>
+      <motion.g
+        initial={false}
+        animate={{ opacity: mood === "happy" || smitten ? 0.55 : 0 }}
+        transition={still ? { duration: 0 } : FADE}
+      >
         <ellipse cx={21.4} cy={42.4} rx={2.8} ry={1.7} fill={P.dots} />
         <ellipse cx={42.6} cy={42.4} rx={2.8} ry={1.7} fill={P.dots} />
       </motion.g>
@@ -204,7 +264,10 @@ function Mouth({ mood, still }: { mood: Mood; still: boolean }) {
     { moods: ["thinking"], el: <path d="M28.2 48 L36.2 46.2" {...pen} strokeWidth={2.2} /> },
     { moods: ["alert"], el: <ellipse cx={32} cy={48} rx={2.4} ry={2.8} fill={INK} /> },
     { moods: ["surprised"], el: <circle cx={32} cy={48.4} r={2.6} {...pen} strokeWidth={2.2} /> },
-    { moods: ["happy", "smitten"], el: <path d="M26.8 45.2 C29.6 49.4 34.4 49.4 37.2 45.2" {...pen} strokeWidth={2.2} /> },
+    {
+      moods: ["happy", "smitten"],
+      el: <path d="M26.8 45.2 C29.6 49.4 34.4 49.4 37.2 45.2" {...pen} strokeWidth={2.2} />,
+    },
   ];
   return shapes.map(({ moods, el }) => {
     const on = moods.includes(mood);
@@ -240,14 +303,22 @@ function Bubbles({ on, still }: { on: boolean; still: boolean }) {
       style={own}
       initial={false}
       animate={{ opacity: on ? 1 : 0, scale: on ? 1 : 0 }}
-      transition={still ? { duration: 0 } : on ? { type: "spring", stiffness: 520, damping: 16, delay: 0.1 + i * 0.12 } : FADE}
+      transition={
+        still
+          ? { duration: 0 }
+          : on
+            ? { type: "spring", stiffness: 520, damping: 16, delay: 0.1 + i * 0.12 }
+            : FADE
+      }
     />
   ));
 }
 
 /* Alert's ticks, sprung out from the head's sides. */
 function Ticks({ on, still }: { on: boolean; still: boolean }) {
-  return (["M13.4 22 L10.2 19.2 M12 28.4 L8.2 27.6", "M50.6 22 L53.8 19.2 M52 28.4 L55.8 27.6"] as const).map((d, i) => (
+  return (
+    ["M13.4 22 L10.2 19.2 M12 28.4 L8.2 27.6", "M50.6 22 L53.8 19.2 M52 28.4 L55.8 27.6"] as const
+  ).map((d, i) => (
     <motion.path
       key={d}
       d={d}
@@ -255,7 +326,9 @@ function Ticks({ on, still }: { on: boolean; still: boolean }) {
       strokeWidth={2}
       initial={false}
       animate={{ opacity: on ? 1 : 0, x: on ? 0 : i === 0 ? 2.5 : -2.5 }}
-      transition={still ? { duration: 0 } : on ? { type: "spring", stiffness: 600, damping: 15 } : FADE}
+      transition={
+        still ? { duration: 0 } : on ? { type: "spring", stiffness: 600, damping: 15 } : FADE
+      }
     />
   ));
 }
@@ -275,7 +348,10 @@ function useBlink(mood: Mood, open: boolean, still: boolean) {
 
   useEffect(() => {
     if (still || !open) return;
-    const id = window.setInterval(() => animate(scope.current, BLINK, { duration: 0.16, ease: "easeInOut" }), 3400);
+    const id = window.setInterval(
+      () => animate(scope.current, BLINK, { duration: 0.16, ease: "easeInOut" }),
+      3400,
+    );
     return () => window.clearInterval(id);
   }, [open, still, animate, scope]);
 
@@ -317,7 +393,13 @@ export function AskBlip({ answered, className }: { answered: boolean; className?
     was.current = answered;
     if (still) return;
     // On first showing an answered ask, it's already happy
-    const steps = answered ? (changed ? ANSWERED : []) : changed ? [["curious", 0] as [Mood, number], ...ASKED] : ASKED;
+    const steps = answered
+      ? changed
+        ? ANSWERED
+        : []
+      : changed
+        ? [["curious", 0] as [Mood, number], ...ASKED]
+        : ASKED;
     const timers = steps.map(([mood, at]) => window.setTimeout(() => setBeat(mood), at));
     return () => timers.forEach(window.clearTimeout);
   }, [answered, still]);

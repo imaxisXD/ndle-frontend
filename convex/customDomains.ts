@@ -44,8 +44,7 @@ const DNS_NXDOMAIN = 3;
  */
 function isValidDomain(domain: string): boolean {
   // Basic domain pattern: allows subdomains and root domains
-  const domainPattern =
-    /^(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}$/;
+  const domainPattern = /^(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}$/;
   return domainPattern.test(domain);
 }
 
@@ -165,9 +164,7 @@ async function lookupTxtRecords(name: string): Promise<string[]> {
   }
   const answers: unknown[] = Array.isArray(body.Answer) ? body.Answer : [];
   return answers.flatMap((answer) =>
-    isObject(answer) &&
-    answer.type === TXT_RECORD_TYPE &&
-    typeof answer.data === "string"
+    isObject(answer) && answer.type === TXT_RECORD_TYPE && typeof answer.data === "string"
       ? [parseTxtData(answer.data)]
       : [],
   );
@@ -192,11 +189,7 @@ async function removeUnverifiedDomainsPage(ctx: MutationCtx, hostname: string) {
     await ctx.db.delete("custom_domains", attempt._id);
   }
   if (attempts.length === CLEANUP_BATCH_SIZE) {
-    await ctx.scheduler.runAfter(
-      0,
-      internal.customDomains.removeUnverifiedDomains,
-      { hostname },
-    );
+    await ctx.scheduler.runAfter(0, internal.customDomains.removeUnverifiedDomains, { hostname });
   }
 }
 
@@ -204,9 +197,7 @@ async function removeUnverifiedDomainsPage(ctx: MutationCtx, hostname: string) {
  * Get the domain limit for a user based on their membership
  */
 function getDomainLimit(membership: string): number {
-  return getViewerPlan(membership) === "pro"
-    ? MAX_DOMAINS_PRO
-    : MAX_DOMAINS_FREE;
+  return getViewerPlan(membership) === "pro" ? MAX_DOMAINS_PRO : MAX_DOMAINS_FREE;
 }
 
 // ============================================================================
@@ -261,12 +252,8 @@ export const listUserDomains = query({
         verificationTxtValue: d.verificationTxtValue,
         challengeRecordName: awaiting ? challengeRecordName(d.domain) : undefined,
         challengeRecordValue:
-          awaiting && d.challengeToken
-            ? challengeRecordValue(d.challengeToken)
-            : undefined,
-        challengeExpiresAt: awaiting
-          ? d._creationTime + UNVERIFIED_DOMAIN_TTL_MS
-          : undefined,
+          awaiting && d.challengeToken ? challengeRecordValue(d.challengeToken) : undefined,
+        challengeExpiresAt: awaiting ? d._creationTime + UNVERIFIED_DOMAIN_TTL_MS : undefined,
         createdAt: d.createdAt,
         verifiedAt: d.verifiedAt,
       };
@@ -404,9 +391,7 @@ export const addDomain = mutation({
       return { success: true, domainId: ownAttempt._id };
     }
 
-    const unverified = userDomains.filter(
-      (d) => d.status === "awaiting_verification",
-    ).length;
+    const unverified = userDomains.filter((d) => d.status === "awaiting_verification").length;
     if (unverified >= MAX_UNVERIFIED_DOMAINS) {
       return {
         success: false,
@@ -472,12 +457,7 @@ export const deleteDomain = mutation({
     // Retain the hostname even if registration has not saved its Cloudflare ID yet.
     await queueDomainSync(ctx, domain);
     await ctx.db.delete(args.domainId);
-    await detachDomainLinksPage(
-      ctx,
-      domain.userId,
-      normalizeHostname(domain.domain),
-      null,
-    );
+    await detachDomainLinksPage(ctx, domain.userId, normalizeHostname(domain.domain), null);
 
     return { success: true };
   },
@@ -663,11 +643,7 @@ export const expireUnverifiedDomains = internalMutation({
       await ctx.db.delete("custom_domains", domain._id);
     }
     if (expired.length === CLEANUP_BATCH_SIZE) {
-      await ctx.scheduler.runAfter(
-        0,
-        internal.customDomains.expireUnverifiedDomains,
-        {},
-      );
+      await ctx.scheduler.runAfter(0, internal.customDomains.expireUnverifiedDomains, {});
     }
     return expired.length;
   },
@@ -680,11 +656,7 @@ export const expireUnverifiedDomains = internalMutation({
 export const internalUpdateDomain = internalMutation({
   args: {
     domainId: v.id("custom_domains"),
-    status: v.union(
-      v.literal("pending"),
-      v.literal("active"),
-      v.literal("failed"),
-    ),
+    status: v.union(v.literal("pending"), v.literal("active"), v.literal("failed")),
     cloudflareHostnameId: v.optional(v.string()),
     sslStatus: v.optional(v.string()),
     verificationTxtName: v.optional(v.string()),
@@ -704,9 +676,7 @@ export const internalUpdateDomain = internalMutation({
     }
     const { domainId, ...updates } = args;
     await ctx.db.patch(domainId, {
-      ...Object.fromEntries(
-        Object.entries(updates).filter(([, value]) => value !== undefined),
-      ),
+      ...Object.fromEntries(Object.entries(updates).filter(([, value]) => value !== undefined)),
       ...(args.status === "active" ? { verifiedAt: Date.now() } : {}),
     });
     await queueDomainSync(ctx, domain);

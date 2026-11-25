@@ -11,9 +11,7 @@ export default function UrlsRoute() {
           Links
         </h1>
 
-        <p className="text-muted-foreground mt-2 text-sm">
-          Manage all your shortened links
-        </p>
+        <p className="text-muted-foreground mt-2 text-sm">Manage all your shortened links</p>
       </header>
 
       <section aria-labelledby="all-links-heading">

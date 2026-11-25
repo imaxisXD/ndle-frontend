@@ -12,13 +12,7 @@ import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useToast } from "@/hooks/use-toast";
 import { useHotkeys } from "react-hotkeys-hook";
-import {
-  Menu,
-  MenuContent,
-  MenuItem,
-  MenuShortcut,
-  MenuTrigger,
-} from "@/components/ui/base-menu";
+import { Menu, MenuContent, MenuItem, MenuShortcut, MenuTrigger } from "@/components/ui/base-menu";
 import { Kbd } from "@/components/ui/kbd";
 import {
   Dialog,
@@ -183,33 +177,22 @@ function CollectionCard({
         className="absolute top-[37%] right-[3%]"
         style={{ color: glassTone(collectionColor).ink }}
       >
-        <CollectionMenuCell
-          collection={collection}
-          onView={onView}
-          onDeleteClick={onDeleteClick}
-        />
+        <CollectionMenuCell collection={collection} onView={onView} onDeleteClick={onDeleteClick} />
       </div>
     </div>
   );
 }
 
-export function Collections({
-  collections,
-}: {
-  collections: CollectionsType | undefined;
-}) {
+export function Collections({ collections }: { collections: CollectionsType | undefined }) {
   const navigate = useNavigate();
   const { add } = useToast();
-  const deleteCollection = useMutation(
-    api.collectionMangament.deleteCollection,
-  );
+  const deleteCollection = useMutation(api.collectionMangament.deleteCollection);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [collectionToDelete, setCollectionToDelete] = useState<{
     id: string;
     name: string;
   } | null>(null);
-  const hasNoCollections =
-    collections !== undefined && collections.length === 0;
+  const hasNoCollections = collections !== undefined && collections.length === 0;
 
   const handleView = useCallback(
     (collectionId: string) => {
@@ -218,13 +201,10 @@ export function Collections({
     [navigate],
   );
 
-  const handleDeleteClick = useCallback(
-    (collectionId: string, collectionName: string) => {
-      setCollectionToDelete({ id: collectionId, name: collectionName });
-      setDeleteDialogOpen(true);
-    },
-    [],
-  );
+  const handleDeleteClick = useCallback((collectionId: string, collectionName: string) => {
+    setCollectionToDelete({ id: collectionId, name: collectionName });
+    setDeleteDialogOpen(true);
+  }, []);
 
   const handleDeleteConfirm = useCallback(async () => {
     if (!collectionToDelete) return;
@@ -245,28 +225,19 @@ export function Collections({
       add({
         type: "error",
         title: "Error",
-        description:
-          error instanceof Error
-            ? error.message
-            : "Failed to delete collection",
+        description: error instanceof Error ? error.message : "Failed to delete collection",
       });
     }
   }, [collectionToDelete, deleteCollection, add]);
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-end">
-        <CreateCollectionButton
-          existingCollectionNames={(collections ?? []).map((c) => c.name)}
-        />
+        <CreateCollectionButton existingCollectionNames={(collections ?? []).map((c) => c.name)} />
       </div>
 
       {hasNoCollections ? (
         <div className="flex flex-col items-center px-6 py-12 text-center">
-          <EmptyStateImage
-            alt=""
-            className="mb-5 w-full max-w-[460px]"
-            name="noCollections"
-          />
+          <EmptyStateImage alt="" className="mb-5 w-full max-w-[460px]" name="noCollections" />
           <h3 className="text-lg font-medium">No collections yet</h3>
           <p className="text-muted-foreground mt-2 max-w-sm text-sm">
             Create a collection to group links by project, campaign, or team.
@@ -294,17 +265,14 @@ export function Collections({
             Confirm Collection Delete
           </DialogTitle>
           <DialogDescription className="text-primary mt-4 text-sm">
-            Are you sure you want to delete this collection and all its data?{" "}
-            <br />
+            Are you sure you want to delete this collection and all its data? <br />
             <span className="text-muted-foreground text-xs">
               [Note : This action is permanent and cannot be undone]
             </span>
             {collectionToDelete && (
               <div className="my-4">
                 <p className="text-sm font-medium">Collection to delete:</p>
-                <p className="text-muted-foreground text-xs">
-                  [{collectionToDelete.name}]
-                </p>
+                <p className="text-muted-foreground text-xs">[{collectionToDelete.name}]</p>
               </div>
             )}
           </DialogDescription>
@@ -318,9 +286,7 @@ export function Collections({
             />
             <DialogAction
               onClick={handleDeleteConfirm}
-              className={cn(
-                "bg-destructive text-destructive-foreground hover:bg-destructive/90",
-              )}
+              className={cn("bg-destructive text-destructive-foreground hover:bg-destructive/90")}
             >
               <BinMinusIn />
               Delete Collection

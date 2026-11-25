@@ -1,12 +1,6 @@
 import { v } from "convex/values";
 import { paginationOptsValidator } from "convex/server";
-import {
-  internalAction,
-  internalQuery,
-  mutation,
-  query,
-  type QueryCtx,
-} from "./_generated/server";
+import { internalAction, internalQuery, mutation, query, type QueryCtx } from "./_generated/server";
 import { internal } from "./_generated/api";
 import type { Doc } from "./_generated/dataModel";
 import { getOwnerSnapshot } from "./ownership";
@@ -50,8 +44,7 @@ export async function deliverMonitoringChange(args: {
   if (environment === "dev" && args.registration) return;
   const address = process.env.MONITOR_SERVICE_URL;
   const secret = process.env.MONITORING_API_SECRET;
-  if (!address || !secret)
-    throw new Error("Monitoring service address and secret are required");
+  if (!address || !secret) throw new Error("Monitoring service address and secret are required");
   const response = await fetch(
     `${address}/monitors/${args.registration ? "register" : "unregister"}`,
     {
@@ -92,8 +85,7 @@ export async function deliverMonitoringChange(args: {
       return;
     }
   }
-  if (!response.ok)
-    throw new Error(`Monitoring update failed (HTTP ${response.status})`);
+  if (!response.ok) throw new Error(`Monitoring update failed (HTTP ${response.status})`);
   const receipt: unknown = await response.json();
   if (
     !receipt ||
@@ -136,10 +128,7 @@ export const getAllUrlsQuery = internalQuery({
       .order("asc")
       .paginate({
         cursor: args.cursor ?? null,
-        numItems: Math.min(
-          BATCH_SIZE,
-          Math.max(1, args.numItems ?? BATCH_SIZE),
-        ),
+        numItems: Math.min(BATCH_SIZE, Math.max(1, args.numItems ?? BATCH_SIZE)),
       });
     const urls = result.page.flatMap((url) =>
       url.userTableId
@@ -184,11 +173,9 @@ export const syncAllUrlsToMonitoringService = internalAction({
         target: { kind: "monitor", urlId: url.urlId },
       });
     if (!result.isDone)
-      await ctx.scheduler.runAfter(
-        0,
-        internal.linkHealth.syncAllUrlsToMonitoringService,
-        { cursor: result.continueCursor },
-      );
+      await ctx.scheduler.runAfter(0, internal.linkHealth.syncAllUrlsToMonitoringService, {
+        cursor: result.continueCursor,
+      });
     return {
       success: true,
       totalSynced: result.urls.length,
@@ -232,18 +219,14 @@ export const unregisterUrlFromMonitoringService = internalAction({
 
 // Plain-language text for the fixed failure messages the monitoring service sends.
 const CHECK_FAILURE_TEXT: Record<string, string> = {
-  "Connection timed out":
-    "The destination took too long to respond and the request timed out.",
+  "Connection timed out": "The destination took too long to respond and the request timed out.",
   "Domain does not resolve":
     "The destination's domain name could not be found. It may have expired or be misspelled.",
-  "Connection refused":
-    "The destination server refused the connection. It may be offline.",
-  "Connection failed":
-    "Unable to reach the destination. It may be offline or unreachable.",
+  "Connection refused": "The destination server refused the connection. It may be offline.",
+  "Connection failed": "Unable to reach the destination. It may be offline or unreachable.",
   "Secure connection failed":
     "A secure (HTTPS) connection to the destination failed. Its certificate may be invalid or expired.",
-  "Too many redirects":
-    "The destination redirects too many times, so the page never loads.",
+  "Too many redirects": "The destination redirects too many times, so the page never loads.",
 };
 
 // The incident message an owner sees when a check finds the destination down or slow.
@@ -338,16 +321,11 @@ export const recordHealthCheck = mutation({
     const now = Date.now();
     if (!Number.isFinite(checkedAt) || checkedAt > now + 60_000)
       throw new Error("Check time is invalid");
-    if (
-      !Number.isFinite(latencyMs) ||
-      latencyMs < 0 ||
-      !Number.isFinite(statusCode)
-    )
+    if (!Number.isFinite(latencyMs) || latencyMs < 0 || !Number.isFinite(statusCode))
       throw new Error("Check result is invalid");
     if (checkedAt < now - 35 * DAY_MS) return { success: true } as const;
     const checkId =
-      args.checkId ??
-      `legacy:${urlId}:${checkedAt}:${statusCode}:${healthStatus}:${latencyMs}`;
+      args.checkId ?? `legacy:${urlId}:${checkedAt}:${statusCode}:${healthStatus}:${latencyMs}`;
     const receipt = await ctx.db
       .query("processedHealthChecks")
       .withIndex("by_checkId", (q) => q.eq("checkId", checkId))
@@ -368,8 +346,7 @@ export const recordHealthCheck = mutation({
       .unique();
 
     const isNewer = !previousCheck || checkedAt > previousCheck.checkedAt;
-    const previousStatus =
-      previousCheck?.lastKnownHealthStatus ?? previousCheck?.healthStatus;
+    const previousStatus = previousCheck?.lastKnownHealthStatus ?? previousCheck?.healthStatus;
     const isUnknown = healthStatus === "unknown";
     const wasHealthy = previousStatus === "up";
     const isNowHealthy = healthStatus === "up";
@@ -381,9 +358,7 @@ export const recordHealthCheck = mutation({
         monitoringVersion: args.monitoringVersion,
         lastKnownHealthStatus: isUnknown
           ? (previousCheck.lastKnownHealthStatus ??
-            (previousCheck.healthStatus === "unknown"
-              ? undefined
-              : previousCheck.healthStatus))
+            (previousCheck.healthStatus === "unknown" ? undefined : previousCheck.healthStatus))
           : healthStatus,
         shortUrl: urlDoc.slugAssigned ?? urlDoc.shortUrl,
         longUrl: urlDoc.fullurl,
@@ -427,9 +402,7 @@ export const recordHealthCheck = mutation({
 
     const existingSummary = await ctx.db
       .query("linkHealthDailySummary")
-      .withIndex("by_url_and_date", (q) =>
-        q.eq("urlId", urlId).eq("date", today),
-      )
+      .withIndex("by_url_and_date", (q) => q.eq("urlId", urlId).eq("date", today))
       .unique();
 
     if (existingSummary) {
@@ -439,13 +412,10 @@ export const recordHealthCheck = mutation({
         guestId: owner.guestId,
         analyticsOwnerKey: owner.analyticsOwnerKey,
         totalChecks: newTotal,
-        unknownChecks:
-          (existingSummary.unknownChecks ?? 0) + (isUnknown ? 1 : 0),
+        unknownChecks: (existingSummary.unknownChecks ?? 0) + (isUnknown ? 1 : 0),
         healthyChecks: existingSummary.healthyChecks + (isNowHealthy ? 1 : 0),
         avgLatencyMs: Math.round(
-          (existingSummary.avgLatencyMs * existingSummary.totalChecks +
-            latencyMs) /
-            newTotal,
+          (existingSummary.avgLatencyMs * existingSummary.totalChecks + latencyMs) / newTotal,
         ),
         incidentCount: existingSummary.incidentCount + (isIncident ? 1 : 0),
       });
@@ -466,12 +436,9 @@ export const recordHealthCheck = mutation({
 
     // 4. Create incident events on status changes
     const isFirstCheck = !previousStatus || previousStatus === "unknown";
-    const statusWentDown =
-      (wasHealthy && !isNowHealthy) || (isFirstCheck && !isNowHealthy);
+    const statusWentDown = (wasHealthy && !isNowHealthy) || (isFirstCheck && !isNowHealthy);
     const statusRecovered =
-      (previousStatus === "down" || previousStatus === "degraded") &&
-      isNowHealthy;
-
+      (previousStatus === "down" || previousStatus === "degraded") && isNowHealthy;
 
     if (isNewer && !isUnknown && statusWentDown) {
       // Status went DOWN or DEGRADED (including first-time checks that are unhealthy)
@@ -534,11 +501,7 @@ const incidentDocumentValidator = v.object({
   ...schema.tables.linkIncidents.validator.fields,
 });
 
-async function monitoringRows(
-  ctx: QueryCtx,
-  urls: Doc<"urls">[],
-  now?: number,
-) {
+async function monitoringRows(ctx: QueryCtx, urls: Doc<"urls">[], now?: number) {
   return Promise.all(
     urls.map(async (url) => {
       const check = await ctx.db
@@ -559,10 +522,7 @@ async function monitoringRows(
         (total, row) => total + row.totalChecks - (row.unknownChecks ?? 0),
         0,
       );
-      const healthy = summaries.reduce(
-        (total, row) => total + row.healthyChecks,
-        0,
-      );
+      const healthy = summaries.reduce((total, row) => total + row.healthyChecks, 0);
       return {
         _id: url._id,
         urlId: url._id,
@@ -572,10 +532,7 @@ async function monitoringRows(
         healthStatus: check?.healthStatus ?? null,
         latencyMs: check?.latencyMs ?? 0,
         uptime: known > 0 ? Math.round((healthy / known) * 1000) / 10 : null,
-        incidents: summaries.reduce(
-          (total, row) => total + row.incidentCount,
-          0,
-        ),
+        incidents: summaries.reduce((total, row) => total + row.incidentCount, 0),
       };
     }),
   );
@@ -624,9 +581,7 @@ export const getRecentIncidents = query({
         return url?.userTableId === user._id ? incident : null;
       }),
     );
-    return live.filter(
-      (incident): incident is NonNullable<typeof incident> => incident !== null,
-    );
+    return live.filter((incident): incident is NonNullable<typeof incident> => incident !== null);
   },
 });
 

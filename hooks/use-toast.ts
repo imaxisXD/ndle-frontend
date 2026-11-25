@@ -3,13 +3,7 @@
 import { useCallback, useMemo } from "react";
 import { toast } from "sonner";
 
-export type ToastType =
-  | "default"
-  | "loading"
-  | "success"
-  | "error"
-  | "info"
-  | "warning";
+export type ToastType = "default" | "loading" | "success" | "error" | "info" | "warning";
 
 export interface ToastOptions {
   type?: ToastType;

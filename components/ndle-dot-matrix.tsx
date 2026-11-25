@@ -85,9 +85,7 @@ function trimGlyphWhitespace(glyph: Frame): Frame {
   if (right < left) return glyph;
 
   const width = right - left + 1;
-  const trimmed: Frame = Array.from({ length: rows }, () =>
-    Array(width).fill(0),
-  );
+  const trimmed: Frame = Array.from({ length: rows }, () => Array(width).fill(0));
   for (let r = 0; r < rows; r++) {
     for (let c = 0; c < width; c++) {
       trimmed[r][c] = glyph[r][left + c];
@@ -109,9 +107,7 @@ function composeTextFrame(text: string, letterSpacingCols: number = 0): Frame {
     glyphsToRender.reduce((sum, g) => sum + (g[0]?.length ?? GLYPH_WIDTH), 0) +
     Math.max(0, glyphsToRender.length - 1) * letterSpacingCols;
 
-  const frame: Frame = Array.from({ length: GLYPH_HEIGHT }, () =>
-    Array(baseWidth).fill(0),
-  );
+  const frame: Frame = Array.from({ length: GLYPH_HEIGHT }, () => Array(baseWidth).fill(0));
 
   let cursor = 0;
   glyphsToRender.forEach((g, idx) => {
@@ -127,11 +123,7 @@ function composeTextFrame(text: string, letterSpacingCols: number = 0): Frame {
   return frame;
 }
 
-function scaleAndCenterFrame(
-  base: Frame,
-  targetRows: number,
-  targetCols: number,
-): Frame {
+function scaleAndCenterFrame(base: Frame, targetRows: number, targetCols: number): Frame {
   const baseRows = base.length;
   const baseCols = base[0]?.length ?? 0;
   if (baseRows === 0 || baseCols === 0) {
@@ -145,20 +137,12 @@ function scaleAndCenterFrame(
   );
   const leftMargin = Math.floor((targetCols - targetContentWidth) / 2);
 
-  const result: Frame = Array.from({ length: targetRows }, () =>
-    Array(targetCols).fill(0),
-  );
+  const result: Frame = Array.from({ length: targetRows }, () => Array(targetCols).fill(0));
 
   for (let r = 0; r < targetRows; r++) {
-    const baseR = Math.min(
-      baseRows - 1,
-      Math.floor((r * baseRows) / targetRows),
-    );
+    const baseR = Math.min(baseRows - 1, Math.floor((r * baseRows) / targetRows));
     for (let c = 0; c < targetContentWidth; c++) {
-      const baseC = Math.min(
-        baseCols - 1,
-        Math.floor((c * baseCols) / targetContentWidth),
-      );
+      const baseC = Math.min(baseCols - 1, Math.floor((c * baseCols) / targetContentWidth));
       const targetC = leftMargin + c;
       result[r][targetC] = base[baseR][baseC];
     }

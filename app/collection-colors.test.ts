@@ -1,8 +1,5 @@
 import { describe, expect, test } from "vitest";
-import {
-  COLLECTION_COLORS,
-  getCollectionFallbackColor,
-} from "@/components/collection/colors";
+import { COLLECTION_COLORS, getCollectionFallbackColor } from "@/components/collection/colors";
 
 describe("getCollectionFallbackColor", () => {
   test("keeps each collection color stable when another collection is deleted", () => {

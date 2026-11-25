@@ -31,9 +31,7 @@ export async function handleFaviconApiRequest(request: NextRequest) {
   }
 
   const clientIp =
-    request.headers.get("cf-connecting-ip") ||
-    request.headers.get("x-real-ip") ||
-    "anonymous";
+    request.headers.get("cf-connecting-ip") || request.headers.get("x-real-ip") || "anonymous";
   const rate = await getFaviconRateLimit().limit(`favicon:${clientIp}`);
   if (!rate.success) {
     return NextResponse.json(
@@ -54,8 +52,7 @@ export async function handleFaviconApiRequest(request: NextRequest) {
       signal: AbortSignal.timeout(FAVICON_FETCH_TIMEOUT_MS),
     });
     const body = await response.text();
-    const contentType =
-      response.headers.get("content-type") || "application/json";
+    const contentType = response.headers.get("content-type") || "application/json";
     const cacheControl =
       response.status >= 500
         ? "no-store"

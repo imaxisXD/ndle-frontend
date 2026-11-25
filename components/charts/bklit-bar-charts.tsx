@@ -27,8 +27,7 @@ function ValueLabels<T extends object>({
   valueKey: string;
   valueFormatter?: (value: unknown, item: T) => string;
 }) {
-  const { margin, barScale, bandWidth, barXAccessor, data, containerRef } =
-    useChart();
+  const { margin, barScale, bandWidth, barXAccessor, data, containerRef } = useChart();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -81,10 +80,7 @@ function estimateLabelWidth<T extends object>({
   }
 
   const longestVisibleLength = data.reduce((longest, item) => {
-    const label = labelFormatter(
-      getRecordValue(item as ChartRecord, labelKey),
-      item,
-    );
+    const label = labelFormatter(getRecordValue(item as ChartRecord, labelKey), item);
     // 16 characters fits names like "United Kingdom" or "Samsung Internet".
     return Math.max(longest, Math.min(label.length, 16));
   }, 0);
@@ -154,11 +150,7 @@ export function BklitHorizontalBarChart<T extends object>({
       isEmpty={data.length === 0}
       isLoading={isLoading}
       loadingFallback={
-        <BarChartLoading
-          aspectRatio="auto"
-          className="h-full w-full"
-          margin={chartMargin}
-        />
+        <BarChartLoading aspectRatio="auto" className="h-full w-full" margin={chartMargin} />
       }
       loadingTitle={loadingTitle}
       style={style}
@@ -174,17 +166,12 @@ export function BklitHorizontalBarChart<T extends object>({
       >
         <Background pattern="dots" opacity={0.85} />
         <Bar dataKey={valueKey} fill={color} lineCap={4} stroke={color} />
-        <BarYAxis
-          labelFormatter={(value, item) => labelFormatter(value, item as T)}
-        />
+        <BarYAxis labelFormatter={(value, item) => labelFormatter(value, item as T)} />
         <ChartTooltip
           content={({ point }) => {
             const item = point as T;
             const value = getRecordValue(point, valueKey);
-            const percentage =
-              total > 0
-                ? ((Number(value ?? 0) / total) * 100).toFixed(1)
-                : "0.0";
+            const percentage = total > 0 ? ((Number(value ?? 0) / total) * 100).toFixed(1) : "0.0";
 
             return (
               <TooltipContent
@@ -255,11 +242,7 @@ export function BklitVerticalBarChart<T extends object>({
       isEmpty={data.length === 0}
       isLoading={isLoading}
       loadingFallback={
-        <BarChartLoading
-          aspectRatio="auto"
-          className="h-full w-full"
-          margin={chartMargin}
-        />
+        <BarChartLoading aspectRatio="auto" className="h-full w-full" margin={chartMargin} />
       }
       style={style}
     >
@@ -278,10 +261,7 @@ export function BklitVerticalBarChart<T extends object>({
           content={({ point }) => {
             const item = point as T;
             const value = getRecordValue(point, valueKey);
-            const percentage =
-              total > 0
-                ? ((Number(value ?? 0) / total) * 100).toFixed(1)
-                : "0.0";
+            const percentage = total > 0 ? ((Number(value ?? 0) / total) * 100).toFixed(1) : "0.0";
 
             return (
               <TooltipContent

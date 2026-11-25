@@ -7,11 +7,7 @@ import type { serviceSyncTarget } from "./serviceSyncTypes";
 export type SyncTarget = Infer<typeof serviceSyncTarget>;
 
 /** Save desired state in the same transaction as the user's change. */
-export async function queueServiceSync(
-  ctx: MutationCtx,
-  key: string,
-  target: SyncTarget,
-) {
+export async function queueServiceSync(ctx: MutationCtx, key: string, target: SyncTarget) {
   const previous = await ctx.db
     .query("serviceSyncJobs")
     .withIndex("by_key", (q) => q.eq("key", key))
@@ -21,13 +17,10 @@ export async function queueServiceSync(
   if (previous?.target.kind === "owner" && target.kind === "owner") {
     target = {
       ...target,
-      ownerKeys: [
-        ...new Set([...previous.target.ownerKeys, ...target.ownerKeys]),
-      ],
+      ownerKeys: [...new Set([...previous.target.ownerKeys, ...target.ownerKeys])],
     };
   }
-  const running =
-    previous?.status === "running" && previous.nextAttemptAt > now;
+  const running = previous?.status === "running" && previous.nextAttemptAt > now;
   const change = {
     key,
     target,
@@ -39,8 +32,7 @@ export async function queueServiceSync(
     lastError: undefined,
     runningVersion: running ? previous.runningVersion : undefined,
   };
-  const jobId =
-    previous?._id ?? (await ctx.db.insert("serviceSyncJobs", change));
+  const jobId = previous?._id ?? (await ctx.db.insert("serviceSyncJobs", change));
   if (previous) await ctx.db.patch(previous._id, change);
   if (!running)
     await ctx.scheduler.runAfter(0, internal.serviceSync.run, {

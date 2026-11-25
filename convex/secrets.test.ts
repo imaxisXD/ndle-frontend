@@ -40,11 +40,7 @@ describe("service credentials", () => {
       requestId: "click-one",
     };
     vi.stubEnv("SHARED_SECRET", "click-secret-for-tests");
-    for (const sharedSecret of [
-      "click-secret-for-test",
-      "click-secret-for-testsx",
-      "",
-    ]) {
+    for (const sharedSecret of ["click-secret-for-test", "click-secret-for-testsx", ""]) {
       await expect(
         backend.mutation(api.urlAnalytics.mutateUrlAnalytics, {
           ...event,
@@ -127,10 +123,7 @@ describe("service credentials", () => {
         userTableId: userId,
       });
     });
-    const result = await backend.action(
-      internal.backfill.runLegacyOwnerBackfill,
-      {},
-    );
+    const result = await backend.action(internal.backfill.runLegacyOwnerBackfill, {});
     expect(result.done).toBe(true);
     expect(await backend.run((ctx) => ctx.db.get(urlId))).toMatchObject({
       ownershipState: "user",

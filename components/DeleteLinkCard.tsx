@@ -21,11 +21,7 @@ import {
 } from "@/components/ui/base-dialog";
 import { TrashIcon } from "@phosphor-icons/react/dist/ssr";
 
-export function DeleteLinkCard({
-  onDelete,
-}: {
-  onDelete: () => Promise<void>;
-}) {
+export function DeleteLinkCard({ onDelete }: { onDelete: () => Promise<void> }) {
   const [open, setOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
@@ -44,33 +40,25 @@ export function DeleteLinkCard({
       <CardHeader className="rounded-t-xl border-red-500 bg-red-50">
         <CardTitle className="text-red-600">Delete Link</CardTitle>
         <CardToolbar>
-          <Button
-            variant="destructive"
-            type="button"
-            onClick={() => setOpen(true)}
-          >
+          <Button variant="destructive" type="button" onClick={() => setOpen(true)}>
             <TrashIcon className="h-4 w-4" /> Delete Link
           </Button>
         </CardToolbar>
       </CardHeader>
       <CardContent className="flex flex-col items-start justify-between gap-2">
-        <CardDescription className="">
-          Delete this shortened link permanently.
-        </CardDescription>
+        <CardDescription className="">Delete this shortened link permanently.</CardDescription>
         <p className="text-muted-foreground mt-1 text-xs">
-          This will remove all the data associated with this link, including
-          clicks, analytics and metadata.
+          This will remove all the data associated with this link, including clicks, analytics and
+          metadata.
         </p>
       </CardContent>
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="gap-6">
           <div>
-            <DialogTitle className="pr-8 text-base">
-              Permanently delete this link?
-            </DialogTitle>
+            <DialogTitle className="pr-8 text-base">Permanently delete this link?</DialogTitle>
             <DialogDescription className="mt-2">
-              This removes the short link, analytics, and saved metadata. This
-              action cannot be undone.
+              This removes the short link, analytics, and saved metadata. This action cannot be
+              undone.
             </DialogDescription>
           </div>
           <DialogFooter className="gap-2 border-t border-dashed pt-4 sm:items-center [&>*]:w-full sm:[&>*]:w-auto">

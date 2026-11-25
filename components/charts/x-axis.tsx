@@ -26,13 +26,7 @@ interface XAxisLabelProps {
   tickerHalfWidth: number;
 }
 
-function XAxisLabel({
-  label,
-  x,
-  crosshairX,
-  isHovering,
-  tickerHalfWidth,
-}: XAxisLabelProps) {
+function XAxisLabel({ label, x, crosshairX, isHovering, tickerHalfWidth }: XAxisLabelProps) {
   const fadeBuffer = 20;
   const fadeRadius = tickerHalfWidth + fadeBuffer;
 
@@ -95,8 +89,7 @@ const XAxisInner = memo(function XAxisInner({
   tickMode = "domain",
   container,
 }: XAxisProps & { container: HTMLDivElement }) {
-  const { xScale, margin, tooltipData, data, xAccessor, dateLabels } =
-    useChart();
+  const { xScale, margin, tooltipData, data, xAccessor, dateLabels } = useChart();
 
   // Generate tick labels: evenly spaced along the domain, or one per data row
   const labelsToShow = useMemo(() => {
@@ -153,7 +146,7 @@ const XAxisInner = memo(function XAxisInner({
         />
       ))}
     </div>,
-    container
+    container,
   );
 });
 

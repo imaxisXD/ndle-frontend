@@ -7,10 +7,8 @@ const badgeVariants = cva(
   {
     variants: {
       variant: {
-        default:
-          "bg-secondary text-secondary-foreground border-transparent py-1",
-        green:
-          "bg-gradient-to-b from-green-100 to-green-200 text-green-700 border-green-500/70",
+        default: "bg-secondary text-secondary-foreground border-transparent py-1",
+        green: "bg-gradient-to-b from-green-100 to-green-200 text-green-700 border-green-500/70",
         yellow:
           "bg-gradient-to-b from-yellow-100 to-yellow-200 text-yellow-700 border-yellow-500/70",
         red: "bg-gradient-to-b from-red-100 to-red-200 text-red-700 border-red-500/70",
@@ -25,9 +23,7 @@ const badgeVariants = cva(
 );
 
 export interface BadgeProps
-  extends
-    React.HTMLAttributes<HTMLSpanElement>,
-    VariantProps<typeof badgeVariants> {
+  extends React.HTMLAttributes<HTMLSpanElement>, VariantProps<typeof badgeVariants> {
   label?: React.ReactNode;
 }
 

@@ -1,8 +1,4 @@
-import {
-  type FadeEdges,
-  fadeGradientStops,
-  resolveFadeSides,
-} from "./fade-edges";
+import { type FadeEdges, fadeGradientStops, resolveFadeSides } from "./fade-edges";
 
 interface AreaGradientDefsProps {
   gradientId: string;
@@ -45,14 +41,8 @@ export function AreaGradientDefs({
     <defs>
       {isPatternFill ? null : (
         <linearGradient id={gradientId} x1="0%" x2="0%" y1="0%" y2="100%">
-          <stop
-            offset="0%"
-            style={{ stopColor: fill, stopOpacity: fillOpacity }}
-          />
-          <stop
-            offset="100%"
-            style={{ stopColor: fill, stopOpacity: gradientToOpacity }}
-          />
+          <stop offset="0%" style={{ stopColor: fill, stopOpacity: fillOpacity }} />
+          <stop offset="100%" style={{ stopColor: fill, stopOpacity: gradientToOpacity }} />
         </linearGradient>
       )}
 

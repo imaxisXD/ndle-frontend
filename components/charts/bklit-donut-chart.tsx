@@ -45,12 +45,7 @@ export function BklitDonutChart({
           size={220}
         >
           {slices.map((item, index) => (
-            <PieSlice
-              color={item.color}
-              hoverEffect="grow"
-              index={index}
-              key={item.label}
-            />
+            <PieSlice color={item.color} hoverEffect="grow" index={index} key={item.label} />
           ))}
           <PieCenter
             defaultLabel="Traffic"

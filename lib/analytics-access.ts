@@ -42,11 +42,7 @@ export function getDateWindowAccessError(
   }
 
   const inclusiveDays = Math.floor((endTime - startTime) / DAY_MS) + 1;
-  const todayUtcMs = Date.UTC(
-    now.getUTCFullYear(),
-    now.getUTCMonth(),
-    now.getUTCDate(),
-  );
+  const todayUtcMs = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
   // The 30d preset starts at todayUtc - 29d; allow 1 day of UTC rollover tolerance.
   const oldestFreeStartMs = todayUtcMs - 30 * DAY_MS;
 

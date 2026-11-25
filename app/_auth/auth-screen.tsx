@@ -41,8 +41,7 @@ export const authClerkAppearance = {
       "h-11 rounded-md border-2 border-[color:var(--pulp-ink)] bg-[color:var(--pulp-yellow)] font-mono text-xs font-bold tracking-[0.22em] text-[color:var(--pulp-ink)] uppercase shadow-[4px_4px_0_0_var(--pulp-ink)] transition hover:bg-[color:var(--pulp-orange)] hover:text-[color:var(--pulp-cream)] active:translate-x-px active:translate-y-px active:shadow-[2px_2px_0_0_var(--pulp-ink)]",
     footer: "hidden",
     identityPreviewText: "text-[color:var(--pulp-ink)]",
-    formResendCodeLink:
-      "text-[color:var(--poster)] hover:text-[color:var(--poster-deep)]",
+    formResendCodeLink: "text-[color:var(--poster)] hover:text-[color:var(--poster-deep)]",
     formFieldSuccessText: "text-[color:var(--telegram-green)]",
     formFieldErrorText: "text-[color:var(--telegram-red)]",
     alert:
@@ -78,18 +77,14 @@ function RatingStamp() {
 function SideStamp() {
   return (
     <div className="hidden flex-col items-end gap-1 text-[color:var(--pulp-ink)] sm:inline-flex">
-      <div className="text-[9px] font-bold tracking-[0.22em] uppercase">
-        free plan
-      </div>
+      <div className="text-[9px] font-bold tracking-[0.22em] uppercase">free plan</div>
       <div
         className="flex items-center justify-center border border-[color:var(--pulp-ink)] px-3 py-1 text-[9px] font-bold tracking-[0.25em] uppercase"
         style={{ borderRadius: "50% / 60%" }}
       >
         100 links
       </div>
-      <div className="text-right text-[8px] font-semibold tracking-[0.2em] uppercase">
-        no card
-      </div>
+      <div className="text-right text-[8px] font-semibold tracking-[0.2em] uppercase">no card</div>
     </div>
   );
 }
@@ -108,8 +103,7 @@ function CuttingMatBackground() {
           linear-gradient(to right, rgba(255,255,255,0.1) 1px, transparent 1px),
           linear-gradient(to bottom, rgba(255,255,255,0.1) 1px, transparent 1px)
         `,
-        backgroundSize:
-          "100% 100%, 100% 100%, 96px 96px, 96px 96px, 24px 24px, 24px 24px",
+        backgroundSize: "100% 100%, 100% 100%, 96px 96px, 96px 96px, 24px 24px, 24px 24px",
       }}
     />
   );
@@ -130,18 +124,8 @@ export function AuthScreen({
       <div className="absolute right-[-8rem] bottom-[-9rem] h-96 w-96 rotate-12 border-[24px] border-[color:var(--pulp-orange)]/25" />
 
       <header className="relative z-20 mx-auto flex max-w-7xl items-center justify-between px-5 py-5 lg:px-8">
-        <Link
-          href="/"
-          className="group flex items-center gap-3"
-          aria-label="Back to ndle home"
-        >
-          <NdleDotMatrix
-            rows={7}
-            cols={18}
-            size={3.5}
-            gap={1.5}
-            palette={dotPalette}
-          />
+        <Link href="/" className="group flex items-center gap-3" aria-label="Back to ndle home">
+          <NdleDotMatrix rows={7} cols={18} size={3.5} gap={1.5} palette={dotPalette} />
           <span className="hidden text-[10px] font-bold tracking-[0.3em] text-[color:var(--pulp-cream)]/70 uppercase sm:inline">
             / link monitor
           </span>
@@ -197,12 +181,8 @@ export function AuthScreen({
               <p className="mb-2 text-[10px] font-bold tracking-[0.3em] text-[color:var(--pulp-orange)] uppercase">
                 account access
               </p>
-              <h2 className="font-sigmar text-3xl leading-none italic sm:text-4xl">
-                {title}
-              </h2>
-              <p className="mt-3 text-sm leading-6 text-[color:var(--pulp-ink)]/70">
-                {subtitle}
-              </p>
+              <h2 className="font-sigmar text-3xl leading-none italic sm:text-4xl">{title}</h2>
+              <p className="mt-3 text-sm leading-6 text-[color:var(--pulp-ink)]/70">{subtitle}</p>
             </div>
 
             {children}

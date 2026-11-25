@@ -1,5 +1,11 @@
 import type { ComponentType, ReactNode } from "react";
-import { BrowserIcon, LinkSimpleIcon, MegaphoneIcon, QrCodeIcon, SignpostIcon } from "@phosphor-icons/react/dist/ssr";
+import {
+  BrowserIcon,
+  LinkSimpleIcon,
+  MegaphoneIcon,
+  QrCodeIcon,
+  SignpostIcon,
+} from "@phosphor-icons/react/dist/ssr";
 import { Badge } from "@ui/badge";
 import { cn } from "@/lib/utils";
 
@@ -12,13 +18,20 @@ import { cn } from "@/lib/utils";
 type Icon = ComponentType<{ size?: number; className?: string; weight?: "regular" | "bold" }>;
 
 /** The bento's product window: a 2px ink edge and a hard ink shadow. */
-const WINDOW = "overflow-hidden rounded-[12px] border-2 border-[#141312] bg-white shadow-[3px_4px_0_0_#141312]";
+const WINDOW =
+  "overflow-hidden rounded-[12px] border-2 border-[#141312] bg-white shadow-[3px_4px_0_0_#141312]";
 
 export function Figure({ caption, children }: { caption?: string; children: ReactNode }) {
   return (
     <figure className="my-10">
-      <div className="dot-page overflow-hidden border-2 border-[#141312] p-5 sm:p-7">{children}</div>
-      {caption && <figcaption className="mt-3 text-center font-mono text-xs text-[#3d3d3d]">{caption}</figcaption>}
+      <div className="dot-page overflow-hidden border-2 border-[#141312] p-5 sm:p-7">
+        {children}
+      </div>
+      {caption && (
+        <figcaption className="mt-3 text-center font-mono text-xs text-[#3d3d3d]">
+          {caption}
+        </figcaption>
+      )}
     </figure>
   );
 }
@@ -58,7 +71,9 @@ function Wire({ lit = false, className }: { lit?: boolean; className?: string })
       aria-hidden
       className={cn(
         "mx-auto block h-6 w-0 shrink-0 border-dashed sm:mx-0 sm:h-0 sm:w-8",
-        lit ? "border-l-2 border-[#141312] sm:border-t-2 sm:border-l-0" : "border-l border-[#141312]/40 sm:border-t sm:border-l-0",
+        lit
+          ? "border-l-2 border-[#141312] sm:border-t-2 sm:border-l-0"
+          : "border-l border-[#141312]/40 sm:border-t sm:border-l-0",
         className,
       )}
     />
@@ -108,7 +123,12 @@ function Stage({
 export function QrPath() {
   return (
     <div className="flex flex-col sm:flex-row sm:items-start">
-      <Stage icon={QrCodeIcon} label="Printed code" value="Table 4 menu" breaks={["Too small or low contrast", "Glare, creases, damage"]} />
+      <Stage
+        icon={QrCodeIcon}
+        label="Printed code"
+        value="Table 4 menu"
+        breaks={["Too small or low contrast", "Glare, creases, damage"]}
+      />
       <Wire className="sm:mt-[46px]" />
       <Stage
         icon={LinkSimpleIcon}
@@ -183,7 +203,10 @@ function Routes({ rows }: { rows: Array<{ label: string; hops: Hop[]; note: stri
   return (
     <div className="space-y-6">
       {rows.map((row) => (
-        <div key={row.label} className="grid gap-3 sm:grid-cols-[96px_minmax(0,1fr)] sm:items-start">
+        <div
+          key={row.label}
+          className="grid gap-3 sm:grid-cols-[96px_minmax(0,1fr)] sm:items-start"
+        >
           <p className="pt-2.5 font-[family-name:var(--font-bebas)] text-2xl leading-none tracking-[0.01em] text-[#141312] uppercase">
             {row.label}
           </p>
@@ -288,9 +311,17 @@ export function RotRoutes() {
 
 const CODES = [
   { code: "200", tone: "ok", meaning: "OK. The page loaded." },
-  { code: "301 / 308", tone: "move", meaning: "Moved for good. Fine if it lands on the right page." },
+  {
+    code: "301 / 308",
+    tone: "move",
+    meaning: "Moved for good. Fine if it lands on the right page.",
+  },
   { code: "302 / 307", tone: "move", meaning: "Moved for now. Short links often use these." },
-  { code: "404 / 410", tone: "bad", meaning: "Not found, or gone on purpose. The page is missing." },
+  {
+    code: "404 / 410",
+    tone: "bad",
+    meaning: "Not found, or gone on purpose. The page is missing.",
+  },
   { code: "5xx", tone: "bad", meaning: "The server failed. Often temporary, sometimes not." },
 ] as const;
 
@@ -374,8 +405,14 @@ export function UtmAnatomy() {
 }
 
 const GOOGL = [
-  { date: "30 Mar 2018", text: "Google starts winding goo.gl down and says existing links will keep redirecting." },
-  { date: "18 Jul 2024", text: "Google announces every goo.gl link will stop working after 25 August 2025." },
+  {
+    date: "30 Mar 2018",
+    text: "Google starts winding goo.gl down and says existing links will keep redirecting.",
+  },
+  {
+    date: "18 Jul 2024",
+    text: "Google announces every goo.gl link will stop working after 25 August 2025.",
+  },
   { date: "23 Aug 2024", text: "Warning pages start appearing on some links." },
   { date: "1 Aug 2025", text: "Google changes course and keeps actively used links alive." },
   { date: "25 Aug 2025", text: "Links with no activity in late 2024 stop working.", end: true },
@@ -395,7 +432,14 @@ export function GooglTimeline() {
             )}
           />
           <p className="font-mono text-xs text-[#3d3d3d]">{event.date}</p>
-          <p className={cn("mt-0.5 font-mono text-[13px] leading-5", event.end ? "text-red-700" : "text-[#141312]")}>{event.text}</p>
+          <p
+            className={cn(
+              "mt-0.5 font-mono text-[13px] leading-5",
+              event.end ? "text-red-700" : "text-[#141312]",
+            )}
+          >
+            {event.text}
+          </p>
         </li>
       ))}
     </ol>
@@ -416,8 +460,10 @@ export function FailedCheck() {
               <Badge variant="red" label="Error" />
             </div>
             <div className="flex w-full min-w-0 flex-col gap-1">
-              <code className="block truncate text-sm font-medium text-[#141312]">ndle.fyi/k3x9qa</code>
-              <p className="text-sm text-[#3d3d3d] [overflow-wrap:anywhere]">
+              <code className="block truncate text-sm font-medium text-[#141312]">
+                ndle.fyi/k3x9qa
+              </code>
+              <p className="text-sm [overflow-wrap:anywhere] text-[#3d3d3d]">
                 The destination page could not be found. It may have been moved or deleted.
               </p>
             </div>

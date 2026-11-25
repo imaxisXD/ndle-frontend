@@ -14,12 +14,22 @@ describe("verifyTurnstile", () => {
   it("passes when Cloudflare says success, sending the secret, token and IP", async () => {
     const { impl, sent } = siteverify({ success: true });
     await expect(verifyTurnstile("token", "203.0.113.7", "secret", impl)).resolves.toBe(true);
-    expect(Object.fromEntries(sent[0])).toEqual({ secret: "secret", response: "token", remoteip: "203.0.113.7" });
+    expect(Object.fromEntries(sent[0])).toEqual({
+      secret: "secret",
+      response: "token",
+      remoteip: "203.0.113.7",
+    });
   });
 
   it("fails on a rejected token, an error answer or no token at all", async () => {
-    await expect(verifyTurnstile("token", null, "secret", siteverify({ success: false }).impl)).resolves.toBe(false);
-    await expect(verifyTurnstile("token", null, "secret", siteverify({}, false).impl)).resolves.toBe(false);
-    await expect(verifyTurnstile("", null, "secret", siteverify({ success: true }).impl)).resolves.toBe(false);
+    await expect(
+      verifyTurnstile("token", null, "secret", siteverify({ success: false }).impl),
+    ).resolves.toBe(false);
+    await expect(
+      verifyTurnstile("token", null, "secret", siteverify({}, false).impl),
+    ).resolves.toBe(false);
+    await expect(
+      verifyTurnstile("", null, "secret", siteverify({ success: true }).impl),
+    ).resolves.toBe(false);
   });
 });

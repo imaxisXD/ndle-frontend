@@ -1,8 +1,4 @@
-export type DomainStatus =
-  | "awaiting_verification"
-  | "pending"
-  | "active"
-  | "failed";
+export type DomainStatus = "awaiting_verification" | "pending" | "active" | "failed";
 
 export interface DomainData {
   _id: string;

@@ -2,11 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import { useEffect } from "react";
-import {
-  createReplayGuard,
-  REPLAY_RECORDER_URL,
-  type ReplayWindow,
-} from "@/lib/session-replay";
+import { createReplayGuard, REPLAY_RECORDER_URL, type ReplayWindow } from "@/lib/session-replay";
 
 let guard: ((pathname: string) => void) | undefined;
 

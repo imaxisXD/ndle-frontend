@@ -6,16 +6,8 @@ import { Lock, Spark } from "iconoir-react";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import type { Matcher } from "react-day-picker";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/base-popover";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/base-tooltip";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/base-popover";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/base-tooltip";
 import { cn } from "@/lib/utils";
 import { ArrowCircleDownIcon, CalendarPlusIcon } from "@phosphor-icons/react";
 
@@ -95,11 +87,7 @@ export function CalendarPreset({
           <ArrowCircleDownIcon className="size-4" />
         </span>
       </PopoverTrigger>
-      <PopoverContent
-        className="max-w-sm overflow-hidden p-0"
-        align="start"
-        showArrow={false}
-      >
+      <PopoverContent className="max-w-sm overflow-hidden p-0" align="start" showArrow={false}>
         <div className="px-4 py-4">
           <div className="relative">
             <Calendar
@@ -154,10 +142,7 @@ export function CalendarPreset({
                     <span className="inline-flex items-center gap-1.5 font-normal">
                       {locked ? (
                         <span className="inline-flex items-center gap-1.5 text-xs">
-                          <Lock
-                            className="size-4 fill-amber-50/20"
-                            strokeWidth={1.5}
-                          />
+                          <Lock className="size-4 fill-amber-50/20" strokeWidth={1.5} />
                           <span className="font-doto roundness-100 font-black tracking-tighter">
                             [Pro Only]
                           </span>

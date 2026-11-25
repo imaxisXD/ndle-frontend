@@ -35,14 +35,14 @@ export const insertIntoRedis = internalAction({
         }),
       ),
     ),
-    abDistribution: v.optional(
-      v.union(v.literal("weighted_random"), v.literal("deterministic")),
-    ),
+    abDistribution: v.optional(v.union(v.literal("weighted_random"), v.literal("deterministic"))),
     overwrite: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
-    await ctx.runMutation(internal.serviceSync.enqueue, { key: `redirect:${args.slugAssigned}`,
-      target: { kind: "redirect", urlId: args.docId, slug: args.slugAssigned } });
+    await ctx.runMutation(internal.serviceSync.enqueue, {
+      key: `redirect:${args.slugAssigned}`,
+      target: { kind: "redirect", urlId: args.docId, slug: args.slugAssigned },
+    });
     return null;
   },
 });
@@ -53,7 +53,11 @@ export const deleteFromRedis = internalAction({
   },
   handler: async (_, args) => {
     // Only pre-migration jobs call this. A current revision always takes priority.
-    await redis.eval(REDIRECT_SYNC_SCRIPT, [args.slugAssigned, `ndle:sync:${args.slugAssigned}`], ["0", ""]);
+    await redis.eval(
+      REDIRECT_SYNC_SCRIPT,
+      [args.slugAssigned, `ndle:sync:${args.slugAssigned}`],
+      ["0", ""],
+    );
     return null;
   },
 });

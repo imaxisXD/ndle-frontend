@@ -16,7 +16,7 @@ product
 Everyone, prosumer-leaning — from someone shortening a single link to power
 users running campaigns. The audience spans indie devs, marketers tracking
 UTMs and traffic sources, and small teams managing shared links, collections,
-and custom domains. The common thread: people who want a *real* shortener with
+and custom domains. The common thread: people who want a _real_ shortener with
 real-time analytics and monitoring, not a throwaway redirect. The interface
 must meet a first-time visitor at the guest shortener and still reward a power
 user living in the URLs table and analytics all day — without forcing either
@@ -24,8 +24,8 @@ into the other's mode.
 
 ## Product Purpose
 
-NDLE — *"Short. Sharp. Smarter."* — is an intelligent URL shortener. It turns
-a long link into a short one in seconds, then makes the link *worth keeping*:
+NDLE — _"Short. Sharp. Smarter."_ — is an intelligent URL shortener. It turns
+a long link into a short one in seconds, then makes the link _worth keeping_:
 real-time click analytics, traffic-source and UTM breakdowns, device/geo
 charts, uptime monitoring and health checks, collections, custom domains, QR
 codes, and an AI layer that can talk through the charts. Success looks like a

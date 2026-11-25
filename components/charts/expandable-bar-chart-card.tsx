@@ -62,10 +62,7 @@ export function ExpandableBarChartCard<T extends { clicks: number }>({
     return data.slice().sort((a, b) => b.clicks - a.clicks);
   }, [data]);
 
-  const chartData = useMemo(
-    () => sortedData.slice(0, limit),
-    [sortedData, limit],
-  );
+  const chartData = useMemo(() => sortedData.slice(0, limit), [sortedData, limit]);
 
   return (
     <Card className={cn("flex h-full flex-col", className)}>
@@ -132,7 +129,7 @@ export function ExpandableBarChartCard<T extends { clicks: number }>({
         />
       </CardContent>
       {footerLabel && sortedData.length > 0 && (
-        <CardFooter className="text-muted-foreground border-t border-border pt-3 text-xs">
+        <CardFooter className="text-muted-foreground border-border border-t pt-3 text-xs">
           {footerLabel(sortedData.length)}
         </CardFooter>
       )}

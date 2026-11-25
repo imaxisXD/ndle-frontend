@@ -43,18 +43,29 @@ const components: MDXComponents = {
     </h2>
   ),
   h3: ({ className, children, ...props }) => (
-    <h3 className={cn("mt-8 mb-2 scroll-mt-24 text-lg font-medium text-[var(--fg)]", className)} {...props}>
+    <h3
+      className={cn("mt-8 mb-2 scroll-mt-24 text-lg font-medium text-[var(--fg)]", className)}
+      {...props}
+    >
       {children}
     </h3>
   ),
   p: ({ className, ...props }) => (
-    <p className={cn("my-5 text-[1.0625rem] leading-8 text-pretty text-[var(--fg-2)]", className)} {...props} />
+    <p
+      className={cn("my-5 text-[1.0625rem] leading-8 text-pretty text-[var(--fg-2)]", className)}
+      {...props}
+    />
   ),
   a: Anchor,
-  strong: ({ className, ...props }) => <strong className={cn("font-medium text-[var(--fg)]", className)} {...props} />,
+  strong: ({ className, ...props }) => (
+    <strong className={cn("font-medium text-[var(--fg)]", className)} {...props} />
+  ),
   ul: ({ className, ...props }) => (
     <ul
-      className={cn("my-5 list-disc space-y-3 pl-5 text-[1.0625rem] leading-8 text-[var(--fg-2)] marker:text-[var(--fg-3)]", className)}
+      className={cn(
+        "my-5 list-disc space-y-3 pl-5 text-[1.0625rem] leading-8 text-[var(--fg-2)] marker:text-[var(--fg-3)]",
+        className,
+      )}
       {...props}
     />
   ),
@@ -69,7 +80,13 @@ const components: MDXComponents = {
   ),
   li: ({ className, ...props }) => <li className={cn("pl-1", className)} {...props} />,
   code: ({ className, ...props }) => (
-    <code className={cn("rounded-sm bg-black/[0.05] px-1 py-0.5 font-mono text-[0.88em] text-[var(--fg)]", className)} {...props} />
+    <code
+      className={cn(
+        "rounded-sm bg-black/[0.05] px-1 py-0.5 font-mono text-[0.88em] text-[var(--fg)]",
+        className,
+      )}
+      {...props}
+    />
   ),
   // Code blocks in ink, like the footer; the inline-code chip is undone inside.
   pre: ({ className, ...props }) => (
@@ -82,13 +99,19 @@ const components: MDXComponents = {
     />
   ),
   blockquote: ({ className, ...props }) => (
-    <blockquote className={cn("my-6 border-l-2 border-[var(--sig)] pl-4 text-[var(--fg)]", className)} {...props} />
+    <blockquote
+      className={cn("my-6 border-l-2 border-[var(--sig)] pl-4 text-[var(--fg)]", className)}
+      {...props}
+    />
   ),
   hr: () => <hr className="my-12 border-t border-dashed border-gray-400/60" />,
   // GFM tables, framed in 2px ink like the diagrams; wide ones scroll sideways.
   table: ({ className, ...props }) => (
     <div className="my-8 overflow-x-auto border-2 border-[#141312] bg-white">
-      <table className={cn("w-full min-w-[560px] border-collapse text-left text-sm", className)} {...props} />
+      <table
+        className={cn("w-full min-w-[560px] border-collapse text-left text-sm", className)}
+        {...props}
+      />
     </div>
   ),
   th: ({ className, ...props }) => (
@@ -101,7 +124,13 @@ const components: MDXComponents = {
     />
   ),
   td: ({ className, ...props }) => (
-    <td className={cn("border-t border-[var(--line)] px-4 py-3 align-top leading-6 text-[var(--fg-2)]", className)} {...props} />
+    <td
+      className={cn(
+        "border-t border-[var(--line)] px-4 py-3 align-top leading-6 text-[var(--fg-2)]",
+        className,
+      )}
+      {...props}
+    />
   ),
 };
 

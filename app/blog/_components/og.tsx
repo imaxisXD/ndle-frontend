@@ -17,7 +17,15 @@ async function font(path: string) {
   return readFile(join(process.cwd(), path));
 }
 
-export async function blogCard({ title, tags, footer }: { title: string; tags: string[]; footer: string }) {
+export async function blogCard({
+  title,
+  tags,
+  footer,
+}: {
+  title: string;
+  tags: string[];
+  footer: string;
+}) {
   const [bebas, geist, mono] = await Promise.all([
     font("assets/fonts/BebasNeue-Regular.ttf"),
     font("node_modules/geist/dist/fonts/geist-sans/Geist-SemiBold.ttf"),
@@ -25,67 +33,65 @@ export async function blogCard({ title, tags, footer }: { title: string; tags: s
   ]);
 
   return new ImageResponse(
-    (
+    <div
+      style={{
+        width: "100%",
+        height: "100%",
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "space-between",
+        padding: "64px 72px",
+        backgroundColor: "#ffffff",
+        borderBottom: `12px solid ${INK}`,
+        fontFamily: "Paper Mono",
+        color: INK,
+      }}
+    >
+      <div style={{ display: "flex", gap: 12 }}>
+        {tags.map((tag, i) => (
+          <div
+            key={tag}
+            style={{
+              display: "flex",
+              padding: "4px 12px",
+              border: `2px solid ${INK}`,
+              borderRadius: 6,
+              backgroundColor: i === 0 ? SIG : "#ffffff",
+              fontSize: 24,
+            }}
+          >
+            {tag}
+          </div>
+        ))}
+      </div>
       <div
         style={{
-          width: "100%",
-          height: "100%",
           display: "flex",
-          flexDirection: "column",
-          justifyContent: "space-between",
-          padding: "64px 72px",
-          backgroundColor: "#ffffff",
-          borderBottom: `12px solid ${INK}`,
-          fontFamily: "Paper Mono",
-          color: INK,
+          fontFamily: "Bebas Neue",
+          fontSize: title.length > 48 ? 104 : 124,
+          lineHeight: 0.92,
+          textTransform: "uppercase",
+          maxWidth: 1000,
         }}
       >
-        <div style={{ display: "flex", gap: 12 }}>
-          {tags.map((tag, i) => (
-            <div
-              key={tag}
-              style={{
-                display: "flex",
-                padding: "4px 12px",
-                border: `2px solid ${INK}`,
-                borderRadius: 6,
-                backgroundColor: i === 0 ? SIG : "#ffffff",
-                fontSize: 24,
-              }}
-            >
-              {tag}
-            </div>
-          ))}
-        </div>
+        {title}
+      </div>
+      <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between" }}>
         <div
           style={{
             display: "flex",
-            fontFamily: "Bebas Neue",
-            fontSize: title.length > 48 ? 104 : 124,
-            lineHeight: 0.92,
-            textTransform: "uppercase",
-            maxWidth: 1000,
+            fontFamily: "Geist",
+            fontSize: 64,
+            letterSpacing: -3,
+            color: SIG,
+            textShadow: "0 0 1.5px rgba(160, 124, 0, 0.9)",
           }}
         >
-          {title}
+          ndle
         </div>
-        <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between" }}>
-          <div
-            style={{
-              display: "flex",
-              fontFamily: "Geist",
-              fontSize: 64,
-              letterSpacing: -3,
-              color: SIG,
-              textShadow: "0 0 1.5px rgba(160, 124, 0, 0.9)",
-            }}
-          >
-            ndle
-          </div>
-          <div style={{ display: "flex", fontSize: 26, color: "#3d3d3d" }}>{footer}</div>
-        </div>
+        <div style={{ display: "flex", fontSize: 26, color: "#3d3d3d" }}>{footer}</div>
       </div>
-    ),
+    </div>,
     {
       ...OG_SIZE,
       fonts: [

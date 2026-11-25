@@ -64,9 +64,7 @@ describe("per-network guest limit", () => {
     const network = await deriveGuestNetworkKey("203.0.113.7");
     await createAsNewGuest(backend, network);
     await createAsNewGuest(backend, network);
-    await expect(createAsNewGuest(backend, network)).rejects.toThrow(
-      "today's limit of 2",
-    );
+    await expect(createAsNewGuest(backend, network)).rejects.toThrow("today's limit of 2");
   });
 
   test("v1 tokens without a network key keep only the per-guest limit", async () => {
@@ -104,9 +102,7 @@ describe("global guest circuit breaker", () => {
     await expect(
       createAsNewGuest(backend, await deriveGuestNetworkKey("203.0.113.4")),
     ).rejects.toThrow("Guest links are paused for now");
-    await expect(createAsNewGuest(backend)).rejects.toThrow(
-      "Guest links are paused for now",
-    );
+    await expect(createAsNewGuest(backend)).rejects.toThrow("Guest links are paused for now");
 
     // Signed-in links are not guest links.
     await backend.run((ctx) =>
@@ -118,13 +114,11 @@ describe("global guest circuit breaker", () => {
       }),
     );
     await expect(
-      backend
-        .withIdentity({ tokenIdentifier: "account" })
-        .mutation(api.urlMainFuction.createUrl, {
-          url: "https://example.com/signed-in",
-          slugType: "random",
-          trackingEnabled: true,
-        }),
+      backend.withIdentity({ tokenIdentifier: "account" }).mutation(api.urlMainFuction.createUrl, {
+        url: "https://example.com/signed-in",
+        slugType: "random",
+        trackingEnabled: true,
+      }),
     ).resolves.toBeDefined();
 
     vi.setSystemTime(Date.now() + HOUR_MS + 1);
@@ -136,9 +130,7 @@ describe("global guest circuit breaker", () => {
   test("a limit of 0 stops guest creation entirely", async () => {
     const backend = setup();
     vi.stubEnv("GUEST_LINKS_PER_HOUR", "0");
-    await expect(createAsNewGuest(backend)).rejects.toThrow(
-      "Guest links are paused for now",
-    );
+    await expect(createAsNewGuest(backend)).rejects.toThrow("Guest links are paused for now");
   });
 
   test("unusable settings fall back to the defaults", () => {
@@ -146,9 +138,7 @@ describe("global guest circuit breaker", () => {
       vi.stubEnv("GUEST_LINKS_PER_HOUR", value);
       vi.stubEnv("GUEST_LINKS_PER_NETWORK_PER_DAY", value);
       expect(getGuestLinksPerHour()).toBe(DEFAULT_GUEST_LINKS_PER_HOUR);
-      expect(getGuestLinksPerNetworkPerDay()).toBe(
-        DEFAULT_GUEST_LINKS_PER_NETWORK_PER_DAY,
-      );
+      expect(getGuestLinksPerNetworkPerDay()).toBe(DEFAULT_GUEST_LINKS_PER_NETWORK_PER_DAY);
     }
     // Reads stay bounded even when an operator sets a huge limit.
     vi.stubEnv("GUEST_LINKS_PER_HOUR", "999999");

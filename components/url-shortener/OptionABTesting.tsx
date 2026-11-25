@@ -7,13 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { useFavicon } from "@/hooks/use-favicon";
-import {
-  FormField,
-  FormItem,
-  FormLabel,
-  FormControl,
-  FormMessage,
-} from "@/components/ui/form";
+import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import type { UrlFormValues } from "../url-shortener";
 import { PlusIcon, TrashIcon } from "@phosphor-icons/react/dist/ssr";
 import { Inset } from "@/components/ui/inset";
@@ -46,9 +40,7 @@ function VariantRow({
     const trimmed = variantUrl.trim();
     if (!trimmed) return null;
     try {
-      const normalized = /^https?:\/\//i.test(trimmed)
-        ? trimmed
-        : `https://${trimmed}`;
+      const normalized = /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
       new URL(normalized);
       return normalized;
     } catch {
@@ -93,10 +85,7 @@ function VariantRow({
     input.classList.add("is-shaking");
 
     const shakeMs = ms("--shake-dur-a", 80) * 2 + ms("--shake-dur-b", 60) * 2;
-    const shakeTimer = setTimeout(
-      () => input.classList.remove("is-shaking"),
-      shakeMs + 20,
-    );
+    const shakeTimer = setTimeout(() => input.classList.remove("is-shaking"), shakeMs + 20);
 
     // Auto-revert: hold long enough to read the message, then fade
     // border + message back to neutral via the CSS transitions.
@@ -139,9 +128,7 @@ function VariantRow({
           name={`abVariants.${index}.url`}
           render={({ field, fieldState }) => (
             <FormItem>
-              <FormLabel className="text-muted-foreground text-xs">
-                {variantLabel}
-              </FormLabel>
+              <FormLabel className="text-muted-foreground text-xs">{variantLabel}</FormLabel>
               <FormControl>
                 {/* .t-input-wrap: .is-error here drives the error
                     message reveal; the bordered .t-input inside owns
@@ -196,9 +183,7 @@ function VariantRow({
           name={`abVariants.${index}.weight`}
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="text-muted-foreground text-xs">
-                Split %
-              </FormLabel>
+              <FormLabel className="text-muted-foreground text-xs">Split %</FormLabel>
               <FormControl>
                 <div className="relative">
                   <Input
@@ -241,20 +226,13 @@ function VariantRow({
   );
 }
 
-export function OptionABTesting({
-  form,
-}: {
-  form: UseFormReturn<UrlFormValues>;
-}) {
+export function OptionABTesting({ form }: { form: UseFormReturn<UrlFormValues> }) {
   const variantsRaw = useWatch({ control: form.control, name: "abVariants" });
 
   // Calculate total variant traffic (Original gets 100 - this)
   const { totalVariantWeight, variants } = useMemo(() => {
     const v: Variant[] = variantsRaw || [];
-    const total = v.reduce(
-      (sum, variant) => sum + (Number(variant.weight) || 0),
-      0,
-    );
+    const total = v.reduce((sum, variant) => sum + (Number(variant.weight) || 0), 0);
     return { totalVariantWeight: total, variants: v };
   }, [variantsRaw]);
 
@@ -306,9 +284,7 @@ export function OptionABTesting({
   const mainUrlForFavicon = useMemo(() => {
     if (!mainUrl?.trim()) return null;
     try {
-      const normalized = /^https?:\/\//i.test(mainUrl)
-        ? mainUrl
-        : `https://${mainUrl}`;
+      const normalized = /^https?:\/\//i.test(mainUrl) ? mainUrl : `https://${mainUrl}`;
       new URL(normalized);
       return normalized;
     } catch {
@@ -332,9 +308,7 @@ export function OptionABTesting({
   // Check for duplicate URLs - returns both error message and affected indices
   const duplicateCheck = useMemo(() => {
     const normalizedMainUrl = normalizeForComparison(mainUrl);
-    const variantUrls = variants.map((v) =>
-      normalizeForComparison(v.url || ""),
-    );
+    const variantUrls = variants.map((v) => normalizeForComparison(v.url || ""));
     const duplicateIndices = new Set<number>();
     let errorMessage: string | null = null;
 
@@ -403,9 +377,7 @@ export function OptionABTesting({
           ) : (
             <div className="bg-primary size-1.5 shrink-0 rounded-full" />
           )}
-          <span className="truncate text-sm font-medium">
-            {displayMainUrl || "Original Link"}
-          </span>
+          <span className="truncate text-sm font-medium">{displayMainUrl || "Original Link"}</span>
         </div>
         <div
           className={cn(
@@ -451,9 +423,7 @@ export function OptionABTesting({
           <span
             className={cn(
               "font-mono font-medium",
-              totalVariantWeight + originalWeight === 100
-                ? "text-emerald-600"
-                : "text-destructive",
+              totalVariantWeight + originalWeight === 100 ? "text-emerald-600" : "text-destructive",
             )}
           >
             {totalVariantWeight + originalWeight}%

@@ -12,12 +12,15 @@ import type { MadeLink } from "./your-link-pages";
    redacted, the server's reason (copied from convex/) in a ConvexError's
    data. */
 
-const REDACTED = "[CONVEX M(urlMainFuction:createGuestUrl)] [Request ID: 0000000000000000] Server Error\n  Called by client";
+const REDACTED =
+  "[CONVEX M(urlMainFuction:createGuestUrl)] [Request ID: 0000000000000000] Server Error\n  Called by client";
 
 const REASONS = {
   limit: "Guest mode allows up to 5 links each day.",
-  network: "Guest links from your network reached today's limit of 10. Sign in to keep creating links.",
-  paused: "Guest links are paused for now because of unusually high demand. Sign in to keep creating links, or try again later.",
+  network:
+    "Guest links from your network reached today's limit of 10. Sign in to keep creating links.",
+  paused:
+    "Guest links are paused for now because of unusually high demand. Sign in to keep creating links, or try again later.",
   blocked: "For safety reasons, this domain has been blocked.",
   session: "Guest session is invalid",
   localhost: "Links to localhost are not supported.",
@@ -30,14 +33,22 @@ const SLOW = 5000; // ms for `slow`: a success that keeps "Shortening…" up for
 const GUEST_TTL = 7 * 24 * 60 * 60 * 1000; // guest links last 7 days (convex/ownership.ts)
 
 export function isMockKind(value: string | null): value is MockKind {
-  return value === "success" || value === "slow" || value === "failed" || (value !== null && value in REASONS);
+  return (
+    value === "success" ||
+    value === "slow" ||
+    value === "failed" ||
+    (value !== null && value in REASONS)
+  );
 }
 
 export async function mockShorten(kind: MockKind): Promise<MadeLink> {
   await new Promise((resolve) => setTimeout(resolve, kind === "slow" ? SLOW : LATENCY));
   if (kind === "success" || kind === "slow") {
     // A fresh six-character slug each time, like the real ones
-    const slug = Array.from({ length: 6 }, () => "abcdefghijklmnopqrstuvwxyz0123456789"[Math.floor(Math.random() * 36)]).join("");
+    const slug = Array.from(
+      { length: 6 },
+      () => "abcdefghijklmnopqrstuvwxyz0123456789"[Math.floor(Math.random() * 36)],
+    ).join("");
     return { short: makeShortLink(slug), expiresAt: Date.now() + GUEST_TTL };
   }
   // A crash on the server: no reason reaches the browser

@@ -43,12 +43,7 @@ export function UrlFavicon({ url, src, size = "md" }: UrlFaviconProps) {
   const styles = sizeStyles[size];
 
   return (
-    <div
-      className={cn(
-        "flex shrink-0 items-center justify-center rounded-full",
-        styles.container,
-      )}
-    >
+    <div className={cn("flex shrink-0 items-center justify-center rounded-full", styles.container)}>
       {showPlaceholder ? (
         <GlobeSimpleIcon className={styles.icon} weight="duotone" />
       ) : (
@@ -67,17 +62,11 @@ export function UrlFavicon({ url, src, size = "md" }: UrlFaviconProps) {
             width={24}
             height={24}
             // On the disc it's inset whole, so its edges aren't cropped.
-            className={
-              darkBackdrop
-                ? "size-4"
-                : cn("rounded-full object-cover", styles.img)
-            }
+            className={darkBackdrop ? "size-4" : cn("rounded-full object-cover", styles.img)}
             // Lets the favicon's pixels be read to pick what it sits on.
             crossOrigin="anonymous"
             onLoad={(event) => {
-              const dark =
-                darkBackdrops.get(faviconUrl) ??
-                needsDarkBackdrop(event.currentTarget);
+              const dark = darkBackdrops.get(faviconUrl) ?? needsDarkBackdrop(event.currentTarget);
               darkBackdrops.set(faviconUrl, dark);
               setDarkBackdrop(dark);
             }}

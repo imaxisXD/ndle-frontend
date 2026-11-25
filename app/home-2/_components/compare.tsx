@@ -19,11 +19,24 @@ const ROWS: Array<{
   shortio: Value;
   only?: boolean;
 }> = [
-  { label: "Free short links", ndle: "100 active", bitly: "5 a month", dub: "25 a month", shortio: "1,000*" },
+  {
+    label: "Free short links",
+    ndle: "100 active",
+    bitly: "5 a month",
+    dub: "25 a month",
+    shortio: "1,000*",
+  },
   { label: "Custom domains", ndle: "1", bitly: false, dub: "3", shortio: "5" },
   { label: "QR codes", ndle: "Unlimited", bitly: "2 / mo", dub: true, shortio: true },
   { label: "Broken-link checks", ndle: true, bitly: false, dub: false, shortio: false, only: true },
-  { label: "Uptime history per link", ndle: true, bitly: false, dub: false, shortio: false, only: true },
+  {
+    label: "Uptime history per link",
+    ndle: true,
+    bitly: false,
+    dub: false,
+    shortio: false,
+    only: true,
+  },
   { label: "No ad page before the link", ndle: true, bitly: false, dub: true, shortio: true },
 ];
 
@@ -81,7 +94,9 @@ export function Compare({ auth }: { auth: Auth }) {
             Free plan, compared
           </h2>
         </div>
-        <p className="mt-4 font-mono text-[17px] leading-[1.45] text-[#141312]">Broken-link checks, free.</p>
+        <p className="mt-4 font-mono text-[17px] leading-[1.45] text-[#141312]">
+          Broken-link checks, free.
+        </p>
       </div>
 
       {/* The offer, on the Live Click Counter's black with its faint white
@@ -96,14 +111,18 @@ export function Compare({ auth }: { auth: Auth }) {
             <span className="block text-[var(--sig)]">Every one checked.</span>
           </p>
           <p className="mt-4 max-w-[46ch] font-mono text-[15px] leading-[1.5] text-white/75">
-            The free plan has 100 active links, 1 custom domain and unlimited QR codes, and every link is checked every 30
-            minutes. No card needed.
+            The free plan has 100 active links, 1 custom domain and unlimited QR codes, and every
+            link is checked every 30 minutes. No card needed.
           </p>
           <ByAuth
             auth={auth}
             className="mt-6"
             signedOut={(link) => (
-              <ActionLink href="/sign-up?redirect_url=/dashboard" className="focus-visible:ring-offset-black" {...link}>
+              <ActionLink
+                href="/sign-up?redirect_url=/dashboard"
+                className="focus-visible:ring-offset-black"
+                {...link}
+              >
                 Get ndle free
               </ActionLink>
             )}
@@ -115,13 +134,18 @@ export function Compare({ auth }: { auth: Auth }) {
           />
         </div>
         {/* Captioned the counter's way: yellow, in brackets. */}
-        <ul aria-label="The free plan" className="grid shrink-0 grid-cols-3 gap-4 lg:grid-cols-1 lg:gap-5 lg:text-right">
+        <ul
+          aria-label="The free plan"
+          className="grid shrink-0 grid-cols-3 gap-4 lg:grid-cols-1 lg:gap-5 lg:text-right"
+        >
           {FIGURES.map((figure) => (
             <li key={figure.label}>
               <span className="font-doto roundness-100 block text-[clamp(2.25rem,4vw,3.25rem)] leading-none font-black text-white/90 tabular-nums">
                 {figure.value}
               </span>
-              <span className="mt-2 block font-mono text-xs text-[var(--sig)]">[{figure.label}]</span>
+              <span className="mt-2 block font-mono text-xs text-[var(--sig)]">
+                [{figure.label}]
+              </span>
             </li>
           ))}
         </ul>
@@ -157,7 +181,9 @@ function Plan({ plan, name, index }: { plan: PlanKey; name: string; index: numbe
       aria-label={`${name} free plan`}
       // Reaching into each neighbour, so the cut leaves a gutter CUT.gap wide
       className={cn(CUT_FROM_LG.outer, !first && "lg:-ml-[9px]", !last && "lg:-mr-[9px]")}
-      style={cutStyle(slantedCut(index, PLANS.length, CUT.slant, "across", { parallel: true, flip: true }))}
+      style={cutStyle(
+        slantedCut(index, PLANS.length, CUT.slant, "across", { parallel: true, flip: true }),
+      )}
     >
       <div
         className={cn(
@@ -173,25 +199,41 @@ function Plan({ plan, name, index }: { plan: PlanKey; name: string; index: numbe
           {ours ? (
             <h3 className="font-doto roundness-100 text-[26px] leading-none font-black">ndle</h3>
           ) : (
-            <h3 className="font-[family-name:var(--font-bebas)] text-[28px] leading-none uppercase">{name}</h3>
+            <h3 className="font-[family-name:var(--font-bebas)] text-[28px] leading-none uppercase">
+              {name}
+            </h3>
           )}
         </div>
-        <p className={cn("mt-1 font-mono text-xs", ours ? "text-white/55" : "text-[#6b6b6b]")}>Free plan</p>
+        <p className={cn("mt-1 font-mono text-xs", ours ? "text-white/55" : "text-[#6b6b6b]")}>
+          Free plan
+        </p>
 
         <ul className="mt-6 space-y-3 font-mono text-[13px] leading-5">
           {FEATURES.map((row) => {
             const value = row[plan];
             const has = value !== false;
             return (
-              <li key={row.label} className={cn("flex items-start gap-2.5", !has && (ours ? "text-white/40" : "text-[#767676]"))}>
+              <li
+                key={row.label}
+                className={cn(
+                  "flex items-start gap-2.5",
+                  !has && (ours ? "text-white/40" : "text-[#767676]"),
+                )}
+              >
                 <Mark has={has} ours={ours} only={ours && !!row.only} />
                 <span className="min-w-0 flex-1">
                   {row.label}
                   {typeof value === "string" && (
-                    <span className={cn("block font-medium", ours ? "text-white" : "text-[#141312]")}>{value}</span>
+                    <span
+                      className={cn("block font-medium", ours ? "text-white" : "text-[#141312]")}
+                    >
+                      {value}
+                    </span>
                   )}
                   {!has && <span className="sr-only"> (not included)</span>}
-                  {ours && row.only && <span className="sr-only"> (no other free plan includes it)</span>}
+                  {ours && row.only && (
+                    <span className="sr-only"> (no other free plan includes it)</span>
+                  )}
                 </span>
               </li>
             );
@@ -223,7 +265,11 @@ function Mark({ has, ours, only }: { has: boolean; ours: boolean; only: boolean 
       aria-hidden
       className={cn(
         "mt-px inline-flex size-[18px] shrink-0 items-center justify-center rounded-full",
-        only ? "bg-accent text-[#141312]" : ours ? "bg-white/12 text-white" : "bg-[#141312] text-white",
+        only
+          ? "bg-accent text-[#141312]"
+          : ours
+            ? "bg-white/12 text-white"
+            : "bg-[#141312] text-white",
       )}
     >
       <CheckIcon size={11} weight="bold" />

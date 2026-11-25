@@ -21,10 +21,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { SkeletonBone } from "@/components/ui/skeleton-bone";
-import {
-  UrlTableFrame,
-  UrlTableHeader,
-} from "@/components/url-table/UrlTableFrame";
+import { UrlTableFrame, UrlTableHeader } from "@/components/url-table/UrlTableFrame";
 import { UrlTableSkeletonRows } from "@/components/url-table/UrlTableSkeletonRows";
 import { PlanNote } from "@/components/url-shortener/PlanNote";
 import { getShortDomain } from "@/lib/config";
@@ -73,15 +70,10 @@ function SidebarSkeleton({ pathname }: { pathname: string | null }) {
         key={path}
         className={cn(
           "flex h-10 w-10 items-center justify-center rounded-md",
-          isActive
-            ? "bg-accent text-accent-foreground"
-            : "text-muted-foreground/60",
+          isActive ? "bg-accent text-accent-foreground" : "text-muted-foreground/60",
         )}
       >
-        <Icon
-          className={cn("size-5", iconClassName)}
-          weight={isActive ? "duotone" : "regular"}
-        />
+        <Icon className={cn("size-5", iconClassName)} weight={isActive ? "duotone" : "regular"} />
       </span>
     );
   };
@@ -134,8 +126,7 @@ function ShortenerSkeleton() {
                 <span className="text-sm">
                   Random characters{" "}
                   <span className="text-muted-foreground text-xs">
-                    (e.g. {shortDomain}/
-                    <span className="text-primary px-1">a1b2c3</span>)
+                    (e.g. {shortDomain}/<span className="text-primary px-1">a1b2c3</span>)
                   </span>
                 </span>
               </div>
@@ -144,12 +135,9 @@ function ShortenerSkeleton() {
                 <span className="text-muted-foreground text-sm">
                   Readable words{" "}
                   <span className="text-muted-foreground text-xs">
-                    (e.g. {shortDomain}/
-                    <span className="text-primary px-1">bunnyhops</span>)
+                    (e.g. {shortDomain}/<span className="text-primary px-1">bunnyhops</span>)
                   </span>
-                  <span className="ml-2 text-[11px] tracking-wide uppercase">
-                    Pro only
-                  </span>
+                  <span className="ml-2 text-[11px] tracking-wide uppercase">Pro only</span>
                 </span>
               </div>
             </div>
@@ -172,13 +160,7 @@ function ShortenerSkeleton() {
   );
 }
 
-function SkeletonColumnLabel({
-  label,
-  sortable = false,
-}: {
-  label: string;
-  sortable?: boolean;
-}) {
+function SkeletonColumnLabel({ label, sortable = false }: { label: string; sortable?: boolean }) {
   if (!sortable) {
     return <span className="text-sm font-medium">{label}</span>;
   }
@@ -199,9 +181,7 @@ function RecentLinksSkeleton() {
         <div className="flex items-center justify-between">
           <div>
             <p className="text-lg font-medium">Recent Links</p>
-            <p className="text-muted-foreground mt-1 text-sm">
-              Your latest shortened links
-            </p>
+            <p className="text-muted-foreground mt-1 text-sm">Your latest shortened links</p>
           </div>
         </div>
       </div>
@@ -235,9 +215,7 @@ function DashboardSkeleton() {
         <p className="font-doto roundness-100 text-5xl font-black tracking-tight select-none">
           ndle
         </p>
-        <p className="text-muted-foreground mt-2 text-sm">
-          Short. Sharp. Smarter.
-        </p>
+        <p className="text-muted-foreground mt-2 text-sm">Short. Sharp. Smarter.</p>
       </header>
       <ShortenerSkeleton />
       <RecentLinksSkeleton />
@@ -260,11 +238,7 @@ function PageSkeleton() {
         </div>
         <div className="space-y-4 p-6">
           {Array.from({ length: 4 }, (_, row) => (
-            <SkeletonBone
-              key={row}
-              className="h-10 w-full rounded-md"
-              delay={160 + row * 90}
-            />
+            <SkeletonBone key={row} className="h-10 w-full rounded-md" delay={160 + row * 90} />
           ))}
         </div>
       </div>
@@ -283,11 +257,7 @@ export function AppShellSkeleton() {
       <SidebarSkeleton pathname={pathname} />
       <div className="flex min-h-screen w-full min-w-0 flex-1 items-start justify-center overflow-y-auto px-4 pt-4 pb-24 md:py-8">
         <div className="pointer-events-none flex w-full max-w-6xl flex-col space-y-8 py-4 select-none md:px-6 md:py-8">
-          {isActivePath(pathname, "/dashboard") ? (
-            <DashboardSkeleton />
-          ) : (
-            <PageSkeleton />
-          )}
+          {isActivePath(pathname, "/dashboard") ? <DashboardSkeleton /> : <PageSkeleton />}
         </div>
       </div>
     </div>

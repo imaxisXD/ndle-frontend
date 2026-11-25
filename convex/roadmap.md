@@ -154,13 +154,7 @@ interface LinkMapping {
   conversion_tracking: {
     enabled: boolean;
     pixels: Array<{
-      provider:
-        | "facebook"
-        | "google"
-        | "twitter"
-        | "linkedin"
-        | "tiktok"
-        | "custom";
+      provider: "facebook" | "google" | "twitter" | "linkedin" | "tiktok" | "custom";
       pixel_id: string;
       event_name?: string; // "Purchase", "Lead", etc.
     }>;

@@ -47,10 +47,7 @@ export function normalizeQrStyle(style?: Partial<QrStyle> | null): QrStyle {
     fg: style?.fg?.trim() || "#000000",
     bg: style?.bg?.trim() || "#ffffff",
     margin,
-    includeMargin:
-      typeof style?.includeMargin === "boolean"
-        ? style.includeMargin
-        : margin > 0,
+    includeMargin: typeof style?.includeMargin === "boolean" ? style.includeMargin : margin > 0,
     ecc: isQrEcc(style?.ecc) ? style.ecc : "H",
     logoMode: isQrLogoMode(style?.logoMode) ? style.logoMode : "brand",
     logoScale: clampQrLogoScale(style?.logoScale, 0.18),

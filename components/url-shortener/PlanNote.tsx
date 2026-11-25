@@ -13,13 +13,10 @@ export function PlanNote({ state }: { state: PlanNoteState }) {
     <div className="text-muted-foreground grid text-xs">
       <p
         aria-hidden={state !== "free"}
-        className={cn(
-          "col-start-1 row-start-1",
-          state !== "free" && "invisible",
-        )}
+        className={cn("col-start-1 row-start-1", state !== "free" && "invisible")}
       >
-        Free accounts can use simple settings here. Paid-only options will stay
-        blocked when you save.
+        Free accounts can use simple settings here. Paid-only options will stay blocked when you
+        save.
       </p>
       {state === "loading" ? (
         <span className="col-start-1 row-start-1 flex h-4 items-center">

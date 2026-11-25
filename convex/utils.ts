@@ -190,9 +190,7 @@ function hasSuspiciousPatterns(url: string) {
  * Check if domain is blacklisted
  */
 function isBlacklistedDomain(hostname: string) {
-  return CONFIG.blacklistedDomains.some((domain) =>
-    isHostOrSubdomainOf(hostname, domain),
-  );
+  return CONFIG.blacklistedDomains.some((domain) => isHostOrSubdomainOf(hostname, domain));
 }
 
 /**
@@ -209,10 +207,7 @@ function isSelfDomain(hostname: string): boolean {
  * @param {Object} options - Optional configuration overrides
  * @returns {Object} - { valid: boolean, url: URL|null, error: string|null, errorCode: string|null }
  */
-export function isValidHttpUrl(
-  urlString: string,
-  options = {} as typeof CONFIG,
-) {
+export function isValidHttpUrl(urlString: string, options = {} as typeof CONFIG) {
   const config = { ...CONFIG, ...options } as typeof CONFIG;
 
   // Basic type check
@@ -297,8 +292,7 @@ export function isValidHttpUrl(
     return {
       valid: false,
       url: null,
-      error:
-        "For security, links cannot contain embedded usernames or passwords.",
+      error: "For security, links cannot contain embedded usernames or passwords.",
       errorCode: VALIDATION_ERRORS.USERINFO_NOT_ALLOWED,
     };
   }
@@ -322,8 +316,7 @@ export function isValidHttpUrl(
     return {
       valid: false,
       url: null,
-      error:
-        "Links to private or internal network addresses are not supported.",
+      error: "Links to private or internal network addresses are not supported.",
       errorCode: VALIDATION_ERRORS.PRIVATE_IP_NOT_ALLOWED,
     };
   }
@@ -333,8 +326,7 @@ export function isValidHttpUrl(
     return {
       valid: false,
       url: null,
-      error:
-        "For safety, this domain has been blocked. Try a different destination.",
+      error: "For safety, this domain has been blocked. Try a different destination.",
       errorCode: VALIDATION_ERRORS.BLACKLISTED_DOMAIN,
     };
   }
@@ -356,8 +348,7 @@ export function isValidHttpUrl(
       return {
         valid: false,
         url: null,
-        error:
-          "The port number in the link is outside the allowed range (1-65535).",
+        error: "The port number in the link is outside the allowed range (1-65535).",
         errorCode: VALIDATION_ERRORS.INVALID_PORT,
       };
     }

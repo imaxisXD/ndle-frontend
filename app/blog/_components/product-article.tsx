@@ -48,7 +48,11 @@ export function ProductArticle({
       { "@type": "WebPage", name: title, description, url, dateModified: dated },
       {
         "@type": "FAQPage",
-        mainEntity: faq.map(({ q, a }) => ({ "@type": "Question", name: q, acceptedAnswer: { "@type": "Answer", text: a } })),
+        mainEntity: faq.map(({ q, a }) => ({
+          "@type": "Question",
+          name: q,
+          acceptedAnswer: { "@type": "Answer", text: a },
+        })),
       },
     ],
   };
@@ -57,7 +61,9 @@ export function ProductArticle({
     <article>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData).replace(/</g, "\\u003c") }}
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(structuredData).replace(/</g, "\\u003c"),
+        }}
       />
 
       {/* The same header as a blog post (app/blog/[slug]/page.tsx), with the
@@ -72,13 +78,14 @@ export function ProductArticle({
             <h1 className="mt-5 font-[family-name:var(--font-bebas)] text-[clamp(2.9rem,6vw,4.5rem)] leading-[0.9] tracking-[-0.005em] text-balance text-[#141312] uppercase">
               {h1}
             </h1>
-            <p className="mt-5 max-w-[60ch] font-mono text-[15px] leading-[1.5] text-pretty text-[#3d3d3d]">{lede}</p>
+            <p className="mt-5 max-w-[60ch] font-mono text-[15px] leading-[1.5] text-pretty text-[#3d3d3d]">
+              {lede}
+            </p>
             {action ? <div className="mt-7">{action}</div> : null}
             <div className="mt-7 flex flex-wrap items-center gap-x-5 gap-y-3">
               {!action && <ActionLink href={SIGN_UP}>Get started free</ActionLink>}
               <p className="font-mono text-xs text-[#3d3d3d]">
-                {dateLabel}{" "}
-                <time dateTime={dated}>{formatDate(dated)}</time>
+                {dateLabel} <time dateTime={dated}>{formatDate(dated)}</time>
               </p>
             </div>
           </div>

@@ -24,16 +24,13 @@ const ANIMATION_ID = "column-glide";
 type Spot = { x: number; y: number; width: number; height: number } | null;
 
 function layoutFor(width: number, layouts: readonly GlideLayout[]) {
-  return (layouts.find((layout) => width >= layout.minWidth) ?? layouts.at(-1)!)
-    .name;
+  return (layouts.find((layout) => width >= layout.minWidth) ?? layouts.at(-1)!).name;
 }
 
 // Rows below the fold switch without animating; nobody sees them move.
 function rowsOnScreen(frame: HTMLElement) {
   const viewportBottom = window.innerHeight;
-  return Array.from(
-    frame.querySelectorAll<HTMLElement>("[data-glide-row]"),
-  ).filter((row) => {
+  return Array.from(frame.querySelectorAll<HTMLElement>("[data-glide-row]")).filter((row) => {
     const box = row.getBoundingClientRect();
     return box.bottom > 0 && box.top < viewportBottom;
   });
@@ -71,9 +68,7 @@ function partnerOf(
 ) {
   const pair = piece.dataset.glidePair;
   if (!pair) return null;
-  for (const other of row.querySelectorAll<HTMLElement>(
-    `[data-glide-pair="${pair}"]`,
-  )) {
+  for (const other of row.querySelectorAll<HTMLElement>(`[data-glide-pair="${pair}"]`)) {
     const was = before.get(other);
     if (other !== piece && was && !after.get(other)) return was;
   }
@@ -81,9 +76,7 @@ function partnerOf(
 }
 
 function switchLayout(frame: HTMLElement, next: string) {
-  const reduceMotion = window.matchMedia(
-    "(prefers-reduced-motion: reduce)",
-  ).matches;
+  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   const rows = reduceMotion ? [] : rowsOnScreen(frame);
 
   // Measure before cancelling, so a glide that is still running restarts
@@ -96,8 +89,7 @@ function switchLayout(frame: HTMLElement, next: string) {
   const after = spotsIn(rows);
 
   rows.forEach((row, rowIndex) => {
-    const rowDelay =
-      FIRST_DELAY + Math.min(rowIndex, MAX_STAGGERED_ROWS) * ROW_DELAY;
+    const rowDelay = FIRST_DELAY + Math.min(rowIndex, MAX_STAGGERED_ROWS) * ROW_DELAY;
     let order = 0;
 
     for (const piece of row.querySelectorAll<HTMLElement>("[data-glide]")) {
@@ -146,10 +138,11 @@ function switchLayout(frame: HTMLElement, next: string) {
 
       // Animating only the offset lets the piece keep following the layout
       // while the frame is still being resized.
-      piece.animate(
-        [{ translate: `${dx}px ${dy}px` }, { translate: "0px 0px" }],
-        { ...GLIDE, delay, id: ANIMATION_ID },
-      );
+      piece.animate([{ translate: `${dx}px ${dy}px` }, { translate: "0px 0px" }], {
+        ...GLIDE,
+        delay,
+        id: ANIMATION_ID,
+      });
       order++;
     }
   });
@@ -172,8 +165,7 @@ export function useColumnGlide(
     frame.dataset.layout = current;
 
     const observer = new ResizeObserver(([entry]) => {
-      const width =
-        entry.borderBoxSize?.[0]?.inlineSize ?? entry.contentRect.width;
+      const width = entry.borderBoxSize?.[0]?.inlineSize ?? entry.contentRect.width;
       const next = layoutFor(width, layouts);
       if (next === current) return;
       current = next;

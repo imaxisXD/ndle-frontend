@@ -83,11 +83,7 @@ describe("guest link lifetime", () => {
     const scheduled = await backend.run((ctx) =>
       ctx.db.system.query("_scheduled_functions").collect(),
     );
-    expect(
-      scheduled.some((job) =>
-        job.name.includes("urlMainFuction:deleteUrlById"),
-      ),
-    ).toBe(true);
+    expect(scheduled.some((job) => job.name.includes("urlMainFuction:deleteUrlById"))).toBe(true);
     await client.mutation(api.users.store, {
       guestId,
       guestToken: token.guestToken,
@@ -165,18 +161,14 @@ describe("clearClaimedGuestExpiry migration", () => {
           (
             await ctx.db
               .query("serviceSyncJobs")
-              .withIndex("by_key", (q) =>
-                q.eq("key", `redirect:${stale.link.slug}`),
-              )
+              .withIndex("by_key", (q) => q.eq("key", `redirect:${stale.link.slug}`))
               .unique()
           )?.version,
       );
     const before = await jobVersion();
     vi.advanceTimersByTime(1000);
 
-    expect(
-      await backend.mutation(internal.backfill.clearClaimedGuestExpiry, {}),
-    ).toEqual({
+    expect(await backend.mutation(internal.backfill.clearClaimedGuestExpiry, {})).toEqual({
       scanned: 3,
       patched: 1,
       isDone: true,
@@ -191,9 +183,7 @@ describe("clearClaimedGuestExpiry migration", () => {
     expect(rows.signedIn?.expiresAt).toBe(ownExpiry);
     expect(await jobVersion()).toBeGreaterThan(before!);
 
-    expect(
-      await backend.mutation(internal.backfill.clearClaimedGuestExpiry, {}),
-    ).toMatchObject({
+    expect(await backend.mutation(internal.backfill.clearClaimedGuestExpiry, {})).toMatchObject({
       patched: 0,
     });
   });
@@ -214,17 +204,13 @@ describe("clearClaimedGuestExpiry migration", () => {
         });
     });
 
-    expect(
-      await backend.mutation(internal.backfill.clearClaimedGuestExpiry, {}),
-    ).toEqual({
+    expect(await backend.mutation(internal.backfill.clearClaimedGuestExpiry, {})).toEqual({
       scanned: 100,
       patched: 100,
       isDone: false,
     });
     const next = (
-      await backend.run((ctx) =>
-        ctx.db.system.query("_scheduled_functions").collect(),
-      )
+      await backend.run((ctx) => ctx.db.system.query("_scheduled_functions").collect())
     ).find((job) => job.name.includes("backfill:clearClaimedGuestExpiry"));
     expect(next).toBeDefined();
     expect(
@@ -234,9 +220,7 @@ describe("clearClaimedGuestExpiry migration", () => {
       ),
     ).toEqual({ scanned: 1, patched: 1, isDone: true });
     const remaining = await backend.run(async (ctx) =>
-      (await ctx.db.query("urls").collect()).filter(
-        (url) => url.expiresAt !== undefined,
-      ),
+      (await ctx.db.query("urls").collect()).filter((url) => url.expiresAt !== undefined),
     );
     expect(remaining).toHaveLength(0);
   });
@@ -257,7 +241,11 @@ describe("the same destination twice", () => {
 
   test("an account gets a second short link for a link it already shortened", async () => {
     const { client } = await setup();
-    const args = { url: "https://example.org/again", slugType: "random" as const, trackingEnabled: true };
+    const args = {
+      url: "https://example.org/again",
+      slugType: "random" as const,
+      trackingEnabled: true,
+    };
 
     const first = await client.mutation(api.urlMainFuction.createUrl, args);
     const second = await client.mutation(api.urlMainFuction.createUrl, args);

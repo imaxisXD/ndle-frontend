@@ -42,34 +42,34 @@
  * ───────────────────────────────────────────────────────── */
 
 export const T = {
-  cursorIn:        500,   // cursor glides in to the link field
-  fieldClick:     1050,   // click: the field focuses
-  typeUrl:        1250,   // the long link types in
-  toShorten:      2800,   // cursor heads for Shorten
-  shortenClick:   3350,   // press: "Shortening…"
-  linkReady:      3900,   // new row opens in, toast
-  firstCheck:     4700,   // pending → healthy
-  clicksStart:    5200,   // its clicks tick up
-  toAnalytics:    6600,   // cursor to Analytics in the rail
-  analyticsClick: 7150,   // Analytics opens
-  toCharts:       9400,   // cursor drifts over the charts
-  scroll:         9800,   // page scrolls to the chart builder
-  toAskField:    10900,   // cursor to the question field
-  askClick:      11400,   // click: the field focuses
-  typeQuestion:  11600,   // the question types in
-  toSend:        12900,   // cursor to send
-  sendClick:     13400,   // question posts, ndle thinks
-  answer:        14600,   // answer and chart land
-  toMonitoring:  16800,   // cursor to Monitoring in the rail
+  cursorIn: 500, // cursor glides in to the link field
+  fieldClick: 1050, // click: the field focuses
+  typeUrl: 1250, // the long link types in
+  toShorten: 2800, // cursor heads for Shorten
+  shortenClick: 3350, // press: "Shortening…"
+  linkReady: 3900, // new row opens in, toast
+  firstCheck: 4700, // pending → healthy
+  clicksStart: 5200, // its clicks tick up
+  toAnalytics: 6600, // cursor to Analytics in the rail
+  analyticsClick: 7150, // Analytics opens
+  toCharts: 9400, // cursor drifts over the charts
+  scroll: 9800, // page scrolls to the chart builder
+  toAskField: 10900, // cursor to the question field
+  askClick: 11400, // click: the field focuses
+  typeQuestion: 11600, // the question types in
+  toSend: 12900, // cursor to send
+  sendClick: 13400, // question posts, ndle thinks
+  answer: 14600, // answer and chart land
+  toMonitoring: 16800, // cursor to Monitoring in the rail
   monitoringClick: 17350, // Monitoring opens
-  check:         18700,   // /launch is being checked
-  down:          19200,   // …and fails: 404, light turns red
-  alert:         19800,   // DOWN email lands
-  recovered:     23000,   // back online, light turns yellow
-  toLink:        23900,   // cursor to /launch in the table
-  linkClick:     24450,   // the link's page opens
-  cursorOut:     26200,   // cursor fades out
-  end:           27500,   // end of the pass, resting on the link's page
+  check: 18700, // /launch is being checked
+  down: 19200, // …and fails: 404, light turns red
+  alert: 19800, // DOWN email lands
+  recovered: 23000, // back online, light turns yellow
+  toLink: 23900, // cursor to /launch in the table
+  linkClick: 24450, // the link's page opens
+  cursorOut: 26200, // cursor fades out
+  end: 27500, // end of the pass, resting on the link's page
 } as const;
 
 /** The design size of the dashboard behind the glass. The frame scales it
@@ -93,7 +93,10 @@ export function pageAt(t: number): Page {
 }
 
 export function chapterAt(t: number) {
-  return lastAt(CHAPTERS.map((c) => c.start), t);
+  return lastAt(
+    CHAPTERS.map((c) => c.start),
+    t,
+  );
 }
 
 /** The last frame of a chapter, where everything it shows has settled. */
@@ -105,22 +108,30 @@ export function chapterEnd(index: number) {
 /* The pointer. It enters from below the glass, travels to each target (a
    `data-demo` element, aimed at `ax`/`ay` of its box) and clicks. */
 export const CURSOR = {
-  enter: { x: 940, y: 790 },                               // below the pane, lower right
-  spring: { stiffness: 170, damping: 26, mass: 1 },        // ~600ms glide, no overshoot
-  pressMs: 220,                                            // one click, down and up
+  enter: { x: 940, y: 790 }, // below the pane, lower right
+  spring: { stiffness: 170, damping: 26, mass: 1 }, // ~600ms glide, no overshoot
+  pressMs: 220, // one click, down and up
   moves: [
-    { at: T.cursorIn,        to: "url-field", ax: 0.22 },
-    { at: T.toShorten,       to: "shorten" },
-    { at: T.toAnalytics,     to: "rail-analytics" },
-    { at: T.toCharts,        to: "charts", ax: 0.62, ay: 0.45 },
-    { at: T.toAskField,      to: "ask-field", ax: 0.3 },
-    { at: T.toSend,          to: "ask-send" },
-    { at: T.toMonitoring,    to: "rail-monitoring" },
+    { at: T.cursorIn, to: "url-field", ax: 0.22 },
+    { at: T.toShorten, to: "shorten" },
+    { at: T.toAnalytics, to: "rail-analytics" },
+    { at: T.toCharts, to: "charts", ax: 0.62, ay: 0.45 },
+    { at: T.toAskField, to: "ask-field", ax: 0.3 },
+    { at: T.toSend, to: "ask-send" },
+    { at: T.toMonitoring, to: "rail-monitoring" },
     { at: T.monitoringClick + 700, to: "launch-row", ax: 0.66, ay: 0.7 },
-    { at: T.toLink,          to: "launch-link", ax: 0.4 },
+    { at: T.toLink, to: "launch-link", ax: 0.4 },
     { at: T.linkClick + 700, to: "link-clicks", ax: 0.72, ay: 0.8 },
   ],
-  clicks: [T.fieldClick, T.shortenClick, T.analyticsClick, T.askClick, T.sendClick, T.monitoringClick, T.linkClick],
+  clicks: [
+    T.fieldClick,
+    T.shortenClick,
+    T.analyticsClick,
+    T.askClick,
+    T.sendClick,
+    T.monitoringClick,
+    T.linkClick,
+  ],
 } as const;
 
 export const CURSOR_MOVE_TIMES = CURSOR.moves.map((m) => m.at);
@@ -134,7 +145,7 @@ export const LONG_URL = "https://acme.com/launch-week?utm_source=newsletter&utm_
 export const NEW_LINK = {
   slug: "launch",
   destination: "https://acme.com/launch-week",
-  clicks: [1, 3, 8, 14, 23, 31, 38],   // one step per `clickEvery`
+  clicks: [1, 3, 8, 14, 23, 31, 38], // one step per `clickEvery`
   clickEvery: 280,
 } as const;
 
@@ -178,7 +189,11 @@ export function stepAt(values: readonly number[], start: number, every: number, 
 }
 
 /** A counter that ticks up from `count.base` once `start` has passed. */
-function countAt(count: { base: number; every: number; adds: readonly number[] }, start: number, t: number) {
+function countAt(
+  count: { base: number; every: number; adds: readonly number[] },
+  start: number,
+  t: number,
+) {
   if (t < start) return count.base;
   const ticks = Math.floor((t - start) / count.every);
   let total = count.base;

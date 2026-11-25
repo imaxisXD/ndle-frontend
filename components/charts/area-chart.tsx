@@ -2,13 +2,7 @@
 
 import { ParentSize } from "@visx/responsive";
 import type { Transition } from "motion/react";
-import {
-  Children,
-  isValidElement,
-  type ReactNode,
-  useMemo,
-  useRef,
-} from "react";
+import { Children, isValidElement, type ReactNode, useMemo, useRef } from "react";
 import { cn } from "@/lib/utils";
 import { Area, type AreaProps } from "./area";
 import type { LineConfig, Margin } from "./chart-context";
@@ -53,20 +47,14 @@ function extractAreaConfigs(children: ReactNode): LineConfig[] {
       name?: string;
     };
     const componentName =
-      typeof child.type === "function"
-        ? childType.displayName || childType.name || ""
-        : "";
+      typeof child.type === "function" ? childType.displayName || childType.name || "" : "";
 
     const props = child.props as AreaProps | undefined;
-    const isPatternArea =
-      componentName === "PatternArea" || child.type === PatternArea;
+    const isPatternArea = componentName === "PatternArea" || child.type === PatternArea;
     const isAreaComponent =
       componentName === "Area" ||
       child.type === Area ||
-      (props &&
-        typeof props.dataKey === "string" &&
-        props.dataKey.length > 0 &&
-        !isPatternArea);
+      (props && typeof props.dataKey === "string" && props.dataKey.length > 0 && !isPatternArea);
 
     if (isAreaComponent && props?.dataKey) {
       configs.push({

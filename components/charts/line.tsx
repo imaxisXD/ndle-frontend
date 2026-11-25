@@ -9,15 +9,8 @@ type CurveFactory = any;
 
 import { useCallback, useId, useMemo, useRef } from "react";
 import { chartCssVars, useChartStable, useYScale } from "./chart-context";
-import {
-  type FadeEdges,
-  fadeGradientStops,
-  resolveFadeSides,
-} from "./fade-edges";
-import {
-  resolveDashTailBounds,
-  usePathStrokeMetrics,
-} from "./path-stroke-utils";
+import { type FadeEdges, fadeGradientStops, resolveFadeSides } from "./fade-edges";
+import { resolveDashTailBounds, usePathStrokeMetrics } from "./path-stroke-utils";
 import { SeriesDashTailOverlay } from "./series-dash-tail-overlay";
 import { SeriesHighlightLayer } from "./series-highlight-layer";
 import { SeriesHoverDim } from "./series-hover-dim";
@@ -82,15 +75,7 @@ export function Line({
   // The reveal-clip is now a single shared clipPath at the chart-shell
   // level (`time-series-chart-shell.tsx`); we no longer render a per-line
   // `<ChartRevealClip>` or read `revealEpoch` here.
-  const {
-    data,
-    renderData,
-    xScale,
-    innerHeight,
-    innerWidth,
-    xAccessor,
-    lines,
-  } = useChartStable();
+  const { data, renderData, xScale, innerHeight, innerWidth, xAccessor, lines } = useChartStable();
   const yScale = useYScale(yAxisId);
 
   const seriesIndex = useMemo(() => {
@@ -114,7 +99,7 @@ export function Line({
       const value = d[dataKey];
       return typeof value === "number" ? (yScale(value) ?? 0) : 0;
     },
-    [dataKey, yScale]
+    [dataKey, yScale],
   );
 
   const hasDashTail = resolveDashTailBounds(dashFromIndex, data.length);
@@ -138,11 +123,7 @@ export function Line({
         </defs>
       ) : null}
 
-      <SeriesHoverDim
-        dimOpacity={dimOpacity}
-        enabled={showHighlight}
-        seriesIndex={seriesIndex}
-      >
+      <SeriesHoverDim dimOpacity={dimOpacity} enabled={showHighlight} seriesIndex={seriesIndex}>
         <LinePath
           curve={curve}
           data={renderData}

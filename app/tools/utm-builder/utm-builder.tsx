@@ -11,13 +11,29 @@ import { ActionLink, FOCUS } from "@/app/home-2/_components/kit";
 
 const SIGN_UP = "/sign-up?redirect_url=/dashboard";
 
-const FIELDS: Array<{ key: UtmField; label: string; hint: string; required?: boolean; suggestions?: string[] }> = [
+const FIELDS: Array<{
+  key: UtmField;
+  label: string;
+  hint: string;
+  required?: boolean;
+  suggestions?: string[];
+}> = [
   {
     key: "utm_source",
     label: "Source",
     hint: "Where the click comes from: google, newsletter, instagram",
     required: true,
-    suggestions: ["google", "facebook", "instagram", "linkedin", "tiktok", "youtube", "x", "newsletter", "email"],
+    suggestions: [
+      "google",
+      "facebook",
+      "instagram",
+      "linkedin",
+      "tiktok",
+      "youtube",
+      "x",
+      "newsletter",
+      "email",
+    ],
   },
   {
     key: "utm_medium",
@@ -26,8 +42,17 @@ const FIELDS: Array<{ key: UtmField; label: string; hint: string; required?: boo
     required: true,
     suggestions: ["email", "social", "cpc", "referral", "display", "affiliate", "qr", "sms"],
   },
-  { key: "utm_campaign", label: "Campaign", hint: "The promotion: spring_sale, launch_week", required: true },
-  { key: "utm_content", label: "Content", hint: "Which link or ad, if there are several: header_button" },
+  {
+    key: "utm_campaign",
+    label: "Campaign",
+    hint: "The promotion: spring_sale, launch_week",
+    required: true,
+  },
+  {
+    key: "utm_content",
+    label: "Content",
+    hint: "Which link or ad, if there are several: header_button",
+  },
   { key: "utm_term", label: "Term", hint: "The paid keyword, for search ads" },
   { key: "utm_id", label: "Campaign ID", hint: "Your ad platform's campaign ID, if you use one" },
 ];
@@ -41,8 +66,12 @@ export function UtmBuilder() {
   const [copied, setCopied] = useState(false);
 
   const built = buildUtmUrl(page, values);
-  const missing = FIELDS.filter((field) => field.required && !values[field.key]?.trim()).map((field) => field.label.toLowerCase());
-  const capitals = mixedCaseFields(values).map((key) => FIELDS.find((field) => field.key === key)?.label.toLowerCase());
+  const missing = FIELDS.filter((field) => field.required && !values[field.key]?.trim()).map(
+    (field) => field.label.toLowerCase(),
+  );
+  const capitals = mixedCaseFields(values).map((key) =>
+    FIELDS.find((field) => field.key === key)?.label.toLowerCase(),
+  );
 
   const copy = async () => {
     if (!built) return;
@@ -75,7 +104,10 @@ export function UtmBuilder() {
       <div className="mt-5 grid gap-x-5 gap-y-4 sm:grid-cols-2">
         {FIELDS.map((field) => (
           <div key={field.key}>
-            <label htmlFor={field.key} className="flex items-baseline gap-2 text-sm font-medium text-[#141312]">
+            <label
+              htmlFor={field.key}
+              className="flex items-baseline gap-2 text-sm font-medium text-[#141312]"
+            >
               {field.label}
               <span className="font-mono text-[11px] font-normal text-[#3d3d3d]">
                 {field.key}
@@ -89,7 +121,9 @@ export function UtmBuilder() {
               spellCheck={false}
               list={field.suggestions ? `${field.key}-options` : undefined}
               value={values[field.key] ?? ""}
-              onChange={(event) => setValues((current) => ({ ...current, [field.key]: event.target.value }))}
+              onChange={(event) =>
+                setValues((current) => ({ ...current, [field.key]: event.target.value }))
+              }
               aria-describedby={`${field.key}-hint`}
               className={cn(INPUT, "mt-1.5")}
             />
@@ -133,14 +167,15 @@ export function UtmBuilder() {
             {missing.length > 0 && (
               <li className="flex items-start gap-1.5">
                 <WarningCircleIcon size={14} className="mt-0.5 shrink-0" />
-                Google recommends always setting source, medium and campaign. Missing: {missing.join(", ")}.
+                Google recommends always setting source, medium and campaign. Missing:{" "}
+                {missing.join(", ")}.
               </li>
             )}
             {capitals.length > 0 && (
               <li className="flex items-start gap-1.5">
                 <WarningCircleIcon size={14} className="mt-0.5 shrink-0" />
-                Values are case sensitive, so &ldquo;Facebook&rdquo; and &ldquo;facebook&rdquo; count as two sources. Check the{" "}
-                {capitals.join(" and ")}.
+                Values are case sensitive, so &ldquo;Facebook&rdquo; and &ldquo;facebook&rdquo;
+                count as two sources. Check the {capitals.join(" and ")}.
               </li>
             )}
           </ul>
@@ -148,7 +183,9 @@ export function UtmBuilder() {
       </div>
 
       <div className="mt-5 flex flex-wrap items-center gap-x-4 gap-y-3 border-t border-[var(--line)] pt-5">
-        <p className="text-sm text-[#141312]">Long link? ndle shortens it and counts every click by campaign.</p>
+        <p className="text-sm text-[#141312]">
+          Long link? ndle shortens it and counts every click by campaign.
+        </p>
         <ActionLink href={SIGN_UP}>Shorten it free</ActionLink>
       </div>
     </div>

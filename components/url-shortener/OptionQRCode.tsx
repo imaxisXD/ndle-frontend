@@ -3,13 +3,7 @@
 import { useMemo } from "react";
 import { QrCode } from "@/components/ui/qr-code";
 import { Input } from "@/components/ui/input";
-import {
-  FormField,
-  FormItem,
-  FormLabel,
-  FormControl,
-  FormMessage,
-} from "@/components/ui/form";
+import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
 import { UseFormReturn, useWatch } from "react-hook-form";
 import type { UrlFormValues } from "../url-shortener";
@@ -97,18 +91,7 @@ export function OptionQRCode({ form, isPro = false }: Props) {
         logoScale,
         customLogoUrl,
       }),
-    [
-      size,
-      margin,
-      fg,
-      bg,
-      transparentBg,
-      includeMargin,
-      ecc,
-      logoMode,
-      logoScale,
-      customLogoUrl,
-    ],
+    [size, margin, fg, bg, transparentBg, includeMargin, ecc, logoMode, logoScale, customLogoUrl],
   );
 
   const logo = useMemo(() => getQrLogo(qrStyle), [qrStyle]);
@@ -162,8 +145,7 @@ export function OptionQRCode({ form, isPro = false }: Props) {
 
                           // Auto-contrast: If FG matches BG, flip BG to white/black
                           if (newFg === currentBg) {
-                            const newBg =
-                              newFg === "#ffffff" ? "#000000" : "#ffffff";
+                            const newBg = newFg === "#ffffff" ? "#000000" : "#ffffff";
                             form.setValue("qrBg", newBg);
                           }
 
@@ -190,9 +172,7 @@ export function OptionQRCode({ form, isPro = false }: Props) {
                       <div className="flex flex-wrap gap-3">
                         {/* Regular Colors with Transparent prepended */}
                         <ColorSelector
-                          value={
-                            transparentBg ? "transparent" : (bg ?? "#ffffff")
-                          }
+                          value={transparentBg ? "transparent" : (bg ?? "#ffffff")}
                           onChange={(val) => {
                             if (val === "transparent") {
                               form.setValue("qrTransparentBg", true);
@@ -202,8 +182,7 @@ export function OptionQRCode({ form, isPro = false }: Props) {
 
                               // Auto-contrast: If BG matches FG, flip FG to black/white
                               if (newBg === currentFg) {
-                                const newFg =
-                                  newBg === "#000000" ? "#ffffff" : "#000000";
+                                const newFg = newBg === "#000000" ? "#ffffff" : "#000000";
                                 form.setValue("qrFg", newFg);
                               }
 
@@ -227,9 +206,7 @@ export function OptionQRCode({ form, isPro = false }: Props) {
 
           {/* Branding Section */}
           <div className="space-y-4">
-            <h4 className="text-foreground text-sm font-medium">
-              Logo Overlay
-            </h4>
+            <h4 className="text-foreground text-sm font-medium">Logo Overlay</h4>
             <FormField
               control={form.control}
               name="qrLogoMode"
@@ -249,11 +226,7 @@ export function OptionQRCode({ form, isPro = false }: Props) {
                             "bg-accent text-accent-foreground border-primary/20",
                         )}
                       >
-                        <RadioGroupItem
-                          value="brand"
-                          id="qr-logo-brand"
-                          className="sr-only"
-                        />
+                        <RadioGroupItem value="brand" id="qr-logo-brand" className="sr-only" />
                         <span>Brand Mark</span>
                       </label>
 
@@ -263,8 +236,7 @@ export function OptionQRCode({ form, isPro = false }: Props) {
                           "border-border inline-flex cursor-pointer items-center justify-center gap-2 rounded-md border px-4 py-2.5 text-sm font-medium whitespace-nowrap transition-colors",
                           field.value === "custom" &&
                             "bg-accent text-accent-foreground border-primary/20",
-                          !isPro &&
-                            "cursor-not-allowed opacity-60 hover:bg-transparent",
+                          !isPro && "cursor-not-allowed opacity-60 hover:bg-transparent",
                         )}
                         title={!isPro ? "PRO feature" : undefined}
                       >
@@ -288,8 +260,7 @@ export function OptionQRCode({ form, isPro = false }: Props) {
                           "border-border inline-flex cursor-pointer items-center justify-center gap-2 rounded-md border px-4 py-2.5 text-sm font-medium whitespace-nowrap transition-colors",
                           field.value === "none" &&
                             "bg-accent text-accent-foreground border-primary/20",
-                          !isPro &&
-                            "cursor-not-allowed opacity-60 hover:bg-transparent",
+                          !isPro && "cursor-not-allowed opacity-60 hover:bg-transparent",
                         )}
                         title={!isPro ? "PRO feature" : undefined}
                       >
@@ -371,11 +342,7 @@ export function OptionQRCode({ form, isPro = false }: Props) {
                 bg={qrStyle.bg}
                 margin={getQrMarginSize(qrStyle)}
                 logo={logo}
-                title={
-                  createdShortLink
-                    ? `QR code for ${qrValue}`
-                    : "Placeholder QR code"
-                }
+                title={createdShortLink ? `QR code for ${qrValue}` : "Placeholder QR code"}
               />
             </div>
           </div>
@@ -417,22 +384,14 @@ export function OptionQRCode({ form, isPro = false }: Props) {
               target="_blank"
               rel="noreferrer"
               href={(() => {
-                const normalizedShort = String(shortUrl).replace(
-                  /^https?:\/\//i,
-                  "",
-                );
+                const normalizedShort = String(shortUrl).replace(/^https?:\/\//i, "");
                 const slashIndex = normalizedShort.indexOf("/");
-                const host =
-                  slashIndex >= 0 ? normalizedShort.slice(0, slashIndex) : "";
+                const host = slashIndex >= 0 ? normalizedShort.slice(0, slashIndex) : "";
                 const slug =
-                  slashIndex >= 0
-                    ? normalizedShort.slice(slashIndex + 1)
-                    : normalizedShort;
+                  slashIndex >= 0 ? normalizedShort.slice(slashIndex + 1) : normalizedShort;
                 const params = new URLSearchParams();
                 const hostedLogoMode =
-                  !isPro && qrStyle.logoMode !== "brand"
-                    ? "brand"
-                    : qrStyle.logoMode;
+                  !isPro && qrStyle.logoMode !== "brand" ? "brand" : qrStyle.logoMode;
                 params.set("format", "png");
                 params.set("size", String(qrStyle.size));
                 params.set("fg", qrStyle.fg);
@@ -440,10 +399,7 @@ export function OptionQRCode({ form, isPro = false }: Props) {
                 params.set("margin", String(getQrMarginSize(qrStyle)));
                 params.set("ecc", qrStyle.ecc);
                 params.set("logoMode", hostedLogoMode);
-                if (
-                  host &&
-                  host.toLowerCase() !== getShortDomain().toLowerCase()
-                ) {
+                if (host && host.toLowerCase() !== getShortDomain().toLowerCase()) {
                   params.set("domain", host);
                 }
                 if (hostedLogoMode === "custom" && qrStyle.customLogoUrl) {

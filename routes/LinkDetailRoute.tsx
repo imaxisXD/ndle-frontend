@@ -17,16 +17,10 @@ import { LinkHealthPanel } from "@/components/LinkHealthPanel";
 import { isRangeAvailable } from "@/lib/analytics-access";
 import { useLinkDetailAnalytics } from "@/hooks/use-link-detail-analytics";
 import { useRefreshLinkAnalytics } from "@/hooks/use-refresh-link-analytics";
-import {
-  Tabs,
-  TabsList,
-  TabsTrigger,
-  TabsContent,
-} from "@/components/ui/base-tabs";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/base-tabs";
 import { GraphUp, Settings, List, Bookmark, ShieldCheck } from "iconoir-react";
 
-const linkTabClassName =
-  "min-w-0 flex-col gap-1 text-xs sm:flex-row sm:gap-2 sm:text-sm";
+const linkTabClassName = "min-w-0 flex-col gap-1 text-xs sm:flex-row sm:gap-2 sm:text-sm";
 
 export default function LinkDetailRoute() {
   const params = useParams();
@@ -69,16 +63,15 @@ export default function LinkDetailRoute() {
     liveClickCount: analyticsData?.totalClickCounts,
   });
 
-  const { derived, analyticsState, retryFailedAnalytics } =
-    useLinkDetailAnalytics({
-      slug: String(slug),
-      range,
-      excludeBots,
-      rangeLocked,
-      isABTestEnabled,
-      linkId: linkId ? String(linkId) : undefined,
-      abVariants: url?.abVariants,
-    });
+  const { derived, analyticsState, retryFailedAnalytics } = useLinkDetailAnalytics({
+    slug: String(slug),
+    range,
+    excludeBots,
+    rangeLocked,
+    isABTestEnabled,
+    linkId: linkId ? String(linkId) : undefined,
+    abVariants: url?.abVariants,
+  });
 
   const shortUrl = makeShortLinkWithDomain(String(slug), url?.customDomain);
 
@@ -195,9 +188,7 @@ export default function LinkDetailRoute() {
 
             {/* Danger Zone */}
             <div className="pt-6">
-              <h3 className="text-muted-foreground mb-4 text-sm font-medium">
-                Danger Zone
-              </h3>
+              <h3 className="text-muted-foreground mb-4 text-sm font-medium">Danger Zone</h3>
               <DeleteLinkCard onDelete={handleDelete} />
             </div>
           </div>
@@ -214,9 +205,7 @@ export default function LinkDetailRoute() {
         </TabsContent>
 
         {/* Health Tab */}
-        <TabsContent value="health">
-          {url?._id && <LinkHealthPanel urlId={url._id} />}
-        </TabsContent>
+        <TabsContent value="health">{url?._id && <LinkHealthPanel urlId={url._id} />}</TabsContent>
       </Tabs>
     </div>
   );

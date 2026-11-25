@@ -167,10 +167,7 @@ export function DoodleCurlArrow({
 }
 
 /** A quick hand-drawn ring, for circling a word or a number. */
-export function DoodleRing({
-  className,
-  ...rest
-}: SVGProps<SVGSVGElement>) {
+export function DoodleRing({ className, ...rest }: SVGProps<SVGSVGElement>) {
   return (
     <svg
       viewBox="0 0 100 40"
@@ -184,7 +181,10 @@ export function DoodleRing({
       className={className}
       {...rest}
     >
-      <path d="M52 5C26 3 6 10 5 21c-1 10 18 16 46 15 27-1 46-9 45-18C95 9 76 3 50 5c-6 .4-11 1.4-15 3" vectorEffect="non-scaling-stroke" />
+      <path
+        d="M52 5C26 3 6 10 5 21c-1 10 18 16 46 15 27-1 46-9 45-18C95 9 76 3 50 5c-6 .4-11 1.4-15 3"
+        vectorEffect="non-scaling-stroke"
+      />
     </svg>
   );
 }

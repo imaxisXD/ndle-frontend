@@ -52,7 +52,10 @@ export function AgenticChartChat({ className }: AgenticChartChatProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [chartColdFiles, setChartColdFiles] = useState<ColdFile[]>([]);
   const [filesExpireAt, setFilesExpireAt] = useState(0);
-  const [chartDateRange] = useState(() => ({ start: "2020-01-01", end: new Date().toISOString().slice(0, 10) }));
+  const [chartDateRange] = useState(() => ({
+    start: "2020-01-01",
+    end: new Date().toISOString().slice(0, 10),
+  }));
   const [chartHotFile, setChartHotFile] = useState<ColdFile | null>(null);
   const [isDataSourceLoading, setIsDataSourceLoading] = useState(true);
   const [dataSourceError, setDataSourceError] = useState<string | null>(null);
@@ -78,8 +81,7 @@ export function AgenticChartChat({ className }: AgenticChartChatProps) {
       setChartHotFile(null);
       setFilesExpireAt(snapshot.expiresAt);
     } catch (error) {
-      const message =
-        error instanceof Error ? error.message : "Failed to load chart data";
+      const message = error instanceof Error ? error.message : "Failed to load chart data";
       setDataSourceError(message);
       setChartColdFiles([]);
       setChartHotFile(null);
@@ -114,8 +116,7 @@ export function AgenticChartChat({ className }: AgenticChartChatProps) {
   // Scroll to bottom when messages change
   useEffect(() => {
     if (messagesContainerRef.current) {
-      messagesContainerRef.current.scrollTop =
-        messagesContainerRef.current.scrollHeight;
+      messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
     }
   }, [messages, spec]);
 
@@ -154,9 +155,7 @@ export function AgenticChartChat({ className }: AgenticChartChatProps) {
       }
 
       const fullPrompt =
-        promptContext.length > 0
-          ? `${userMessage}\n\n${promptContext.join("\n")}`
-          : userMessage;
+        promptContext.length > 0 ? `${userMessage}\n\n${promptContext.join("\n")}` : userMessage;
 
       // Send to API
       await send(fullPrompt);
@@ -233,16 +232,10 @@ export function AgenticChartChat({ className }: AgenticChartChatProps) {
 
       <CardContent className="flex flex-1 flex-col gap-4 overflow-hidden p-4">
         {/* Messages Area */}
-        <div
-          ref={messagesContainerRef}
-          className="flex-1 space-y-4 overflow-y-auto"
-        >
+        <div ref={messagesContainerRef} className="flex-1 space-y-4 overflow-y-auto">
           {!hasMessages && !isStreaming ? (
             <div className="flex h-full flex-col items-center justify-center gap-4 text-center">
-              <ChartBarIcon
-                className="h-12 w-12 text-zinc-300"
-                weight="duotone"
-              />
+              <ChartBarIcon className="h-12 w-12 text-zinc-300" weight="duotone" />
               <div>
                 <p className="text-sm font-medium text-zinc-700">
                   Describe the chart you want to create
@@ -251,9 +244,7 @@ export function AgenticChartChat({ className }: AgenticChartChatProps) {
                   I&apos;ll generate it from your analytics data
                 </p>
                 {isDataSourceLoading && (
-                  <p className="mt-2 text-xs text-amber-600">
-                    Preparing chart data source...
-                  </p>
+                  <p className="mt-2 text-xs text-amber-600">Preparing chart data source...</p>
                 )}
                 {dataSourceError && (
                   <div className="mt-2 space-y-2">
@@ -275,7 +266,7 @@ export function AgenticChartChat({ className }: AgenticChartChatProps) {
                   <button
                     key={i}
                     type="button"
-                    className="border-border bg-surface-inset rounded-full border px-3 py-1.5 text-xs text-zinc-600 transition-colors hover:bg-surface-hover"
+                    className="border-border bg-surface-inset hover:bg-surface-hover rounded-full border px-3 py-1.5 text-xs text-zinc-600 transition-colors"
                     onClick={() => setInput(prompt)}
                   >
                     {prompt}
@@ -295,9 +286,7 @@ export function AgenticChartChat({ className }: AgenticChartChatProps) {
                         <User className="h-4 w-4" weight="bold" />
                       </div>
                       <div className="min-w-0 flex-1">
-                        <p className="mb-1 text-xs font-medium text-zinc-500">
-                          You
-                        </p>
+                        <p className="mb-1 text-xs font-medium text-zinc-500">You</p>
                         <p className="text-sm whitespace-pre-wrap text-zinc-900">
                           {message.content}
                         </p>
@@ -312,9 +301,7 @@ export function AgenticChartChat({ className }: AgenticChartChatProps) {
                         <Robot className="h-4 w-4" weight="bold" />
                       </div>
                       <div className="min-w-0 flex-1">
-                        <p className="mb-2 text-xs font-medium text-zinc-500">
-                          AI Assistant
-                        </p>
+                        <p className="mb-2 text-xs font-medium text-zinc-500">AI Assistant</p>
 
                         {/* Show loading for the last assistant message while streaming */}
                         {index === messages.length - 1 && isStreaming ? (
@@ -325,27 +312,20 @@ export function AgenticChartChat({ className }: AgenticChartChatProps) {
                               <span className="h-2 w-2 animate-bounce rounded-full bg-zinc-400" />
                             </div>
                             {/* Show streaming spec */}
-                            {spec &&
-                              Object.keys(spec.elements || {}).length > 0 && (
-                                <ChartQueryProvider
-                                  coldFiles={chartColdFiles}
-                                  hotFile={chartHotFile}
-                            filesExpireAt={filesExpireAt}
-                            scopeDateRange={chartDateRange}
-                                >
-                                  <JSONUIProvider registry={chartRegistry}>
-                                    <Renderer
-                                      spec={spec}
-                                      registry={chartRegistry}
-                                      loading={true}
-                                    />
-                                  </JSONUIProvider>
-                                </ChartQueryProvider>
-                              )}
+                            {spec && Object.keys(spec.elements || {}).length > 0 && (
+                              <ChartQueryProvider
+                                coldFiles={chartColdFiles}
+                                hotFile={chartHotFile}
+                                filesExpireAt={filesExpireAt}
+                                scopeDateRange={chartDateRange}
+                              >
+                                <JSONUIProvider registry={chartRegistry}>
+                                  <Renderer spec={spec} registry={chartRegistry} loading={true} />
+                                </JSONUIProvider>
+                              </ChartQueryProvider>
+                            )}
                           </div>
-                        ) : message.spec &&
-                          Object.keys(message.spec.elements || {}).length >
-                            0 ? (
+                        ) : message.spec && Object.keys(message.spec.elements || {}).length > 0 ? (
                           <ChartQueryProvider
                             coldFiles={chartColdFiles}
                             hotFile={chartHotFile}
@@ -362,10 +342,7 @@ export function AgenticChartChat({ className }: AgenticChartChatProps) {
                           </ChartQueryProvider>
                         ) : (
                           <p className="text-sm italic">
-                            <span
-                              className="t-shimmer"
-                              data-text="Generating chart..."
-                            >
+                            <span className="t-shimmer" data-text="Generating chart...">
                               Generating chart...
                             </span>
                           </p>

@@ -6,10 +6,7 @@ import { getLinkAnalyticsState } from "@/lib/analytics-request";
 import { buildClickTimeline } from "@/lib/click-timeline";
 import { useTimeseries, useVariantPerformance } from "@/hooks/useAnalytics";
 import { useAnalyticsV2 } from "@/hooks/useAnalyticsV2";
-import {
-  getVariantName,
-  type VariantLabels,
-} from "@/components/charts/variant-performance-chart";
+import { getVariantName, type VariantLabels } from "@/components/charts/variant-performance-chart";
 
 interface UseLinkDetailAnalyticsArgs {
   slug: string;
@@ -134,10 +131,7 @@ export function useLinkDetailAnalytics({
     };
   }, [timeseries.data, summary.data, variantPerf.data, range, abVariants]);
 
-  const analyticsState = getLinkAnalyticsState(
-    [timeseries, summary, variantPerf],
-    { rangeLocked },
-  );
+  const analyticsState = getLinkAnalyticsState([timeseries, summary, variantPerf], { rangeLocked });
 
   const retryFailedAnalytics = () => {
     for (const query of analyticsState.failed) {

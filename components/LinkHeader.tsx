@@ -39,9 +39,7 @@ export function LinkHeader({
 }) {
   // Determine link status
   const isExpired = expiresAt ? expiresAt < Date.now() : false;
-  const status: "active" | "expired" | "scheduled" = isExpired
-    ? "expired"
-    : "active";
+  const status: "active" | "expired" | "scheduled" = isExpired ? "expired" : "active";
 
   return (
     <header className="space-y-6">

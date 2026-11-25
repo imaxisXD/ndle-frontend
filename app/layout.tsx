@@ -74,13 +74,11 @@ const caveat = Caveat({
 export const metadata: Metadata = {
   metadataBase: new URL("https://ndle.app"),
   title: "ndle - Short. Sharp. Smarter.",
-  description:
-    "The simple URL shortener with real-time analytics and custom domains.",
+  description: "The simple URL shortener with real-time analytics and custom domains.",
   icons: "/favicon.ico",
   openGraph: {
     title: "ndle - Short. Sharp. Smarter.",
-    description:
-      "The simple URL shortener with real-time analytics and custom domains.",
+    description: "The simple URL shortener with real-time analytics and custom domains.",
     url: "https://ndle.app",
     siteName: "ndle",
     locale: "en_US",
@@ -97,8 +95,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "ndle - Short. Sharp. Smarter.",
-    description:
-      "The simple URL shortener with real-time analytics and custom domains.",
+    description: "The simple URL shortener with real-time analytics and custom domains.",
     creator: "@abhishk_084",
     images: ["/opengraph-image.webp"],
   },

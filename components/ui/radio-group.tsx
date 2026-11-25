@@ -42,9 +42,7 @@ function RadioGroup({
 }: React.ComponentProps<typeof RadioGroupPrimitive.Root> &
   VariantProps<typeof radioGroupVariants>) {
   return (
-    <RadioGroupContext.Provider
-      value={{ variant: variant ?? "primary", size: size ?? "md" }}
-    >
+    <RadioGroupContext.Provider value={{ variant: variant ?? "primary", size: size ?? "md" }}>
       <RadioGroupPrimitive.Root
         data-slot="radio-group"
         className={cn(radioGroupVariants({ variant, size }), className)}
@@ -85,17 +83,12 @@ function RadioGroupItem({
   className,
   size,
   ...props
-}: React.ComponentProps<typeof RadioGroupPrimitive.Item> &
-  VariantProps<typeof radioItemVariants>) {
+}: React.ComponentProps<typeof RadioGroupPrimitive.Item> & VariantProps<typeof radioItemVariants>) {
   // Use the variant and size from context if not provided at the item level.
   const { size: contextSize } = React.useContext(RadioGroupContext);
   const effectiveSize = size ?? contextSize;
   const dotSizeClass =
-    effectiveSize === "sm"
-      ? "size-2"
-      : effectiveSize === "md"
-        ? "size-2.5"
-        : "size-3";
+    effectiveSize === "sm" ? "size-2" : effectiveSize === "md" ? "size-2.5" : "size-3";
 
   return (
     <RadioGroupPrimitive.Item

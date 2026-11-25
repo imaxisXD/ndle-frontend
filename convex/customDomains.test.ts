@@ -75,13 +75,9 @@ function redirectJob(backend: Backend, slug: string) {
 }
 
 async function scheduledDetach(backend: Backend) {
-  const jobs = await backend.run((ctx) =>
-    ctx.db.system.query("_scheduled_functions").collect(),
-  );
+  const jobs = await backend.run((ctx) => ctx.db.system.query("_scheduled_functions").collect());
   return jobs.find(
-    (job) =>
-      job.name.includes("customDomains:detachDomainLinks") &&
-      job.state.kind === "pending",
+    (job) => job.name.includes("customDomains:detachDomainLinks") && job.state.kind === "pending",
   );
 }
 
@@ -127,23 +123,11 @@ describe("deleting a custom domain", () => {
   test("detaches the owner's links from the hostname and re-projects them", async () => {
     const { backend, client, userId, otherUserId, domainId } = await setup();
     const attached = await insertLink(backend, "attached", userId, domain);
-    const otherHost = await insertLink(
-      backend,
-      "otherhost",
-      userId,
-      "go.example.test",
-    );
+    const otherHost = await insertLink(backend, "otherhost", userId, "go.example.test");
     const plain = await insertLink(backend, "plain", userId);
-    const otherOwner = await insertLink(
-      backend,
-      "otherowner",
-      otherUserId,
-      domain,
-    );
+    const otherOwner = await insertLink(backend, "otherowner", otherUserId, domain);
 
-    expect(
-      await client.mutation(api.customDomains.deleteDomain, { domainId }),
-    ).toEqual({
+    expect(await client.mutation(api.customDomains.deleteDomain, { domainId })).toEqual({
       success: true,
     });
 
@@ -184,9 +168,8 @@ describe("deleting a custom domain", () => {
 
     await client.mutation(api.customDomains.deleteDomain, { domainId });
     const attachedCount = async () =>
-      (await backend.run((ctx) => ctx.db.query("urls").collect())).filter(
-        (url) => url.customDomain,
-      ).length;
+      (await backend.run((ctx) => ctx.db.query("urls").collect())).filter((url) => url.customDomain)
+        .length;
     expect(await attachedCount()).toBe(1);
 
     const next = await scheduledDetach(backend);
@@ -212,9 +195,7 @@ describe("deleting a custom domain", () => {
       cursor: null,
     });
 
-    expect(
-      (await backend.run((ctx) => ctx.db.get(attached)))?.customDomain,
-    ).toBe(domain);
+    expect((await backend.run((ctx) => ctx.db.get(attached)))?.customDomain).toBe(domain);
   });
 });
 
@@ -222,26 +203,15 @@ describe("detachOrphanedCustomDomainLinks migration", () => {
   test("detaches links whose owner no longer holds the hostname and is repeatable", async () => {
     const { backend, userId, otherUserId } = await setup();
     const held = await insertLink(backend, "held", userId, domain);
-    const takenOver = await insertLink(
-      backend,
-      "takenover",
-      otherUserId,
-      domain,
-    );
-    const deletedDomain = await insertLink(
-      backend,
-      "deleteddomain",
-      userId,
-      "old.example.test",
-    );
+    const takenOver = await insertLink(backend, "takenover", otherUserId, domain);
+    const deletedDomain = await insertLink(backend, "deleteddomain", userId, "old.example.test");
     const plain = await insertLink(backend, "plain", userId);
 
-    expect(
-      await backend.mutation(
-        internal.backfill.detachOrphanedCustomDomainLinks,
-        {},
-      ),
-    ).toEqual({ scanned: 4, patched: 2, isDone: true });
+    expect(await backend.mutation(internal.backfill.detachOrphanedCustomDomainLinks, {})).toEqual({
+      scanned: 4,
+      patched: 2,
+      isDone: true,
+    });
     const rows = await backend.run(async (ctx) => ({
       held: await ctx.db.get(held),
       takenOver: await ctx.db.get(takenOver),
@@ -254,10 +224,7 @@ describe("detachOrphanedCustomDomainLinks migration", () => {
     expect(await redirectJob(backend, "takenover")).not.toBeNull();
     expect(await redirectJob(backend, "held")).toBeNull();
     expect(
-      await backend.mutation(
-        internal.backfill.detachOrphanedCustomDomainLinks,
-        {},
-      ),
+      await backend.mutation(internal.backfill.detachOrphanedCustomDomainLinks, {}),
     ).toMatchObject({ patched: 0 });
   });
 });

@@ -28,11 +28,7 @@ function isKnownAppPath(segments: string[]): boolean {
   return false;
 }
 
-export default async function Page({
-  params,
-}: {
-  params: Promise<{ path: string[] }>;
-}) {
+export default async function Page({ params }: { params: Promise<{ path: string[] }> }) {
   const { path } = await params;
   if (!isKnownAppPath(path)) {
     notFound();

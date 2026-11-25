@@ -43,13 +43,7 @@ import { PlanNote, type PlanNoteState } from "./url-shortener/PlanNote";
 import { trackUrlCreated, trackAdvancedOptionsOpened } from "@/lib/posthog";
 import { useFavicon } from "@/hooks/use-favicon";
 import { clampQrLogoScale, clampQrMargin, clampQrSize } from "@/lib/qr";
-import {
-  Select,
-  SelectTrigger,
-  SelectValue,
-  SelectContent,
-  SelectItem,
-} from "./ui/base-select";
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "./ui/base-select";
 import { Inset } from "@/components/ui/inset";
 
 const urlFormSchema = z
@@ -108,8 +102,7 @@ const urlFormSchema = z
     trackingEnabled: z.boolean(),
   })
   .superRefine((data, ctx) => {
-    if (!data.expiresEnabled || !data.expireMode || data.expireMode === "none")
-      return;
+    if (!data.expiresEnabled || !data.expireMode || data.expireMode === "none") return;
     if (data.expireMode === "datetime") {
       const val = data.expiresAt ?? "";
       if (val.trim() === "") {
@@ -174,12 +167,10 @@ const DEFAULT_URL_FORM_VALUES: UrlFormValues = {
 
 export function UrlShortener() {
   const [currentUrl, setCurrentUrl] = useState<string | null>(null);
-  const [selectedDomain, setSelectedDomain] =
-    useState<string>(getShortDomain());
+  const [selectedDomain, setSelectedDomain] = useState<string>(getShortDomain());
   const viewer = useQuery(api.users.getViewerState);
   const isPro = viewer?.membership === "pro";
-  const planNoteState: PlanNoteState =
-    viewer === undefined ? "loading" : isPro ? "pro" : "free";
+  const planNoteState: PlanNoteState = viewer === undefined ? "loading" : isPro ? "pro" : "free";
 
   // Get active custom domains for domain selector
   const activeDomains = useQuery(api.customDomains.getActiveDomains);
@@ -196,9 +187,7 @@ export function UrlShortener() {
   const { add } = useToast();
 
   const createUrl = useMutation(api.urlMainFuction.createUrl);
-  const createCollection = useMutation(
-    api.collectionMangament.createCollection,
-  );
+  const createCollection = useMutation(api.collectionMangament.createCollection);
 
   const { faviconUrl } = useFavicon(currentUrl);
 
@@ -225,9 +214,7 @@ export function UrlShortener() {
         .replace(/\/$/, "");
 
     const normalizedMainUrl = normalizeUrl(mainUrl || "");
-    const variantUrls = abVariants.map((v: { url?: string }) =>
-      normalizeUrl(v.url || ""),
-    );
+    const variantUrls = abVariants.map((v: { url?: string }) => normalizeUrl(v.url || ""));
 
     // Check if any variant matches the main URL
     for (const variantUrl of variantUrls) {
@@ -255,8 +242,7 @@ export function UrlShortener() {
 
   const summaryChips = useMemo(() => {
     const chips: string[] = [];
-    const [utmEnabled, abEnabledVal, qrEnabled, collectionId] =
-      watchedSummaryValues;
+    const [utmEnabled, abEnabledVal, qrEnabled, collectionId] = watchedSummaryValues;
 
     if (utmEnabled) chips.push("UTM");
     if (abEnabledVal) chips.push("A/B Test");
@@ -328,23 +314,17 @@ export function UrlShortener() {
         trackingEnabled: values.trackingEnabled,
         expiresAt: expiresAtValue,
         collectionId: collectionIdToUse as Id<"collections"> | undefined,
-        customDomain:
-          selectedDomain !== getShortDomain() ? selectedDomain : undefined,
+        customDomain: selectedDomain !== getShortDomain() ? selectedDomain : undefined,
         qrEnabled: values.qrEnabled ?? false,
         qrStyle: values.qrEnabled
           ? {
               size: clampQrSize(values.qrSize ?? 200),
               fg: (values.qrFg ?? "#000000").trim(),
-              bg: values.qrTransparentBg
-                ? "transparent"
-                : (values.qrBg ?? "#ffffff").trim(),
+              bg: values.qrTransparentBg ? "transparent" : (values.qrBg ?? "#ffffff").trim(),
               margin: clampQrMargin(values.qrMargin ?? 2),
               includeMargin: values.qrIncludeMargin ?? true,
               ecc: values.qrEcc ?? "H",
-              logoMode: (values.qrLogoMode ?? "brand") as
-                | "brand"
-                | "custom"
-                | "none",
+              logoMode: (values.qrLogoMode ?? "brand") as "brand" | "custom" | "none",
               logoScale: clampQrLogoScale(values.qrLogoScale ?? 0.18),
               customLogoUrl:
                 values.qrLogoMode === "custom" && values.qrCustomLogoUrl
@@ -462,10 +442,8 @@ export function UrlShortener() {
                           className={cn(
                             "bg-transparent pl-3 transition-transform duration-200 ease-out",
                             {
-                              "-z-10 -translate-x-5 scale-0 opacity-0":
-                                !faviconUrl,
-                              "z-0 -translate-x-1 scale-100 opacity-100":
-                                faviconUrl,
+                              "-z-10 -translate-x-5 scale-0 opacity-0": !faviconUrl,
+                              "z-0 -translate-x-1 scale-100 opacity-100": faviconUrl,
                             },
                           )}
                         >
@@ -513,9 +491,7 @@ export function UrlShortener() {
                         height while custom domains load; with none it just
                         shows the default domain. */}
                     <div className="mb-4">
-                      <div className="text-muted-foreground mb-2 text-xs">
-                        Domain
-                      </div>
+                      <div className="text-muted-foreground mb-2 text-xs">Domain</div>
                       <Select
                         disabled={!activeDomains?.length}
                         value={selectedDomain}
@@ -529,9 +505,7 @@ export function UrlShortener() {
                           <SelectValue placeholder="Select domain" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value={getShortDomain()}>
-                            {getShortDomain()}
-                          </SelectItem>
+                          <SelectItem value={getShortDomain()}>{getShortDomain()}</SelectItem>
                           {activeDomains?.map((domain) => (
                             <SelectItem key={domain._id} value={domain.domain}>
                               {domain.domain}
@@ -541,9 +515,7 @@ export function UrlShortener() {
                       </Select>
                     </div>
 
-                    <div className="text-muted-foreground mb-3 text-xs">
-                      Link Style
-                    </div>
+                    <div className="text-muted-foreground mb-3 text-xs">Link Style</div>
                     <FormControl>
                       <RadioGroup
                         className="grid gap-3"
@@ -552,11 +524,7 @@ export function UrlShortener() {
                         name={field.name}
                       >
                         <div className="flex items-center gap-2">
-                          <RadioGroupItem
-                            id="slug-random"
-                            value="random"
-                            size="sm"
-                          />
+                          <RadioGroupItem id="slug-random" value="random" size="sm" />
                           <label htmlFor="slug-random" className="text-sm">
                             Random characters{" "}
                             <span className="text-muted-foreground text-xs">
@@ -574,18 +542,12 @@ export function UrlShortener() {
                           />
                           <label
                             htmlFor="slug-human"
-                            className={cn(
-                              "text-sm",
-                              !isPro && "text-muted-foreground",
-                            )}
+                            className={cn("text-sm", !isPro && "text-muted-foreground")}
                           >
                             Readable words{" "}
                             <span className="text-muted-foreground text-xs">
                               (e.g. {selectedDomain}/
-                              <span className="text-primary px-1">
-                                bunnyhops
-                              </span>
-                              )
+                              <span className="text-primary px-1">bunnyhops</span>)
                             </span>
                             {/* Kept in place for Pro so the label wraps the
                                 same way before and after the plan loads. */}
@@ -632,9 +594,7 @@ export function UrlShortener() {
                     },
                   )}
                 >
-                  {advancedOpen
-                    ? "[Hide Advanced Options]"
-                    : "[Show Advanced Options]"}
+                  {advancedOpen ? "[Hide Advanced Options]" : "[Show Advanced Options]"}
                 </span>
               </HotkeyButton>
 

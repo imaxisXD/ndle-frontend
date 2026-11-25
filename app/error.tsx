@@ -19,8 +19,7 @@ export default function GlobalError({
       <div role="alert">
         <h1 className="text-base font-medium">Something went wrong</h1>
         <p className="text-muted-foreground mt-2 max-w-md text-sm">
-          An unexpected error interrupted this page. Your saved links and data
-          are safe.
+          An unexpected error interrupted this page. Your saved links and data are safe.
         </p>
       </div>
       <div className="flex items-center gap-2">

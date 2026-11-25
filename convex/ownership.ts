@@ -12,9 +12,7 @@ export const FREE_ANALYTICS_RANGE_DAYS = 30;
 
 export type ViewerPlan = "guest" | "free" | "pro";
 
-export function getViewerPlan(
-  membership: string | null | undefined,
-): ViewerPlan {
+export function getViewerPlan(membership: string | null | undefined): ViewerPlan {
   if (membership?.trim().toLowerCase() === "pro") {
     return "pro";
   }
@@ -33,10 +31,7 @@ export function makeUserOwnerKey(userId: string) {
 }
 
 export function getCurrentOwnerKey(
-  url: Pick<
-    Doc<"urls">,
-    "ownershipState" | "guestId" | "userTableId" | "analyticsOwnerKey"
-  >,
+  url: Pick<Doc<"urls">, "ownershipState" | "guestId" | "userTableId" | "analyticsOwnerKey">,
 ) {
   if (url.ownershipState === "user" && url.userTableId) {
     return makeUserOwnerKey(url.userTableId);
@@ -57,16 +52,11 @@ export function getCurrentOwnerKey(
 }
 
 export function getOwnerSnapshot(
-  url: Pick<
-    Doc<"urls">,
-    "ownershipState" | "guestId" | "userTableId" | "analyticsOwnerKey"
-  >,
+  url: Pick<Doc<"urls">, "ownershipState" | "guestId" | "userTableId" | "analyticsOwnerKey">,
 ) {
   const analyticsOwnerKey = getCurrentOwnerKey(url);
-  const userId =
-    url.ownershipState === "guest" ? undefined : url.userTableId ?? undefined;
-  const guestId =
-    url.ownershipState === "guest" ? url.guestId : undefined;
+  const userId = url.ownershipState === "guest" ? undefined : (url.userTableId ?? undefined);
+  const guestId = url.ownershipState === "guest" ? url.guestId : undefined;
   return {
     analyticsOwnerKey,
     userId,
@@ -93,10 +83,7 @@ function readGuestLimit(name: string, fallback: number): number {
 }
 
 export function getGuestLinksPerNetworkPerDay() {
-  return readGuestLimit(
-    "GUEST_LINKS_PER_NETWORK_PER_DAY",
-    DEFAULT_GUEST_LINKS_PER_NETWORK_PER_DAY,
-  );
+  return readGuestLimit("GUEST_LINKS_PER_NETWORK_PER_DAY", DEFAULT_GUEST_LINKS_PER_NETWORK_PER_DAY);
 }
 
 export function getGuestLinksPerHour() {

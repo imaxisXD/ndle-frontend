@@ -7,10 +7,7 @@ import { cn } from "@/lib/utils";
 import type { VariantProps } from "class-variance-authority";
 import type * as React from "react";
 
-interface HotkeyButtonProps extends Omit<
-  React.ComponentProps<"button">,
-  "onClick"
-> {
+interface HotkeyButtonProps extends Omit<React.ComponentProps<"button">, "onClick"> {
   hotkey: string | string[];
   onClick?: () => void;
   variant?: VariantProps<typeof Button>["variant"];
@@ -98,15 +95,8 @@ export function HotkeyButton({
       return null;
     }
 
-    const renderKey = (
-      originalPart: string,
-      formattedKey: string,
-      key: string,
-    ) => {
-      if (
-        originalPart.toLowerCase() === "meta" ||
-        originalPart.toLowerCase() === "cmd"
-      ) {
+    const renderKey = (originalPart: string, formattedKey: string, key: string) => {
+      if (originalPart.toLowerCase() === "meta" || originalPart.toLowerCase() === "cmd") {
         return (
           <Kbd key={key} className={kbdClassName}>
             <KeyCommand className="size-2.5 text-white" strokeWidth="2" />
@@ -124,9 +114,7 @@ export function HotkeyButton({
       return (
         <KbdGroup>
           {hotkey.map((key, index) => {
-            const parts = key
-              .split("+")
-              .map((part) => part.trim().toLowerCase());
+            const parts = key.split("+").map((part) => part.trim().toLowerCase());
             const formattedKeys = formatHotkey(key);
             return formattedKeys.map((formattedKey, keyIndex) =>
               renderKey(parts[keyIndex], formattedKey, `${index}-${keyIndex}`),
@@ -170,9 +158,7 @@ export function HotkeyButton({
     >
       {children}
       {/* Touch screens have no keyboard to press the shortcut with. */}
-      <span className="contents pointer-coarse:hidden">
-        {renderHotkeyDisplay()}
-      </span>
+      <span className="contents pointer-coarse:hidden">{renderHotkeyDisplay()}</span>
     </Button>
   );
 }

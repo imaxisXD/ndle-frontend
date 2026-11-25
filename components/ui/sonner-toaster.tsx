@@ -35,10 +35,8 @@ export function Toaster() {
             "group w-full sm:w-96 p-2.5 rounded-md bg-gradient-to-t from-background to-popover border border-border shadow-floating text-popover-foreground",
           title: "text-sm font-medium tracking-tight",
           description: "text-muted-foreground text-xs tracking-tight mt-1",
-          actionButton:
-            "bg-foreground text-background text-xs rounded px-2 py-1",
-          cancelButton:
-            "bg-muted text-muted-foreground text-xs rounded px-2 py-1",
+          actionButton: "bg-foreground text-background text-xs rounded px-2 py-1",
+          cancelButton: "bg-muted text-muted-foreground text-xs rounded px-2 py-1",
           closeButton:
             "!left-auto !right-0 !top-0 !translate-x-1/2 !-translate-y-1/2 !bg-gradient-to-t !from-black !to-black/60 !text-white !border-0 !rounded-full !p-1 [&_svg]:!size-3 [&_svg]:!opacity-70 hover:[&_svg]:!opacity-100",
           icon: "mr-2",

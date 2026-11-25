@@ -53,107 +53,365 @@
 }
 
 @keyframes dmx-square9-d1 {
-  0%, 3.846154% { opacity: var(--dmx-opacity-base); }
-  3.846154%, 30.769231% { opacity: var(--dmx-opacity-peak); }
-  30.769231%, 46.153846% { opacity: var(--dmx-opacity-base); }
-  46.153846%, 50% { opacity: var(--dmx-opacity-peak); }
-  50%, 53.846154% { opacity: var(--dmx-opacity-base); }
-  53.846154%, 57.692308% { opacity: var(--dmx-opacity-peak); }
-  57.692308%, 65.384615% { opacity: var(--dmx-opacity-base); }
-  65.384615%, 71.153846% { opacity: var(--dmx-opacity-peak); }
-  71.153846%, 80.769231% { opacity: var(--dmx-opacity-base); }
-  80.769231%, 84.615385% { opacity: var(--dmx-opacity-peak); }
-  84.615385%, 88.461538% { opacity: var(--dmx-opacity-base); }
-  88.461538%, 92.307692% { opacity: var(--dmx-opacity-peak); }
-  92.307692%, 100% { opacity: var(--dmx-opacity-base); }
+  0%,
+  3.846154% {
+    opacity: var(--dmx-opacity-base);
+  }
+  3.846154%,
+  30.769231% {
+    opacity: var(--dmx-opacity-peak);
+  }
+  30.769231%,
+  46.153846% {
+    opacity: var(--dmx-opacity-base);
+  }
+  46.153846%,
+  50% {
+    opacity: var(--dmx-opacity-peak);
+  }
+  50%,
+  53.846154% {
+    opacity: var(--dmx-opacity-base);
+  }
+  53.846154%,
+  57.692308% {
+    opacity: var(--dmx-opacity-peak);
+  }
+  57.692308%,
+  65.384615% {
+    opacity: var(--dmx-opacity-base);
+  }
+  65.384615%,
+  71.153846% {
+    opacity: var(--dmx-opacity-peak);
+  }
+  71.153846%,
+  80.769231% {
+    opacity: var(--dmx-opacity-base);
+  }
+  80.769231%,
+  84.615385% {
+    opacity: var(--dmx-opacity-peak);
+  }
+  84.615385%,
+  88.461538% {
+    opacity: var(--dmx-opacity-base);
+  }
+  88.461538%,
+  92.307692% {
+    opacity: var(--dmx-opacity-peak);
+  }
+  92.307692%,
+  100% {
+    opacity: var(--dmx-opacity-base);
+  }
 }
 
 @keyframes dmx-square9-d2 {
-  0%, 5.769231% { opacity: var(--dmx-opacity-base); }
-  5.769231%, 25% { opacity: var(--dmx-opacity-peak); }
-  25%, 30.769231% { opacity: var(--dmx-opacity-base); }
-  30.769231%, 36.538462% { opacity: var(--dmx-opacity-peak); }
-  36.538462%, 50% { opacity: var(--dmx-opacity-base); }
-  50%, 53.846154% { opacity: var(--dmx-opacity-peak); }
-  53.846154%, 57.692308% { opacity: var(--dmx-opacity-base); }
-  57.692308%, 61.538462% { opacity: var(--dmx-opacity-peak); }
-  61.538462%, 65.384615% { opacity: var(--dmx-opacity-base); }
-  65.384615%, 76.923077% { opacity: var(--dmx-opacity-peak); }
-  76.923077%, 80.769231% { opacity: var(--dmx-opacity-base); }
-  80.769231%, 84.615385% { opacity: var(--dmx-opacity-peak); }
-  84.615385%, 88.461538% { opacity: var(--dmx-opacity-base); }
-  88.461538%, 92.307692% { opacity: var(--dmx-opacity-peak); }
-  92.307692%, 100% { opacity: var(--dmx-opacity-base); }
+  0%,
+  5.769231% {
+    opacity: var(--dmx-opacity-base);
+  }
+  5.769231%,
+  25% {
+    opacity: var(--dmx-opacity-peak);
+  }
+  25%,
+  30.769231% {
+    opacity: var(--dmx-opacity-base);
+  }
+  30.769231%,
+  36.538462% {
+    opacity: var(--dmx-opacity-peak);
+  }
+  36.538462%,
+  50% {
+    opacity: var(--dmx-opacity-base);
+  }
+  50%,
+  53.846154% {
+    opacity: var(--dmx-opacity-peak);
+  }
+  53.846154%,
+  57.692308% {
+    opacity: var(--dmx-opacity-base);
+  }
+  57.692308%,
+  61.538462% {
+    opacity: var(--dmx-opacity-peak);
+  }
+  61.538462%,
+  65.384615% {
+    opacity: var(--dmx-opacity-base);
+  }
+  65.384615%,
+  76.923077% {
+    opacity: var(--dmx-opacity-peak);
+  }
+  76.923077%,
+  80.769231% {
+    opacity: var(--dmx-opacity-base);
+  }
+  80.769231%,
+  84.615385% {
+    opacity: var(--dmx-opacity-peak);
+  }
+  84.615385%,
+  88.461538% {
+    opacity: var(--dmx-opacity-base);
+  }
+  88.461538%,
+  92.307692% {
+    opacity: var(--dmx-opacity-peak);
+  }
+  92.307692%,
+  100% {
+    opacity: var(--dmx-opacity-base);
+  }
 }
 
 @keyframes dmx-square9-d3 {
-  0%, 7.692308% { opacity: var(--dmx-opacity-base); }
-  7.692308%, 25% { opacity: var(--dmx-opacity-peak); }
-  25%, 36.538462% { opacity: var(--dmx-opacity-base); }
-  36.538462%, 42.307692% { opacity: var(--dmx-opacity-peak); }
-  42.307692%, 46.153846% { opacity: var(--dmx-opacity-base); }
-  46.153846%, 50% { opacity: var(--dmx-opacity-peak); }
-  50%, 53.846154% { opacity: var(--dmx-opacity-base); }
-  53.846154%, 57.692308% { opacity: var(--dmx-opacity-peak); }
-  57.692308%, 71.153846% { opacity: var(--dmx-opacity-base); }
-  71.153846%, 76.923077% { opacity: var(--dmx-opacity-peak); }
-  76.923077%, 80.769231% { opacity: var(--dmx-opacity-base); }
-  80.769231%, 84.615385% { opacity: var(--dmx-opacity-peak); }
-  84.615385%, 88.461538% { opacity: var(--dmx-opacity-base); }
-  88.461538%, 92.307692% { opacity: var(--dmx-opacity-peak); }
-  92.307692%, 100% { opacity: var(--dmx-opacity-base); }
+  0%,
+  7.692308% {
+    opacity: var(--dmx-opacity-base);
+  }
+  7.692308%,
+  25% {
+    opacity: var(--dmx-opacity-peak);
+  }
+  25%,
+  36.538462% {
+    opacity: var(--dmx-opacity-base);
+  }
+  36.538462%,
+  42.307692% {
+    opacity: var(--dmx-opacity-peak);
+  }
+  42.307692%,
+  46.153846% {
+    opacity: var(--dmx-opacity-base);
+  }
+  46.153846%,
+  50% {
+    opacity: var(--dmx-opacity-peak);
+  }
+  50%,
+  53.846154% {
+    opacity: var(--dmx-opacity-base);
+  }
+  53.846154%,
+  57.692308% {
+    opacity: var(--dmx-opacity-peak);
+  }
+  57.692308%,
+  71.153846% {
+    opacity: var(--dmx-opacity-base);
+  }
+  71.153846%,
+  76.923077% {
+    opacity: var(--dmx-opacity-peak);
+  }
+  76.923077%,
+  80.769231% {
+    opacity: var(--dmx-opacity-base);
+  }
+  80.769231%,
+  84.615385% {
+    opacity: var(--dmx-opacity-peak);
+  }
+  84.615385%,
+  88.461538% {
+    opacity: var(--dmx-opacity-base);
+  }
+  88.461538%,
+  92.307692% {
+    opacity: var(--dmx-opacity-peak);
+  }
+  92.307692%,
+  100% {
+    opacity: var(--dmx-opacity-base);
+  }
 }
 
 @keyframes dmx-square9-d4 {
-  0%, 13.461538% { opacity: var(--dmx-opacity-base); }
-  13.461538%, 30.769231% { opacity: var(--dmx-opacity-peak); }
-  30.769231%, 50% { opacity: var(--dmx-opacity-base); }
-  50%, 53.846154% { opacity: var(--dmx-opacity-peak); }
-  53.846154%, 57.692308% { opacity: var(--dmx-opacity-base); }
-  57.692308%, 61.538462% { opacity: var(--dmx-opacity-peak); }
-  61.538462%, 65.384615% { opacity: var(--dmx-opacity-base); }
-  65.384615%, 71.153846% { opacity: var(--dmx-opacity-peak); }
-  71.153846%, 84.615385% { opacity: var(--dmx-opacity-base); }
-  84.615385%, 88.461538% { opacity: var(--dmx-opacity-peak); }
-  88.461538%, 92.307692% { opacity: var(--dmx-opacity-base); }
-  92.307692%, 96.153846% { opacity: var(--dmx-opacity-peak); }
-  96.153846%, 100% { opacity: var(--dmx-opacity-base); }
+  0%,
+  13.461538% {
+    opacity: var(--dmx-opacity-base);
+  }
+  13.461538%,
+  30.769231% {
+    opacity: var(--dmx-opacity-peak);
+  }
+  30.769231%,
+  50% {
+    opacity: var(--dmx-opacity-base);
+  }
+  50%,
+  53.846154% {
+    opacity: var(--dmx-opacity-peak);
+  }
+  53.846154%,
+  57.692308% {
+    opacity: var(--dmx-opacity-base);
+  }
+  57.692308%,
+  61.538462% {
+    opacity: var(--dmx-opacity-peak);
+  }
+  61.538462%,
+  65.384615% {
+    opacity: var(--dmx-opacity-base);
+  }
+  65.384615%,
+  71.153846% {
+    opacity: var(--dmx-opacity-peak);
+  }
+  71.153846%,
+  84.615385% {
+    opacity: var(--dmx-opacity-base);
+  }
+  84.615385%,
+  88.461538% {
+    opacity: var(--dmx-opacity-peak);
+  }
+  88.461538%,
+  92.307692% {
+    opacity: var(--dmx-opacity-base);
+  }
+  92.307692%,
+  96.153846% {
+    opacity: var(--dmx-opacity-peak);
+  }
+  96.153846%,
+  100% {
+    opacity: var(--dmx-opacity-base);
+  }
 }
 
 @keyframes dmx-square9-d5 {
-  0%, 15.384615% { opacity: var(--dmx-opacity-base); }
-  15.384615%, 25% { opacity: var(--dmx-opacity-peak); }
-  25%, 30.769231% { opacity: var(--dmx-opacity-base); }
-  30.769231%, 36.538462% { opacity: var(--dmx-opacity-peak); }
-  36.538462%, 46.153846% { opacity: var(--dmx-opacity-base); }
-  46.153846%, 50% { opacity: var(--dmx-opacity-peak); }
-  50%, 53.846154% { opacity: var(--dmx-opacity-base); }
-  53.846154%, 57.692308% { opacity: var(--dmx-opacity-peak); }
-  57.692308%, 65.384615% { opacity: var(--dmx-opacity-base); }
-  65.384615%, 76.923077% { opacity: var(--dmx-opacity-peak); }
-  76.923077%, 84.615385% { opacity: var(--dmx-opacity-base); }
-  84.615385%, 88.461538% { opacity: var(--dmx-opacity-peak); }
-  88.461538%, 92.307692% { opacity: var(--dmx-opacity-base); }
-  92.307692%, 96.153846% { opacity: var(--dmx-opacity-peak); }
-  96.153846%, 100% { opacity: var(--dmx-opacity-base); }
+  0%,
+  15.384615% {
+    opacity: var(--dmx-opacity-base);
+  }
+  15.384615%,
+  25% {
+    opacity: var(--dmx-opacity-peak);
+  }
+  25%,
+  30.769231% {
+    opacity: var(--dmx-opacity-base);
+  }
+  30.769231%,
+  36.538462% {
+    opacity: var(--dmx-opacity-peak);
+  }
+  36.538462%,
+  46.153846% {
+    opacity: var(--dmx-opacity-base);
+  }
+  46.153846%,
+  50% {
+    opacity: var(--dmx-opacity-peak);
+  }
+  50%,
+  53.846154% {
+    opacity: var(--dmx-opacity-base);
+  }
+  53.846154%,
+  57.692308% {
+    opacity: var(--dmx-opacity-peak);
+  }
+  57.692308%,
+  65.384615% {
+    opacity: var(--dmx-opacity-base);
+  }
+  65.384615%,
+  76.923077% {
+    opacity: var(--dmx-opacity-peak);
+  }
+  76.923077%,
+  84.615385% {
+    opacity: var(--dmx-opacity-base);
+  }
+  84.615385%,
+  88.461538% {
+    opacity: var(--dmx-opacity-peak);
+  }
+  88.461538%,
+  92.307692% {
+    opacity: var(--dmx-opacity-base);
+  }
+  92.307692%,
+  96.153846% {
+    opacity: var(--dmx-opacity-peak);
+  }
+  96.153846%,
+  100% {
+    opacity: var(--dmx-opacity-base);
+  }
 }
 
 @keyframes dmx-square9-d6 {
-  0%, 17.307692% { opacity: var(--dmx-opacity-base); }
-  17.307692%, 25% { opacity: var(--dmx-opacity-peak); }
-  25%, 36.538462% { opacity: var(--dmx-opacity-base); }
-  36.538462%, 42.307692% { opacity: var(--dmx-opacity-peak); }
-  42.307692%, 50% { opacity: var(--dmx-opacity-base); }
-  50%, 53.846154% { opacity: var(--dmx-opacity-peak); }
-  53.846154%, 57.692308% { opacity: var(--dmx-opacity-base); }
-  57.692308%, 61.538462% { opacity: var(--dmx-opacity-peak); }
-  61.538462%, 71.153846% { opacity: var(--dmx-opacity-base); }
-  71.153846%, 76.923077% { opacity: var(--dmx-opacity-peak); }
-  76.923077%, 84.615385% { opacity: var(--dmx-opacity-base); }
-  84.615385%, 88.461538% { opacity: var(--dmx-opacity-peak); }
-  88.461538%, 92.307692% { opacity: var(--dmx-opacity-base); }
-  92.307692%, 96.153846% { opacity: var(--dmx-opacity-peak); }
-  96.153846%, 100% { opacity: var(--dmx-opacity-base); }
+  0%,
+  17.307692% {
+    opacity: var(--dmx-opacity-base);
+  }
+  17.307692%,
+  25% {
+    opacity: var(--dmx-opacity-peak);
+  }
+  25%,
+  36.538462% {
+    opacity: var(--dmx-opacity-base);
+  }
+  36.538462%,
+  42.307692% {
+    opacity: var(--dmx-opacity-peak);
+  }
+  42.307692%,
+  50% {
+    opacity: var(--dmx-opacity-base);
+  }
+  50%,
+  53.846154% {
+    opacity: var(--dmx-opacity-peak);
+  }
+  53.846154%,
+  57.692308% {
+    opacity: var(--dmx-opacity-base);
+  }
+  57.692308%,
+  61.538462% {
+    opacity: var(--dmx-opacity-peak);
+  }
+  61.538462%,
+  71.153846% {
+    opacity: var(--dmx-opacity-base);
+  }
+  71.153846%,
+  76.923077% {
+    opacity: var(--dmx-opacity-peak);
+  }
+  76.923077%,
+  84.615385% {
+    opacity: var(--dmx-opacity-base);
+  }
+  84.615385%,
+  88.461538% {
+    opacity: var(--dmx-opacity-peak);
+  }
+  88.461538%,
+  92.307692% {
+    opacity: var(--dmx-opacity-base);
+  }
+  92.307692%,
+  96.153846% {
+    opacity: var(--dmx-opacity-peak);
+  }
+  96.153846%,
+  100% {
+    opacity: var(--dmx-opacity-base);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

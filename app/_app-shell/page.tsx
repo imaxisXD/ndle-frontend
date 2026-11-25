@@ -48,9 +48,7 @@ function StoreUser() {
 
     try {
       // Only fetch/refresh a guest session when this browser actually created guest links.
-      const guestSession = readGuestId()
-        ? await ensureGuestSession().catch(() => null)
-        : null;
+      const guestSession = readGuestId() ? await ensureGuestSession().catch(() => null) : null;
       const result = await storeUser({
         guestId: guestSession?.guestId,
         guestToken: guestSession?.guestToken,
@@ -68,9 +66,7 @@ function StoreUser() {
       // A claimed guest ID can't make guest links again, so swap it only then.
       if (result.guestSessionClaimed) await ensureGuestSession(true);
       if (result.claimedLinkCount > 0) {
-        toast.success(
-          `Moved ${result.claimedLinkCount} guest links to your account.`,
-        );
+        toast.success(`Moved ${result.claimedLinkCount} guest links to your account.`);
       }
     } catch (error) {
       initializedRef.current = null;
@@ -87,10 +83,7 @@ function StoreUser() {
     const syncedAt = accountSync?.metadataSyncedAt;
 
     // Record the initial observed sync timestamp without forcing a Clerk reload.
-    if (
-      !observedSyncRef.current ||
-      observedSyncRef.current.userId !== user.id
-    ) {
+    if (!observedSyncRef.current || observedSyncRef.current.userId !== user.id) {
       observedSyncRef.current = { userId: user.id, syncedAt };
       return;
     }

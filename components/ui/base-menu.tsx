@@ -8,38 +8,27 @@ import { CircleIcon } from "@phosphor-icons/react/dist/ssr";
 import { ArrowCircleRightIcon, CheckIcon } from "@phosphor-icons/react";
 
 // Root - Groups all parts of the menu
-function Menu({
-  modal = false,
-  ...props
-}: React.ComponentProps<typeof MenuPrimitive.Root>) {
+function Menu({ modal = false, ...props }: React.ComponentProps<typeof MenuPrimitive.Root>) {
   return <MenuPrimitive.Root data-slot="menu" modal={modal} {...props} />;
 }
 
 // Trigger - A button that opens the menu
-function MenuTrigger({
-  ...props
-}: React.ComponentProps<typeof MenuPrimitive.Trigger>) {
+function MenuTrigger({ ...props }: React.ComponentProps<typeof MenuPrimitive.Trigger>) {
   return <MenuPrimitive.Trigger data-slot="menu-trigger" {...props} />;
 }
 
 // Portal - A portal element that moves the popup to a different part of the DOM
-function MenuPortal({
-  ...props
-}: React.ComponentProps<typeof MenuPrimitive.Portal>) {
+function MenuPortal({ ...props }: React.ComponentProps<typeof MenuPrimitive.Portal>) {
   return <MenuPrimitive.Portal data-slot="menu-portal" {...props} />;
 }
 
 // Backdrop - An overlay displayed beneath the menu popup
-function MenuBackdrop({
-  ...props
-}: React.ComponentProps<typeof MenuPrimitive.Backdrop>) {
+function MenuBackdrop({ ...props }: React.ComponentProps<typeof MenuPrimitive.Backdrop>) {
   return <MenuPrimitive.Backdrop data-slot="menu-backdrop" {...props} />;
 }
 
 // Positioner - Positions the menu popup against the trigger
-function MenuPositioner({
-  ...props
-}: React.ComponentProps<typeof MenuPrimitive.Positioner>) {
+function MenuPositioner({ ...props }: React.ComponentProps<typeof MenuPrimitive.Positioner>) {
   return <MenuPrimitive.Positioner data-slot="menu-positioner" {...props} />;
 }
 
@@ -71,11 +60,7 @@ function MenuContent({
         side={side}
         anchor={anchor}
       >
-        <MenuPopup
-          data-slot="autocomplete-content"
-          className={className}
-          {...props}
-        >
+        <MenuPopup data-slot="autocomplete-content" className={className} {...props}>
           {children}
         </MenuPopup>
       </MenuPositioner>
@@ -84,9 +69,7 @@ function MenuContent({
 }
 
 // Popup - A container for the menu items
-function MenuPopup({
-  ...props
-}: React.ComponentProps<typeof MenuPrimitive.Popup>) {
+function MenuPopup({ ...props }: React.ComponentProps<typeof MenuPrimitive.Popup>) {
   return (
     <MenuPrimitive.Popup
       data-slot="menu-popup"
@@ -101,9 +84,7 @@ function MenuPopup({
 }
 
 // Arrow - Displays an element positioned against the menu anchor
-function MenuArrow({
-  ...props
-}: React.ComponentProps<typeof MenuPrimitive.Arrow>) {
+function MenuArrow({ ...props }: React.ComponentProps<typeof MenuPrimitive.Arrow>) {
   return <MenuPrimitive.Arrow data-slot="menu-arrow" {...props} />;
 }
 
@@ -150,9 +131,7 @@ function MenuSeparator({
 }
 
 // Group - Groups related menu items with the corresponding label
-function MenuGroup({
-  ...props
-}: React.ComponentProps<typeof MenuPrimitive.Group>) {
+function MenuGroup({ ...props }: React.ComponentProps<typeof MenuPrimitive.Group>) {
   return <MenuPrimitive.Group data-slot="menu-group" {...props} />;
 }
 
@@ -178,9 +157,7 @@ function MenuGroupLabel({
 }
 
 // RadioGroup - Groups related radio items
-function MenuRadioGroup({
-  ...props
-}: React.ComponentProps<typeof MenuPrimitive.RadioGroup>) {
+function MenuRadioGroup({ ...props }: React.ComponentProps<typeof MenuPrimitive.RadioGroup>) {
   return <MenuPrimitive.RadioGroup data-slot="menu-radio-group" {...props} />;
 }
 
@@ -213,12 +190,7 @@ function MenuRadioItem({
 function MenuRadioItemIndicator({
   ...props
 }: React.ComponentProps<typeof MenuPrimitive.RadioItemIndicator>) {
-  return (
-    <MenuPrimitive.RadioItemIndicator
-      data-slot="menu-radio-item-indicator"
-      {...props}
-    />
-  );
+  return <MenuPrimitive.RadioItemIndicator data-slot="menu-radio-item-indicator" {...props} />;
 }
 
 // CheckboxItem - A menu item that toggles a setting on or off
@@ -253,17 +225,12 @@ function MenuCheckboxItemIndicator({
   ...props
 }: React.ComponentProps<typeof MenuPrimitive.CheckboxItemIndicator>) {
   return (
-    <MenuPrimitive.CheckboxItemIndicator
-      data-slot="menu-checkbox-item-indicator"
-      {...props}
-    />
+    <MenuPrimitive.CheckboxItemIndicator data-slot="menu-checkbox-item-indicator" {...props} />
   );
 }
 
 // SubmenuRoot - Groups all parts of a submenu
-function MenuSubmenuRoot({
-  ...props
-}: React.ComponentProps<typeof MenuPrimitive.SubmenuRoot>) {
+function MenuSubmenuRoot({ ...props }: React.ComponentProps<typeof MenuPrimitive.SubmenuRoot>) {
   return <MenuPrimitive.SubmenuRoot data-slot="menu-submenu-root" {...props} />;
 }
 
@@ -299,17 +266,9 @@ function MenuSubmenuTrigger({
 }
 
 // Shortcut - A shortcut display component
-function MenuShortcut({
-  className,
-  children,
-  ...props
-}: React.HTMLAttributes<HTMLSpanElement>) {
+function MenuShortcut({ className, children, ...props }: React.HTMLAttributes<HTMLSpanElement>) {
   return (
-    <KbdGroup
-      data-slot="menu-shortcut"
-      {...props}
-      className={cn("ms-auto", className)}
-    >
+    <KbdGroup data-slot="menu-shortcut" {...props} className={cn("ms-auto", className)}>
       {children}
     </KbdGroup>
   );

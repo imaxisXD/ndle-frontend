@@ -50,11 +50,7 @@ const MEDIUM_PRESETS = [
   { value: "banner", label: "Banner" },
 ];
 
-export function OptionUTMBuilder({
-  form,
-}: {
-  form: UseFormReturn<UrlFormValues>;
-}) {
+export function OptionUTMBuilder({ form }: { form: UseFormReturn<UrlFormValues> }) {
   const currentUrl = useWatch({ control: form.control, name: "url" });
   const utmSource = useWatch({ control: form.control, name: "utmSource" });
   const utmMedium = useWatch({ control: form.control, name: "utmMedium" });
@@ -73,8 +69,7 @@ export function OptionUTMBuilder({
     });
   }, [currentUrl, utmSource, utmMedium, utmCampaign, utmTerm, utmContent]);
 
-  const hasAnyUtm =
-    utmSource || utmMedium || utmCampaign || utmTerm || utmContent;
+  const hasAnyUtm = utmSource || utmMedium || utmCampaign || utmTerm || utmContent;
 
   return (
     <div className="space-y-4">
@@ -88,15 +83,9 @@ export function OptionUTMBuilder({
               <FormLabel>utm_source *</FormLabel>
               <div className="flex gap-2">
                 <Select
-                  value={
-                    SOURCE_PRESETS.some((p) => p.value === field.value)
-                      ? field.value
-                      : ""
-                  }
+                  value={SOURCE_PRESETS.some((p) => p.value === field.value) ? field.value : ""}
                   onValueChange={(val) => {
-                    field.onChange(
-                      val === CUSTOM_PRESET_VALUE ? "" : val,
-                    );
+                    field.onChange(val === CUSTOM_PRESET_VALUE ? "" : val);
                   }}
                 >
                   <SelectTrigger className="w-32">
@@ -114,11 +103,7 @@ export function OptionUTMBuilder({
                   </SelectContent>
                 </Select>
                 <FormControl>
-                  <Input
-                    placeholder="e.g. google, newsletter"
-                    {...field}
-                    className="flex-1"
-                  />
+                  <Input placeholder="e.g. google, newsletter" {...field} className="flex-1" />
                 </FormControl>
               </div>
               <FormDescription className="text-xs">
@@ -138,15 +123,9 @@ export function OptionUTMBuilder({
               <FormLabel>utm_medium *</FormLabel>
               <div className="flex gap-2">
                 <Select
-                  value={
-                    MEDIUM_PRESETS.some((p) => p.value === field.value)
-                      ? field.value
-                      : ""
-                  }
+                  value={MEDIUM_PRESETS.some((p) => p.value === field.value) ? field.value : ""}
                   onValueChange={(val) => {
-                    field.onChange(
-                      val === CUSTOM_PRESET_VALUE ? "" : val,
-                    );
+                    field.onChange(val === CUSTOM_PRESET_VALUE ? "" : val);
                   }}
                 >
                   <SelectTrigger className="w-32">
@@ -164,16 +143,10 @@ export function OptionUTMBuilder({
                   </SelectContent>
                 </Select>
                 <FormControl>
-                  <Input
-                    placeholder="e.g. cpc, email, social"
-                    {...field}
-                    className="flex-1"
-                  />
+                  <Input placeholder="e.g. cpc, email, social" {...field} className="flex-1" />
                 </FormControl>
               </div>
-              <FormDescription className="text-xs">
-                The marketing medium or channel
-              </FormDescription>
+              <FormDescription className="text-xs">The marketing medium or channel</FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -187,14 +160,9 @@ export function OptionUTMBuilder({
             <FormItem>
               <FormLabel>utm_campaign *</FormLabel>
               <FormControl>
-                <Input
-                  placeholder="e.g. spring_sale, product_launch"
-                  {...field}
-                />
+                <Input placeholder="e.g. spring_sale, product_launch" {...field} />
               </FormControl>
-              <FormDescription className="text-xs">
-                The specific campaign name
-              </FormDescription>
+              <FormDescription className="text-xs">The specific campaign name</FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -210,9 +178,7 @@ export function OptionUTMBuilder({
               <FormControl>
                 <Input placeholder="e.g. running+shoes" {...field} />
               </FormControl>
-              <FormDescription className="text-xs">
-                Paid search keywords (optional)
-              </FormDescription>
+              <FormDescription className="text-xs">Paid search keywords (optional)</FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -251,10 +217,9 @@ export function OptionUTMBuilder({
       )}
 
       <div className="rounded-md border border-blue-200 bg-blue-50/50 p-3 text-xs text-blue-800">
-        <strong>How it works:</strong> UTM parameters are automatically appended
-        when someone clicks your short link. Your original destination URL stays
-        clean, and you&apos;ll see detailed campaign analytics in your
-        dashboard.
+        <strong>How it works:</strong> UTM parameters are automatically appended when someone clicks
+        your short link. Your original destination URL stays clean, and you&apos;ll see detailed
+        campaign analytics in your dashboard.
       </div>
     </div>
   );

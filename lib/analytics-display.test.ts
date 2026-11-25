@@ -22,9 +22,7 @@ test("missing traffic-type data is shown as unavailable, not measured zeroes", (
       isLoading: false,
     }),
   );
-  expect(markup).toContain(
-    "Human and bot counts are unavailable for this date range.",
-  );
+  expect(markup).toContain("Human and bot counts are unavailable for this date range.");
 });
 
 test("A/B labels match the projected ids: control is A, stored variants start at B", () => {

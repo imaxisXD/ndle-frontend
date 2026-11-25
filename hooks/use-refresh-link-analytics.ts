@@ -24,11 +24,7 @@ export function useRefreshLinkAnalytics({
     const before = previous.current;
     previous.current = liveClickCount;
     // The first value is the page load, not a new click.
-    if (
-      before === undefined ||
-      liveClickCount === undefined ||
-      liveClickCount <= before
-    ) {
+    if (before === undefined || liveClickCount === undefined || liveClickCount <= before) {
       return;
     }
 
@@ -37,8 +33,7 @@ export function useRefreshLinkAnalytics({
         predicate: ({ queryKey }) => {
           if (queryKey[0] === "analytics") {
             return (
-              queryKey.includes(linkSlug) ||
-              (linkId !== undefined && queryKey.includes(linkId))
+              queryKey.includes(linkSlug) || (linkId !== undefined && queryKey.includes(linkId))
             );
           }
           if (queryKey[0] === "analytics-v2") {

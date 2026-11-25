@@ -164,9 +164,7 @@ function Switch({
       className={cn(switchVariants({ shape, size, permanent }), className)}
       {...props}
     >
-      <SwitchPrimitive.Thumb
-        className={cn(switchThumbVariants({ shape, size }), thumbClassName)}
-      />
+      <SwitchPrimitive.Thumb className={cn(switchThumbVariants({ shape, size }), thumbClassName)} />
     </SwitchPrimitive.Root>
   );
 }
@@ -175,8 +173,7 @@ function SwitchIndicator({
   className,
   state,
   ...props
-}: React.HTMLAttributes<HTMLSpanElement> &
-  VariantProps<typeof switchIndicatorVariants>) {
+}: React.HTMLAttributes<HTMLSpanElement> & VariantProps<typeof switchIndicatorVariants>) {
   const context = useSwitchContext();
   const permanent = context?.permanent ?? false;
 

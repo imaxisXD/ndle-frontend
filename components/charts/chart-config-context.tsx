@@ -29,23 +29,16 @@ export interface ChartConfigProviderProps {
   children: ReactNode;
 }
 
-export function ChartConfigProvider({
-  value,
-  children,
-}: ChartConfigProviderProps) {
+export function ChartConfigProvider({ value, children }: ChartConfigProviderProps) {
   const merged = useMemo<ChartConfigValue>(
     () => ({
       ...DEFAULT_CHART_CONFIG,
       ...value,
     }),
-    [value]
+    [value],
   );
 
-  return (
-    <ChartConfigContext.Provider value={merged}>
-      {children}
-    </ChartConfigContext.Provider>
-  );
+  return <ChartConfigContext.Provider value={merged}>{children}</ChartConfigContext.Provider>;
 }
 
 export function useChartConfig(): ChartConfigValue {

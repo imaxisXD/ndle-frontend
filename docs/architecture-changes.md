@@ -8,16 +8,16 @@ release evidence and remaining verification limits.
 
 ## What changed and why
 
-| Area | Change | Benefit |
-| --- | --- | --- |
-| Correct analytics totals | Permanent event receipts, transactional counts, immutable archives and a separate-file rebuild | Retried, late and archived clicks do not inflate or overwrite totals. |
-| Reliable click delivery | A durable edge queue, stable event IDs and validated downstream receipts | Temporary service failures can retry the same click safely. |
-| Reliable service updates | Saved, versioned jobs for redirects, monitoring, Clerk, ownership and domains | A failed external request does not leave a saved link or account permanently out of sync. Old retries cannot undo newer changes. |
-| Consistent analytics | Complete server summaries, shared filters, coverage and freshness information | Recent and archived date ranges use the same counting rules. AI charts request complete, temporary exports. |
-| Guest and account privacy | Signed guest credentials, owner aliases, exact file grants, private responses and account-scoped browser state | Claimed guest history remains accessible to its owner; another account cannot reuse its file access or cached data. |
-| Honest link health | Durable measurements, duplicate protection, ordered status updates and explicit unknown/stale states | Delayed checks do not replace newer results; blocked or missing checks do not imply healthy uptime. |
-| Recovery and operations | Backups through the database owner, checksum-verified restore, replay tools, readiness checks, email alerts and CI | Recovery has executable steps and verification. Scheduled checks notify the owner about delayed clicks, failed deliveries, unavailable services and old backups. |
-| Bounded application work | Paginated lists, indexed collection membership, maintained counters and lazy chart data loading | Large accounts avoid loading or rewriting their entire history for routine reads and writes. |
+| Area                      | Change                                                                                                             | Benefit                                                                                                                                                          |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Correct analytics totals  | Permanent event receipts, transactional counts, immutable archives and a separate-file rebuild                     | Retried, late and archived clicks do not inflate or overwrite totals.                                                                                            |
+| Reliable click delivery   | A durable edge queue, stable event IDs and validated downstream receipts                                           | Temporary service failures can retry the same click safely.                                                                                                      |
+| Reliable service updates  | Saved, versioned jobs for redirects, monitoring, Clerk, ownership and domains                                      | A failed external request does not leave a saved link or account permanently out of sync. Old retries cannot undo newer changes.                                 |
+| Consistent analytics      | Complete server summaries, shared filters, coverage and freshness information                                      | Recent and archived date ranges use the same counting rules. AI charts request complete, temporary exports.                                                      |
+| Guest and account privacy | Signed guest credentials, owner aliases, exact file grants, private responses and account-scoped browser state     | Claimed guest history remains accessible to its owner; another account cannot reuse its file access or cached data.                                              |
+| Honest link health        | Durable measurements, duplicate protection, ordered status updates and explicit unknown/stale states               | Delayed checks do not replace newer results; blocked or missing checks do not imply healthy uptime.                                                              |
+| Recovery and operations   | Backups through the database owner, checksum-verified restore, replay tools, readiness checks, email alerts and CI | Recovery has executable steps and verification. Scheduled checks notify the owner about delayed clicks, failed deliveries, unavailable services and old backups. |
+| Bounded application work  | Paginated lists, indexed collection membership, maintained counters and lazy chart data loading                    | Large accounts avoid loading or rewriting their entire history for routine reads and writes.                                                                     |
 
 ## Main data paths
 
@@ -46,14 +46,14 @@ the database transaction commits. Redis persistence remains a deployment duty.
 
 ## Verification performed
 
-| Repository | Automated tests | Other checks |
-| --- | ---: | --- |
-| Frontend and Convex | 74 | Full TypeScript check, lint, Next.js build and OpenNext Cloudflare bundle |
-| Redirect Worker | 32 | TypeScript, Biome, generated binding check, production and development deployment dry-runs |
-| File proxy | 39 | TypeScript, generated binding check, production and development deployment dry-runs |
-| Ingest service | 26 | TypeScript and separate DuckDB refactor checks |
-| Monitoring service | 16 | TypeScript, fresh PostgreSQL migration and real local PostgreSQL/Redis integration |
-| **Total** | **187** | These were the initial implementation checks; production checks are recorded below. |
+| Repository          | Automated tests | Other checks                                                                               |
+| ------------------- | --------------: | ------------------------------------------------------------------------------------------ |
+| Frontend and Convex |              74 | Full TypeScript check, lint, Next.js build and OpenNext Cloudflare bundle                  |
+| Redirect Worker     |              32 | TypeScript, Biome, generated binding check, production and development deployment dry-runs |
+| File proxy          |              39 | TypeScript, generated binding check, production and development deployment dry-runs        |
+| Ingest service      |              26 | TypeScript and separate DuckDB refactor checks                                             |
+| Monitoring service  |              16 | TypeScript, fresh PostgreSQL migration and real local PostgreSQL/Redis integration         |
+| **Total**           |         **187** | These were the initial implementation checks; production checks are recorded below.        |
 
 Tests exercise duplicate delivery, late events, archive/rebuild count parity,
 failed acknowledgements, reordered updates, deletion races, guest ownership,

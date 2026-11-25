@@ -1,11 +1,6 @@
 "use client";
 
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@/components/ui/base-tabs";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/base-tabs";
 import {
   Card,
   CardContent,
@@ -15,10 +10,7 @@ import {
   CardToolbar,
 } from "@/components/ui/card";
 import { BklitHorizontalBarChart } from "@/components/charts/bklit-chart-kit";
-import {
-  AppleImac2021 as Monitor,
-  Laptop as DeviceDesktop,
-} from "iconoir-react";
+import { AppleImac2021 as Monitor, Laptop as DeviceDesktop } from "iconoir-react";
 
 // Device Chart Data
 const defaultDeviceData = [
@@ -51,11 +43,7 @@ export function DeviceOSChart({
       </CardHeader>
       <CardToolbar>
         <Tabs defaultValue="device" className="w-full">
-          <TabsList
-            className="grid w-full grid-cols-2"
-            size="xs"
-            variant="line"
-          >
+          <TabsList className="grid w-full grid-cols-2" size="xs" variant="line">
             <TabsTrigger value="device" className="flex items-center gap-2">
               <DeviceDesktop className="size-4" />
               Device Types

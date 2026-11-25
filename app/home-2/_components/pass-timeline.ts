@@ -28,7 +28,9 @@ export type Marker = { at: number; duration: 0 };
 export type Clip = Tween | Steps | Marker;
 
 /** A timeline: its length, and clips, alone or grouped one level deep. */
-export type Timeline = { duration: number } & { [key: string]: number | Clip | Record<string, Clip> };
+export type Timeline = { duration: number } & {
+  [key: string]: number | Clip | Record<string, Clip>;
+};
 
 type Sampled<C> = {
   /** The playhead is at or past the clip's start. */
@@ -67,7 +69,8 @@ const clamp01 = (n: number) => Math.min(1, Math.max(0, n));
 
 function mixValues(from: Values, to: Values, t: number) {
   const out: Values = {};
-  for (const key of Object.keys(from)) out[key] = from[key] + ((to[key] ?? from[key]) - from[key]) * t;
+  for (const key of Object.keys(from))
+    out[key] = from[key] + ((to[key] ?? from[key]) - from[key]) * t;
   return out;
 }
 
@@ -81,7 +84,8 @@ function valuesAt(clip: Clip, elapsed: number): Values {
     let offset = 0;
     for (const step of clip.steps) {
       const end = { ...start, ...step.to };
-      if (elapsed < offset + step.duration) return mixValues(start, end, clamp01((elapsed - offset) / step.duration));
+      if (elapsed < offset + step.duration)
+        return mixValues(start, end, clamp01((elapsed - offset) / step.duration));
       start = end;
       offset += step.duration;
     }
@@ -108,7 +112,8 @@ function sampleClip(clip: Clip, time: number) {
   };
 }
 
-const isClip = (value: unknown): value is Clip => typeof value === "object" && value !== null && "at" in value;
+const isClip = (value: unknown): value is Clip =>
+  typeof value === "object" && value !== null && "at" in value;
 
 /** Every clip in `timeline`, at `time` seconds. */
 export function sampleTimeline<T extends Timeline>(timeline: T, time: number): SampledTimeline<T> {
@@ -116,7 +121,10 @@ export function sampleTimeline<T extends Timeline>(timeline: T, time: number): S
   for (const [key, value] of Object.entries(timeline)) {
     if (typeof value === "number") continue;
     if (isClip(value)) out[key] = sampleClip(value, time);
-    else out[key] = Object.fromEntries(Object.entries(value).map(([child, clip]) => [child, sampleClip(clip, time)]));
+    else
+      out[key] = Object.fromEntries(
+        Object.entries(value).map(([child, clip]) => [child, sampleClip(clip, time)]),
+      );
   }
   return out as SampledTimeline<T>;
 }

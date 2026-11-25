@@ -2,12 +2,7 @@
 
 import { type CSSProperties, useMemo, useState } from "react";
 import type { QrEcc } from "@/lib/qr";
-import {
-  finderShapes,
-  layoutQr,
-  QR_DOT_RADIUS,
-  type QrLogo,
-} from "@/lib/qr-code";
+import { finderShapes, layoutQr, QR_DOT_RADIUS, type QrLogo } from "@/lib/qr-code";
 
 // The refresh sweeps the code top to bottom like ndle's dot-matrix sign: a
 // row's dots update as the scan reaches it, give or take a little scatter so
@@ -106,10 +101,7 @@ export function QrCode({
       {layout.finders.map(({ x, y }) => {
         const { ring, eye } = finderShapes(x, y);
         return (
-          <g
-            key={`${x}:${y}`}
-            style={delayStyle(delayFor(x + 3, y + 3, modules))}
-          >
+          <g key={`${x}:${y}`} style={delayStyle(delayFor(x + 3, y + 3, modules))}>
             <rect
               className="qr-finder"
               x={ring.x}

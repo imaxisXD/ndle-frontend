@@ -34,9 +34,7 @@ export function UrlPickerTable({ collectionId, onClose }: UrlPickerTableProps) {
     { collectionId },
     { initialNumItems: 25 },
   );
-  const addUrlToCollection = useMutation(
-    api.collectionMangament.addUrlToCollection,
-  );
+  const addUrlToCollection = useMutation(api.collectionMangament.addUrlToCollection);
 
   const [selected, setSelected] = useState<Set<Id<"urls">>>(new Set());
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -114,9 +112,7 @@ export function UrlPickerTable({ collectionId, onClose }: UrlPickerTableProps) {
     return (
       <div className="py-8 text-center">
         <p className="text-sm font-medium">Loading URLs…</p>
-        <p className="text-muted-foreground mt-1 text-xs">
-          Fetching your available links
-        </p>
+        <p className="text-muted-foreground mt-1 text-xs">Fetching your available links</p>
       </div>
     );
   }
@@ -127,8 +123,7 @@ export function UrlPickerTable({ collectionId, onClose }: UrlPickerTableProps) {
         <LinkIcon className="text-muted-foreground mx-auto mb-4 h-8 w-8" />
         <h3 className="mb-1 text-sm font-medium">No Links Available</h3>
         <p className="text-muted-foreground text-xs">
-          All your links are already in this collection, or you haven&apos;t
-          created any yet.
+          All your links are already in this collection, or you haven&apos;t created any yet.
         </p>
       </Inset>
     );
@@ -139,17 +134,10 @@ export function UrlPickerTable({ collectionId, onClose }: UrlPickerTableProps) {
       <div className="flex items-center justify-between">
         <div className="text-sm">Selected: {selected.size}</div>
         <div className="space-x-2">
-          <Button
-            variant="outline"
-            onClick={() => onClose?.()}
-            disabled={isSubmitting}
-          >
+          <Button variant="outline" onClick={() => onClose?.()} disabled={isSubmitting}>
             Cancel
           </Button>
-          <Button
-            onClick={handleAdd}
-            disabled={selected.size === 0 || isSubmitting}
-          >
+          <Button onClick={handleAdd} disabled={selected.size === 0 || isSubmitting}>
             Add {selected.size > 0 ? `(${selected.size})` : ""}
           </Button>
         </div>
@@ -174,16 +162,12 @@ export function UrlPickerTable({ collectionId, onClose }: UrlPickerTableProps) {
                   checked={isAllSelected}
                   data-invalid={false}
                   onCheckedChange={toggleAll}
-                  {...(isIndeterminate
-                    ? { "data-state": "indeterminate" }
-                    : {})}
+                  {...(isIndeterminate ? { "data-state": "indeterminate" } : {})}
                 />
               </TableHead>
               <TableHead className="px-4">Short</TableHead>
               <TableHead className="px-4">Original</TableHead>
-              <TableHead className="hidden w-28 px-4 sm:table-cell">
-                Created
-              </TableHead>
+              <TableHead className="hidden w-28 px-4 sm:table-cell">Created</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -196,10 +180,7 @@ export function UrlPickerTable({ collectionId, onClose }: UrlPickerTableProps) {
                   className="hover:bg-surface-hover cursor-pointer"
                   onClick={() => toggleOne(u._id)}
                 >
-                  <TableCell
-                    className="px-4"
-                    onClick={(e) => e.stopPropagation()}
-                  >
+                  <TableCell className="px-4" onClick={(e) => e.stopPropagation()}>
                     <Checkbox
                       aria-label="Select row"
                       checked={selected.has(u._id)}
@@ -207,18 +188,12 @@ export function UrlPickerTable({ collectionId, onClose }: UrlPickerTableProps) {
                     />
                   </TableCell>
                   <TableCell className="px-4">
-                    <code
-                      className="block truncate text-xs font-medium"
-                      title={short}
-                    >
+                    <code className="block truncate text-xs font-medium" title={short}>
                       {short}
                     </code>
                   </TableCell>
                   <TableCell className="px-4">
-                    <p
-                      className="text-muted-foreground truncate text-xs"
-                      title={u.fullurl}
-                    >
+                    <p className="text-muted-foreground truncate text-xs" title={u.fullurl}>
                       {u.fullurl}
                     </p>
                   </TableCell>
@@ -233,8 +208,7 @@ export function UrlPickerTable({ collectionId, onClose }: UrlPickerTableProps) {
       </div>
       <div className="flex items-center justify-between gap-3">
         <p className="text-muted-foreground text-xs">
-          {availableUrls.length} available links loaded. Search applies to
-          loaded links.
+          {availableUrls.length} available links loaded. Search applies to loaded links.
         </p>
         {status !== "Exhausted" && (
           <Button

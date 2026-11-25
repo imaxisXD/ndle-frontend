@@ -2,7 +2,12 @@ import { afterEach, describe, expect, test, vi } from "vitest";
 import { NextRequest } from "next/server";
 import { POST } from "./route";
 
-const state = vi.hoisted(() => ({ turnstile: true, allow: true, checked: [] as string[], limitKeys: [] as string[] }));
+const state = vi.hoisted(() => ({
+  turnstile: true,
+  allow: true,
+  checked: [] as string[],
+  limitKeys: [] as string[],
+}));
 vi.mock("@/lib/turnstile", () => ({
   turnstileSecretKey: () => "secret",
   verifyTurnstile: async () => state.turnstile,
@@ -51,7 +56,9 @@ describe("link check route", () => {
   });
 
   test("refuses other websites", async () => {
-    const response = await POST(request({ url: "example.com", token: "t" }, "https://evil.example"));
+    const response = await POST(
+      request({ url: "example.com", token: "t" }, "https://evil.example"),
+    );
     expect(response.status).toBe(403);
     expect(state.checked).toEqual([]);
   });

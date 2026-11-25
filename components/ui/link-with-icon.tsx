@@ -26,10 +26,7 @@ const LinkWithIcon = React.forwardRef<HTMLAnchorElement, LinkWithIconProps>(
         {link}
 
         <OpenNewWindow
-          className={cn(
-            "text-muted-foreground size-2 group-hover:text-blue-600",
-            iconClassName,
-          )}
+          className={cn("text-muted-foreground size-2 group-hover:text-blue-600", iconClassName)}
           strokeWidth={2}
         />
       </a>

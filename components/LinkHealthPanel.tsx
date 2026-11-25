@@ -68,13 +68,8 @@ export function LinkHealthPanel({ urlId }: LinkHealthPanelProps) {
       return null;
     }
     const visibleDates = new Set(getLast30DateStrings());
-    const summaries = healthData.dailySummaries.filter((summary) =>
-      visibleDates.has(summary.date),
-    );
-    const total = summaries.reduce(
-      (s, r) => s + r.totalChecks - (r.unknownChecks ?? 0),
-      0,
-    );
+    const summaries = healthData.dailySummaries.filter((summary) => visibleDates.has(summary.date));
+    const total = summaries.reduce((s, r) => s + r.totalChecks - (r.unknownChecks ?? 0), 0);
     const healthy = summaries.reduce((s, r) => s + r.healthyChecks, 0);
     return total > 0 ? Math.round((healthy / total) * 1000) / 10 : null;
   };
@@ -107,24 +102,15 @@ export function LinkHealthPanel({ urlId }: LinkHealthPanelProps) {
   const getStatusIcon = (status: UIStatus | "overdue" | "pending") => {
     switch (status) {
       case "healthy":
-        return (
-          <ShieldPlusIcon className="size-5 text-green-600" weight="duotone" />
-        );
+        return <ShieldPlusIcon className="size-5 text-green-600" weight="duotone" />;
       case "warning":
-        return (
-          <ShieldWarningIcon
-            className="size-5 text-yellow-600"
-            weight="duotone"
-          />
-        );
+        return <ShieldWarningIcon className="size-5 text-yellow-600" weight="duotone" />;
       case "unknown":
       case "overdue":
       case "pending":
         return <Clock className="text-muted-foreground size-5" />;
       case "error":
-        return (
-          <ShieldSlashIcon className="size-5 text-red-600" weight="duotone" />
-        );
+        return <ShieldSlashIcon className="size-5 text-red-600" weight="duotone" />;
     }
   };
 
@@ -148,10 +134,7 @@ export function LinkHealthPanel({ urlId }: LinkHealthPanelProps) {
           <CardContent>
             <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3">
               {[1, 2, 3].map((i) => (
-                <Inset
-                  key={i}
-                  className="rounded-sm p-3 last:col-span-2 sm:last:col-span-1"
-                >
+                <Inset key={i} className="rounded-sm p-3 last:col-span-2 sm:last:col-span-1">
                   <Skeleton className="h-4 w-20" />
                   <Skeleton className="mt-2 h-8 w-24" />
                   <Skeleton className="mt-1 h-3 w-16" />
@@ -208,8 +191,8 @@ export function LinkHealthPanel({ urlId }: LinkHealthPanelProps) {
           </div>
           <h3 className="mt-4 text-lg font-medium">No health data yet</h3>
           <p className="text-muted-foreground max-w-sm text-sm">
-            Health monitoring data for this link will appear here once checks
-            begin running automatically.
+            Health monitoring data for this link will appear here once checks begin running
+            automatically.
           </p>
         </div>
       </Card>
@@ -259,9 +242,7 @@ export function LinkHealthPanel({ urlId }: LinkHealthPanelProps) {
             <Inset className="rounded-sm p-3">
               <div className="flex items-center gap-2">
                 <LightningIcon className="text-muted-foreground size-4" />
-                <span className="text-muted-foreground text-xs">
-                  Response Time
-                </span>
+                <span className="text-muted-foreground text-xs">Response Time</span>
               </div>
               <p
                 className={`mt-2 text-xl font-medium sm:text-2xl ${getResponseTimeColor(healthData.healthData.latencyMs)}`}
@@ -278,9 +259,7 @@ export function LinkHealthPanel({ urlId }: LinkHealthPanelProps) {
             <Inset className="col-span-2 rounded-sm p-3 sm:col-span-1">
               <div className="flex items-center gap-2">
                 <Clock className="text-muted-foreground size-4" />
-                <span className="text-muted-foreground text-xs">
-                  Last Checked
-                </span>
+                <span className="text-muted-foreground text-xs">Last Checked</span>
               </div>
               <p className="mt-2 text-lg font-medium">
                 [{formatRelativeTimeCompact(healthData.healthData.checkedAt)}]
@@ -303,9 +282,7 @@ export function LinkHealthPanel({ urlId }: LinkHealthPanelProps) {
             <SirenIcon className="size-4 fill-red-500" weight="duotone" />
             Incident History
           </CardTitle>
-          <CardDescription className="text-sm">
-            Latest alerts and resolved issues
-          </CardDescription>
+          <CardDescription className="text-sm">Latest alerts and resolved issues</CardDescription>
         </CardHeader>
         <CardContent className="px-0 py-1">
           {healthData.incidentData?.length === 0 ? (
@@ -333,17 +310,14 @@ export function LinkHealthPanel({ urlId }: LinkHealthPanelProps) {
                       }
                       className="shrink-0 text-xs"
                     >
-                      {incident.type.charAt(0).toUpperCase() +
-                        incident.type.slice(1)}
+                      {incident.type.charAt(0).toUpperCase() + incident.type.slice(1)}
                     </Badge>
                   </div>
                   {/* Phones: the message takes its own line under the badge
                       and time instead of shrinking to a couple of words. */}
                   <div className="order-last min-w-0 basis-full sm:order-none sm:flex-1 sm:basis-auto">
                     <div className="flex items-center gap-2">
-                      <p className="line-clamp-2 text-sm sm:truncate">
-                        {incident.message}
-                      </p>
+                      <p className="line-clamp-2 text-sm sm:truncate">{incident.message}</p>
                     </div>
                   </div>
                   <div className="ml-auto flex shrink-0 items-center gap-3 sm:mt-1 sm:ml-0">

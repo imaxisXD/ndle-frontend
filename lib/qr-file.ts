@@ -10,23 +10,14 @@ function save(href: string, filename: string) {
 }
 
 export function downloadQrSvg(svg: string, filename: string) {
-  const url = URL.createObjectURL(
-    new Blob([svg], { type: "image/svg+xml;charset=utf-8" }),
-  );
+  const url = URL.createObjectURL(new Blob([svg], { type: "image/svg+xml;charset=utf-8" }));
   save(url, filename);
   URL.revokeObjectURL(url);
 }
 
 /** Renders at `scale`× the code's own size, so it stays sharp when printed. */
-export async function downloadQrPng(
-  svg: string,
-  size: number,
-  filename: string,
-  scale = 2,
-) {
-  const url = URL.createObjectURL(
-    new Blob([svg], { type: "image/svg+xml;charset=utf-8" }),
-  );
+export async function downloadQrPng(svg: string, size: number, filename: string, scale = 2) {
+  const url = URL.createObjectURL(new Blob([svg], { type: "image/svg+xml;charset=utf-8" }));
   try {
     const image = new Image();
     await new Promise<void>((resolve, reject) => {

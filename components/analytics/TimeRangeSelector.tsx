@@ -8,10 +8,7 @@ import {
   SelectValue,
 } from "@/components/ui/base-select";
 import { AnalyticsRange } from "@/lib/analyticsRanges";
-import {
-  isRangeAvailable,
-  type AnalyticsViewerPlan,
-} from "@/lib/analytics-access";
+import { isRangeAvailable, type AnalyticsViewerPlan } from "@/lib/analytics-access";
 import { Calendar, Lock } from "iconoir-react";
 
 const timeRanges: { value: AnalyticsRange; label: string }[] = [
@@ -37,11 +34,7 @@ export function TimeRangeSelector({
   plan?: AnalyticsViewerPlan | null;
 }) {
   return (
-    <Select
-      items={timeRanges}
-      value={value}
-      onValueChange={(v) => onChange(v as AnalyticsRange)}
-    >
+    <Select items={timeRanges} value={value} onValueChange={(v) => onChange(v as AnalyticsRange)}>
       <SelectTrigger
         size="md"
         className="flex items-center justify-between gap-2 font-medium shadow-xs drop-shadow-xs max-sm:h-10"

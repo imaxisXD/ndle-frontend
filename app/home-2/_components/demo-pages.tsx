@@ -27,7 +27,14 @@ import { LiveClickHero } from "@/components/charts/live-click-hero";
 import { UrlFavicon } from "@/components/url-favicon";
 import { LinkWithFavicon } from "@/components/ui/link-with-favicon";
 import LinkWithIcon from "@/components/ui/link-with-icon";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { cn, getResponseTimeColor, getUptimeColor } from "@/lib/utils";
 import { ASK, AskCard } from "./ask-card";
 import { LinkAlertToasts, ShortLink, Toast, ToastStack } from "./toast";
@@ -54,7 +61,8 @@ import { COUNTRY_CLICKS, SHORT_DOMAIN, WEEKLY_CLICKS, sampleFavicon } from "./sa
    Classes here are unprefixed on purpose; the pane is scaled, not reflowed,
    so viewport breakpoints would pick the wrong layout. */
 
-export const FIELD_FOCUS = "border-[oklch(0.78_0.15_88)] ring-[3px] ring-[oklch(0.86_0.17_88/0.35)]";
+export const FIELD_FOCUS =
+  "border-[oklch(0.78_0.15_88)] ring-[3px] ring-[oklch(0.86_0.17_88/0.35)]";
 
 export function PageHeader({ title, sub }: { title: string; sub: string }) {
   return (
@@ -77,7 +85,8 @@ const RECENT = [
   { slug: "deck", destination: "https://figma.com/deck/acme", clicks: 86, created: "1 week ago" },
 ];
 
-export const RECENT_COLS = "grid grid-cols-[120px_minmax(0,1fr)_120px_130px] items-center gap-4 px-5";
+export const RECENT_COLS =
+  "grid grid-cols-[120px_minmax(0,1fr)_120px_130px] items-center gap-4 px-5";
 
 export function HomePage() {
   const typed = useDemo((t) => typedAt(LONG_URL, T.typeUrl, TYPE.url, t));
@@ -95,7 +104,9 @@ export function HomePage() {
       <Card>
         <CardHeader className="flex w-full flex-col items-start justify-between gap-1">
           <CardTitle className="text-lg font-medium">Shorten a Link</CardTitle>
-          <CardDescription className="text-muted-foreground">Paste a long URL to create a short, trackable link</CardDescription>
+          <CardDescription className="text-muted-foreground">
+            Paste a long URL to create a short, trackable link
+          </CardDescription>
         </CardHeader>
         <CardContent className="space-y-2">
           <p className="text-sm font-medium">Enter your long link</p>
@@ -109,7 +120,11 @@ export function HomePage() {
             >
               {value.includes("acme.com") && (
                 <span className="h2-settle -ml-1 shrink-0">
-                  <UrlFavicon url={NEW_LINK.destination} src={sampleFavicon(NEW_LINK.destination)} size="sm" />
+                  <UrlFavicon
+                    url={NEW_LINK.destination}
+                    src={sampleFavicon(NEW_LINK.destination)}
+                    size="sm"
+                  />
                 </span>
               )}
               <span className="flex min-w-0 items-center">
@@ -138,8 +153,12 @@ export function HomePage() {
               ) : (
                 <>
                   Shorten
-                  <kbd className="rounded-xs bg-black/55 px-1 font-mono text-[10px] leading-4 text-white">⌘</kbd>
-                  <kbd className="-ml-1 rounded-xs bg-black/55 px-1 font-mono text-[10px] leading-4 text-white">↵</kbd>
+                  <kbd className="rounded-xs bg-black/55 px-1 font-mono text-[10px] leading-4 text-white">
+                    ⌘
+                  </kbd>
+                  <kbd className="-ml-1 rounded-xs bg-black/55 px-1 font-mono text-[10px] leading-4 text-white">
+                    ↵
+                  </kbd>
                 </>
               )}
             </span>
@@ -150,7 +169,9 @@ export function HomePage() {
       <Card>
         <CardHeader className="flex w-full flex-col items-start justify-between gap-1">
           <CardTitle className="text-lg font-medium">Recent Links</CardTitle>
-          <CardDescription className="text-muted-foreground">Your latest shortened links</CardDescription>
+          <CardDescription className="text-muted-foreground">
+            Your latest shortened links
+          </CardDescription>
         </CardHeader>
         <div className={cn(RECENT_COLS, "border-border border-b py-3 text-sm font-medium")}>
           <span>Status</span>
@@ -207,7 +228,11 @@ export function LinkRow({
   return (
     <div className={cn(RECENT_COLS, "border-border border-b py-3", fresh && "h2-fresh")}>
       <span>
-        <Badge key={status} variant={status === "healthy" ? "green" : "default"} className={cn(fresh && "h2-settle")}>
+        <Badge
+          key={status}
+          variant={status === "healthy" ? "green" : "default"}
+          className={cn(fresh && "h2-settle")}
+        >
           {status}
         </Badge>
       </span>
@@ -222,7 +247,11 @@ export function LinkRow({
       </div>
       <div>
         <p className="text-sm tabular-nums">
-          <AnimatedMetricNumber animationKey={`home2-demo:clicks:${slug}`} minWidthCh={0} value={clicks} />
+          <AnimatedMetricNumber
+            animationKey={`home2-demo:clicks:${slug}`}
+            minWidthCh={0}
+            value={clicks}
+          />
         </p>
         <p className="text-muted-foreground text-[10px]">[clicks]</p>
       </div>
@@ -291,7 +320,9 @@ function LiveCounter() {
 }
 
 function AskStep() {
-  const draft = useDemo((t) => (t < T.sendClick ? typedAt(ASK.question, T.typeQuestion, TYPE.question, t) : ""));
+  const draft = useDemo((t) =>
+    t < T.sendClick ? typedAt(ASK.question, T.typeQuestion, TYPE.question, t) : "",
+  );
   const focused = useDemo((t) => between(t, T.askClick, T.sendClick));
   const asked = useDemo((t) => t >= T.sendClick);
   const answered = useDemo((t) => t >= T.answer);
@@ -329,11 +360,51 @@ type MonitoredRow = {
 };
 
 const MONITORED: MonitoredRow[] = [
-  { id: "launch", slug: NEW_LINK.slug, destination: NEW_LINK.destination, uptime: 100, latency: 142, incidents: 0, checkedOffset: 12 },
-  { id: "docs", slug: "docs", destination: "https://notion.so/acme/docs", uptime: 100, latency: 88, incidents: 0, checkedOffset: 31 },
-  { id: "repo", slug: "repo", destination: "https://github.com/acme/app", uptime: 99.9, latency: 64, incidents: 0, checkedOffset: 44 },
-  { id: "deck", slug: "deck", destination: "https://figma.com/deck/acme", uptime: 100, latency: 120, incidents: 1, checkedOffset: 52 },
-  { id: "demo", slug: "demo", destination: "https://youtube.com/watch?v=acme", uptime: 99.7, latency: 210, incidents: 0, checkedOffset: 58 },
+  {
+    id: "launch",
+    slug: NEW_LINK.slug,
+    destination: NEW_LINK.destination,
+    uptime: 100,
+    latency: 142,
+    incidents: 0,
+    checkedOffset: 12,
+  },
+  {
+    id: "docs",
+    slug: "docs",
+    destination: "https://notion.so/acme/docs",
+    uptime: 100,
+    latency: 88,
+    incidents: 0,
+    checkedOffset: 31,
+  },
+  {
+    id: "repo",
+    slug: "repo",
+    destination: "https://github.com/acme/app",
+    uptime: 99.9,
+    latency: 64,
+    incidents: 0,
+    checkedOffset: 44,
+  },
+  {
+    id: "deck",
+    slug: "deck",
+    destination: "https://figma.com/deck/acme",
+    uptime: 100,
+    latency: 120,
+    incidents: 1,
+    checkedOffset: 52,
+  },
+  {
+    id: "demo",
+    slug: "demo",
+    destination: "https://youtube.com/watch?v=acme",
+    uptime: 99.7,
+    latency: 210,
+    incidents: 0,
+    checkedOffset: 58,
+  },
 ];
 
 const COLUMNS = ["Status", "Link", "Uptime", "Latency", "Incidents", "Checked"];
@@ -349,7 +420,12 @@ export function MonitoringPage() {
         <Stat label="Healthy Links" value={down ? 4 : 5} color="text-green-600" />
         <Stat label="Warnings" value={0} color="text-amber-500" />
         <Stat label="Errors" value={down ? 1 : 0} color="text-red-500" />
-        <Stat label="Avg Uptime" value={99.8} color="text-blue-500" format={(v) => `${v.toFixed(1)}%`} />
+        <Stat
+          label="Avg Uptime"
+          value={99.8}
+          color="text-blue-500"
+          format={(v) => `${v.toFixed(1)}%`}
+        />
       </div>
 
       <div className="border-border bg-card overflow-hidden rounded-md border">
@@ -358,13 +434,21 @@ export function MonitoringPage() {
             <TableRow className="hover:bg-transparent">
               {COLUMNS.map((h, i) => (
                 <TableHead key={h} className="px-5 py-3" style={{ width: i === 1 ? 330 : 118 }}>
-                  <span className="text-muted-foreground text-xs font-medium tracking-wider uppercase">{h}</span>
+                  <span className="text-muted-foreground text-xs font-medium tracking-wider uppercase">
+                    {h}
+                  </span>
                 </TableHead>
               ))}
             </TableRow>
           </TableHeader>
           <TableBody>
-            {MONITORED.map((row) => (row.id === "launch" ? <LaunchRow key={row.id} row={row} /> : <QuietRow key={row.id} row={row} />))}
+            {MONITORED.map((row) =>
+              row.id === "launch" ? (
+                <LaunchRow key={row.id} row={row} />
+              ) : (
+                <QuietRow key={row.id} row={row} />
+              ),
+            )}
           </TableBody>
         </Table>
       </div>
@@ -405,14 +489,26 @@ function LaunchRow({ row }: { row: MonitoredRow }) {
   const latency = state === "back" ? 164 : row.latency;
 
   return (
-    <TableRow data-demo="launch-row" className={cn("bg-card transition-colors duration-500", broken && "bg-red-50/70")}>
+    <TableRow
+      data-demo="launch-row"
+      className={cn("bg-card transition-colors duration-500", broken && "bg-red-50/70")}
+    >
       <TableCell className="px-5 py-4">
-        <Badge key={broken ? "error" : "healthy"} variant={broken ? "red" : "green"} className={cn("capitalize", hadIncident && "h2-settle")}>
+        <Badge
+          key={broken ? "error" : "healthy"}
+          variant={broken ? "red" : "green"}
+          className={cn("capitalize", hadIncident && "h2-settle")}
+        >
           {broken ? "error" : "healthy"}
         </Badge>
       </TableCell>
       <LinkCell row={row} />
-      <Metric label="Uptime" value={hadIncident ? 99.2 : row.uptime} id={`${row.id}:uptime`} format={(v) => `${v}%`} />
+      <Metric
+        label="Uptime"
+        value={hadIncident ? 99.2 : row.uptime}
+        id={`${row.id}:uptime`}
+        format={(v) => `${v}%`}
+      />
       {broken ? (
         <TableCell className="px-5 py-4">
           <p className="text-muted-foreground text-[10px] tracking-wider uppercase">Latency</p>
@@ -427,7 +523,11 @@ function LaunchRow({ row }: { row: MonitoredRow }) {
           className={getResponseTimeColor(latency)}
         />
       )}
-      <Metric label="Incidents" value={row.incidents + (hadIncident ? 1 : 0)} id={`${row.id}:incidents`} />
+      <Metric
+        label="Incidents"
+        value={row.incidents + (hadIncident ? 1 : 0)}
+        id={`${row.id}:incidents`}
+      />
       <Checked>
         {state === "checking" ? (
           <span className="text-muted-foreground inline-flex items-center gap-1.5">
@@ -484,10 +584,18 @@ function Stat({
     <Card className="rounded-sm bg-white">
       <CardContent className="flex items-center justify-between p-5">
         <div className="space-y-2">
-          <p className="text-muted-foreground text-xs font-medium tracking-wider uppercase">{label}</p>
+          <p className="text-muted-foreground text-xs font-medium tracking-wider uppercase">
+            {label}
+          </p>
           <p className={cn("text-xl tabular-nums", color)}>
             [
-            <AnimatedMetricNumber animationKey={`home2-stat:${label}`} formatValue={format} minWidthCh={0} value={value} />]
+            <AnimatedMetricNumber
+              animationKey={`home2-stat:${label}`}
+              formatValue={format}
+              minWidthCh={0}
+              value={value}
+            />
+            ]
           </p>
         </div>
       </CardContent>
@@ -512,7 +620,12 @@ function Metric({
     <TableCell className="px-5 py-4">
       <p className="text-muted-foreground text-[10px] tracking-wider uppercase">{label}</p>
       <p className={cn("mt-1 font-mono text-xs tabular-nums", className)}>
-        <AnimatedMetricNumber animationKey={`home2-row:${id}`} formatValue={format} minWidthCh={4} value={value} />
+        <AnimatedMetricNumber
+          animationKey={`home2-row:${id}`}
+          formatValue={format}
+          minWidthCh={4}
+          value={value}
+        />
       </p>
     </TableCell>
   );
@@ -543,7 +656,12 @@ export const LINK_TABS = [
 /* Newest first, as the Health tab lists them; `ago` is minutes before the
    page opens. */
 const INCIDENTS = [
-  { type: "Resolved", variant: "green", message: "Back online on the next check. 200 OK in 164ms.", ago: "1m" },
+  {
+    type: "Resolved",
+    variant: "green",
+    message: "Back online on the next check. 200 OK in 164ms.",
+    ago: "1m",
+  },
   { type: "Error", variant: "red", message: "404 Not Found. Alert emailed.", ago: "5m" },
 ] as const;
 
@@ -569,7 +687,7 @@ export function LinkPage() {
           />
           <div className="text-muted-foreground flex w-full min-w-0 items-center gap-2 text-sm">
             <LinkIcon className="size-3.5 shrink-0" />
-            <span className="min-w-0 max-w-md truncate">{LONG_URL}</span>
+            <span className="max-w-md min-w-0 truncate">{LONG_URL}</span>
           </div>
           <p className="text-muted-foreground/70 text-xs">[Created 6 minutes ago]</p>
         </div>
@@ -606,7 +724,9 @@ export function LinkPage() {
             key={label}
             className={cn(
               "-mb-px flex items-center gap-2 border-b-2 pb-2.5 text-sm",
-              on ? "border-[var(--fg)] font-medium text-[var(--fg)]" : "text-muted-foreground border-transparent",
+              on
+                ? "border-[var(--fg)] font-medium text-[var(--fg)]"
+                : "text-muted-foreground border-transparent",
             )}
           >
             <Icon className="size-4" />
@@ -621,7 +741,9 @@ export function LinkPage() {
             <ShieldCheckIcon className="size-5 text-green-600" weight="duotone" />
             Link Health Status
           </CardTitle>
-          <CardDescription className="mt-0.5">Healthy again. Every check is passing.</CardDescription>
+          <CardDescription className="mt-0.5">
+            Healthy again. Every check is passing.
+          </CardDescription>
         </CardHeader>
         <CardContent className="rounded-sm [&:last-child]:rounded-b-sm">
           <div className="grid grid-cols-3 gap-4">
@@ -655,7 +777,9 @@ export function LinkPage() {
                 </Badge>
               </span>
               <p className="min-w-0 flex-1 truncate text-sm">{incident.message}</p>
-              <span className="text-muted-foreground shrink-0 text-xs whitespace-nowrap">[{incident.ago}]</span>
+              <span className="text-muted-foreground shrink-0 text-xs whitespace-nowrap">
+                [{incident.ago}]
+              </span>
             </div>
           ))}
         </div>

@@ -11,5 +11,9 @@ export function generateStaticParams() {
 
 export default async function Image({ params }: { params: Promise<{ slug: string }> }) {
   const page = getUseCase((await params).slug);
-  return blogCard({ title: page?.h1 ?? "ndle", tags: ["Use case", page?.topic ?? "ndle"], footer: "ndle.app" });
+  return blogCard({
+    title: page?.h1 ?? "ndle",
+    tags: ["Use case", page?.topic ?? "ndle"],
+    footer: "ndle.app",
+  });
 }

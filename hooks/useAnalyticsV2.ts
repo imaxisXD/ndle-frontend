@@ -4,11 +4,28 @@ import type { AnalyticsV2Response } from "@/types/analytics-v2";
 import { analyticsRequestError } from "@/lib/analytics-request";
 
 export interface AnalyticsFilters {
-  country?: string; device?: string; browser?: string; os?: string; link?: string; excludeBots?: boolean;
+  country?: string;
+  device?: string;
+  browser?: string;
+  os?: string;
+  link?: string;
+  excludeBots?: boolean;
 }
-interface UseAnalyticsV2Props { start: string; end: string; filters?: AnalyticsFilters; pollingInterval?: number; enabled?: boolean }
+interface UseAnalyticsV2Props {
+  start: string;
+  end: string;
+  filters?: AnalyticsFilters;
+  pollingInterval?: number;
+  enabled?: boolean;
+}
 
-export function useAnalyticsV2({ start, end, filters = {}, pollingInterval = 12000, enabled = true }: UseAnalyticsV2Props) {
+export function useAnalyticsV2({
+  start,
+  end,
+  filters = {},
+  pollingInterval = 12000,
+  enabled = true,
+}: UseAnalyticsV2Props) {
   const { userId, isSignedIn } = useAuth();
   return useQuery({
     queryKey: ["analytics-v2", userId, start, end, filters],
@@ -20,11 +37,17 @@ export function useAnalyticsV2({ start, end, filters = {}, pollingInterval = 120
       }
       const response = await fetch(`/api/analytics/v2?${params}`, { signal, cache: "no-store" });
       if (!response.ok) {
-        throw await analyticsRequestError(response, `Analytics could not load (${response.status})`);
+        throw await analyticsRequestError(
+          response,
+          `Analytics could not load (${response.status})`,
+        );
       }
       return response.json();
     },
-    refetchInterval: pollingInterval, staleTime: 0, gcTime: 0,
-    refetchOnMount: true, refetchOnWindowFocus: true,
+    refetchInterval: pollingInterval,
+    staleTime: 0,
+    gcTime: 0,
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
   });
 }

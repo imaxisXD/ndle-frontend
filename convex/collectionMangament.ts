@@ -54,11 +54,7 @@ const collectionSummary = v.object({
   previewUrls: v.array(v.string()),
 });
 
-async function includeMember(
-  ctx: MutationCtx,
-  collection: Doc<"collections">,
-  url: Doc<"urls">,
-) {
+async function includeMember(ctx: MutationCtx, collection: Doc<"collections">, url: Doc<"urls">) {
   const existing = await ctx.db
     .query("collectionLinks")
     .withIndex("by_collectionId_and_urlId", (q) =>
@@ -75,8 +71,7 @@ async function includeMember(
       clicksIncluded: true,
       countedClicks,
     });
-  else
-    await ctx.db.patch(existing._id, { clicksIncluded: true, countedClicks });
+  else await ctx.db.patch(existing._id, { clicksIncluded: true, countedClicks });
   await counter.add(ctx, `collection-v2:${collection._id}`, countedClicks);
   const current = await ctx.db.get(collection._id);
   await ctx.db.patch(collection._id, {
@@ -96,17 +91,10 @@ export async function addLinkToCollection(
     throw new ConvexError("Collection or link not found");
   await includeMember(ctx, collection, url);
   if (!collection.membersReady)
-    await ctx.scheduler.runAfter(
-      0,
-      internal.collectionMangament.migrateCollectionMembers,
-      {},
-    );
+    await ctx.scheduler.runAfter(0, internal.collectionMangament.migrateCollectionMembers, {});
 }
 
-export async function incrementCollectionClicks(
-  ctx: MutationCtx,
-  urlId: Id<"urls">,
-) {
+export async function incrementCollectionClicks(ctx: MutationCtx, urlId: Id<"urls">) {
   const newest = await ctx.db
     .query("collectionLinks")
     .withIndex("by_urlId", (q) => q.eq("urlId", urlId))
@@ -125,9 +113,7 @@ async function incrementClickBatch(
   if (!(await ctx.db.get(urlId))) return;
   const result = await ctx.db
     .query("collectionLinks")
-    .withIndex("by_urlId", (q) =>
-      q.eq("urlId", urlId).lte("_creationTime", lastMemberTime),
-    )
+    .withIndex("by_urlId", (q) => q.eq("urlId", urlId).lte("_creationTime", lastMemberTime))
     .paginate({ cursor, numItems: BATCH_SIZE });
   for (const member of result.page) {
     if (member.clicksIncluded && (await ctx.db.get(member.collectionId))) {
@@ -138,31 +124,23 @@ async function incrementClickBatch(
     }
   }
   if (!result.isDone)
-    await ctx.scheduler.runAfter(
-      0,
-      internal.collectionMangament.continueCollectionClick,
-      { urlId, lastMemberTime, cursor: result.continueCursor },
-    );
+    await ctx.scheduler.runAfter(0, internal.collectionMangament.continueCollectionClick, {
+      urlId,
+      lastMemberTime,
+      cursor: result.continueCursor,
+    });
 }
 
 export const continueCollectionClick = internalMutation({
   args: { urlId: v.id("urls"), lastMemberTime: v.number(), cursor: v.string() },
   returns: v.null(),
   handler: async (ctx, args) => {
-    await incrementClickBatch(
-      ctx,
-      args.urlId,
-      args.lastMemberTime,
-      args.cursor,
-    );
+    await incrementClickBatch(ctx, args.urlId, args.lastMemberTime, args.cursor);
     return null;
   },
 });
 
-export async function removeLinkFromCollections(
-  ctx: MutationCtx,
-  urlId: Id<"urls">,
-) {
+export async function removeLinkFromCollections(ctx: MutationCtx, urlId: Id<"urls">) {
   const members = await ctx.db
     .query("collectionLinks")
     .withIndex("by_urlId", (q) => q.eq("urlId", urlId))
@@ -170,11 +148,7 @@ export async function removeLinkFromCollections(
   for (const member of members) {
     const collection = await ctx.db.get(member.collectionId);
     if (collection && member.clicksIncluded) {
-      await counter.add(
-        ctx,
-        `collection-v2:${collection._id}`,
-        -(member.countedClicks ?? 0),
-      );
+      await counter.add(ctx, `collection-v2:${collection._id}`, -(member.countedClicks ?? 0));
       await ctx.db.patch(collection._id, {
         linkCount: Math.max(0, (collection.linkCount ?? 0) - 1),
       });
@@ -182,11 +156,7 @@ export async function removeLinkFromCollections(
     await ctx.db.delete(member._id);
   }
   if (members.length === BATCH_SIZE)
-    await ctx.scheduler.runAfter(
-      0,
-      internal.collectionMangament.continueLinkRemoval,
-      { urlId },
-    );
+    await ctx.scheduler.runAfter(0, internal.collectionMangament.continueLinkRemoval, { urlId });
 }
 export const continueLinkRemoval = internalMutation({
   args: { urlId: v.id("urls") },
@@ -209,8 +179,7 @@ export const migrateCollectionMembers = internalMutation({
     const start = collection.memberMigrationOffset ?? 0;
     for (const urlId of collection.urls.slice(start, start + BATCH_SIZE)) {
       const url = await ctx.db.get(urlId);
-      if (url?.userTableId === collection.userTableId)
-        await includeMember(ctx, collection, url);
+      if (url?.userTableId === collection.userTableId) await includeMember(ctx, collection, url);
     }
     const done = start + BATCH_SIZE >= collection.urls.length;
     await ctx.db.patch(collection._id, {
@@ -218,11 +187,7 @@ export const migrateCollectionMembers = internalMutation({
       membersReady: done ? true : undefined,
       ...(done ? { urls: [] } : {}),
     });
-    await ctx.scheduler.runAfter(
-      0,
-      internal.collectionMangament.migrateCollectionMembers,
-      {},
-    );
+    await ctx.scheduler.runAfter(0, internal.collectionMangament.migrateCollectionMembers, {});
     return null;
   },
 });
@@ -248,9 +213,7 @@ async function previewUrls(ctx: QueryCtx, collection: Doc<"collections">) {
     ? (
         await ctx.db
           .query("collectionLinks")
-          .withIndex("by_collectionId_and_urlId", (q) =>
-            q.eq("collectionId", collection._id),
-          )
+          .withIndex("by_collectionId_and_urlId", (q) => q.eq("collectionId", collection._id))
           .order("desc")
           .take(PREVIEW_COUNT)
       ).map((member) => member.urlId)
@@ -266,9 +229,7 @@ async function summarize(ctx: QueryCtx, collections: Doc<"collections">[]) {
       id: collection._id,
       name: collection.name,
       description: collection.description,
-      urlCount: collection.membersReady
-        ? (collection.linkCount ?? 0)
-        : collection.urls.length,
+      urlCount: collection.membersReady ? (collection.linkCount ?? 0) : collection.urls.length,
       collectionColor: collection.collectionColor,
       creationTime: collection._creationTime,
       totalClickCount: collection.membersReady
@@ -347,9 +308,7 @@ export const createCollection = mutation({
     if (!user) throw new ConvexError("Please sign in");
     const name = args.name.trim();
     if (!name || name.length > 100)
-      throw new ConvexError(
-        "Collection names must contain 1 to 100 characters",
-      );
+      throw new ConvexError("Collection names must contain 1 to 100 characters");
     const normalizedName = name.toLowerCase();
     const duplicate = await ctx.db
       .query("collections")
@@ -381,11 +340,9 @@ export const deleteCollection = mutation({
     if (!user || collection?.userTableId !== user._id)
       throw new ConvexError("Collection not found or access denied");
     await ctx.db.delete(collectionId);
-    await ctx.scheduler.runAfter(
-      0,
-      internal.collectionMangament.removeCollectionMembers,
-      { collectionId },
-    );
+    await ctx.scheduler.runAfter(0, internal.collectionMangament.removeCollectionMembers, {
+      collectionId,
+    });
     return null;
   },
 });
@@ -395,17 +352,13 @@ export const removeCollectionMembers = internalMutation({
   handler: async (ctx, { collectionId }) => {
     const members = await ctx.db
       .query("collectionLinks")
-      .withIndex("by_collectionId_and_urlId", (q) =>
-        q.eq("collectionId", collectionId),
-      )
+      .withIndex("by_collectionId_and_urlId", (q) => q.eq("collectionId", collectionId))
       .take(BATCH_SIZE);
     for (const member of members) await ctx.db.delete(member._id);
     if (members.length === BATCH_SIZE)
-      await ctx.scheduler.runAfter(
-        0,
-        internal.collectionMangament.removeCollectionMembers,
-        { collectionId },
-      );
+      await ctx.scheduler.runAfter(0, internal.collectionMangament.removeCollectionMembers, {
+        collectionId,
+      });
     return null;
   },
 });

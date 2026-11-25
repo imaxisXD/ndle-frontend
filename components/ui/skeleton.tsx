@@ -10,9 +10,7 @@ interface SkeletonProps {
 
 export function Skeleton({ className, children }: SkeletonProps) {
   return (
-    <div className={cn("h-lh animate-pulse rounded-sm bg-gray-200", className)}>
-      {children}
-    </div>
+    <div className={cn("h-lh animate-pulse rounded-sm bg-gray-200", className)}>{children}</div>
   );
 }
 
@@ -34,12 +32,7 @@ interface SkeletonRevealProps {
  * live in app/globals.css). Skeleton + content stack in the same slot, so the
  * swap is layout-free.
  */
-export function SkeletonReveal({
-  loading,
-  skeleton,
-  children,
-  className,
-}: SkeletonRevealProps) {
+export function SkeletonReveal({ loading, skeleton, children, className }: SkeletonRevealProps) {
   const skelRef = useRef<HTMLDivElement>(null);
   // Track whether we've already revealed so a flip back to `loading` snaps
   // the skeleton in without animating the reverse (reference's replay path).

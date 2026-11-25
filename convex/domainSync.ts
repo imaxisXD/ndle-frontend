@@ -32,9 +32,7 @@ export async function getClaimedDomain(
   for (const status of CLAIMED_DOMAIN_STATUSES) {
     const domain = await ctx.db
       .query("custom_domains")
-      .withIndex("by_domain_and_status", (q) =>
-        q.eq("domain", hostname).eq("status", status),
-      )
+      .withIndex("by_domain_and_status", (q) => q.eq("domain", hostname).eq("status", status))
       .first();
     if (domain) return domain;
   }
@@ -75,11 +73,7 @@ export const saveDomainStatus = internalMutation({
     domainId: v.id("custom_domains"),
     hostname: v.string(),
     hostnameId: v.string(),
-    status: v.union(
-      v.literal("pending"),
-      v.literal("active"),
-      v.literal("failed"),
-    ),
+    status: v.union(v.literal("pending"), v.literal("active"), v.literal("failed")),
     sslStatus: v.string(),
     verificationTxtName: v.optional(v.string()),
     verificationTxtValue: v.optional(v.string()),
@@ -88,11 +82,7 @@ export const saveDomainStatus = internalMutation({
   handler: async (ctx, args) => {
     const domain = await ctx.db.get(args.domainId);
     // Deletion/replacement owns a newer job. Never attach an old result to a new row.
-    if (
-      !domain ||
-      domain.domain !== args.hostname ||
-      domain.status === "awaiting_verification"
-    )
+    if (!domain || domain.domain !== args.hostname || domain.status === "awaiting_verification")
       return false;
     await ctx.db.patch(domain._id, {
       cloudflareHostnameId: args.hostnameId,
@@ -100,10 +90,7 @@ export const saveDomainStatus = internalMutation({
       sslStatus: args.sslStatus,
       verificationTxtName: args.verificationTxtName,
       verificationTxtValue: args.verificationTxtValue,
-      verifiedAt:
-        args.status === "active"
-          ? (domain.verifiedAt ?? Date.now())
-          : undefined,
+      verifiedAt: args.status === "active" ? (domain.verifiedAt ?? Date.now()) : undefined,
     });
     return true;
   },
@@ -126,11 +113,9 @@ export const queuePendingDomainPage = internalMutation({
       if (!job || job.status === "complete") await queueDomainSync(ctx, domain);
     }
     if (!result.isDone)
-      await ctx.scheduler.runAfter(
-        0,
-        internal.domainSync.queuePendingDomainPage,
-        { cursor: result.continueCursor },
-      );
+      await ctx.scheduler.runAfter(0, internal.domainSync.queuePendingDomainPage, {
+        cursor: result.continueCursor,
+      });
     return result.page.length;
   },
 });
@@ -140,9 +125,7 @@ export const bootstrapDomains = internalMutation({
   args: { cursor: v.union(v.string(), v.null()) },
   returns: v.number(),
   handler: async (ctx, { cursor }) => {
-    const result = await ctx.db
-      .query("custom_domains")
-      .paginate({ cursor, numItems: 50 });
+    const result = await ctx.db.query("custom_domains").paginate({ cursor, numItems: 50 });
     for (const domain of result.page) {
       // Unverified rows have nothing to adopt in Cloudflare.
       if (domain.status === "awaiting_verification") continue;
@@ -194,18 +177,14 @@ function readHostname(value: unknown): Hostname {
     throw new Error("Cloudflare returned an invalid domain record");
   }
   const ssl = isObject(value.ssl) ? value.ssl : {};
-  const verification = isObject(value.ownership_verification)
-    ? value.ownership_verification
-    : {};
+  const verification = isObject(value.ownership_verification) ? value.ownership_verification : {};
   return {
     id: value.id,
     hostname: value.hostname.toLowerCase(),
     status: typeof value.status === "string" ? value.status : "unknown",
     sslStatus: typeof ssl.status === "string" ? ssl.status : "unknown",
-    verificationTxtName:
-      typeof verification.name === "string" ? verification.name : undefined,
-    verificationTxtValue:
-      typeof verification.value === "string" ? verification.value : undefined,
+    verificationTxtName: typeof verification.name === "string" ? verification.name : undefined,
+    verificationTxtValue: typeof verification.value === "string" ? verification.value : undefined,
   };
 }
 
@@ -218,8 +197,7 @@ async function callCloudflare(
 ): Promise<unknown> {
   const apiToken = process.env.CLOUDFLARE_API_TOKEN;
   const zoneId = process.env.CLOUDFLARE_ZONE_ID;
-  if (!apiToken || !zoneId)
-    throw new Error("Cloudflare domain credentials are not configured");
+  if (!apiToken || !zoneId) throw new Error("Cloudflare domain credentials are not configured");
   const response = await fetch(
     `https://api.cloudflare.com/client/v4/zones/${encodeURIComponent(zoneId)}/custom_hostnames${path}`,
     {
@@ -251,50 +229,34 @@ async function findHostname(hostname: string): Promise<Hostname | null> {
     per_page: "50",
   });
   const result = await callCloudflare(`?${query}`);
-  if (!Array.isArray(result))
-    throw new Error("Cloudflare returned an invalid domain list");
-  const matches = result
-    .map(readHostname)
-    .filter((item) => item.hostname === hostname);
-  if (matches.length > 1)
-    throw new Error("Cloudflare returned more than one matching domain");
+  if (!Array.isArray(result)) throw new Error("Cloudflare returned an invalid domain list");
+  const matches = result.map(readHostname).filter((item) => item.hostname === hostname);
+  if (matches.length > 1) throw new Error("Cloudflare returned more than one matching domain");
   // An ignored filter must not be mistaken for a successful empty lookup.
-  if (result.length !== matches.length)
-    throw new Error("Cloudflare returned a different domain");
+  if (result.length !== matches.length) throw new Error("Cloudflare returned a different domain");
   return matches[0] ?? null;
 }
 
 async function getHostname(hostnameId: string): Promise<Hostname | null> {
-  const result = await callCloudflare(
-    `/${encodeURIComponent(hostnameId)}`,
-    {},
-    true,
-  );
+  const result = await callCloudflare(`/${encodeURIComponent(hostnameId)}`, {}, true);
   if (result === MISSING_HOSTNAME) return null;
   const hostname = readHostname(result);
-  if (hostname.id !== hostnameId)
-    throw new Error("Cloudflare returned a different domain ID");
+  if (hostname.id !== hostnameId) throw new Error("Cloudflare returned a different domain ID");
   return hostname;
 }
 
 function domainStatus(hostname: Hostname): "active" | "pending" | "failed" {
-  if (hostname.status === "active" && hostname.sslStatus === "active")
-    return "active";
+  if (hostname.status === "active" && hostname.sslStatus === "active") return "active";
   if (
     ["deleted", "blocked", "moved"].includes(hostname.status) ||
-    ["deleted", "expired", "deactivated", "inactive"].includes(
-      hostname.sslStatus,
-    )
+    ["deleted", "expired", "deactivated", "inactive"].includes(hostname.sslStatus)
   )
     return "failed";
   return "pending";
 }
 
 /** Called only by the durable worker, which serializes all generations of a hostname. */
-export async function deliverDomainChange(
-  ctx: ActionCtx,
-  target: DomainTarget,
-): Promise<void> {
+export async function deliverDomainChange(ctx: ActionCtx, target: DomainTarget): Promise<void> {
   const desired = await ctx.runQuery(internal.domainSync.getDesiredDomain, {
     hostname: target.hostname,
   });
@@ -348,10 +310,7 @@ export async function deliverDomainChange(
     { method: "DELETE" },
     true,
   );
-  if (
-    deleted !== MISSING_HOSTNAME &&
-    (!isObject(deleted) || deleted.id !== hostname.id)
-  ) {
+  if (deleted !== MISSING_HOSTNAME && (!isObject(deleted) || deleted.id !== hostname.id)) {
     throw new Error("Cloudflare did not confirm the requested domain deletion");
   }
 }

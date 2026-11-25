@@ -59,10 +59,13 @@ export const runLegacyOwnerBackfillBatch = internalMutation({
   handler: async (ctx, args) => {
     const batchSize = Math.min(Math.max(args.batchSize ?? 100, 1), 500);
     if (args.table === "urls") {
-      const paginated = await ctx.db.query("urls").order("asc").paginate({
-        cursor: args.cursor ?? null,
-        numItems: batchSize,
-      });
+      const paginated = await ctx.db
+        .query("urls")
+        .order("asc")
+        .paginate({
+          cursor: args.cursor ?? null,
+          numItems: batchSize,
+        });
 
       let patched = 0;
       for (const row of paginated.page) {
@@ -104,24 +107,36 @@ export const runLegacyOwnerBackfillBatch = internalMutation({
 
     const paginated =
       args.table === "clickEvents"
-        ? await ctx.db.query("clickEvents").order("asc").paginate({
-            cursor: args.cursor ?? null,
-            numItems: batchSize,
-          })
-        : args.table === "linkHealthChecks"
-          ? await ctx.db.query("linkHealthChecks").order("asc").paginate({
+        ? await ctx.db
+            .query("clickEvents")
+            .order("asc")
+            .paginate({
               cursor: args.cursor ?? null,
               numItems: batchSize,
             })
-          : args.table === "linkHealthDailySummary"
-            ? await ctx.db.query("linkHealthDailySummary").order("asc").paginate({
+        : args.table === "linkHealthChecks"
+          ? await ctx.db
+              .query("linkHealthChecks")
+              .order("asc")
+              .paginate({
                 cursor: args.cursor ?? null,
                 numItems: batchSize,
               })
-            : await ctx.db.query("linkIncidents").order("asc").paginate({
-                cursor: args.cursor ?? null,
-                numItems: batchSize,
-              });
+          : args.table === "linkHealthDailySummary"
+            ? await ctx.db
+                .query("linkHealthDailySummary")
+                .order("asc")
+                .paginate({
+                  cursor: args.cursor ?? null,
+                  numItems: batchSize,
+                })
+            : await ctx.db
+                .query("linkIncidents")
+                .order("asc")
+                .paginate({
+                  cursor: args.cursor ?? null,
+                  numItems: batchSize,
+                });
 
     let patched = 0;
 
@@ -161,9 +176,7 @@ export const runLegacyOwnerBackfill = internalAction({
   handler: async (ctx, args) => {
     const batchSize = Math.min(Math.max(args.batchSize ?? 100, 1), 500);
     const maxBatches = Math.min(Math.max(args.maxBatches ?? 25, 1), 200);
-    const startIndex = args.startTable
-      ? BACKFILL_TABLES.indexOf(args.startTable)
-      : 0;
+    const startIndex = args.startTable ? BACKFILL_TABLES.indexOf(args.startTable) : 0;
 
     if (startIndex < 0) {
       throw new Error("Invalid start table");
@@ -289,11 +302,9 @@ export const detachOrphanedCustomDomainLinks = internalMutation({
       isDone: result.isDone,
     });
     if (!result.isDone)
-      await ctx.scheduler.runAfter(
-        0,
-        internal.backfill.detachOrphanedCustomDomainLinks,
-        { cursor: result.continueCursor },
-      );
+      await ctx.scheduler.runAfter(0, internal.backfill.detachOrphanedCustomDomainLinks, {
+        cursor: result.continueCursor,
+      });
     return { scanned: result.page.length, patched, isDone: result.isDone };
   },
 });

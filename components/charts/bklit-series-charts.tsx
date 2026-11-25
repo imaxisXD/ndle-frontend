@@ -82,10 +82,7 @@ export function BklitLineSeriesChart<T extends object>({
             {
               color,
               label: valueLabel,
-              value: valueFormatter(
-                getRecordValue(point, valueKey),
-                point as T,
-              ),
+              value: valueFormatter(getRecordValue(point, valueKey), point as T),
             },
           ]}
         />
@@ -163,10 +160,7 @@ export function BklitAreaSeriesChart<T extends object>({
             {
               color,
               label: valueLabel,
-              value: valueFormatter(
-                getRecordValue(point, valueKey),
-                point as T,
-              ),
+              value: valueFormatter(getRecordValue(point, valueKey), point as T),
             },
           ]}
         />

@@ -50,7 +50,13 @@ export function HomeTwo() {
   // The sections' calls to action hold their place until Clerk knows who's
   // visiting (ByAuth in kit.tsx), like the nav's; if Clerk fails to load, the
   // visitor is taken as signed out.
-  const auth: Auth = isLoaded ? (isSignedIn ? "in" : "out") : status === "error" ? "out" : "unknown";
+  const auth: Auth = isLoaded
+    ? isSignedIn
+      ? "in"
+      : "out"
+    : status === "error"
+      ? "out"
+      : "unknown";
   // The visitor's link, while it plays through the dashboard
   const [preview, setPreview] = useState<YourLink | null>(null);
 
@@ -68,7 +74,13 @@ export function HomeTwo() {
 
   return (
     <>
-      <div inert={!!preview} className={cn(bebas.variable, "h2-day h2-canvas min-h-dvh overflow-x-clip font-sans antialiased")}>
+      <div
+        inert={!!preview}
+        className={cn(
+          bebas.variable,
+          "h2-day h2-canvas min-h-dvh overflow-x-clip font-sans antialiased",
+        )}
+      >
         <SiteNav />
 
         <main id="main">
@@ -101,8 +113,12 @@ export function HomeTwo() {
                 </span>
               </h1>
 
-              <p className="h2-rise-block mt-6 max-w-[48ch] text-base leading-7 text-[var(--fg-2)]" style={delay(DELAY.copy)}>
-                ndle is a free URL shortener that checks every link every 30 minutes and flags the ones that break.
+              <p
+                className="h2-rise-block mt-6 max-w-[48ch] text-base leading-7 text-[var(--fg-2)]"
+                style={delay(DELAY.copy)}
+              >
+                ndle is a free URL shortener that checks every link every 30 minutes and flags the
+                ones that break.
               </p>
 
               <div className="h2-rise-block mt-8 w-full max-w-[560px]" style={delay(DELAY.form)}>
@@ -110,7 +126,10 @@ export function HomeTwo() {
               </div>
             </div>
 
-            <div className="h2-rise-block relative isolate mt-14 pb-24 lg:mt-16 lg:pb-32" style={delay(DELAY.pane)}>
+            <div
+              className="h2-rise-block relative isolate mt-14 pb-24 lg:mt-16 lg:pb-32"
+              style={delay(DELAY.pane)}
+            >
               <GlassDashboard paused={!!preview} />
             </div>
           </section>

@@ -35,17 +35,14 @@ function useDedicatedSecret(legacyAcceptUntil?: string) {
 describe("guest session signing keys", () => {
   test("without a dedicated secret, the fallback chain signs and verifies as before", async () => {
     const { guestId, guestToken } = await tokenSignedWith("API_SECRET");
-    vi.stubEnv(
-      "GUEST_SESSION_LEGACY_ACCEPT_UNTIL",
-      String(Date.now() + DAY_MS),
-    );
+    vi.stubEnv("GUEST_SESSION_LEGACY_ACCEPT_UNTIL", String(Date.now() + DAY_MS));
     expect(await verifyGuestSessionToken(guestId, guestToken)).toBe(guestId);
 
     // The legacy window only applies once a dedicated secret replaces the chain.
     const shared = await tokenSignedWith("SHARED_SECRET");
-    await expect(
-      verifyGuestSessionToken(shared.guestId, shared.guestToken),
-    ).rejects.toThrow("Guest session is invalid");
+    await expect(verifyGuestSessionToken(shared.guestId, shared.guestToken)).rejects.toThrow(
+      "Guest session is invalid",
+    );
   });
 
   test.each([
@@ -73,16 +70,13 @@ describe("guest session signing keys", () => {
     { label: "free text", until: "next week" },
     { label: "impossible date", until: "2099-02-30T25:00:00Z" },
     { label: "exponent", until: "1e20" },
-  ])(
-    "rejects fallback-signed tokens when the cutoff is $label",
-    async ({ until }) => {
-      const { guestId, guestToken } = await tokenSignedWith("API_SECRET");
-      useDedicatedSecret(until);
-      await expect(
-        verifyGuestSessionToken(guestId, guestToken),
-      ).rejects.toThrow("Guest session is invalid");
-    },
-  );
+  ])("rejects fallback-signed tokens when the cutoff is $label", async ({ until }) => {
+    const { guestId, guestToken } = await tokenSignedWith("API_SECRET");
+    useDedicatedSecret(until);
+    await expect(verifyGuestSessionToken(guestId, guestToken)).rejects.toThrow(
+      "Guest session is invalid",
+    );
+  });
 
   test("new tokens are signed with the dedicated secret and forged ones still fail", async () => {
     useDedicatedSecret(String(Date.now() + DAY_MS));
@@ -123,11 +117,7 @@ async function signed(payload: Record<string, unknown>) {
     false,
     ["sign"],
   );
-  const signature = await crypto.subtle.sign(
-    "HMAC",
-    key,
-    new TextEncoder().encode(payloadPart),
-  );
+  const signature = await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(payloadPart));
   return `${payloadPart}.${toBase64Url(new Uint8Array(signature))}`;
 }
 
@@ -156,17 +146,15 @@ describe("guest network keys", () => {
       await deriveGuestNetworkKey("203.0.113.7"),
     );
     const [payloadPart, signature] = guestToken.split(".");
-    const payload = JSON.parse(
-      atob(payloadPart.replace(/-/g, "+").replace(/_/g, "/")),
-    );
+    const payload = JSON.parse(atob(payloadPart.replace(/-/g, "+").replace(/_/g, "/")));
     const swapped = toBase64Url(
       new TextEncoder().encode(
         JSON.stringify({ ...payload, net: await deriveGuestNetworkKey("198.51.100.4") }),
       ),
     );
-    await expect(
-      verifyGuestSessionCredential(guestId, `${swapped}.${signature}`),
-    ).rejects.toThrow("Guest session is invalid");
+    await expect(verifyGuestSessionCredential(guestId, `${swapped}.${signature}`)).rejects.toThrow(
+      "Guest session is invalid",
+    );
 
     const issuedAt = Date.now();
     const base = { guestId, issuedAt, expiresAt: issuedAt + DAY_MS };

@@ -35,18 +35,16 @@ afterEach(() => {
 
 describe("/api/qr/[slug]", () => {
   test("returns private cache headers on 200 SVG and no-store on errors", async () => {
-    const ok = await GET(
-      new NextRequest("https://ndle.app/api/qr/abc123?format=svg"),
-      { params: Promise.resolve({ slug: "abc123" }) },
-    );
+    const ok = await GET(new NextRequest("https://ndle.app/api/qr/abc123?format=svg"), {
+      params: Promise.resolve({ slug: "abc123" }),
+    });
     expect(ok.status).toBe(200);
     expect(ok.headers.get("Cache-Control")).toBe("private, max-age=3600");
     expect(await ok.text()).toContain("<svg");
 
-    const badFormat = await GET(
-      new NextRequest("https://ndle.app/api/qr/abc123?format=gif"),
-      { params: Promise.resolve({ slug: "abc123" }) },
-    );
+    const badFormat = await GET(new NextRequest("https://ndle.app/api/qr/abc123?format=gif"), {
+      params: Promise.resolve({ slug: "abc123" }),
+    });
     expect(badFormat.status).toBe(406);
     expect(badFormat.headers.get("Cache-Control")).toBe("no-store");
   });
@@ -75,9 +73,7 @@ describe("/api/qr/[slug]", () => {
 
   test("allows owned custom domain and rejects unowned domains", async () => {
     const owned = await GET(
-      new NextRequest(
-        "https://ndle.app/api/qr/abc123?format=svg&domain=links.example.com",
-      ),
+      new NextRequest("https://ndle.app/api/qr/abc123?format=svg&domain=links.example.com"),
       { params: Promise.resolve({ slug: "abc123" }) },
     );
     expect(owned.status).toBe(200);
@@ -92,10 +88,9 @@ describe("/api/qr/[slug]", () => {
 
   test("enforces auth and rate limiting", async () => {
     mocks.auth.mockResolvedValue({ userId: null, getToken: async () => null });
-    const unauth = await GET(
-      new NextRequest("https://ndle.app/api/qr/abc123?format=svg"),
-      { params: Promise.resolve({ slug: "abc123" }) },
-    );
+    const unauth = await GET(new NextRequest("https://ndle.app/api/qr/abc123?format=svg"), {
+      params: Promise.resolve({ slug: "abc123" }),
+    });
     expect(unauth.status).toBe(401);
 
     mocks.auth.mockResolvedValue({
@@ -103,10 +98,9 @@ describe("/api/qr/[slug]", () => {
       getToken: async () => "token",
     });
     mocks.limit.mockResolvedValue({ success: false });
-    const limited = await GET(
-      new NextRequest("https://ndle.app/api/qr/abc123?format=svg"),
-      { params: Promise.resolve({ slug: "abc123" }) },
-    );
+    const limited = await GET(new NextRequest("https://ndle.app/api/qr/abc123?format=svg"), {
+      params: Promise.resolve({ slug: "abc123" }),
+    });
     expect(limited.status).toBe(429);
   });
 });

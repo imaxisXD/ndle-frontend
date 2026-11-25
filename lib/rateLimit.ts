@@ -47,10 +47,7 @@ export function getAnalyticsRateLimit() {
   if (!analyticsRateLimitInstance) {
     analyticsRateLimitInstance = new Ratelimit({
       redis: getRedis(),
-      limiter: Ratelimit.slidingWindow(
-        ANALYTICS_RATE_LIMIT.requests,
-        ANALYTICS_RATE_LIMIT.window,
-      ),
+      limiter: Ratelimit.slidingWindow(ANALYTICS_RATE_LIMIT.requests, ANALYTICS_RATE_LIMIT.window),
       prefix: "@upstash/ratelimit:analytics",
     });
   }

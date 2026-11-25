@@ -14,9 +14,6 @@ export function constantTimeEqual(provided: string, expected: string): boolean {
 }
 
 /** True only when the secret is configured and the caller supplied exactly it. */
-export function matchesSecret(
-  provided: string,
-  expected: string | undefined,
-): boolean {
+export function matchesSecret(provided: string, expected: string | undefined): boolean {
   return !!expected && constantTimeEqual(provided, expected);
 }

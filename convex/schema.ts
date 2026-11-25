@@ -38,17 +38,8 @@ export default defineSchema({
         bg: v.string(), // allow 'transparent' or hex
         margin: v.number(),
         includeMargin: v.boolean(),
-        ecc: v.union(
-          v.literal("L"),
-          v.literal("M"),
-          v.literal("Q"),
-          v.literal("H"),
-        ),
-        logoMode: v.union(
-          v.literal("brand"),
-          v.literal("custom"),
-          v.literal("none"),
-        ),
+        ecc: v.union(v.literal("L"), v.literal("M"), v.literal("Q"), v.literal("H")),
+        logoMode: v.union(v.literal("brand"), v.literal("custom"), v.literal("none")),
         logoScale: v.number(),
         customLogoUrl: v.optional(v.string()),
       }),
@@ -56,9 +47,7 @@ export default defineSchema({
     customDomain: v.optional(v.string()), // Custom domain for Pro users
     userTableId: v.optional(v.id("users")),
     guestId: v.optional(v.string()),
-    ownershipState: v.optional(
-      v.union(v.literal("guest"), v.literal("user")),
-    ),
+    ownershipState: v.optional(v.union(v.literal("guest"), v.literal("user"))),
     analyticsOwnerKey: v.optional(v.string()),
     claimedAt: v.optional(v.number()),
     slugAssigned: v.optional(v.string()),
@@ -97,10 +86,7 @@ export default defineSchema({
     .index("by_guest", ["guestId"])
     .index("by_user_slug", ["userTableId", "slugAssigned"])
     .index("by_accountCountersIncluded", ["accountCountersIncluded"])
-    .index("by_user_and_accountCountersIncluded", [
-      "userTableId",
-      "accountCountersIncluded",
-    ])
+    .index("by_user_and_accountCountersIncluded", ["userTableId", "accountCountersIncluded"])
     // Both are read with a _creationTime range to count recent guest links.
     .index("by_guestNetworkKey", ["guestNetworkKey"])
     .index("by_ownershipState", ["ownershipState"]),
@@ -129,11 +115,7 @@ export default defineSchema({
     key: v.string(),
     target: serviceSyncTarget,
     version: v.number(),
-    status: v.union(
-      v.literal("pending"),
-      v.literal("running"),
-      v.literal("complete"),
-    ),
+    status: v.union(v.literal("pending"), v.literal("running"), v.literal("complete")),
     runningVersion: v.optional(v.number()),
     attempts: v.number(),
     nextAttemptAt: v.number(),
@@ -196,11 +178,7 @@ export default defineSchema({
     guestId: v.optional(v.string()),
     analyticsOwnerKey: v.optional(v.string()),
     shortUrl: v.string(),
-    type: v.union(
-      v.literal("error"),
-      v.literal("warning"),
-      v.literal("resolved"),
-    ),
+    type: v.union(v.literal("error"), v.literal("warning"), v.literal("resolved")),
     message: v.string(),
     createdAt: v.number(),
   })

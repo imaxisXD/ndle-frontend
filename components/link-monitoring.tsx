@@ -31,23 +31,12 @@ import { useMinuteNow } from "@/hooks/use-minute-now";
 import { LinkWithFavicon } from "./ui/link-with-favicon";
 import { EmptyStateImage } from "@/components/empty-state-image";
 import { AnimatedMetricNumber } from "@/components/animated-metric-number";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "./ui/table";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./ui/table";
 
 const shortDomain = getShortDomain();
 
-type HealthChecksWithStats = FunctionReturnType<
-  typeof api.linkHealth.getMonitoringPage
->["page"];
-type RecentIncidentsResponse = FunctionReturnType<
-  typeof api.linkHealth.getRecentIncidents
->;
+type HealthChecksWithStats = FunctionReturnType<typeof api.linkHealth.getMonitoringPage>["page"];
+type RecentIncidentsResponse = FunctionReturnType<typeof api.linkHealth.getRecentIncidents>;
 type MonitoringStatus = ReturnType<typeof getMonitoringStatus>;
 
 type MonitoringTableRow = {
@@ -109,8 +98,7 @@ function MonitoringSortHeader({
   label: string;
 }) {
   const sorted = column.getIsSorted();
-  const sortLabel =
-    sorted === "asc" ? "ascending" : sorted === "desc" ? "descending" : "none";
+  const sortLabel = sorted === "asc" ? "ascending" : sorted === "desc" ? "descending" : "none";
 
   return (
     <button
@@ -130,70 +118,52 @@ function MonitoringSortHeader({
 const monitoringColumns: ColumnDef<MonitoringTableRow>[] = [
   {
     accessorKey: "status",
-    header: ({ column }) => (
-      <MonitoringSortHeader column={column} label="Status" />
-    ),
-    sortingFn: (rowA, rowB) =>
-      statusRank[rowA.original.status] - statusRank[rowB.original.status],
+    header: ({ column }) => <MonitoringSortHeader column={column} label="Status" />,
+    sortingFn: (rowA, rowB) => statusRank[rowA.original.status] - statusRank[rowB.original.status],
     size: monitoringColumnSize.status,
     minSize: monitoringColumnSize.status,
     maxSize: monitoringColumnSize.status,
   },
   {
     accessorKey: "shortUrl",
-    header: ({ column }) => (
-      <MonitoringSortHeader column={column} label="Link" />
-    ),
+    header: ({ column }) => <MonitoringSortHeader column={column} label="Link" />,
     size: monitoringColumnSize.link,
   },
   {
     accessorKey: "uptime",
-    header: ({ column }) => (
-      <MonitoringSortHeader column={column} label="Uptime" />
-    ),
+    header: ({ column }) => <MonitoringSortHeader column={column} label="Uptime" />,
     size: monitoringColumnSize.uptime,
     minSize: monitoringColumnSize.uptime,
     maxSize: monitoringColumnSize.uptime,
   },
   {
     accessorKey: "latencyMs",
-    header: ({ column }) => (
-      <MonitoringSortHeader column={column} label="Latency" />
-    ),
+    header: ({ column }) => <MonitoringSortHeader column={column} label="Latency" />,
     size: monitoringColumnSize.latency,
     minSize: monitoringColumnSize.latency,
     maxSize: monitoringColumnSize.latency,
   },
   {
     accessorKey: "incidents",
-    header: ({ column }) => (
-      <MonitoringSortHeader column={column} label="Incidents" />
-    ),
+    header: ({ column }) => <MonitoringSortHeader column={column} label="Incidents" />,
     size: monitoringColumnSize.incidents,
     minSize: monitoringColumnSize.incidents,
     maxSize: monitoringColumnSize.incidents,
   },
   {
     accessorKey: "checkedAt",
-    header: ({ column }) => (
-      <MonitoringSortHeader column={column} label="Checked" />
-    ),
+    header: ({ column }) => <MonitoringSortHeader column={column} label="Checked" />,
     size: monitoringColumnSize.checked,
     minSize: monitoringColumnSize.checked,
     maxSize: monitoringColumnSize.checked,
   },
 ];
 
-function getMonitoringRows(
-  healthData: HealthChecksWithStats | undefined,
-  now: number,
-) {
+function getMonitoringRows(healthData: HealthChecksWithStats | undefined, now: number) {
   return (healthData ?? []).map((check) => ({
     checkedAt: check.checkedAt,
     checkedLabel:
-      check.checkedAt === null
-        ? "No checks yet"
-        : formatRelativeTimeCompact(check.checkedAt),
+      check.checkedAt === null ? "No checks yet" : formatRelativeTimeCompact(check.checkedAt),
     id: check._id,
     incidents: check.incidents,
     latencyMs: check.latencyMs,
@@ -271,9 +241,7 @@ function MetricCell({
 }) {
   return (
     <div className={cn("w-24 shrink-0 space-y-1", className)}>
-      <p className="text-muted-foreground text-[10px] tracking-wider uppercase">
-        {label}
-      </p>
+      <p className="text-muted-foreground text-[10px] tracking-wider uppercase">{label}</p>
       <p className={cn("font-mono text-xs tabular-nums", valueClassName)}>
         <AnimatedMetricNumber
           animationKey={animationKey}
@@ -297,9 +265,7 @@ function TextMetricCell({
 }) {
   return (
     <div className={cn("w-24 shrink-0 space-y-1", className)}>
-      <p className="text-muted-foreground text-[10px] tracking-wider uppercase">
-        {label}
-      </p>
+      <p className="text-muted-foreground text-[10px] tracking-wider uppercase">{label}</p>
       <p className="text-xs">{value}</p>
     </div>
   );
@@ -330,16 +296,10 @@ const MonitoringDataRow = memo(function MonitoringDataRow({
         </div>
       </TableCell>
 
-      <TableCell
-        className="px-3 py-4 md:px-5 md:py-5"
-        style={{ width: monitoringColumnSize.link }}
-      >
+      <TableCell className="px-3 py-4 md:px-5 md:py-5" style={{ width: monitoringColumnSize.link }}>
         <div className="flex min-w-0 flex-col space-y-1">
           <LinkWithFavicon url={shortUrl} originalUrl={originalUrl} />
-          <p
-            className="text-muted-foreground max-w-[280px] truncate text-xs"
-            title={originalUrl}
-          >
+          <p className="text-muted-foreground max-w-[280px] truncate text-xs" title={originalUrl}>
             {originalUrl}
           </p>
         </div>
@@ -418,27 +378,17 @@ const MonitoringLinkCard = memo(function MonitoringLinkCard({
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1 space-y-1">
           <LinkWithFavicon url={shortUrl} originalUrl={originalUrl} />
-          <p
-            className="text-muted-foreground truncate text-xs"
-            title={originalUrl}
-          >
+          <p className="text-muted-foreground truncate text-xs" title={originalUrl}>
             {originalUrl}
           </p>
         </div>
-        <Badge
-          variant={getStatusBadgeVariant(status)}
-          className="shrink-0 capitalize"
-        >
+        <Badge variant={getStatusBadgeVariant(status)} className="shrink-0 capitalize">
           {status}
         </Badge>
       </div>
       <div className="grid grid-cols-2 gap-3">
         {uptime === null ? (
-          <TextMetricCell
-            className="w-auto"
-            label="Uptime"
-            value="No recent checks"
-          />
+          <TextMetricCell className="w-auto" label="Uptime" value="No recent checks" />
         ) : (
           <MetricCell
             animationKey={`monitoring-card:${id}:uptime`}
@@ -468,11 +418,7 @@ const MonitoringLinkCard = memo(function MonitoringLinkCard({
           label="Incidents"
           value={incidents}
         />
-        <TextMetricCell
-          className="w-auto"
-          label="Checked"
-          value={checkedLabel}
-        />
+        <TextMetricCell className="w-auto" label="Checked" value={checkedLabel} />
       </div>
     </li>
   );
@@ -518,15 +464,10 @@ const MonitoredLinksTable = memo(function MonitoredLinksTable({
   if (links.length === 0) {
     return (
       <div className="flex flex-col items-center px-6 py-12 text-center">
-        <EmptyStateImage
-          alt=""
-          className="mb-5 w-full max-w-[460px]"
-          name="noMonitoring"
-        />
+        <EmptyStateImage alt="" className="mb-5 w-full max-w-[460px]" name="noMonitoring" />
         <h3 className="mt-4 text-lg font-medium">No monitored links yet</h3>
         <p className="text-muted-foreground max-w-sm text-sm">
-          Create a shortened link and health monitoring will start
-          automatically.
+          Create a shortened link and health monitoring will start automatically.
         </p>
       </div>
     );
@@ -554,10 +495,7 @@ const MonitoredLinksTable = memo(function MonitoredLinksTable({
                   >
                     {header.isPlaceholder
                       ? null
-                      : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext(),
-                        )}
+                      : flexRender(header.column.columnDef.header, header.getContext())}
                   </TableHead>
                 ))}
               </TableRow>
@@ -574,11 +512,7 @@ const MonitoredLinksTable = memo(function MonitoredLinksTable({
   );
 });
 
-const MonitoringStats = memo(function MonitoringStats({
-  stats,
-}: {
-  stats: OverviewStat[];
-}) {
+const MonitoringStats = memo(function MonitoringStats({ stats }: { stats: OverviewStat[] }) {
   return (
     <div className="grid grid-cols-2 gap-3 md:gap-4 lg:grid-cols-4">
       {stats.map((stat) => (
@@ -644,20 +578,10 @@ function MonitoringSkeleton() {
             </li>
           ))}
         </ul>
-        <Table
-          className="max-md:hidden"
-          style={{ tableLayout: "fixed", width: "100%" }}
-        >
+        <Table className="max-md:hidden" style={{ tableLayout: "fixed", width: "100%" }}>
           <TableHeader className="bg-card">
             <TableRow className="hover:bg-transparent">
-              {[
-                "Status",
-                "Link",
-                "Uptime",
-                "Latency",
-                "Incidents",
-                "Checked",
-              ].map((label) => (
+              {["Status", "Link", "Uptime", "Latency", "Incidents", "Checked"].map((label) => (
                 <TableHead key={label} className="px-3 py-3 md:px-5">
                   <span className="text-muted-foreground text-xs font-medium tracking-wider uppercase">
                     {label}
@@ -739,15 +663,9 @@ export function LinkMonitoring() {
     limit: 10,
   });
 
-  const links = useMemo(
-    () => getMonitoringRows(healthData, now),
-    [healthData, now],
-  );
+  const links = useMemo(() => getMonitoringRows(healthData, now), [healthData, now]);
   const stats = useMemo(() => getOverviewStats(links), [links]);
-  const incidents = useMemo(
-    () => getIncidentRows(recentIncidents),
-    [recentIncidents],
-  );
+  const incidents = useMemo(() => getIncidentRows(recentIncidents), [recentIncidents]);
 
   if (pageStatus === "LoadingFirstPage") {
     return <MonitoringSkeleton />;
@@ -759,11 +677,7 @@ export function LinkMonitoring() {
 
       <p className="text-muted-foreground text-sm" aria-live="polite">
         {links.length} links shown. Statistics cover these links.{" "}
-        {
-          links.filter((link) =>
-            ["pending", "overdue", "unknown"].includes(link.status),
-          ).length
-        }{" "}
+        {links.filter((link) => ["pending", "overdue", "unknown"].includes(link.status)).length}{" "}
         have no current confirmed result.
       </p>
       <MonitoredLinksTable links={links} />

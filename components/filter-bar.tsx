@@ -18,11 +18,7 @@ import {
   FunnelIcon,
   RobotIcon,
 } from "@phosphor-icons/react/dist/ssr";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/base-popover";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/base-popover";
 import {
   FILTER_CONFIGS,
   type AnalyticsFilterKey,
@@ -68,8 +64,7 @@ export const ALL_TIME_RANGE_OPTIONS: TimeRangeOption[] = [
   { value: "all", label: "All Time", displayValue: "All Time" },
 ];
 
-export const FREE_TIME_RANGE_OPTIONS: TimeRangeOption[] =
-  ALL_TIME_RANGE_OPTIONS.slice(0, 3);
+export const FREE_TIME_RANGE_OPTIONS: TimeRangeOption[] = ALL_TIME_RANGE_OPTIONS.slice(0, 3);
 
 interface FilterBarProps {
   filters: AnalyticsFilterState;
@@ -87,8 +82,7 @@ export function FilterBar({
   className,
 }: FilterBarProps) {
   const [isAddFilterOpen, setIsAddFilterOpen] = useState(false);
-  const [selectedCategory, setSelectedCategory] =
-    useState<AnalyticsFilterKey | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<AnalyticsFilterKey | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
 
   const updateFilter = <K extends keyof AnalyticsFilterState>(
@@ -159,9 +153,7 @@ export function FilterBar({
     if (!category?.options) return [];
     if (!searchQuery) return category.options;
     const needle = searchQuery.toLowerCase();
-    return category.options.filter((opt) =>
-      opt.label.toLowerCase().includes(needle),
-    );
+    return category.options.filter((opt) => opt.label.toLowerCase().includes(needle));
   }, [selectedCategory, searchQuery, filterCategories]);
 
   const handleSelectOption = (value: string) => {
@@ -224,16 +216,11 @@ export function FilterBar({
               <PopoverTrigger
                 className={cn(
                   "text-foreground border-border bg-secondary hover:border-accent hover:bg-accent/10 hover:text-foreground flex cursor-pointer items-center gap-1.5 rounded-md border border-dashed px-2.5 py-1 text-xs font-medium shadow-xs transition-colors",
-                  isAddFilterOpen &&
-                    "border-accent bg-accent/10 text-foreground",
+                  isAddFilterOpen && "border-accent bg-accent/10 text-foreground",
                 )}
               >
                 {hasActiveFilters ? (
-                  <FunnelIcon
-                    className="h-3.5 w-3.5"
-                    weight="duotone"
-                    aria-hidden="true"
-                  />
+                  <FunnelIcon className="h-3.5 w-3.5" weight="duotone" aria-hidden="true" />
                 ) : (
                   <PlusIcon className="h-3.5 w-3.5" aria-hidden="true" />
                 )}
@@ -251,9 +238,7 @@ export function FilterBar({
                       Filter by
                     </span>
                     {filterCategories.map((category) => {
-                      const isUsed = activeFilters.some(
-                        (f) => f.key === category.id,
-                      );
+                      const isUsed = activeFilters.some((f) => f.key === category.id);
                       const CatIcon = category.icon;
                       return (
                         <button
@@ -334,17 +319,10 @@ export function FilterBar({
                         onClick={() => setSelectedCategory(null)}
                         className="text-muted-foreground hover:bg-surface-hover hover:text-foreground rounded p-1 transition-colors"
                       >
-                        <CaretRightIcon
-                          className="h-3.5 w-3.5 rotate-180"
-                          aria-hidden="true"
-                        />
+                        <CaretRightIcon className="h-3.5 w-3.5 rotate-180" aria-hidden="true" />
                       </button>
                       <span className="text-foreground text-xs font-semibold">
-                        {
-                          filterCategories.find(
-                            (c) => c.id === selectedCategory,
-                          )?.label
-                        }
+                        {filterCategories.find((c) => c.id === selectedCategory)?.label}
                       </span>
                     </div>
                     <div className="border-border border-b px-3 py-2">
@@ -414,19 +392,12 @@ export function FilterBar({
                   aria-hidden="true"
                 />
                 <span>
-                  {
-                    timeRangeOptions.find(
-                      (opt) => opt.value === filters.timeRange,
-                    )?.displayValue
-                  }
+                  {timeRangeOptions.find((opt) => opt.value === filters.timeRange)?.displayValue}
                 </span>
               </div>
             </SelectValue>
           </SelectTrigger>
-          <SelectContent
-            className="rounded-md border p-1 text-xs"
-            alignOffset={0}
-          >
+          <SelectContent className="rounded-md border p-1 text-xs" alignOffset={0}>
             {timeRangeOptions.map((option) => (
               <SelectItem
                 key={option.value}

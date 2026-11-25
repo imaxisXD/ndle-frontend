@@ -29,13 +29,8 @@ test("rolling windows preserve inclusive day counts across a leap day", () => {
     ["3m", 90],
     ["12m", 365],
   ] as const) {
-    const window = getAnalyticsDateWindow(
-      range,
-      new Date("2024-03-01T00:05:00Z"),
-    );
-    expect(
-      (Date.parse(window.end) - Date.parse(window.start)) / 86400000 + 1,
-    ).toBe(days);
+    const window = getAnalyticsDateWindow(range, new Date("2024-03-01T00:05:00Z"));
+    expect((Date.parse(window.end) - Date.parse(window.start)) / 86400000 + 1).toBe(days);
   }
 });
 

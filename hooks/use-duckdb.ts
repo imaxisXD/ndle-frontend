@@ -8,7 +8,7 @@ export function releaseDuckDB(account: string) {
   if (database?.account !== account) return;
   const previous = database;
   database = null;
-  void previous.promise.then(db => db.terminate()).catch(() => {});
+  void previous.promise.then((db) => db.terminate()).catch(() => {});
 }
 
 export function initDuckDB(account = "guest"): Promise<duckdb.AsyncDuckDB> {
@@ -17,7 +17,9 @@ export function initDuckDB(account = "guest"): Promise<duckdb.AsyncDuckDB> {
   const promise = (async () => {
     const runtime = await import("@duckdb/duckdb-wasm");
     const bundle = await runtime.selectBundle(runtime.getJsDelivrBundles());
-    const workerUrl = URL.createObjectURL(new Blob([`importScripts("${bundle.mainWorker}");`], { type: "text/javascript" }));
+    const workerUrl = URL.createObjectURL(
+      new Blob([`importScripts("${bundle.mainWorker}");`], { type: "text/javascript" }),
+    );
     const worker = new Worker(workerUrl);
     try {
       const db = new runtime.AsyncDuckDB(new runtime.VoidLogger(), worker);
@@ -31,7 +33,9 @@ export function initDuckDB(account = "guest"): Promise<duckdb.AsyncDuckDB> {
     }
   })();
   database = { account, promise };
-  void promise.catch(() => { if (database?.promise === promise) database = null; });
+  void promise.catch(() => {
+    if (database?.promise === promise) database = null;
+  });
   return promise;
 }
 
@@ -43,12 +47,22 @@ export function useDuckDB() {
   useEffect(() => {
     if (!isLoaded || !userId) return;
     let canceled = false;
-    initDuckDB(userId).then(instance => {
-      if (!canceled) { setDb(instance); setLoading(false); }
-    }).catch(error => {
-      if (!canceled) { setError(error); setLoading(false); }
-    });
-    return () => { canceled = true; };
+    initDuckDB(userId)
+      .then((instance) => {
+        if (!canceled) {
+          setDb(instance);
+          setLoading(false);
+        }
+      })
+      .catch((error) => {
+        if (!canceled) {
+          setError(error);
+          setLoading(false);
+        }
+      });
+    return () => {
+      canceled = true;
+    };
   }, [userId, isLoaded]);
   return { db, loading, error };
 }

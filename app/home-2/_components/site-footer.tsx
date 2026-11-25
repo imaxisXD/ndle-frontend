@@ -51,13 +51,18 @@ export function SiteFooter({ home = "" }: { home?: string }) {
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0 opacity-[0.12]"
-        style={{ backgroundImage: "radial-gradient(#ffffff 1px, transparent 1px)", backgroundSize: "16px 16px" }}
+        style={{
+          backgroundImage: "radial-gradient(#ffffff 1px, transparent 1px)",
+          backgroundSize: "16px 16px",
+        }}
       />
       <div className="relative mx-auto flex max-w-[1240px] flex-col gap-12 px-5 pt-16 pb-10 sm:px-8 lg:flex-row lg:justify-between">
         <nav aria-label="Footer" className="flex flex-wrap gap-x-16 gap-y-10">
           {Object.entries(footerLinks(home)).map(([title, links]) => (
             <div key={title}>
-              <p className="font-[family-name:var(--font-bebas)] text-[26px] leading-none text-white/55 uppercase">{title}</p>
+              <p className="font-[family-name:var(--font-bebas)] text-[26px] leading-none text-white/55 uppercase">
+                {title}
+              </p>
               <ul className="mt-4 space-y-2.5 font-mono text-sm">
                 {links.map((l) => {
                   const external = l.href.startsWith("http");
@@ -66,7 +71,11 @@ export function SiteFooter({ home = "" }: { home?: string }) {
                       <a
                         href={l.href}
                         {...(external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
-                        className={cn("rounded-sm text-white/85 hover:text-white", FOCUS, ON_INK_FOCUS)}
+                        className={cn(
+                          "rounded-sm text-white/85 hover:text-white",
+                          FOCUS,
+                          ON_INK_FOCUS,
+                        )}
                       >
                         {l.label}
                       </a>

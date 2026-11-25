@@ -5,5 +5,9 @@ export const contentType = "image/png";
 export const alt = "The ndle blog";
 
 export default async function Image() {
-  return blogCard({ title: "Guides to links that keep working", tags: ["Blog"], footer: "ndle.app/blog" });
+  return blogCard({
+    title: "Guides to links that keep working",
+    tags: ["Blog"],
+    footer: "ndle.app/blog",
+  });
 }

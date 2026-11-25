@@ -68,9 +68,7 @@ function CollapsibleTrigger({
   return asChild ? (
     <BaseCollapsible.Trigger {...triggerProps} />
   ) : (
-    <BaseCollapsible.Trigger {...triggerProps}>
-      {children}
-    </BaseCollapsible.Trigger>
+    <BaseCollapsible.Trigger {...triggerProps}>{children}</BaseCollapsible.Trigger>
   );
 }
 

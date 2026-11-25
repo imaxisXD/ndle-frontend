@@ -22,9 +22,10 @@ export async function analyticsRequestError(
   fallbackMessage: string,
 ): Promise<AnalyticsRequestError> {
   const body: unknown = await response.json().catch(() => null);
-  const { error, code } = (
-    typeof body === "object" && body !== null ? body : {}
-  ) as { error?: unknown; code?: unknown };
+  const { error, code } = (typeof body === "object" && body !== null ? body : {}) as {
+    error?: unknown;
+    code?: unknown;
+  };
   return new AnalyticsRequestError(
     typeof error === "string" && error ? error : fallbackMessage,
     response.status,
@@ -60,12 +61,9 @@ export function getLinkAnalyticsState<Query extends AnalyticsQuery>(
   queries: readonly Query[],
   { rangeLocked = false }: { rangeLocked?: boolean } = {},
 ): { status: LinkAnalyticsStatus; failed: Query[]; isLoading: boolean } {
-  if (rangeLocked)
-    return { status: "plan-required", failed: [], isLoading: false };
+  if (rangeLocked) return { status: "plan-required", failed: [], isLoading: false };
 
-  const withoutData = queries.filter(
-    (query) => query.isError && query.data === undefined,
-  );
+  const withoutData = queries.filter((query) => query.isError && query.data === undefined);
   const failed = withoutData.filter((query) => !query.isFetching);
   if (failed.some((query) => isPlanRequiredError(query.error))) {
     return { status: "plan-required", failed, isLoading: false };
@@ -74,7 +72,6 @@ export function getLinkAnalyticsState<Query extends AnalyticsQuery>(
     status: failed.length > 0 ? "error" : "ready",
     failed,
     isLoading:
-      queries.some((query) => query.isLoading) ||
-      withoutData.some((query) => query.isFetching),
+      queries.some((query) => query.isLoading) || withoutData.some((query) => query.isFetching),
   };
 }

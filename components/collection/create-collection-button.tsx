@@ -8,14 +8,7 @@ import {
   DialogTrigger,
 } from "../ui/base-dialog";
 import { HotkeyButton } from "../ui/hotkey-button";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "../ui/form";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "../ui/form";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Textarea } from "../ui/textarea";
@@ -41,10 +34,7 @@ const collectionFormSchema = z.object({
         ctx.addIssue({ code: z.ZodIssueCode.custom, message: err });
       }
     }),
-  description: z
-    .string()
-    .max(200, "Description must be less than 200 characters")
-    .optional(),
+  description: z.string().max(200, "Description must be less than 200 characters").optional(),
   collectionColor: z.string().optional(),
 });
 
@@ -54,14 +44,10 @@ type CreateCollectionButtonProps = {
   existingCollectionNames: Array<string>;
 };
 
-export function CreateCollectionButton({
-  existingCollectionNames,
-}: CreateCollectionButtonProps) {
+export function CreateCollectionButton({ existingCollectionNames }: CreateCollectionButtonProps) {
   const addToast = useToast();
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const createCollection = useMutation(
-    api.collectionMangament.createCollection,
-  );
+  const createCollection = useMutation(api.collectionMangament.createCollection);
 
   const form = useForm<CollectionFormValues>({
     resolver: zodResolver(collectionFormSchema),
@@ -121,18 +107,13 @@ export function CreateCollectionButton({
       />
       <DialogContent className="sm:max-w-md">
         <DialogHeader className="gap-0.5 bg-transparent">
-          <DialogTitle className="text-lg font-medium">
-            Create New Collection
-          </DialogTitle>
+          <DialogTitle className="text-lg font-medium">Create New Collection</DialogTitle>
           <DialogDescription className="text-muted-foreground text-sm">
             Organize your links into a new collection
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
-          <form
-            onSubmit={form.handleSubmit(handleCreateCollection)}
-            className="space-y-4 pt-10"
-          >
+          <form onSubmit={form.handleSubmit(handleCreateCollection)} className="space-y-4 pt-10">
             <FormField
               control={form.control}
               name="collectionColor"
@@ -140,10 +121,7 @@ export function CreateCollectionButton({
                 <FormItem>
                   <FormLabel>Color</FormLabel>
                   <FormControl>
-                    <ColorSelector
-                      value={field.value}
-                      onChange={field.onChange}
-                    />
+                    <ColorSelector value={field.value} onChange={field.onChange} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -157,10 +135,7 @@ export function CreateCollectionButton({
                 <FormItem>
                   <FormLabel>Collection Name</FormLabel>
                   <FormControl>
-                    <Input
-                      placeholder="e.g., Product Documentation"
-                      {...field}
-                    />
+                    <Input placeholder="e.g., Product Documentation" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -211,9 +186,7 @@ export function CreateCollectionButton({
                 hotkey="meta+enter"
                 className="disabled:opacity-70"
               >
-                {form.formState.isSubmitting
-                  ? "Creating..."
-                  : "Create Collection"}
+                {form.formState.isSubmitting ? "Creating..." : "Create Collection"}
               </HotkeyButton>
             </DialogFooter>
           </form>

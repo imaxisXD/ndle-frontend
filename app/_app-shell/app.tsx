@@ -15,9 +15,7 @@ const MonitoringRoute = lazy(() => import("@/routes/MonitoringRoute"));
 const SettingsRoute = lazy(() => import("@/routes/SettingsRoute"));
 const CollectionsRoute = lazy(() => import("@/routes/CollectionsRoute"));
 const LinkDetailRoute = lazy(() => import("@/routes/LinkDetailRoute"));
-const CollectionDetailRoute = lazy(
-  () => import("@/routes/CollectionDetailRoute"),
-);
+const CollectionDetailRoute = lazy(() => import("@/routes/CollectionDetailRoute"));
 
 function AppRoutes() {
   const location = useLocation();
@@ -70,8 +68,7 @@ function AppRoutes() {
         path="/monitoring"
         element={wrap(<MonitoringRoute />, {
           title: "Monitoring could not load",
-          description:
-            "Try refreshing the page. Monitoring will resume when the data returns.",
+          description: "Try refreshing the page. Monitoring will resume when the data returns.",
           imageName: "errorMonitoring",
         })}
       />

@@ -25,7 +25,10 @@ export async function POST(request: NextRequest) {
 
   const body: unknown = await request.json().catch(() => ({}));
   const field = (name: string) =>
-    typeof body === "object" && body !== null && name in body && typeof (body as Record<string, unknown>)[name] === "string"
+    typeof body === "object" &&
+    body !== null &&
+    name in body &&
+    typeof (body as Record<string, unknown>)[name] === "string"
       ? ((body as Record<string, unknown>)[name] as string)
       : "";
 
@@ -33,15 +36,27 @@ export async function POST(request: NextRequest) {
   try {
     target = parseTarget(field("url"));
   } catch (error) {
-    return json({ error: error instanceof LinkTargetError ? error.message : "That link can't be checked." }, 400);
+    return json(
+      { error: error instanceof LinkTargetError ? error.message : "That link can't be checked." },
+      400,
+    );
   }
 
   const clientIp = request.headers.get("cf-connecting-ip") || request.headers.get("x-real-ip");
   if (!(await verifyTurnstile(field("token"), clientIp, secret))) {
-    return json({ error: "The security check didn't pass. Try it again.", code: "turnstile_failed" }, 403);
+    return json(
+      { error: "The security check didn't pass. Try it again.", code: "turnstile_failed" },
+      403,
+    );
   }
   if (!(await getLinkCheckRateLimit().limit(`link-check:${clientIp || "anonymous"}`)).success) {
-    return json({ error: "That's a lot of checks. Try again in an hour, or let ndle check your links for you." }, 429);
+    return json(
+      {
+        error:
+          "That's a lot of checks. Try again in an hour, or let ndle check your links for you.",
+      },
+      429,
+    );
   }
 
   return json(await checkLink(target));

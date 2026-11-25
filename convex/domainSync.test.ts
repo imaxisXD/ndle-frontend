@@ -94,9 +94,7 @@ describe("durable custom domain changes", () => {
     const deletion = await jobFor(backend);
     expect(deletion.version).toBeGreaterThan(registration.version);
     expect(deletion.target).toMatchObject({ hostname: domain });
-    expect(
-      await backend.run((ctx) => ctx.db.get(created.domainId!)),
-    ).toBeNull();
+    expect(await backend.run((ctx) => ctx.db.get(created.domainId!))).toBeNull();
   });
 
   test("retries a lost create response by finding the existing hostname before creating again", async () => {
@@ -106,9 +104,7 @@ describe("durable custom domain changes", () => {
     const fetchMock = vi.fn(async (url: string, options?: RequestInit) => {
       if (options?.method === "POST") {
         createdInCloudflare = true;
-        throw new Error(
-          "Response was lost after Cloudflare created the hostname",
-        );
+        throw new Error("Response was lost after Cloudflare created the hostname");
       }
       expect(new URL(url).searchParams.get("hostname.exact")).toBe(domain);
       return response(createdInCloudflare ? [hostname] : []);
@@ -119,12 +115,13 @@ describe("durable custom domain changes", () => {
     expect(failed.lastError).toContain("Response was lost");
     await makeJobDue(backend);
     expect((await runJob(backend)).status).toBe("complete");
-    expect(
-      fetchMock.mock.calls.filter(([, options]) => options?.method === "POST"),
-    ).toHaveLength(1);
-    expect(
-      await backend.run((ctx) => ctx.db.get(created.domainId!)),
-    ).toMatchObject({ status: "active", cloudflareHostnameId: hostname.id });
+    expect(fetchMock.mock.calls.filter(([, options]) => options?.method === "POST")).toHaveLength(
+      1,
+    );
+    expect(await backend.run((ctx) => ctx.db.get(created.domainId!))).toMatchObject({
+      status: "active",
+      cloudflareHostnameId: hostname.id,
+    });
   });
 
   test("deletion during registration removes an orphan whose ID was never saved", async () => {
@@ -150,11 +147,9 @@ describe("durable custom domain changes", () => {
     expect((await jobFor(backend)).target).not.toHaveProperty("hostnameId");
     expect((await runJob(backend)).status).toBe("complete");
     expect(exists).toBe(false);
-    expect(
-      fetchMock.mock.calls.filter(
-        ([, options]) => options?.method === "DELETE",
-      ),
-    ).toHaveLength(1);
+    expect(fetchMock.mock.calls.filter(([, options]) => options?.method === "DELETE")).toHaveLength(
+      1,
+    );
   });
 
   test("an old deletion preserves a newer registration of the same hostname", async () => {
@@ -171,9 +166,10 @@ describe("durable custom domain changes", () => {
     vi.stubGlobal("fetch", fetchMock);
     expect((await runJob(backend)).status).toBe("complete");
     expect(fetchMock).toHaveBeenCalledTimes(1);
-    expect(
-      await backend.run((ctx) => ctx.db.get(replacement.domainId!)),
-    ).toMatchObject({ status: "active", cloudflareHostnameId: hostname.id });
+    expect(await backend.run((ctx) => ctx.db.get(replacement.domainId!))).toMatchObject({
+      status: "active",
+      cloudflareHostnameId: hostname.id,
+    });
   });
 
   test("a replacement waits for an in-flight deletion and then restores the hostname", async () => {
@@ -205,25 +201,21 @@ describe("durable custom domain changes", () => {
         exists = true;
         return response(hostname);
       }
-      return response(
-        new URL(url).search ? (exists ? [hostname] : []) : hostname,
-      );
+      return response(new URL(url).search ? (exists ? [hostname] : []) : hostname);
     });
     vi.stubGlobal("fetch", fetchMock);
     const deleting = runJob(backend);
     await deleteStarted;
     const replacement = await addVerifiedDomain(backend, client);
     expect((await runJob(backend)).status).toBe("running");
-    expect(
-      fetchMock.mock.calls.some(([, options]) => options?.method === "POST"),
-    ).toBe(false);
+    expect(fetchMock.mock.calls.some(([, options]) => options?.method === "POST")).toBe(false);
     finishDelete();
     expect((await deleting).status).toBe("pending");
     expect((await runJob(backend)).status).toBe("complete");
     expect(exists).toBe(true);
-    expect(
-      await backend.run((ctx) => ctx.db.get(replacement.domainId!)),
-    ).toMatchObject({ status: "active" });
+    expect(await backend.run((ctx) => ctx.db.get(replacement.domainId!))).toMatchObject({
+      status: "active",
+    });
   });
 
   test("deletion retries service errors and treats a missing hostname as already deleted", async () => {
@@ -263,16 +255,14 @@ describe("durable custom domain changes", () => {
     expect((await runJob(backend, key)).status).toBe("pending");
     vi.stubGlobal(
       "fetch",
-      vi.fn(async (url: string) =>
-        response(new URL(url).search ? [hostname] : hostname),
-      ),
+      vi.fn(async (url: string) => response(new URL(url).search ? [hostname] : hostname)),
     );
     await makeJobDue(backend, key);
     expect((await runJob(backend, key)).status).toBe("complete");
     expect((await runJob(backend)).status).toBe("complete");
-    expect(
-      await backend.run((ctx) => ctx.db.get(created.domainId!)),
-    ).toMatchObject({ status: "active" });
+    expect(await backend.run((ctx) => ctx.db.get(created.domainId!))).toMatchObject({
+      status: "active",
+    });
   });
 
   test("a legacy registration finishing after deletion saves a cleanup lookup", async () => {
@@ -329,12 +319,8 @@ describe("durable custom domain changes", () => {
     );
     expect(nextPage).toBeDefined();
     const args = nextPage!.args[0] as { cursor: string };
-    expect(
-      await backend.mutation(internal.domainSync.queuePendingDomainPage, args),
-    ).toBe(1);
-    expect(
-      await backend.run((ctx) => ctx.db.query("serviceSyncJobs").collect()),
-    ).toHaveLength(51);
+    expect(await backend.mutation(internal.domainSync.queuePendingDomainPage, args)).toBe(1);
+    expect(await backend.run((ctx) => ctx.db.query("serviceSyncJobs").collect())).toHaveLength(51);
   });
 
   test("active certificates alone do not mark an unverified hostname active", async () => {
@@ -345,9 +331,10 @@ describe("durable custom domain changes", () => {
       vi.fn(async () => response([{ ...hostname, status: "pending" }])),
     );
     expect((await runJob(backend)).status).toBe("complete");
-    expect(
-      await backend.run((ctx) => ctx.db.get(created.domainId!)),
-    ).toMatchObject({ status: "pending", sslStatus: "active" });
+    expect(await backend.run((ctx) => ctx.db.get(created.domainId!))).toMatchObject({
+      status: "pending",
+      sslStatus: "active",
+    });
   });
 
   test("bootstrap adopts existing active and failed domains in bounded pages without replacing jobs", async () => {
@@ -367,9 +354,7 @@ describe("durable custom domain changes", () => {
         cursor: null,
       }),
     ).toBe(50);
-    const before = await backend.run((ctx) =>
-      ctx.db.query("serviceSyncJobs").collect(),
-    );
+    const before = await backend.run((ctx) => ctx.db.query("serviceSyncJobs").collect());
     expect(before).toHaveLength(50);
     expect(before[0].target).toMatchObject({
       kind: "domain",
@@ -378,12 +363,10 @@ describe("durable custom domain changes", () => {
     await backend.mutation(internal.domainSync.bootstrapDomains, {
       cursor: null,
     });
-    expect(
-      await backend.run((ctx) => ctx.db.query("serviceSyncJobs").collect()),
-    ).toEqual(before);
+    expect(await backend.run((ctx) => ctx.db.query("serviceSyncJobs").collect())).toEqual(before);
     const nextPage = await backend.run(async (ctx) =>
-      (await ctx.db.system.query("_scheduled_functions").collect()).find(
-        (item) => item.name.includes("domainSync:bootstrapDomains"),
+      (await ctx.db.system.query("_scheduled_functions").collect()).find((item) =>
+        item.name.includes("domainSync:bootstrapDomains"),
       ),
     );
     expect(nextPage).toBeDefined();
@@ -393,9 +376,7 @@ describe("durable custom domain changes", () => {
         nextPage!.args[0] as { cursor: string },
       ),
     ).toBe(1);
-    expect(
-      await backend.run((ctx) => ctx.db.query("serviceSyncJobs").collect()),
-    ).toHaveLength(51);
+    expect(await backend.run((ctx) => ctx.db.query("serviceSyncJobs").collect())).toHaveLength(51);
   });
 
   test.each([
@@ -404,20 +385,17 @@ describe("durable custom domain changes", () => {
       result: [{ ...hostname, hostname: "unrelated.example.test" }],
       error: "different domain",
     },
-  ])(
-    "invalid successful responses remain retryable: $error",
-    async ({ result, error }) => {
-      const { backend, client } = await setup();
-      await addVerifiedDomain(backend, client);
-      vi.stubGlobal(
-        "fetch",
-        vi.fn(async () => response(result)),
-      );
-      const failed = await runJob(backend);
-      expect(failed.status).toBe("pending");
-      expect(failed.lastError).toContain(error);
-    },
-  );
+  ])("invalid successful responses remain retryable: $error", async ({ result, error }) => {
+    const { backend, client } = await setup();
+    await addVerifiedDomain(backend, client);
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => response(result)),
+    );
+    const failed = await runJob(backend);
+    expect(failed.status).toBe("pending");
+    expect(failed.lastError).toContain(error);
+  });
 
   test("missing credentials remain visible retryable work", async () => {
     const { backend, client } = await setup();
@@ -465,8 +443,9 @@ describe("durable custom domain changes", () => {
         createdAt: Date.now() - 3 * 86_400_000,
       });
     });
-    expect(
-      await client.mutation(api.customDomains.addDomain, { domain }),
-    ).toEqual({ success: false, error: "This domain is already registered" });
+    expect(await client.mutation(api.customDomains.addDomain, { domain })).toEqual({
+      success: false,
+      error: "This domain is already registered",
+    });
   });
 });

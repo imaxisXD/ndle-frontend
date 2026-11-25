@@ -1,13 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Bookmark, EditPencil, Check } from "iconoir-react";
@@ -78,9 +72,7 @@ export function LinkNotesPanel({ shortUrl, fullUrl }: LinkNotesPanelProps) {
             )}
           </Button>
         </div>
-        <CardDescription>
-          Save notes about this link in this browser.
-        </CardDescription>
+        <CardDescription>Save notes about this link in this browser.</CardDescription>
       </CardHeader>
       <CardContent className="space-y-3">
         {isAddingNote && (
@@ -119,9 +111,7 @@ export function LinkNotesPanel({ shortUrl, fullUrl }: LinkNotesPanelProps) {
           <div className="space-y-2">
             {notes.map((note) => (
               <Inset key={note.id} className="rounded-lg p-3">
-                <p className="text-sm [overflow-wrap:anywhere]">
-                  {note.content}
-                </p>
+                <p className="text-sm [overflow-wrap:anywhere]">{note.content}</p>
                 <p className="text-muted-foreground mt-2 text-xs">
                   {formatRelativeDate(note.createdAt)}
                 </p>

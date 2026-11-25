@@ -51,15 +51,10 @@ const LINE_DOMAIN_EXCLUDED_NAMES = new Set([
 
 function getChildComponentName(child: ReactElement) {
   const childType = child.type as { displayName?: string; name?: string };
-  return typeof child.type === "function"
-    ? childType.displayName || childType.name || ""
-    : "";
+  return typeof child.type === "function" ? childType.displayName || childType.name || "" : "";
 }
 
-function registersLineDomain(
-  child: ReactElement,
-  props: LineProps | undefined
-) {
+function registersLineDomain(child: ReactElement, props: LineProps | undefined) {
   if (!props?.dataKey) {
     return false;
   }

@@ -21,14 +21,8 @@ import { isGradientDefComponent, isPatternDefComponent } from "./chart-defs";
 import { shortDateFmt } from "./chart-formatters";
 import { ChartRevealClip } from "./chart-reveal-clip";
 import { getSeriesMarkerVisualExtent } from "./series-point-marker";
-import {
-  decimateTimeSeries,
-  maxRenderPointsForWidth,
-} from "./decimate-time-series";
-import {
-  computeSeriesBarRevealClipPadding,
-  computeSeriesBarWidth,
-} from "./series-bar-layout";
+import { decimateTimeSeries, maxRenderPointsForWidth } from "./decimate-time-series";
+import { computeSeriesBarRevealClipPadding, computeSeriesBarWidth } from "./series-bar-layout";
 import { useStaticChartPreview } from "./static-chart-preview-context";
 import { useChartInteraction } from "./use-chart-interaction";
 import {
@@ -38,10 +32,7 @@ import {
   groupLinesByYAxisId,
 } from "./y-axis-scales";
 
-function collectNumericExtents(
-  data: Record<string, unknown>[],
-  dataKeys: string[]
-) {
+function collectNumericExtents(data: Record<string, unknown>[], dataKeys: string[]) {
   let minValue = Number.POSITIVE_INFINITY;
   let maxValue = Number.NEGATIVE_INFINITY;
 
@@ -69,7 +60,7 @@ function collectNumericExtents(
 function resolveTimeSeriesYDomain(
   data: Record<string, unknown>[],
   dataKeys: string[],
-  yScaleDomainMax: number | undefined
+  yScaleDomainMax: number | undefined,
 ): [number, number] {
   if (yScaleDomainMax != null && yScaleDomainMax > 0) {
     return [0, yScaleDomainMax * 1.1];
@@ -99,9 +90,7 @@ export function isPostOverlayComponent(child: ReactElement): boolean {
   }
 
   const componentName =
-    typeof child.type === "function"
-      ? childType.displayName || childType.name || ""
-      : "";
+    typeof child.type === "function" ? childType.displayName || childType.name || "" : "";
 
   return componentName === "ChartMarkers" || componentName === "MarkerGroup";
 }
@@ -185,12 +174,12 @@ const TimeSeriesChartCore = memo(function TimeSeriesChartCore({
       const value = d[xDataKey];
       return value instanceof Date ? value : new Date(value as string | number);
     },
-    [xDataKey]
+    [xDataKey],
   );
 
   const bisectDate = useMemo(
     () => bisector<Record<string, unknown>, Date>((d) => xAccessor(d)).left,
-    [xAccessor]
+    [xAccessor],
   );
 
   const xScale = useMemo(() => {
@@ -206,11 +195,7 @@ const TimeSeriesChartCore = memo(function TimeSeriesChartCore({
 
   const renderData = useMemo(() => {
     const valueKeys = lines.map((line) => line.dataKey);
-    return decimateTimeSeries(
-      data,
-      maxRenderPointsForWidth(innerWidth),
-      valueKeys
-    );
+    return decimateTimeSeries(data, maxRenderPointsForWidth(innerWidth), valueKeys);
   }, [data, innerWidth, lines]);
 
   const columnWidth = useMemo(() => {
@@ -228,26 +213,23 @@ const TimeSeriesChartCore = memo(function TimeSeriesChartCore({
         innerHeight,
         resolveDomain: (dataKeys) => {
           const axisGroups = groupLinesByYAxisId(lines);
-          const usesDefaultOnly =
-            axisGroups.size === 1 && axisGroups.has(DEFAULT_Y_AXIS_ID);
+          const usesDefaultOnly = axisGroups.size === 1 && axisGroups.has(DEFAULT_Y_AXIS_ID);
           const domainMax =
-            usesDefaultOnly && yScaleDomainMax != null
-              ? yScaleDomainMax
-              : undefined;
+            usesDefaultOnly && yScaleDomainMax != null ? yScaleDomainMax : undefined;
           return resolveTimeSeriesYDomain(data, dataKeys, domainMax);
         },
       }),
-    [innerHeight, data, lines, yScaleDomainMax]
+    [innerHeight, data, lines, yScaleDomainMax],
   );
 
   const yScale = getPrimaryYScale(
     yScales,
-    scaleLinear({ range: [innerHeight, 0], domain: [0, 100], nice: true })
+    scaleLinear({ range: [innerHeight, 0], domain: [0, 100], nice: true }),
   );
 
   const dateLabels = useMemo(
     () => data.map((d) => shortDateFmt.format(xAccessor(d))),
-    [data, xAccessor]
+    [data, xAccessor],
   );
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: revealSignature
@@ -375,7 +357,7 @@ const TimeSeriesChartCore = memo(function TimeSeriesChartCore({
       composedStacked,
       composedStackOffsets,
       composedStackGap,
-    ]
+    ],
   );
 
   // Single shared reveal clip for every series. Replaces the per-<Line> /
@@ -386,10 +368,7 @@ const TimeSeriesChartCore = memo(function TimeSeriesChartCore({
   // animationDuration === 0 truly disables the reveal (no clipPath wrapper),
   // so consumers can opt out without having to also pass enterTransition.
   const showReveal =
-    !staticPreview &&
-    renderData.length > 1 &&
-    innerWidth > 0 &&
-    animationDuration > 0;
+    !staticPreview && renderData.length > 1 && innerWidth > 0 && animationDuration > 0;
   // If the consumer didn't pass an explicit enterTransition, derive one from
   // animationDuration so clipRevealTransition picks up the override instead
   // of falling back to its 1100ms default.
@@ -455,13 +434,7 @@ const TimeSeriesChartCore = memo(function TimeSeriesChartCore({
           style={interactionStyle}
           transform={`translate(${margin.left},${margin.top})`}
         >
-          <rect
-            fill="transparent"
-            height={innerHeight}
-            width={innerWidth}
-            x={0}
-            y={0}
-          />
+          <rect fill="transparent" height={innerHeight} width={innerWidth} x={0} y={0} />
 
           {showReveal ? (
             <g clipPath={`url(#${clipPathId})`}>{preOverlayChildren}</g>

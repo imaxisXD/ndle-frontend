@@ -1,6 +1,13 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useRef, useState, type ComponentType, type ReactNode } from "react";
+import {
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type ComponentType,
+  type ReactNode,
+} from "react";
 import { useInView, useReducedMotion } from "motion/react";
 import {
   ArrowCounterClockwiseIcon,
@@ -15,10 +22,32 @@ import {
   SecurityCameraIcon,
 } from "@phosphor-icons/react/dist/ssr";
 import { cn } from "@/lib/utils";
-import { createDemoClock, DemoClockProvider, useDemo, useDemoClock, useDemoStatus } from "./demo-clock";
+import {
+  createDemoClock,
+  DemoClockProvider,
+  useDemo,
+  useDemoClock,
+  useDemoStatus,
+} from "./demo-clock";
 import { DemoCursor } from "./demo-cursor";
-import { AlertToasts, AnalyticsPage, HomePage, HomeToast, LinkPage, MonitoringPage } from "./demo-pages";
-import { CHAPTERS, STAGE, T, between, chapterAt, chapterEnd, pageAt, type Page } from "./demo-script";
+import {
+  AlertToasts,
+  AnalyticsPage,
+  HomePage,
+  HomeToast,
+  LinkPage,
+  MonitoringPage,
+} from "./demo-pages";
+import {
+  CHAPTERS,
+  STAGE,
+  T,
+  between,
+  chapterAt,
+  chapterEnd,
+  pageAt,
+  type Page,
+} from "./demo-script";
 import { FOCUS } from "./kit";
 import { useFitScale } from "./use-fit-scale";
 
@@ -96,9 +125,10 @@ export function GlassDashboard({ paused = false }: { paused?: boolean }) {
     <DemoClockProvider value={clock}>
       <figure>
         <figcaption className="sr-only">
-          A 28-second tour of the ndle dashboard with sample data: a long link is shortened, its clicks are
-          counted, ndle charts when they land, the link breaks and an alert email goes out, and once it is back
-          online the tour ends on the link&apos;s own page with its clicks and incident history.
+          A 28-second tour of the ndle dashboard with sample data: a long link is shortened, its
+          clicks are counted, ndle charts when they land, the link breaks and an alert email goes
+          out, and once it is back online the tour ends on the link&apos;s own page with its clicks
+          and incident history.
         </figcaption>
         <div
           ref={frameRef}
@@ -121,7 +151,6 @@ export function GlassDashboard({ paused = false }: { paused?: boolean }) {
     </DemoClockProvider>
   );
 }
-
 
 /* ───────── The light behind the window ───────── */
 
@@ -177,7 +206,15 @@ function Pane() {
 /** The dashboard in its window, with its rail. Also the frame of
     the visitor's own pass (your-link-takeover.tsx). It's a picture, inert,
     unless the pass has come to rest on a page whose controls work. */
-export function PaneShell({ rail, interactive = false, children }: { rail: Page; interactive?: boolean; children: ReactNode }) {
+export function PaneShell({
+  rail,
+  interactive = false,
+  children,
+}: {
+  rail: Page;
+  interactive?: boolean;
+  children: ReactNode;
+}) {
   return (
     <div
       inert={!interactive}
@@ -237,7 +274,10 @@ function Rail({ page }: { page: Page }) {
                 on ? "bg-accent text-accent-foreground" : "text-muted-foreground",
               )}
             >
-              <Icon className={cn("size-5", id === "monitoring" && "-scale-x-100")} weight={on ? "duotone" : "regular"} />
+              <Icon
+                className={cn("size-5", id === "monitoring" && "-scale-x-100")}
+                weight={on ? "duotone" : "regular"}
+              />
             </span>
           );
         })}
@@ -297,12 +337,17 @@ function Controls({ onToggle, onJump }: { onToggle: () => void; onJump: (index: 
                 aria-current={chapter === i ? "step" : undefined}
                 className={cn(
                   "flex w-[104px] flex-col gap-2 rounded-sm py-1 text-left transition-colors duration-150",
-                  chapter === i ? "text-[var(--fg)]" : "text-[var(--fg-3)] hover:text-[var(--fg-2)]",
+                  chapter === i
+                    ? "text-[var(--fg)]"
+                    : "text-[var(--fg-3)] hover:text-[var(--fg-2)]",
                   FOCUS,
                 )}
               >
                 {c.label}
-                <span aria-hidden className="relative h-0.5 overflow-hidden rounded-full bg-black/[0.08]">
+                <span
+                  aria-hidden
+                  className="relative h-0.5 overflow-hidden rounded-full bg-black/[0.08]"
+                >
                   <span
                     ref={(el) => {
                       fills.current[i] = el;

@@ -18,9 +18,7 @@ const result = (value: unknown) =>
   });
 describe("authenticated analytics account", () => {
   it("gets account and plan from the authenticated Convex result", async () => {
-    const request = vi
-      .fn()
-      .mockResolvedValue(result({ userId: "account", membership: "pro" }));
+    const request = vi.fn().mockResolvedValue(result({ userId: "account", membership: "pro" }));
     vi.stubGlobal("fetch", request);
     const token = vi.fn().mockResolvedValue("signed-token");
     expect(await getSignedInAnalyticsViewer(token)).toEqual({
@@ -44,13 +42,13 @@ describe("authenticated analytics account", () => {
       format: "json",
     });
   });
-  it.each([
-    { membership: "pro" },
-    { userId: "account", membership: "administrator" },
-  ])("rejects an incomplete or unknown account response", async (value) => {
-    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(result(value)));
-    expect(await getSignedInAnalyticsViewer(async () => "token")).toBeNull();
-  });
+  it.each([{ membership: "pro" }, { userId: "account", membership: "administrator" }])(
+    "rejects an incomplete or unknown account response",
+    async (value) => {
+      vi.stubGlobal("fetch", vi.fn().mockResolvedValue(result(value)));
+      expect(await getSignedInAnalyticsViewer(async () => "token")).toBeNull();
+    },
+  );
   it("returns no account when token lookup throws or times out", async () => {
     expect(
       await getSignedInAnalyticsViewer(async () => {
@@ -72,9 +70,7 @@ describe("authenticated analytics account", () => {
   it("keeps plan-only callers compatible", async () => {
     vi.stubGlobal(
       "fetch",
-      vi
-        .fn()
-        .mockResolvedValue(result({ userId: "account", membership: "free" })),
+      vi.fn().mockResolvedValue(result({ userId: "account", membership: "free" })),
     );
     expect(await getSignedInUserPlan(async () => "token")).toBe("free");
   });

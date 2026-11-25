@@ -16,10 +16,7 @@ const timeseriesRow = z
  * yesterday). Mark them as UTC; values that already carry a zone are kept.
  */
 export function asUtcTimestamp(value: string): string {
-  const match =
-    /^(\d{4}-\d{2}-\d{2})[ T](\d{2}:\d{2}(?::\d{2}(?:\.\d+)?)?)$/.exec(
-      value.trim(),
-    );
+  const match = /^(\d{4}-\d{2}-\d{2})[ T](\d{2}:\d{2}(?::\d{2}(?:\.\d+)?)?)$/.exec(value.trim());
   return match ? `${match[1]}T${match[2]}Z` : value;
 }
 

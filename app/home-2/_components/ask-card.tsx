@@ -41,7 +41,12 @@ export function AskCard({
   return (
     // A column, so in a fixed-height frame the field sits at the bottom like a
     // chat's; at natural height it lays out as before.
-    <div className={cn("flex flex-col overflow-hidden rounded-md border border-zinc-200 bg-white shadow-xs", className)}>
+    <div
+      className={cn(
+        "flex flex-col overflow-hidden rounded-md border border-zinc-200 bg-white shadow-xs",
+        className,
+      )}
+    >
       <div className="flex items-center border-b border-zinc-200 bg-zinc-50 px-5 py-3">
         <span className="flex items-center gap-2 text-base font-semibold text-zinc-900">
           <SparkleIcon size={20} weight="duotone" className="text-amber-500" />
@@ -60,20 +65,27 @@ export function AskCard({
             </div>
           </div>
         ) : (
-          <p className="px-1 py-3 text-sm text-zinc-500">Ask about your clicks, and ndle draws the chart.</p>
+          <p className="px-1 py-3 text-sm text-zinc-500">
+            Ask about your clicks, and ndle draws the chart.
+          </p>
         )}
         {asked && (
           <div className="flex gap-3 rounded-lg border border-zinc-200 bg-white p-3">
             {/* ndle answers as Blip, its mascot: curious, then thinking
                 while the question's open, pleased once it answers */}
-            <AskBlip answered={answered} className="size-12 -my-1 -rotate-3" />
+            <AskBlip answered={answered} className="-my-1 size-12 -rotate-3" />
             <div className="min-w-0 flex-1">
               <p className="mb-2 text-xs font-medium text-zinc-500">ndle</p>
               {answered ? (
                 <div className="h2-settle space-y-3">
                   <p className="text-sm text-zinc-900">{ASK.answer}</p>
                   {compact ? (
-                    <BklitVerticalBarChart data={HOURLY_CLICKS} heightClassName="h-[88px]" labelKey="hour" valueKey="clicks" />
+                    <BklitVerticalBarChart
+                      data={HOURLY_CLICKS}
+                      heightClassName="h-[88px]"
+                      labelKey="hour"
+                      valueKey="clicks"
+                    />
                   ) : (
                     <HourlyActivityChart data={HOURLY_CLICKS} />
                   )}
@@ -89,19 +101,33 @@ export function AskCard({
           </div>
         )}
       </div>
-      <div aria-hidden className={cn("flex items-center gap-3 border-t border-zinc-200 px-4 py-3", hideField && "hidden")}>
+      <div
+        aria-hidden
+        className={cn(
+          "flex items-center gap-3 border-t border-zinc-200 px-4 py-3",
+          hideField && "hidden",
+        )}
+      >
         <span
           data-demo="ask-field"
           className={cn(
             "flex h-[38px] min-w-0 flex-1 items-center rounded-md border px-3 text-sm transition-[border-color,box-shadow] duration-150",
-            focused ? "border-[oklch(0.78_0.15_88)] ring-[3px] ring-[oklch(0.86_0.17_88/0.35)]" : "border-zinc-200",
+            focused
+              ? "border-[oklch(0.78_0.15_88)] ring-[3px] ring-[oklch(0.86_0.17_88/0.35)]"
+              : "border-zinc-200",
           )}
         >
           {draft && <span className="truncate text-zinc-900">{draft}</span>}
           {focused && <span className="h2-caret ml-px h-4 w-px shrink-0 bg-zinc-900" />}
           {!draft && <span className="text-zinc-400">Describe the chart you want...</span>}
         </span>
-        <span data-demo="ask-send" className={cn("transition-colors duration-150", draft ? "text-zinc-900" : "text-zinc-400")}>
+        <span
+          data-demo="ask-send"
+          className={cn(
+            "transition-colors duration-150",
+            draft ? "text-zinc-900" : "text-zinc-400",
+          )}
+        >
           <PaperPlaneRightIcon size={18} />
         </span>
       </div>

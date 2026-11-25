@@ -68,24 +68,15 @@ export const getUserUrlsPage = query({
     };
     if (args.collectionId) {
       const collection = await ctx.db.get(args.collectionId);
-      if (
-        !collection ||
-        collection.userTableId !== user._id ||
-        !collection.membersReady
-      )
+      if (!collection || collection.userTableId !== user._id || !collection.membersReady)
         return { page: [], continueCursor: "", isDone: true };
       const result = await ctx.db
         .query("collectionLinks")
-        .withIndex("by_collectionId_and_urlId", (q) =>
-          q.eq("collectionId", collection._id),
-        )
+        .withIndex("by_collectionId_and_urlId", (q) => q.eq("collectionId", collection._id))
         .paginate(options);
-      const urls = await Promise.all(
-        result.page.map((member) => ctx.db.get(member.urlId)),
-      );
+      const urls = await Promise.all(result.page.map((member) => ctx.db.get(member.urlId)));
       const owned = urls.filter(
-        (url): url is Doc<"urls"> =>
-          url !== null && url.userTableId === user._id,
+        (url): url is Doc<"urls"> => url !== null && url.userTableId === user._id,
       );
       return {
         page: await enrich(ctx, owned),
@@ -133,11 +124,7 @@ export const getAvailableUrlsPage = query({
             q.eq("collectionId", collection._id).eq("urlId", url._id),
           )
           .unique();
-        if (
-          member ||
-          (!collection.membersReady && collection.urls.includes(url._id))
-        )
-          return null;
+        if (member || (!collection.membersReady && collection.urls.includes(url._id))) return null;
         return {
           _id: url._id,
           _creationTime: url._creationTime,
@@ -148,9 +135,7 @@ export const getAvailableUrlsPage = query({
       }),
     );
     return {
-      page: available.filter(
-        (url): url is NonNullable<typeof url> => url !== null,
-      ),
+      page: available.filter((url): url is NonNullable<typeof url> => url !== null),
       continueCursor: result.continueCursor,
       isDone: result.isDone,
     };

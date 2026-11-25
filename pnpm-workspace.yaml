@@ -8,27 +8,32 @@ allowBuilds:
   unrs-resolver: true
   workerd: true
 
+minimumReleaseAgeExclude:
+  - "@clerk/backend@3.33.0"
+  - "@clerk/nextjs@7.10.9"
+  - "@clerk/react@6.19.6"
+  - "@clerk/shared@4.49.0"
+  - miniflare@5.20261123.1-beta
+  - wrangler@4.168.0
+
 overrides:
   react-is: ^19
-  "@types/react": 19.2.17
-  "@types/react-dom": 19.2.3
-  postcss: 8.5.15
-  "@babel/core": 7.29.7
-  "@isaacs/brace-expansion": 5.0.1
-  ajv: 6.15.0
-  flatted: 3.4.2
-  form-data: 4.0.6
-  js-yaml: 4.2.0
-  lodash: 4.18.1
+  "@types/react": 19.3.0
+  "@types/react-dom": 19.3.0
   # Pinned per major: OpenNext's router needs 6.x to read next.config
   # patterns like "/:path*" (8.x throws on them); express and router need 8.x.
   "path-to-regexp@^6": 6.3.0
   "path-to-regexp@^8": 8.4.2
-  picomatch: 4.0.4
-  preact: 10.29.2
-  qs: 6.15.2
-  ws: 8.21.0
-  yaml: 2.9.0
+  # Transitive CVE floors (use >= so future patches are never held back)
+  baseline-browser-mapping: ">=2.11.39"
+  body-parser: ">=2.4.0"
+  brace-expansion: ">=5.0.12"
+  "fflate@^0.4": ">=0.4.9"
+  glob: ">=14.0.2"
+  minimatch: ">=11.0.1"
+  proxy-addr: ">=2.0.8"
+  qs: ">=6.16.1"
+  source-map-js: ">=1.2.4"
 
 patchedDependencies:
   apache-arrow@17.0.0: patches/apache-arrow@17.0.0.patch

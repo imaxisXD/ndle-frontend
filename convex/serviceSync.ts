@@ -3,21 +3,13 @@ import { v, type Infer } from "convex/values";
 import { doc } from "convex-helpers/validators";
 import { internal } from "./_generated/api";
 import type { Doc } from "./_generated/dataModel";
-import {
-  internalAction,
-  internalMutation,
-  type QueryCtx,
-} from "./_generated/server";
+import { internalAction, internalMutation, type QueryCtx } from "./_generated/server";
 import schema from "./schema";
 import { serviceSyncTarget } from "./serviceSyncTypes";
 import { buildRedirectProjection } from "./redisProjection";
 import { getOwnerSnapshot, getViewerPlan } from "./ownership";
 import { deliverMonitoringChange } from "./linkHealth";
-import {
-  deliverDomainChange,
-  deliverLegacyDomainDeletion,
-  getClaimedDomain,
-} from "./domainSync";
+import { deliverDomainChange, deliverLegacyDomainDeletion, getClaimedDomain } from "./domainSync";
 import { queueServiceSync, queueUrlSync } from "./syncQueue";
 
 export { queueServiceSync, queueUrlSync };
@@ -84,12 +76,7 @@ export const claim = internalMutation({
   handler: async (ctx, { jobId, version }) => {
     const job = await ctx.db.get(jobId);
     const now = Date.now();
-    if (
-      !job ||
-      job.version !== version ||
-      job.status === "complete" ||
-      job.nextAttemptAt > now
-    )
+    if (!job || job.version !== version || job.status === "complete" || job.nextAttemptAt > now)
       return null;
     let target = job.target;
     let url: Doc<"urls"> | null = null;
@@ -108,9 +95,7 @@ export const claim = internalMutation({
       attempts: job.attempts + 1,
     });
     const user =
-      target.kind === "owner" || target.kind === "clerk"
-        ? await ctx.db.get(target.userId)
-        : null;
+      target.kind === "owner" || target.kind === "clerk" ? await ctx.db.get(target.userId) : null;
     return { job: { ...job, target }, url, user };
   },
 });
@@ -124,9 +109,7 @@ export const finish = internalMutation({
     const now = Date.now();
     const superseded = job.version !== version;
     const delay =
-      error && !superseded
-        ? Math.min(3_600_000, 5_000 * 2 ** Math.min(job.attempts, 10))
-        : 0;
+      error && !superseded ? Math.min(3_600_000, 5_000 * 2 ** Math.min(job.attempts, 10)) : 0;
     const pending = superseded || !!error;
     await ctx.db.patch(jobId, {
       status: pending ? "pending" : "complete",
@@ -148,10 +131,7 @@ export const finish = internalMutation({
       }
     } else if (job.target.kind === "redirect") {
       const url = await ctx.db.get(job.target.urlId);
-      if (
-        url &&
-        (url.redisStatus !== "OK" || url.urlStatusMessage !== "success")
-      ) {
+      if (url && (url.redisStatus !== "OK" || url.urlStatusMessage !== "success")) {
         await ctx.db.patch(job.target.urlId, {
           redisStatus: "OK",
           urlStatusMessage: "success",
@@ -182,10 +162,7 @@ export function redirectValue(url: Doc<"urls">) {
         {
           id: "control",
           url: url.fullurl,
-          weight: Math.max(
-            0,
-            100 - variants.reduce((sum, item) => sum + item.weight, 0),
-          ),
+          weight: Math.max(0, 100 - variants.reduce((sum, item) => sum + item.weight, 0)),
         },
         ...variants,
       ]
@@ -220,12 +197,7 @@ function isObject(value: unknown): value is Record<string, unknown> {
   return value !== null && typeof value === "object" && !Array.isArray(value);
 }
 
-async function send(
-  url: string,
-  secret: string,
-  method: string,
-  body: unknown,
-): Promise<unknown> {
+async function send(url: string, secret: string, method: string, body: unknown): Promise<unknown> {
   const response = await fetch(url, {
     method,
     headers: {
@@ -235,8 +207,7 @@ async function send(
     body: JSON.stringify(body),
     signal: AbortSignal.timeout(15_000),
   });
-  if (response.status !== 200)
-    throw new Error(`Service rejected the update (${response.status})`);
+  if (response.status !== 200) throw new Error(`Service rejected the update (${response.status})`);
   try {
     return await response.json();
   } catch {
@@ -266,10 +237,7 @@ export const run = internalAction({
           await redis.eval(
             REDIRECT_SYNC_SCRIPT,
             [target.slug, `ndle:sync:${target.slug}`],
-            [
-              String(job.version),
-              url ? JSON.stringify(redirectValue(url)) : "",
-            ],
+            [String(job.version), url ? JSON.stringify(redirectValue(url)) : ""],
           );
           break;
         }
@@ -298,9 +266,7 @@ export const run = internalAction({
               { accountUserId: target.userId, ownerKeys: target.ownerKeys },
             );
             if (!isObject(result) || result.success !== true)
-              throw new Error(
-                "Analytics service did not confirm the account update",
-              );
+              throw new Error("Analytics service did not confirm the account update");
           }
           break;
         }
@@ -327,9 +293,7 @@ export const run = internalAction({
               result.public_metadata.membership !== plan ||
               result.public_metadata.plan !== plan
             ) {
-              throw new Error(
-                "Clerk did not confirm the requested account metadata",
-              );
+              throw new Error("Clerk did not confirm the requested account metadata");
             }
           }
           break;
@@ -343,8 +307,7 @@ export const run = internalAction({
       }
       await ctx.runMutation(internal.serviceSync.finish, args);
     } catch (error) {
-      const message =
-        error instanceof Error ? error.message : "Service update failed";
+      const message = error instanceof Error ? error.message : "Service update failed";
       await ctx.runMutation(internal.serviceSync.finish, {
         ...args,
         error: message.slice(0, 500),
@@ -366,12 +329,7 @@ export const reconcile = internalMutation({
         .withIndex("by_status_and_nextAttemptAt", (q) =>
           q
             .eq("status", status)
-            .lte(
-              "nextAttemptAt",
-              status === "complete"
-                ? now - COMPLETE_REFRESH_INTERVAL_MS
-                : now,
-            ),
+            .lte("nextAttemptAt", status === "complete" ? now - COMPLETE_REFRESH_INTERVAL_MS : now),
         )
         .take(25);
       for (const job of due) {

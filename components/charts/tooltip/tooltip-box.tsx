@@ -85,10 +85,7 @@ function TooltipBoxInner({
   const th = tooltipHeightRef.current;
   const shouldFlipX = x + tw + offset > containerWidth;
   const targetX = shouldFlipX ? x - offset - tw : x + offset;
-  const targetY = Math.max(
-    offset,
-    Math.min(y - th / 2, containerHeight - th - offset)
-  );
+  const targetY = Math.max(offset, Math.min(y - th / 2, containerHeight - th - offset));
 
   const animatedLeft = useSpring(targetX, effectiveSpring);
   const animatedTop = useSpring(targetY, effectiveSpring);
@@ -117,10 +114,7 @@ function TooltipBoxInner({
     const h2 = tooltipHeightRef.current;
     const flip = x + w2 + offset > containerWidth;
     const tx = flip ? x - offset - w2 : x + offset;
-    const ty = Math.max(
-      offset,
-      Math.min(y - h2 / 2, containerHeight - h2 - offset)
-    );
+    const ty = Math.max(offset, Math.min(y - h2 / 2, containerHeight - h2 - offset));
     if (leftOverride === undefined) {
       animatedLeft.set(tx);
     }
@@ -166,7 +160,7 @@ function TooltipBoxInner({
     >
       <motion.div
         animate={{ scale: 1, opacity: 1, x: 0 }}
-        className="min-w-[140px] overflow-hidden rounded-lg bg-chart-tooltip-background text-chart-tooltip-foreground shadow-[var(--shadow-rim),0_6px_16px_-4px_rgba(0,0,0,0.20)] backdrop-blur-md"
+        className="bg-chart-tooltip-background text-chart-tooltip-foreground min-w-[140px] overflow-hidden rounded-lg shadow-[var(--shadow-rim),0_6px_16px_-4px_rgba(0,0,0,0.20)] backdrop-blur-md"
         initial={{ scale: 0.85, opacity: 0, x: isFlipped ? 20 : -20 }}
         key={flipKey}
         style={{ transformOrigin, ...panelStyle }}
@@ -175,7 +169,7 @@ function TooltipBoxInner({
         {children}
       </motion.div>
     </motion.div>,
-    container
+    container,
   );
 }
 

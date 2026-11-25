@@ -1,11 +1,6 @@
 import { Doc } from "./_generated/dataModel";
 import { v } from "convex/values";
-import {
-  mutation,
-  query,
-  QueryCtx,
-  type MutationCtx,
-} from "./_generated/server";
+import { mutation, query, QueryCtx, type MutationCtx } from "./_generated/server";
 import { getClaimableGuestSessions } from "./guestSessions";
 import { verifyGuestSessionToken } from "./guestTokens";
 import { queueServiceSync, queueUrlSync } from "./syncQueue";
@@ -42,25 +37,19 @@ export const store = mutation({
 
     const existingUser = await ctx.db
       .query("users")
-      .withIndex("by_token", (q) =>
-        q.eq("tokenIdentifier", identity.tokenIdentifier),
-      )
+      .withIndex("by_token", (q) => q.eq("tokenIdentifier", identity.tokenIdentifier))
       .unique();
 
     if (existingUser !== null) {
-      if (
-        typeof identity.name === "string" &&
-        existingUser.name !== identity.name
-      ) {
+      if (typeof identity.name === "string" && existingUser.name !== identity.name) {
         await ctx.db.patch(existingUser._id, { name: identity.name });
       }
-      const { claimedLinkCount, guestSessionClaimed } =
-        await claimGuestLinksForUser(
-          ctx,
-          existingUser,
-          args.guestId,
-          args.guestToken,
-        );
+      const { claimedLinkCount, guestSessionClaimed } = await claimGuestLinksForUser(
+        ctx,
+        existingUser,
+        args.guestId,
+        args.guestToken,
+      );
 
       if (!existingUser.externalSyncReady) {
         await queueServiceSync(ctx, `owner:${existingUser._id}`, {
@@ -111,8 +100,12 @@ export const store = mutation({
       clerkUserId,
     });
 
-    const { claimedLinkCount, guestSessionClaimed } =
-      await claimGuestLinksForUser(ctx, newUser, args.guestId, args.guestToken);
+    const { claimedLinkCount, guestSessionClaimed } = await claimGuestLinksForUser(
+      ctx,
+      newUser,
+      args.guestId,
+      args.guestToken,
+    );
 
     await queueServiceSync(ctx, `owner:${userId}`, {
       kind: "owner",
@@ -140,9 +133,7 @@ export const getAccountSyncState = query({
   ),
   handler: async (ctx) => {
     const user = await getCurrentUser(ctx);
-    return user
-      ? { userId: user._id, metadataSyncedAt: user.metadataSyncedAt }
-      : null;
+    return user ? { userId: user._id, metadataSyncedAt: user.metadataSyncedAt } : null;
   },
 });
 
@@ -151,11 +142,7 @@ export const getViewerState = query({
   returns: v.object({
     userId: v.optional(v.id("users")),
     isSignedIn: v.boolean(),
-    membership: v.union(
-      v.literal("free"),
-      v.literal("pro"),
-      v.literal("guest"),
-    ),
+    membership: v.union(v.literal("free"), v.literal("pro"), v.literal("guest")),
     analyticsDays: v.optional(v.number()),
     activeLinkLimit: v.optional(v.number()),
     canUsePaidOptions: v.boolean(),
@@ -187,19 +174,14 @@ export const getViewerState = query({
   },
 });
 
-export async function userQuery(
-  ctx: QueryCtx,
-  clerkUserId: string,
-): Promise<Doc<"users"> | null> {
+export async function userQuery(ctx: QueryCtx, clerkUserId: string): Promise<Doc<"users"> | null> {
   return await ctx.db
     .query("users")
     .withIndex("by_token", (q) => q.eq("tokenIdentifier", clerkUserId))
     .unique();
 }
 
-export async function getCurrentUser(
-  ctx: QueryCtx,
-): Promise<Doc<"users"> | null> {
+export async function getCurrentUser(ctx: QueryCtx): Promise<Doc<"users"> | null> {
   const identity = await ctx.auth.getUserIdentity();
   if (!identity) {
     return null;
@@ -223,9 +205,7 @@ async function claimGuestLinksForUser(
     return { claimedLinkCount: 0, guestSessionClaimed: false };
   }
 
-  const guestIds = Array.from(
-    new Set(sessions.map((session) => session.guestId)),
-  );
+  const guestIds = Array.from(new Set(sessions.map((session) => session.guestId)));
   const now = Date.now();
   const ownerKeys = guestIds.map((value) => makeGuestOwnerKey(value));
   let claimedLinkCount = 0;

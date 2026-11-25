@@ -13,8 +13,19 @@ export const metadata: Metadata = {
   title: `${TITLE} | ndle`,
   description: DESCRIPTION,
   alternates: { canonical: "/tools/utm-builder" },
-  openGraph: { type: "website", title: `${TITLE} | ndle`, description: DESCRIPTION, url: PAGE_URL, siteName: "ndle" },
-  twitter: { card: "summary_large_image", title: `${TITLE} | ndle`, description: DESCRIPTION, creator: "@abhishk_084" },
+  openGraph: {
+    type: "website",
+    title: `${TITLE} | ndle`,
+    description: DESCRIPTION,
+    url: PAGE_URL,
+    siteName: "ndle",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: `${TITLE} | ndle`,
+    description: DESCRIPTION,
+    creator: "@abhishk_084",
+  },
 };
 
 const SECTIONS = [

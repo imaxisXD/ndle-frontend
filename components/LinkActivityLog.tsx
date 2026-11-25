@@ -1,12 +1,6 @@
 "use client";
 
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { formatRelative } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -83,10 +77,7 @@ export function LinkActivityLog({ linkSlug }: LinkActivityLogProps) {
         {isLoading ? (
           <div className="divide-border divide-y">
             {[1, 2, 3, 4, 5].map((i) => (
-              <div
-                key={i}
-                className="flex items-center justify-between gap-4 px-5 py-3"
-              >
+              <div key={i} className="flex items-center justify-between gap-4 px-5 py-3">
                 <Skeleton className="h-4 w-24" />
                 <Skeleton className="h-4 w-32" />
                 <Skeleton className="h-4 w-20" />

@@ -11,10 +11,7 @@ import { useCallback, useId, useMemo, useRef } from "react";
 import { AreaGradientDefs } from "./area-gradient-defs";
 import { chartCssVars, useChartStable, useYScale } from "./chart-context";
 import { type FadeEdges, resolveFadeSides } from "./fade-edges";
-import {
-  resolveDashTailBounds,
-  usePathStrokeMetrics,
-} from "./path-stroke-utils";
+import { resolveDashTailBounds, usePathStrokeMetrics } from "./path-stroke-utils";
 import { SeriesDashTailOverlay } from "./series-dash-tail-overlay";
 import { SeriesHighlightLayer } from "./series-highlight-layer";
 import { SeriesHoverDim } from "./series-hover-dim";
@@ -89,15 +86,7 @@ export function Area({
   // The reveal-clip is now a single shared clipPath at the chart-shell
   // level (`time-series-chart-shell.tsx`); we no longer render a per-area
   // `<ChartRevealClip>` or read `revealEpoch` here.
-  const {
-    data,
-    renderData,
-    xScale,
-    innerHeight,
-    innerWidth,
-    xAccessor,
-    lines,
-  } = useChartStable();
+  const { data, renderData, xScale, innerHeight, innerWidth, xAccessor, lines } = useChartStable();
   const yScale = useYScale(yAxisId);
 
   const seriesIndex = useMemo(() => {
@@ -125,24 +114,21 @@ export function Area({
   const areaFill = isPatternFill ? fill : `url(#${gradientId})`;
 
   // Resolved stroke color (defaults to fill; pattern URLs need a real color)
-  const resolvedStroke =
-    stroke || (isPatternFill ? chartCssVars.linePrimary : fill);
+  const resolvedStroke = stroke || (isPatternFill ? chartCssVars.linePrimary : fill);
 
   const getY = useCallback(
     (d: Record<string, unknown>) => {
       const value = d[dataKey];
       return typeof value === "number" ? (yScale(value) ?? 0) : 0;
     },
-    [dataKey, yScale]
+    [dataKey, yScale],
   );
 
   const hasDashTail = resolveDashTailBounds(dashFromIndex, data.length);
   // The stroke gradient is only emitted when at least one edge fades, so fall
   // back to the resolved solid color otherwise — avoids an invalid url(#...).
   const fadeSides = resolveFadeSides(fadeEdges);
-  const strokePaint = fadeSides.any
-    ? `url(#${strokeGradientId})`
-    : resolvedStroke;
+  const strokePaint = fadeSides.any ? `url(#${strokeGradientId})` : resolvedStroke;
   const highlightEnabled = showHighlight && showLine;
 
   return (
@@ -162,20 +148,10 @@ export function Area({
         strokeGradientId={strokeGradientId}
       />
 
-      <SeriesHoverDim
-        dimOpacity={0.6}
-        enabled={showHighlight}
-        seriesIndex={seriesIndex}
-      >
+      <SeriesHoverDim dimOpacity={0.6} enabled={showHighlight} seriesIndex={seriesIndex}>
         {/* Area fill */}
         {showAreaFill ? (
-          <g
-            mask={
-              fadeSides.any && !isPatternFill
-                ? `url(#${edgeMaskId})`
-                : undefined
-            }
-          >
+          <g mask={fadeSides.any && !isPatternFill ? `url(#${edgeMaskId})` : undefined}>
             <AreaClosed
               curve={curve}
               data={renderData}

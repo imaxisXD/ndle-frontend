@@ -27,10 +27,7 @@ export async function deriveGuestNetworkKey(clientIp: string): Promise<string> {
   }
 }
 
-export async function createGuestSessionToken(
-  guestId: string,
-  networkKey?: string,
-) {
+export async function createGuestSessionToken(guestId: string, networkKey?: string) {
   try {
     return await createGuestSessionTokenRaw(guestId, networkKey);
   } catch (error) {

@@ -20,8 +20,19 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     title,
     description: page.description,
     alternates: { canonical: `/alternatives/${page.slug}` },
-    openGraph: { type: "website", title, description: page.description, url: alternativeUrl(page.slug), siteName: "ndle" },
-    twitter: { card: "summary_large_image", title, description: page.description, creator: "@abhishk_084" },
+    openGraph: {
+      type: "website",
+      title,
+      description: page.description,
+      url: alternativeUrl(page.slug),
+      siteName: "ndle",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description: page.description,
+      creator: "@abhishk_084",
+    },
   };
 }
 

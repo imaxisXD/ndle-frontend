@@ -40,27 +40,10 @@ import {
 } from "iconoir-react";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
-import {
-  Select,
-  SelectTrigger,
-  SelectContent,
-  SelectItem,
-  SelectValue,
-} from "../ui/base-select";
-import {
-  Tooltip,
-  TooltipTrigger,
-  TooltipContent,
-  tooltipVariants,
-} from "../ui/base-tooltip";
+import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "../ui/base-select";
+import { Tooltip, TooltipTrigger, TooltipContent, tooltipVariants } from "../ui/base-tooltip";
 import { Popover as PopoverPrimitive } from "@base-ui/react/popover";
-import {
-  Menu,
-  MenuContent,
-  MenuItem,
-  MenuShortcut,
-  MenuTrigger,
-} from "../ui/base-menu";
+import { Menu, MenuContent, MenuItem, MenuShortcut, MenuTrigger } from "../ui/base-menu";
 import { Kbd } from "../ui/kbd";
 import {
   Dialog,
@@ -74,12 +57,7 @@ import {
 import { type DisplayUrl } from "./types";
 import { UrlTableFrame, UrlTableHeader } from "./UrlTableFrame";
 import { UrlTableSkeletonRows } from "./UrlTableSkeletonRows";
-import {
-  formatRelative,
-  formatRelativeTimeCompact,
-  cn,
-  getMonitoringStatus,
-} from "@/lib/utils";
+import { formatRelative, formatRelativeTimeCompact, cn, getMonitoringStatus } from "@/lib/utils";
 import { getStatusBadgeVariant } from "@/lib/status-badge";
 import { useMinuteNow } from "@/hooks/use-minute-now";
 import { EmptyStateImage } from "@/components/empty-state-image";
@@ -105,9 +83,7 @@ interface UrlTableProps {
   collectionId?: Id<"collections">;
 }
 
-type UserUrlsResponse = FunctionReturnType<
-  typeof api.urlLists.getUserUrlsPage
->["page"];
+type UserUrlsResponse = FunctionReturnType<typeof api.urlLists.getUserUrlsPage>["page"];
 
 function SortableHeader({
   column,
@@ -118,9 +94,7 @@ function SortableHeader({
 }: {
   column: {
     getIsSorted: () => false | "asc" | "desc";
-    getToggleSortingHandler: () =>
-      | ((event: React.MouseEvent) => void)
-      | undefined;
+    getToggleSortingHandler: () => ((event: React.MouseEvent) => void) | undefined;
     id: string;
   };
   label: string;
@@ -130,11 +104,7 @@ function SortableHeader({
 }) {
   const isSorted = column.getIsSorted();
   const tooltipText =
-    isSorted === "desc"
-      ? descTooltip
-      : isSorted === "asc"
-        ? ascTooltip
-        : defaultTooltip;
+    isSorted === "desc" ? descTooltip : isSorted === "asc" ? ascTooltip : defaultTooltip;
   return (
     <Tooltip>
       <TooltipTrigger
@@ -151,9 +121,7 @@ function SortableHeader({
             <span>{label}</span>
             <span
               className={`inline-flex w-4 justify-center ${
-                column.getIsSorted()
-                  ? "text-accent"
-                  : "text-muted-foreground/60"
+                column.getIsSorted() ? "text-accent" : "text-muted-foreground/60"
               }`}
             >
               {column.getIsSorted() === "asc" ? (
@@ -320,9 +288,7 @@ function ShortUrlCell({
     };
   }, []);
 
-  const normalizedHref = /^https?:\/\//i.test(shortUrl)
-    ? shortUrl
-    : `https://${shortUrl}`;
+  const normalizedHref = /^https?:\/\//i.test(shortUrl) ? shortUrl : `https://${shortUrl}`;
   return (
     <div className="flex min-w-0 items-center justify-start gap-1">
       <LinkWithFavicon
@@ -388,9 +354,7 @@ type StoredClickCount = {
 const storedClickCounts = new Map<string, StoredClickCount>();
 const clickCountListeners = new Map<string, Set<() => void>>();
 
-function updateStoredClickCounts(
-  clickCounts: Array<{ clicks: number; id: string }>,
-) {
+function updateStoredClickCounts(clickCounts: Array<{ clicks: number; id: string }>) {
   for (const { clicks, id } of clickCounts) {
     const previous = storedClickCounts.get(id);
 
@@ -503,10 +467,7 @@ function StatusDot({ status }: { status: string }) {
       <PopoverPrimitive.Portal>
         <PopoverPrimitive.Positioner side="top" sideOffset={8} className="z-50">
           <PopoverPrimitive.Popup
-            className={cn(
-              tooltipVariants({ variant: "default" }),
-              "capitalize",
-            )}
+            className={cn(tooltipVariants({ variant: "default" }), "capitalize")}
           >
             {status}
           </PopoverPrimitive.Popup>
@@ -552,31 +513,18 @@ const UrlDataRow = memo(function UrlDataRow({
       data-glide-row
       className="glide-row bg-surface-inset border-border border-b last:border-b-0"
     >
-      <div
-        role="cell"
-        className="g-status self-center"
-        data-glide
-        data-glide-pair="status"
-      >
+      <div role="cell" className="g-status self-center" data-glide data-glide-pair="status">
         <Badge
           variant={variant}
-          className={
-            status === "healed" ? "inline-flex items-center gap-1.5" : undefined
-          }
+          className={status === "healed" ? "inline-flex items-center gap-1.5" : undefined}
         >
-          {status === "healed" && (
-            <span className="bg-success h-1.5 w-1.5 rounded-full" />
-          )}
+          {status === "healed" && <span className="bg-success h-1.5 w-1.5 rounded-full" />}
           {status}
         </Badge>
       </div>
 
       <div role="cell" className="g-link" data-glide>
-        <ShortUrlCell
-          shortUrl={shortUrl}
-          originalUrl={originalUrl}
-          onCopy={onCopy}
-        />
+        <ShortUrlCell shortUrl={shortUrl} originalUrl={originalUrl} onCopy={onCopy} />
       </div>
 
       <StatusDot status={status} />
@@ -590,10 +538,7 @@ const UrlDataRow = memo(function UrlDataRow({
       </p>
 
       <div role="cell" className="g-clicks">
-        <span
-          className="flex h-8 items-center text-sm font-medium tabular-nums"
-          data-glide
-        >
+        <span className="flex h-8 items-center text-sm font-medium tabular-nums" data-glide>
           <ClickCountNumber clickCountId={id} startingClicks={startingClicks} />
         </span>
         <span className="text-muted-foreground text-xs" data-glide>
@@ -602,11 +547,7 @@ const UrlDataRow = memo(function UrlDataRow({
       </div>
 
       {/* Narrow rows show the short form; the two cross-fade as they glide. */}
-      <div
-        role="cell"
-        className="g-created text-muted-foreground text-xs"
-        data-glide
-      >
+      <div role="cell" className="g-created text-muted-foreground text-xs" data-glide>
         <span className="when-long">{formatRelative(createdAt)}</span>
         <span className="when-short" aria-hidden="true">
           {formatRelativeTimeCompact(createdAt)}
@@ -624,10 +565,7 @@ const UrlDataRow = memo(function UrlDataRow({
   );
 }, areUrlDataRowPropsEqual);
 
-function areUrlDataRowPropsEqual(
-  previous: UrlDataRowProps,
-  next: UrlDataRowProps,
-) {
+function areUrlDataRowPropsEqual(previous: UrlDataRowProps, next: UrlDataRowProps) {
   return (
     previous.id === next.id &&
     previous.status === next.status &&
@@ -721,8 +659,7 @@ const UrlTableFilters = memo(function UrlTableFilters({
   const selectedCollection = collectionOptions.find(
     (collection) => collection.id === collectionFilter,
   );
-  const hasActiveFilters =
-    searchQuery || statusFilter !== "all" || collectionFilter !== "all";
+  const hasActiveFilters = searchQuery || statusFilter !== "all" || collectionFilter !== "all";
 
   return (
     <div className="border-border border-b px-4 py-3 sm:px-6">
@@ -732,9 +669,7 @@ const UrlTableFilters = memo(function UrlTableFilters({
           type="button"
           onClick={onToggleFiltersPanel}
           className={`hover:bg-accent hover:text-foreground flex items-center gap-2 rounded-md px-3 py-2 text-sm transition-colors ${
-            showFiltersPanel ||
-            statusFilter !== "all" ||
-            collectionFilter !== "all"
+            showFiltersPanel || statusFilter !== "all" || collectionFilter !== "all"
               ? "bg-foreground text-background"
               : "border-border hover:bg-accent border"
           }`}
@@ -761,9 +696,7 @@ const UrlTableFilters = memo(function UrlTableFilters({
           <Inset className="mt-4 flex flex-col gap-4 rounded-lg p-4">
             {collectionOptions.length > 0 && (
               <div className="flex flex-col gap-2">
-                <span className="text-muted-foreground text-xs font-medium">
-                  Collection:
-                </span>
+                <span className="text-muted-foreground text-xs font-medium">Collection:</span>
                 <div className="flex max-h-40 flex-wrap gap-2 overflow-y-auto">
                   <button
                     type="button"
@@ -790,8 +723,7 @@ const UrlTableFilters = memo(function UrlTableFilters({
                       <span
                         className="h-2 w-2 shrink-0 rounded-full"
                         style={{
-                          backgroundColor:
-                            collection.collectionColor || "#6b7280",
+                          backgroundColor: collection.collectionColor || "#6b7280",
                         }}
                       />
                       <span className="truncate">{collection.name}</span>
@@ -802,9 +734,7 @@ const UrlTableFilters = memo(function UrlTableFilters({
             )}
 
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-              <span className="text-muted-foreground text-xs font-medium">
-                Status:
-              </span>
+              <span className="text-muted-foreground text-xs font-medium">Status:</span>
               <div className="flex flex-wrap gap-2">
                 {statusFilterOptions.map((status) => (
                   <button
@@ -849,8 +779,7 @@ const UrlTableFilters = memo(function UrlTableFilters({
                 <span
                   className="mr-1.5 h-2 w-2 rounded-full"
                   style={{
-                    backgroundColor:
-                      selectedCollection.collectionColor || "#6b7280",
+                    backgroundColor: selectedCollection.collectionColor || "#6b7280",
                   }}
                 />
                 {selectedCollection.name || "Collection"}
@@ -919,9 +848,7 @@ export function UrlTable({
   const now = useMinuteNow();
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string | "all">("all");
-  const [collectionFilter, setCollectionFilter] = useState<string | "all">(
-    "all",
-  );
+  const [collectionFilter, setCollectionFilter] = useState<string | "all">("all");
   const [showFiltersPanel, setShowFiltersPanel] = useState(false);
 
   const handleSearchChange = useCallback((nextSearchQuery: string) => {
@@ -936,19 +863,13 @@ export function UrlTable({
     setShowFiltersPanel((isPanelShown) => !isPanelShown);
   }, []);
 
-  const handleCollectionFilterChange = useCallback(
-    (nextCollectionFilter: string | "all") => {
-      setCollectionFilter(nextCollectionFilter);
-    },
-    [],
-  );
+  const handleCollectionFilterChange = useCallback((nextCollectionFilter: string | "all") => {
+    setCollectionFilter(nextCollectionFilter);
+  }, []);
 
-  const handleStatusFilterChange = useCallback(
-    (nextStatusFilter: string | "all") => {
-      setStatusFilter(nextStatusFilter);
-    },
-    [],
-  );
+  const handleStatusFilterChange = useCallback((nextStatusFilter: string | "all") => {
+    setStatusFilter(nextStatusFilter);
+  }, []);
 
   const handleClearAllFilters = useCallback(() => {
     setSearchQuery("");
@@ -981,9 +902,7 @@ export function UrlTable({
 
   const selectedCollectionId =
     collectionId ??
-    (collectionFilter === "all"
-      ? undefined
-      : (collectionFilter as Id<"collections">));
+    (collectionFilter === "all" ? undefined : (collectionFilter as Id<"collections">));
   const selectedCollectionData = useQuery(
     api.collectionMangament.getCollectionById,
     selectedCollectionId ? { collectionId: selectedCollectionId } : "skip",
@@ -1010,15 +929,12 @@ export function UrlTable({
     selectedCollectionId ? { collectionId: selectedCollectionId } : {},
     { initialNumItems: showPagination ? 25 : defaultPageSize },
   );
-  const collectionIsUpdating =
-    !!selectedCollectionData && !selectedCollectionData.membersReady;
+  const collectionIsUpdating = !!selectedCollectionData && !selectedCollectionData.membersReady;
   const isLoading = pageStatus === "LoadingFirstPage";
-  const hasLoadProblem =
-    !!selectedCollectionId && selectedCollectionData === null;
+  const hasLoadProblem = !!selectedCollectionId && selectedCollectionData === null;
   const isEmpty = !isLoading && urls.length === 0 && !collectionIsUpdating;
   const showLoadMoreLinks =
-    showPagination &&
-    (pageStatus === "CanLoadMore" || pageStatus === "LoadingMore");
+    showPagination && (pageStatus === "CanLoadMore" || pageStatus === "LoadingMore");
   const showLoadMoreCollections =
     showFiltersPanel && !collectionId && collectionPageStatus !== "Exhausted";
 
@@ -1033,10 +949,7 @@ export function UrlTable({
       const formattedShortUrl = slugSource
         ? /^https?:\/\//i.test(slugSource)
           ? slugSource
-          : makeShortLinkWithDomain(
-              slugSource.replace(/^\/+/, ""),
-              doc.customDomain,
-            )
+          : makeShortLinkWithDomain(slugSource.replace(/^\/+/, ""), doc.customDomain)
         : "";
 
       const status = getDisplayStatus(doc, now);
@@ -1096,16 +1009,12 @@ export function UrlTable({
   }, [filteredUrls, sorting]);
 
   useLayoutEffect(() => {
-    updateStoredClickCounts(
-      sortedUrls.map((url) => ({ clicks: url.clicks, id: url.id })),
-    );
+    updateStoredClickCounts(sortedUrls.map((url) => ({ clicks: url.clicks, id: url.id })));
   }, [sortedUrls]);
 
   const handleCopy = useCallback(
     (shortUrl: string) => {
-      const normalized = /^https?:\/\//i.test(shortUrl)
-        ? shortUrl
-        : `https://${shortUrl}`;
+      const normalized = /^https?:\/\//i.test(shortUrl) ? shortUrl : `https://${shortUrl}`;
       navigator.clipboard.writeText(normalized);
       trackUrlCopied();
       add({
@@ -1148,8 +1057,7 @@ export function UrlTable({
       add({
         type: "error",
         title: "Error",
-        description:
-          error instanceof Error ? error.message : "Failed to delete link",
+        description: error instanceof Error ? error.message : "Failed to delete link",
       });
     }
   }, [urlToDelete, deleteUrl, add]);
@@ -1258,9 +1166,7 @@ export function UrlTable({
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-lg font-medium">{headerTitle}</h2>
-              <p className="text-muted-foreground mt-1 text-sm">
-                {headerDescription}
-              </p>
+              <p className="text-muted-foreground mt-1 text-sm">{headerDescription}</p>
             </div>
           </div>
         </div>
@@ -1295,16 +1201,12 @@ export function UrlTable({
           <div role="table" aria-busy="true" aria-label="Loading your links">
             {tableHeader}
             <div role="rowgroup">
-              <UrlTableSkeletonRows
-                rows={table.getState().pagination.pageSize}
-              />
+              <UrlTableSkeletonRows rows={table.getState().pagination.pageSize} />
             </div>
           </div>
         ) : collectionIsUpdating ? (
           <output className="block px-6 py-12 text-center">
-            <span className="block text-sm font-medium">
-              Updating collection
-            </span>
+            <span className="block text-sm font-medium">Updating collection</span>
             <span className="text-muted-foreground mt-2 block text-xs">
               Your saved links will appear here when the update finishes.
             </span>
@@ -1315,10 +1217,7 @@ export function UrlTable({
             <div className="bg-surface-inset flex min-h-[360px] flex-col items-center justify-center px-6 py-10 text-center">
               <EmptyStateImage
                 alt=""
-                className={cn(
-                  "mb-5 w-full",
-                  hasLoadProblem ? "max-w-[560px]" : "max-w-[430px]",
-                )}
+                className={cn("mb-5 w-full", hasLoadProblem ? "max-w-[560px]" : "max-w-[430px]")}
                 name={hasLoadProblem ? "errorLinks" : "noLinks"}
               />
               <h3 className="mt-4 text-sm font-medium">
@@ -1407,8 +1306,7 @@ export function UrlTable({
                   <SelectContent>
                     {(() => {
                       const totalItems = filteredUrls.length;
-                      const currentPageSize =
-                        table.getState().pagination.pageSize;
+                      const currentPageSize = table.getState().pagination.pageSize;
                       const standardOptions = [5, 10, 20, 30, 50];
 
                       // Create dynamic options based on total items
@@ -1427,10 +1325,7 @@ export function UrlTable({
                       }
 
                       // Add total items if it's not too large (max 100)
-                      if (
-                        totalItems <= 100 &&
-                        !dynamicOptions.has(totalItems)
-                      ) {
+                      if (totalItems <= 100 && !dynamicOptions.has(totalItems)) {
                         dynamicOptions.add(totalItems);
                       }
 
@@ -1447,26 +1342,21 @@ export function UrlTable({
 
               <div className="flex items-center gap-2">
                 <span className="text-sm whitespace-nowrap">
-                  Page {table.getState().pagination.pageIndex + 1} of{" "}
-                  {table.getPageCount()}
+                  Page {table.getState().pagination.pageIndex + 1} of {table.getPageCount()}
                 </span>
                 <Select
                   value={String(table.getState().pagination.pageIndex + 1)}
-                  onValueChange={(value) =>
-                    table.setPageIndex(Number(value) - 1)
-                  }
+                  onValueChange={(value) => table.setPageIndex(Number(value) - 1)}
                 >
                   <SelectTrigger aria-label="Select page" className="px-2">
                     <SelectValue placeholder="Page" />
                   </SelectTrigger>
                   <SelectContent>
-                    {Array.from({ length: table.getPageCount() }).map(
-                      (_, idx) => (
-                        <SelectItem key={idx} value={String(idx + 1)}>
-                          {idx + 1}
-                        </SelectItem>
-                      ),
-                    )}
+                    {Array.from({ length: table.getPageCount() }).map((_, idx) => (
+                      <SelectItem key={idx} value={String(idx + 1)}>
+                        {idx + 1}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -1524,9 +1414,7 @@ export function UrlTable({
             </span>
             {urlToDelete && (
               <span className="my-4 block">
-                <span className="block text-sm font-medium">
-                  Link to delete:
-                </span>
+                <span className="block text-sm font-medium">Link to delete:</span>
                 <span className="text-muted-foreground block text-xs">
                   [{urlToDelete.shortUrl}]
                 </span>

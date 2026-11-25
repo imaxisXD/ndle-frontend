@@ -104,18 +104,28 @@ async function request(url: URL, method: "HEAD" | "GET", fetchImpl: typeof fetch
 
 function failureText(error: unknown) {
   if (error instanceof LinkTargetError) return error.message;
-  if (error instanceof DOMException && (error.name === "TimeoutError" || error.name === "AbortError")) {
+  if (
+    error instanceof DOMException &&
+    (error.name === "TimeoutError" || error.name === "AbortError")
+  ) {
     return "The site took too long to respond.";
   }
   return "Couldn't connect to the site. It may be down, or its security certificate may be invalid.";
 }
 
-export async function checkLink(target: URL, fetchImpl: typeof fetch = fetch): Promise<LinkCheckResult> {
+export async function checkLink(
+  target: URL,
+  fetchImpl: typeof fetch = fetch,
+): Promise<LinkCheckResult> {
   const started = Date.now();
   const hops: LinkCheckHop[] = [];
   let url = target;
 
-  const done = (verdict: LinkCheckVerdict, status: number | null, error?: string): LinkCheckResult => ({
+  const done = (
+    verdict: LinkCheckVerdict,
+    status: number | null,
+    error?: string,
+  ): LinkCheckResult => ({
     verdict,
     finalUrl: url.href,
     status,
@@ -140,7 +150,11 @@ export async function checkLink(target: URL, fetchImpl: typeof fetch = fetch): P
       return done(verdictFor(response.status, Date.now() - started), response.status);
     }
     if (redirects === MAX_REDIRECTS) {
-      return done("broken", response.status, "The link redirects too many times, so the page never loads.");
+      return done(
+        "broken",
+        response.status,
+        "The link redirects too many times, so the page never loads.",
+      );
     }
     try {
       url = new URL(location, url);
@@ -149,7 +163,9 @@ export async function checkLink(target: URL, fetchImpl: typeof fetch = fetch): P
       return done(
         "broken",
         response.status,
-        error instanceof LinkTargetError ? `It redirects to an address that can't be checked. ${error.message}` : "It redirects to an address that isn't valid.",
+        error instanceof LinkTargetError
+          ? `It redirects to an address that can't be checked. ${error.message}`
+          : "It redirects to an address that isn't valid.",
       );
     }
   }

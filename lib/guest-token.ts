@@ -47,9 +47,7 @@ export function constantTimeEqual(provided: string, expected: string): boolean {
 
 export function getGuestSessionSecret(): string {
   const secret =
-    process.env.GUEST_SESSION_SECRET ||
-    process.env.API_SECRET ||
-    process.env.SHARED_SECRET;
+    process.env.GUEST_SESSION_SECRET || process.env.API_SECRET || process.env.SHARED_SECRET;
   if (!secret || secret.length < 16) {
     throw new GuestTokenError("Guest sessions are not configured");
   }
@@ -81,13 +79,10 @@ function parseLegacyAcceptUntil(value: string | undefined): number | undefined {
  */
 function getLegacyGuestSessionSecrets(primary: string): string[] {
   if (!process.env.GUEST_SESSION_SECRET) return [];
-  const acceptUntil = parseLegacyAcceptUntil(
-    process.env.GUEST_SESSION_LEGACY_ACCEPT_UNTIL,
-  );
+  const acceptUntil = parseLegacyAcceptUntil(process.env.GUEST_SESSION_LEGACY_ACCEPT_UNTIL);
   if (acceptUntil === undefined || Date.now() >= acceptUntil) return [];
   return [process.env.API_SECRET, process.env.SHARED_SECRET].filter(
-    (secret): secret is string =>
-      !!secret && secret.length >= 16 && secret !== primary,
+    (secret): secret is string => !!secret && secret.length >= 16 && secret !== primary,
   );
 }
 
@@ -108,10 +103,7 @@ function encodeBase64Url(buffer: ArrayBuffer): string {
   return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 }
 
-async function signPayload(
-  payload: string,
-  secret = getGuestSessionSecret(),
-): Promise<string> {
+async function signPayload(payload: string, secret = getGuestSessionSecret()): Promise<string> {
   const key = await crypto.subtle.importKey(
     "raw",
     new TextEncoder().encode(secret),
@@ -119,11 +111,7 @@ async function signPayload(
     false,
     ["sign"],
   );
-  const signature = await crypto.subtle.sign(
-    "HMAC",
-    key,
-    new TextEncoder().encode(payload),
-  );
+  const signature = await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(payload));
   return encodeBase64Url(signature);
 }
 
@@ -132,7 +120,11 @@ async function signPayload(
  * /64 prefix of an IPv6 address (a single connection usually owns a whole /64).
  */
 function networkOf(clientIp: string): string {
-  const value = clientIp.trim().toLowerCase().replace(/^\[|\]$/g, "").split("%")[0];
+  const value = clientIp
+    .trim()
+    .toLowerCase()
+    .replace(/^\[|\]$/g, "")
+    .split("%")[0];
   if (!value.includes(":")) return value;
   const mappedIpv4 = /^[0-9a-f:]*:(\d{1,3}(?:\.\d{1,3}){3})$/.exec(value);
   if (mappedIpv4) return mappedIpv4[1];
@@ -177,10 +169,7 @@ export async function deriveGuestNetworkKey(clientIp: string): Promise<string> {
   ).join("");
 }
 
-export async function createGuestSessionToken(
-  guestId: string,
-  networkKey?: string,
-) {
+export async function createGuestSessionToken(guestId: string, networkKey?: string) {
   if (networkKey !== undefined && !NETWORK_KEY_PATTERN.test(networkKey)) {
     throw new GuestTokenError("Guest network is invalid");
   }
@@ -206,8 +195,7 @@ export async function readGuestSessionToken(token: string) {
   if (parts.length !== 2) throw new GuestTokenError("Guest session is invalid");
   let guestId: unknown;
   try {
-    guestId = (JSON.parse(decodeBase64Url(parts[0])) as GuestTokenPayload)
-      .guestId;
+    guestId = (JSON.parse(decodeBase64Url(parts[0])) as GuestTokenPayload).guestId;
   } catch {
     throw new GuestTokenError("Guest session is invalid");
   }
@@ -239,14 +227,10 @@ export async function verifyGuestSessionCredential(
 
   const primarySecret = getGuestSessionSecret();
   let validSignature = false;
-  for (const secret of [
-    primarySecret,
-    ...getLegacyGuestSessionSecrets(primarySecret),
-  ]) {
+  for (const secret of [primarySecret, ...getLegacyGuestSessionSecrets(primarySecret)]) {
     // Compare against every candidate so timing does not reveal which one matched.
     validSignature =
-      constantTimeEqual(signature, await signPayload(payloadPart, secret)) ||
-      validSignature;
+      constantTimeEqual(signature, await signPayload(payloadPart, secret)) || validSignature;
   }
   if (!validSignature) {
     throw new GuestTokenError("Guest session is invalid");

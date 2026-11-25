@@ -1,12 +1,6 @@
 "use client";
 
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { BklitHorizontalBarChart } from "@/components/charts/bklit-chart-kit";
 import { Internet } from "iconoir-react";
 
@@ -28,9 +22,7 @@ export function BrowserChart({
           <Internet className="size-5" />
           Browser Usage
         </CardTitle>
-        <CardDescription className="text-xs">
-          Click distribution by browser
-        </CardDescription>
+        <CardDescription className="text-xs">Click distribution by browser</CardDescription>
       </CardHeader>
       <CardContent>
         <BklitHorizontalBarChart

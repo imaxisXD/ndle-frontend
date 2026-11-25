@@ -5,10 +5,7 @@ import { BrowserChart } from "@/components/charts/browser-chart";
 import { CountryChart } from "@/components/charts/country-chart";
 import { DeviceOSChart } from "@/components/charts/device-os-chart";
 import { BotTrafficChart } from "@/components/charts/bot-traffic-chart";
-import {
-  ReferrerChart,
-  type ReferrerData,
-} from "@/components/charts/referrer-chart";
+import { ReferrerChart, type ReferrerData } from "@/components/charts/referrer-chart";
 import {
   VariantPerformanceChart,
   type VariantLabels,
@@ -55,26 +52,16 @@ export function AnalyticsSection({
 }) {
   if (status === "plan-required") {
     return (
-      <section
-        data-analytics-section
-        className="flex flex-col items-center px-6 py-12 text-center"
-      >
+      <section data-analytics-section className="flex flex-col items-center px-6 py-12 text-center">
         <div className="bg-muted mb-4 rounded-lg p-3">
           <Lock className="text-muted-foreground size-5" aria-hidden />
         </div>
-        <h3 className="text-foreground text-sm font-medium">
-          Longer date ranges are part of Pro
-        </h3>
+        <h3 className="text-foreground text-sm font-medium">Longer date ranges are part of Pro</h3>
         <p className="text-muted-foreground mt-2 max-w-md text-xs">
           Your plan includes the last 30 days of clicks.
         </p>
         {onShowAvailableRange && (
-          <Button
-            className="mt-4"
-            size="sm"
-            variant="outline"
-            onClick={onShowAvailableRange}
-          >
+          <Button className="mt-4" size="sm" variant="outline" onClick={onShowAvailableRange}>
             Show last 30 days
           </Button>
         )}
@@ -84,28 +71,14 @@ export function AnalyticsSection({
 
   if (status === "error") {
     return (
-      <section
-        data-analytics-section
-        className="flex flex-col items-center px-6 py-12 text-center"
-      >
-        <EmptyStateImage
-          alt=""
-          className="mb-5 w-full max-w-[680px]"
-          name="errorAnalytics"
-        />
-        <h3 className="text-foreground text-sm font-medium">
-          Analytics could not load
-        </h3>
+      <section data-analytics-section className="flex flex-col items-center px-6 py-12 text-center">
+        <EmptyStateImage alt="" className="mb-5 w-full max-w-[680px]" name="errorAnalytics" />
+        <h3 className="text-foreground text-sm font-medium">Analytics could not load</h3>
         <p className="text-muted-foreground mt-2 max-w-md text-xs">
           Your link keeps working. Try again in a moment.
         </p>
         {onRetry && (
-          <Button
-            className="mt-4"
-            size="sm"
-            variant="outline"
-            onClick={onRetry}
-          >
+          <Button className="mt-4" size="sm" variant="outline" onClick={onRetry}>
             Retry
           </Button>
         )}
@@ -114,26 +87,15 @@ export function AnalyticsSection({
   }
 
   return (
-    <section
-      data-analytics-section
-      className="grid gap-6 lg:grid-cols-2 [&>*]:min-w-0"
-    >
+    <section data-analytics-section className="grid gap-6 lg:grid-cols-2 [&>*]:min-w-0">
       <ClicksTimelineChart data={clicksTimelineData} isLoading={isLoading} />
       {variantData && variantData.length > 0 && (
-        <VariantPerformanceChart
-          data={variantData}
-          variantMap={variantMap}
-          isLoading={isLoading}
-        />
+        <VariantPerformanceChart data={variantData} variantMap={variantMap} isLoading={isLoading} />
       )}
       <BrowserChart data={browserData} isLoading={isLoading} />
       <ReferrerChart data={referrerData} isLoading={isLoading} />
       <CountryChart data={countryData} isLoading={isLoading} />
-      <DeviceOSChart
-        deviceData={deviceData}
-        osData={osData}
-        isLoading={isLoading}
-      />
+      <DeviceOSChart deviceData={deviceData} osData={osData} isLoading={isLoading} />
       {botHumanData || isLoading ? (
         <BotTrafficChart data={botHumanData ?? []} isLoading={isLoading} />
       ) : (

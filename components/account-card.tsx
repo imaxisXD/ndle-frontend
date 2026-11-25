@@ -1,14 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  CardToolbar,
-} from "./ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardToolbar } from "./ui/card";
 import { Button } from "./ui/button";
 import { SignOutButton, useUser } from "@clerk/nextjs";
 import { FireIcon } from "@phosphor-icons/react";

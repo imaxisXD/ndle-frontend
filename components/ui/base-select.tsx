@@ -33,32 +33,22 @@ const Select = ({
   icon?: ReactNode;
 } & React.ComponentProps<typeof SelectPrimitive.Root>) => {
   return (
-    <SelectContext.Provider
-      value={{ indicatorPosition, indicatorVisibility, indicator, icon }}
-    >
+    <SelectContext.Provider value={{ indicatorPosition, indicatorVisibility, indicator, icon }}>
       <SelectPrimitive.Root data-slot="select" modal={modal} {...props} />
     </SelectContext.Provider>
   );
 };
 
-function SelectGroup({
-  ...props
-}: React.ComponentProps<typeof SelectPrimitive.Group>) {
+function SelectGroup({ ...props }: React.ComponentProps<typeof SelectPrimitive.Group>) {
   return <SelectPrimitive.Group data-slot="select-group" {...props} />;
 }
 
-function SelectPortal({
-  ...props
-}: React.ComponentProps<typeof SelectPrimitive.Portal>) {
+function SelectPortal({ ...props }: React.ComponentProps<typeof SelectPrimitive.Portal>) {
   return <SelectPrimitive.Portal data-slot="select-portal" {...props} />;
 }
 
-function SelectPositioner({
-  ...props
-}: React.ComponentProps<typeof SelectPrimitive.Positioner>) {
-  return (
-    <SelectPrimitive.Positioner data-slot="select-positioner" {...props} />
-  );
+function SelectPositioner({ ...props }: React.ComponentProps<typeof SelectPrimitive.Positioner>) {
+  return <SelectPrimitive.Positioner data-slot="select-positioner" {...props} />;
 }
 
 function SelectValue({
@@ -92,12 +82,7 @@ function SelectValue({
 }
 
 // Clear - A button to clear the input value
-function SelectClear({
-  className,
-  children,
-  onClick,
-  ...props
-}: React.ComponentProps<"button">) {
+function SelectClear({ className, children, onClick, ...props }: React.ComponentProps<"button">) {
   const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     event.preventDefault();
     event.stopPropagation();
@@ -162,12 +147,7 @@ export interface SelectTriggerProps
     React.ComponentProps<typeof SelectPrimitive.Trigger>,
     VariantProps<typeof selectTriggerVariants> {}
 
-function SelectTrigger({
-  className,
-  children,
-  size,
-  ...props
-}: SelectTriggerProps) {
+function SelectTrigger({ className, children, size, ...props }: SelectTriggerProps) {
   const { icon } = React.useContext(SelectContext);
 
   return (
@@ -240,8 +220,7 @@ function SelectItem({
   children,
   ...props
 }: React.ComponentProps<typeof SelectPrimitive.Item>) {
-  const { indicatorPosition, indicatorVisibility, indicator } =
-    React.useContext(SelectContext);
+  const { indicatorPosition, indicatorVisibility, indicator } = React.useContext(SelectContext);
 
   return (
     <SelectPrimitive.Item
@@ -268,10 +247,7 @@ function SelectItem({
             </SelectPrimitive.ItemIndicator>
           </span>
         ))}
-      <SelectPrimitive.ItemText
-        data-slot="select-item-text"
-        className="min-w-0 truncate"
-      >
+      <SelectPrimitive.ItemText data-slot="select-item-text" className="min-w-0 truncate">
         {children}
       </SelectPrimitive.ItemText>
     </SelectPrimitive.Item>

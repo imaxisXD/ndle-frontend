@@ -1,6 +1,15 @@
 "use client";
 
-import { memo, useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode, type RefObject } from "react";
+import {
+  memo,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type CSSProperties,
+  type ReactNode,
+  type RefObject,
+} from "react";
 import { useInView, useReducedMotion } from "motion/react";
 import { QrCode } from "@/components/ui/qr-code";
 import {
@@ -82,22 +91,22 @@ import { useLoopTime, useStillAfterMount } from "./use-loop-time";
 const LOOP = { collections: 6000, ask: 11000, alerts: 9000, qr: 7500 };
 
 const T = {
-  folderFirst: 300,     // first folder opens
-  folderEvery: 650,     // the next opens after this
-  askToField: 500,      // pointer heads for the field
-  askFocus: 1000,       // click: the field focuses
-  askType: 1100,        // the question types in
-  askTypeEvery: 35,     // ms a character
-  askToSend: 2700,      // pointer heads for send
-  askSend: 3200,        // click: the question posts
-  askAnswer: 4400,      // ndle answers
-  alertCheck: 900,      // /launch is being checked
-  alertDown: 1400,      // it fails; DOWN toast
-  alertBack: 4400,      // it's back; RECOVERED toast
-  alertClear: 7600,     // toasts go
-  qrEvery: 2500,        // next colour
-  chartsDraw: 200,      // campaign and variant bars mount and draw
-  pressMs: 220,         // a pointer click, down and up
+  folderFirst: 300, // first folder opens
+  folderEvery: 650, // the next opens after this
+  askToField: 500, // pointer heads for the field
+  askFocus: 1000, // click: the field focuses
+  askType: 1100, // the question types in
+  askTypeEvery: 35, // ms a character
+  askToSend: 2700, // pointer heads for send
+  askSend: 3200, // click: the question posts
+  askAnswer: 4400, // ndle answers
+  alertCheck: 900, // /launch is being checked
+  alertDown: 1400, // it fails; DOWN toast
+  alertBack: 4400, // it's back; RECOVERED toast
+  alertClear: 7600, // toasts go
+  qrEvery: 2500, // next colour
+  chartsDraw: 200, // campaign and variant bars mount and draw
+  pressMs: 220, // a pointer click, down and up
 };
 
 /* ───────── The page ───────── */
@@ -108,12 +117,42 @@ const PAGE = { width: 1130, height: 1395 } as const;
    row's panels are rectangles; the others share a slanted edge with their
    neighbour across a 26-unit gutter. */
 const PANELS = {
-  collections: [[1.5, 1.5], [516.8, 1.5], [516.8, 477.3], [1.5, 477.3]],
-  ask: [[542, 1.5], [1128.5, 1.5], [1128.5, 477.3], [542, 477.3]],
-  alerts: [[1.5, 506.3], [621.4, 506.3], [551.1, 884.5], [1.5, 884.5]],
-  campaigns: [[647.2, 506.3], [1128.5, 506.3], [1128.5, 884.5], [577, 884.5]],
-  split: [[1.5, 913.5], [545.8, 913.5], [649.8, 1393.1], [1.5, 1393.1]],
-  qr: [[574.2, 913.5], [1128.5, 913.5], [1128.5, 1393.1], [678.2, 1393.1]],
+  collections: [
+    [1.5, 1.5],
+    [516.8, 1.5],
+    [516.8, 477.3],
+    [1.5, 477.3],
+  ],
+  ask: [
+    [542, 1.5],
+    [1128.5, 1.5],
+    [1128.5, 477.3],
+    [542, 477.3],
+  ],
+  alerts: [
+    [1.5, 506.3],
+    [621.4, 506.3],
+    [551.1, 884.5],
+    [1.5, 884.5],
+  ],
+  campaigns: [
+    [647.2, 506.3],
+    [1128.5, 506.3],
+    [1128.5, 884.5],
+    [577, 884.5],
+  ],
+  split: [
+    [1.5, 913.5],
+    [545.8, 913.5],
+    [649.8, 1393.1],
+    [1.5, 1393.1],
+  ],
+  qr: [
+    [574.2, 913.5],
+    [1128.5, 913.5],
+    [1128.5, 1393.1],
+    [678.2, 1393.1],
+  ],
 } satisfies Record<string, Array<[number, number]>>;
 
 type PanelId = keyof typeof PANELS;
@@ -130,7 +169,9 @@ function placement(id: PanelId): CSSProperties {
   const xs = pts.map(([x]) => x);
   const ys = pts.map(([, y]) => y);
   const [x0, x1, y0, y1] = [Math.min(...xs), Math.max(...xs), Math.min(...ys), Math.max(...ys)];
-  const polygon = pts.map(([x, y]) => `${pct((x - x0) / (x1 - x0))} ${pct((y - y0) / (y1 - y0))}`).join(", ");
+  const polygon = pts
+    .map(([x, y]) => `${pct((x - x0) / (x1 - x0))} ${pct((y - y0) / (y1 - y0))}`)
+    .join(", ");
   return {
     "--x": pct(x0 / PAGE.width),
     "--y": pct(y0 / PAGE.height),
@@ -143,24 +184,25 @@ function placement(id: PanelId): CSSProperties {
 /** A product window on a stage, framed like capy's: white, a 2px ink edge,
     and a hard ink shadow dropped down and to the right. Its content crops
     inside it, so the frame always shows. */
-const WINDOW = "overflow-hidden rounded-[12px] border-2 border-[#141312] bg-white shadow-[3px_4px_0_0_#141312]";
+const WINDOW =
+  "overflow-hidden rounded-[12px] border-2 border-[#141312] bg-white shadow-[3px_4px_0_0_#141312]";
 
 /** The other way capy frames a window (its Native Review UI): pushed to the
     right and running off the stage's right and bottom edges, so only its top
     and left show, the left drawn heavier. */
-const WINDOW_BLEED = "overflow-hidden rounded-tl-[12px] border-t-2 border-l-[4px] border-[#141312] bg-white";
+const WINDOW_BLEED =
+  "overflow-hidden rounded-tl-[12px] border-t-2 border-l-[4px] border-[#141312] bg-white";
 
 /* The tour's folder colours, so the two views of Collections match. */
 const FOLDERS = {
   colors: ["#141312", "#ffc921", "#6b9be8"],
   tilts: [-6, 2, 7],
-  lift: [0, 14, 30],     // px each folder sits lower, stepping down to the right
+  lift: [0, 14, 30], // px each folder sits lower, stepping down to the right
   pointer: [22, 54, 86], // % across the stage, over each folder
 };
 
 /* Where the call to action goes; the same target as the page's nav. */
 const SIGN_UP = "/sign-up?redirect_url=/dashboard";
-
 
 /** For the charts: true once the stage has been half in view for `at` ms. */
 function useDrawnOnce(at: number) {
@@ -187,7 +229,10 @@ export function FeatureBento({ auth }: { auth: Auth }) {
     <section
       id="features"
       aria-labelledby="features-title"
-      className={cn(bebas.variable, "mx-auto max-w-[1240px] scroll-mt-24 px-5 pb-28 sm:px-8 lg:pb-36")}
+      className={cn(
+        bebas.variable,
+        "mx-auto max-w-[1240px] scroll-mt-24 px-5 pb-28 sm:px-8 lg:pb-36",
+      )}
     >
       <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
         <div>
@@ -199,13 +244,13 @@ export function FeatureBento({ auth }: { auth: Auth }) {
             </h2>
           </div>
           <p className="mt-4 max-w-[44ch] font-mono text-[17px] leading-[1.45] text-[#141312]">
-            Folders for every launch, charts you ask for in plain words, an email when a link breaks, and the numbers
-            behind every campaign.
+            Folders for every launch, charts you ask for in plain words, an email when a link
+            breaks, and the numbers behind every campaign.
           </p>
         </div>
         <ByAuth
           auth={auth}
-          className="self-start lg:self-end lg:justify-items-end"
+          className="self-start lg:justify-items-end lg:self-end"
           signedOut={(link) => (
             <ActionLink href={SIGN_UP} {...link}>
               Get ndle free
@@ -299,7 +344,11 @@ export function FeatureBento({ auth }: { auth: Auth }) {
    placed on the page and cut to its outline, and the page's SVG draws the
    ink. */
 /* The nav's anchors land on their panels. */
-const ANCHORS: Partial<Record<PanelId, string>> = { collections: "collections", campaigns: "analytics", alerts: "monitoring" };
+const ANCHORS: Partial<Record<PanelId, string>> = {
+  collections: "collections",
+  campaigns: "analytics",
+  alerts: "monitoring",
+};
 
 function Panel({
   id,
@@ -342,14 +391,24 @@ function Panel({
         <h3 className="font-[family-name:var(--font-bebas)] text-[34px] leading-[0.95] tracking-[-0.005em] text-[#141312] uppercase xl:text-[40px]">
           {title}
         </h3>
-        <p className="mt-2.5 max-w-[44ch] font-mono text-[15px] leading-[1.45] text-pretty text-[#3d3d3d]">{body}</p>
+        <p className="mt-2.5 max-w-[44ch] font-mono text-[15px] leading-[1.45] text-pretty text-[#3d3d3d]">
+          {body}
+        </p>
       </div>
     </article>
   );
 }
 
 /** A hand-written margin note, as in ndle's sketches. */
-function Note({ children, className, tilt = -3 }: { children: ReactNode; className?: string; tilt?: number }) {
+function Note({
+  children,
+  className,
+  tilt = -3,
+}: {
+  children: ReactNode;
+  className?: string;
+  tilt?: number;
+}) {
   return (
     <Handwritten tilt={tilt} className={cn("absolute text-[22px] text-[#141312]", className)}>
       {children}
@@ -392,7 +451,12 @@ function StagePointer({
       className="pointer-events-none absolute z-20 transition-[left,top] duration-[600ms] ease-[cubic-bezier(0.65,0,0.35,1)] motion-reduce:transition-none"
       style={{ left: at.x, top: at.y }}
     >
-      {press >= 0 && <span key={`ripple-${press}`} className="h2-ripple absolute -top-3.5 -left-3.5 size-7 rounded-full" />}
+      {press >= 0 && (
+        <span
+          key={`ripple-${press}`}
+          className="h2-ripple absolute -top-3.5 -left-3.5 size-7 rounded-full"
+        />
+      )}
       <PointerGlyph key={`arrow-${press}`} className={cn(press >= 0 && "h2-press")} />
     </span>
   );
@@ -423,7 +487,11 @@ function CollectionsStage() {
           runs off the right edge. */}
       <div className="absolute top-[26%] -right-[14%] left-[10%] flex items-start gap-[3%]">
         {SAMPLE_COLLECTIONS.map((c, i) => (
-          <span key={c.name} className="block w-[36%] shrink-0" style={{ marginTop: FOLDERS.lift[i] }}>
+          <span
+            key={c.name}
+            className="block w-[36%] shrink-0"
+            style={{ marginTop: FOLDERS.lift[i] }}
+          >
             <MemoFolder
               previewUrls={c.urls}
               color={FOLDERS.colors[i]}
@@ -444,7 +512,10 @@ function CollectionsStage() {
         <PointerGlyph />
       </span>
       <Note className="top-6 left-7 hidden sm:block">newest links peek out</Note>
-      <DoodleCurlArrow width={46} className="absolute top-11 left-[210px] hidden rotate-[8deg] text-[#141312] sm:block" />
+      <DoodleCurlArrow
+        width={46}
+        className="absolute top-11 left-[210px] hidden rotate-[8deg] text-[#141312] sm:block"
+      />
     </div>
   );
 }
@@ -460,7 +531,12 @@ function AskStage() {
   const draft = asked ? "" : ASK.question.slice(0, chars);
   const focused = t >= T.askFocus && !asked;
   const answered = t >= T.askAnswer;
-  const target = t >= T.askToSend && t < T.askAnswer ? "ask-send" : t >= T.askToField && t < T.askToSend ? "ask-field" : null;
+  const target =
+    t >= T.askToSend && t < T.askAnswer
+      ? "ask-send"
+      : t >= T.askToField && t < T.askToSend
+        ? "ask-field"
+        : null;
 
   return (
     <div ref={ref} className="absolute inset-0">
@@ -476,7 +552,12 @@ function AskStage() {
           className={cn(WINDOW, "h-full")}
         />
       </div>
-      <StagePointer stageRef={ref} target={target} rest={{ x: 84, y: 82 }} press={pressAt([T.askFocus, T.askSend], t)} />
+      <StagePointer
+        stageRef={ref}
+        target={target}
+        rest={{ x: 84, y: 82 }}
+        press={pressAt([T.askFocus, T.askSend], t)}
+      />
     </div>
   );
 }
@@ -494,7 +575,10 @@ function AlertsStage() {
   const { ref, t } = useLoopTime(LOOP.alerts, T.alertBack + 500);
   const checking = t >= T.alertCheck && t < T.alertDown;
   const down = t >= T.alertDown && t < T.alertBack;
-  const toasts = { down: t >= T.alertDown && t < T.alertClear, up: t >= T.alertBack && t < T.alertClear };
+  const toasts = {
+    down: t >= T.alertDown && t < T.alertClear,
+    up: t >= T.alertBack && t < T.alertClear,
+  };
 
   return (
     <div ref={ref} className="absolute inset-0">
@@ -514,13 +598,28 @@ function AlertsStage() {
                 broken && "bg-red-50/80",
               )}
             >
-              <Badge key={broken ? "error" : "healthy"} variant={broken ? "red" : "green"} className="w-[62px] shrink-0 justify-center capitalize">
+              <Badge
+                key={broken ? "error" : "healthy"}
+                variant={broken ? "red" : "green"}
+                className="w-[62px] shrink-0 justify-center capitalize"
+              >
                 {broken ? "error" : "healthy"}
               </Badge>
               <span className="min-w-0 flex-1">
-                <LinkWithFavicon url={`https://${SHORT_DOMAIN}/${row.slug}`} originalUrl={row.destination} faviconSrc={sampleFavicon(row.destination)} tabIndex={-1} size="sm" />
+                <LinkWithFavicon
+                  url={`https://${SHORT_DOMAIN}/${row.slug}`}
+                  originalUrl={row.destination}
+                  faviconSrc={sampleFavicon(row.destination)}
+                  tabIndex={-1}
+                  size="sm"
+                />
               </span>
-              <span className={cn("shrink-0 text-xs tabular-nums", broken ? "text-red-600" : "text-green-600")}>
+              <span
+                className={cn(
+                  "shrink-0 text-xs tabular-nums",
+                  broken ? "text-red-600" : "text-green-600",
+                )}
+              >
                 {row.slug === "launch" && checking ? "checking…" : broken ? "404" : row.latency}
               </span>
             </div>
@@ -528,7 +627,11 @@ function AlertsStage() {
         })}
       </div>
       {/* The hero demo's black toasts, clear of this panel's slanted right edge. */}
-      <LinkAlertToasts down={toasts.down} up={toasts.up} className="right-4 bottom-4 w-[min(340px,calc(100%-2rem))] xl:right-[64px]" />
+      <LinkAlertToasts
+        down={toasts.down}
+        up={toasts.up}
+        className="right-4 bottom-4 w-[min(340px,calc(100%-2rem))] xl:right-[64px]"
+      />
       <Note className="top-4 left-7" tilt={-2}>
         while you sleep
       </Note>
@@ -552,7 +655,13 @@ function CampaignsStage() {
         <CardContent className="pt-4">
           {/* Mounted on view, so the bars draw in front of the reader. */}
           {drawn ? (
-            <BklitHorizontalBarChart data={CAMPAIGNS} heightClassName="h-[200px]" labelKey="campaign" labelWidth={96} valueKey="clicks" />
+            <BklitHorizontalBarChart
+              data={CAMPAIGNS}
+              heightClassName="h-[200px]"
+              labelKey="campaign"
+              labelWidth={96}
+              valueKey="clicks"
+            />
           ) : (
             <div className="h-[200px]" />
           )}
@@ -577,7 +686,10 @@ function SplitStage() {
   const { ref, drawn } = useDrawnOnce(T.chartsDraw);
   return (
     // Clear of this panel's right edge, which leans in toward the top.
-    <div ref={ref} className="absolute top-[14%] right-[22%] bottom-[9%] left-[8%] sm:right-[12%] xl:right-[22%]">
+    <div
+      ref={ref}
+      className="absolute top-[14%] right-[22%] bottom-[9%] left-[8%] sm:right-[12%] xl:right-[22%]"
+    >
       <Card className={cn(WINDOW, "h-full")}>
         <CardHeader className="flex shrink-0 flex-col items-start justify-between gap-1.5 py-3.5">
           <CardTitle className="flex items-center gap-2 font-medium">
@@ -589,7 +701,14 @@ function SplitStage() {
         </CardHeader>
         <CardContent className="pt-4">
           {drawn ? (
-            <BklitHorizontalBarChart barWidth={24} data={VARIANTS} heightClassName="h-[96px]" labelKey="label" labelWidth={80} valueKey="clicks" />
+            <BklitHorizontalBarChart
+              barWidth={24}
+              data={VARIANTS}
+              heightClassName="h-[96px]"
+              labelKey="label"
+              labelWidth={80}
+              valueKey="clicks"
+            />
           ) : (
             <div className="h-[96px]" />
           )}
@@ -648,7 +767,17 @@ const CHECKER: CSSProperties = {
 };
 
 /* A real, scannable code for the sample link, with ndle's badge. */
-const Qr = memo(function Qr({ color, bg, size, title }: { color: string; bg: string; size: number; title?: string }) {
+const Qr = memo(function Qr({
+  color,
+  bg,
+  size,
+  title,
+}: {
+  color: string;
+  bg: string;
+  size: number;
+  title?: string;
+}) {
   return (
     <QrCode
       title={title}
@@ -729,7 +858,10 @@ function QrStage() {
           wide as what's in it, so it sits over to the right with no empty
           space inside, and never wider than 80% of the panel. */}
       <div
-        className={cn(WINDOW_BLEED, "absolute top-[22%] -right-px -bottom-px left-[7%] lg:left-auto lg:w-max lg:max-w-[80%]")}
+        className={cn(
+          WINDOW_BLEED,
+          "absolute top-[22%] -right-px -bottom-px left-[7%] lg:left-auto lg:w-max lg:max-w-[80%]",
+        )}
         onPointerDownCapture={take}
         onKeyDownCapture={take}
         onFocusCapture={take}
@@ -745,7 +877,11 @@ function QrStage() {
             tighter swatches keep each option on one line */}
         <div className="relative flex items-start gap-4 px-4 pt-4 sm:gap-3 sm:px-3 md:gap-4 md:px-4 lg:gap-5 lg:px-5 xl:gap-7 xl:px-6 xl:pt-5">
           <div className="shrink-0">
-            <div ref={codeRef} className="size-[104px] sm:size-[84px] md:size-[104px] lg:size-[132px]" style={clear ? CHECKER : undefined}>
+            <div
+              ref={codeRef}
+              className="size-[104px] sm:size-[84px] md:size-[104px] lg:size-[132px]"
+              style={clear ? CHECKER : undefined}
+            >
               <Qr color={shownColor} bg={bg} size={QR.shown} title={`QR code for ${QR_LINK}`} />
             </div>
             {/* No room for it under the smaller code */}
@@ -764,11 +900,21 @@ function QrStage() {
               onChange={setColor}
               demoIndex={taken || t < 0 ? -1 : pick}
             />
-            <QrChoice legend="Background" name="qr-bg" options={QR.backgrounds} value={bg} onChange={setBg} demoIndex={-1} />
+            <QrChoice
+              legend="Background"
+              name="qr-bg"
+              options={QR.backgrounds}
+              value={bg}
+              onChange={setBg}
+              demoIndex={-1}
+            />
             <div>
               <p className="mb-1 text-zinc-500 xl:mb-1.5">Center</p>
               <p className="flex items-center gap-1.5 text-zinc-900">
-                <span aria-hidden className="flex size-3.5 items-center justify-center rounded-full border border-zinc-900">
+                <span
+                  aria-hidden
+                  className="flex size-3.5 items-center justify-center rounded-full border border-zinc-900"
+                >
                   <span className="size-1.5 rounded-full bg-zinc-900" />
                 </span>
                 ndle badge
@@ -793,7 +939,6 @@ function QrStage() {
               ))}
             </div>
           </div>
-
         </div>
       </div>
       {!taken && !still && (
@@ -807,7 +952,11 @@ function QrStage() {
       <Note className="top-4 left-9" tilt={-2}>
         it scans, try it
       </Note>
-      <DoodleCurlArrow aria-hidden width={40} className="absolute top-[13%] left-[26%] rotate-[4deg] text-[#141312]" />
+      <DoodleCurlArrow
+        aria-hidden
+        width={40}
+        className="absolute top-[13%] left-[26%] rotate-[4deg] text-[#141312]"
+      />
     </div>
   );
 }

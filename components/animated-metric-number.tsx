@@ -47,9 +47,7 @@ export function AnimatedMetricNumber({
 }: AnimatedMetricNumberProps) {
   const previousValueRef = useRef(value);
   const animationKeyRef = useRef(0);
-  const [animation, setAnimation] = useState<MetricNumberAnimation | null>(
-    null,
-  );
+  const [animation, setAnimation] = useState<MetricNumberAnimation | null>(null);
 
   useLayoutEffect(() => {
     const previousValue =
@@ -75,8 +73,7 @@ export function AnimatedMetricNumber({
     });
   }, [animationKey, value]);
 
-  const activeAnimation =
-    animation && animation.toValue === value ? animation : null;
+  const activeAnimation = animation && animation.toValue === value ? animation : null;
   const formattedValue = formatValue(value);
   const rollStyle = {
     "--animated-metric-min-width": `${minWidthCh}ch`,

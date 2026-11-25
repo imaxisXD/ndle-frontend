@@ -20,10 +20,7 @@ export interface LinkWithFaviconProps extends Omit<
   size?: "sm" | "md";
 }
 
-const LinkWithFavicon = React.forwardRef<
-  HTMLAnchorElement,
-  LinkWithFaviconProps
->(
+const LinkWithFavicon = React.forwardRef<HTMLAnchorElement, LinkWithFaviconProps>(
   (
     {
       url,
@@ -56,10 +53,7 @@ const LinkWithFavicon = React.forwardRef<
           href={url}
           link={
             <TextWrapper
-              className={cn(
-                "min-w-0 truncate",
-                asCode && "text-foreground text-sm font-medium",
-              )}
+              className={cn("min-w-0 truncate", asCode && "text-foreground text-sm font-medium")}
             >
               {displayText}
             </TextWrapper>
@@ -68,11 +62,7 @@ const LinkWithFavicon = React.forwardRef<
             "text-muted-foreground hover:bg-surface-hover hover:text-foreground min-w-0 justify-start rounded-md px-2 py-1 text-sm font-medium transition-colors hover:decoration-blue-500 hover:decoration-dashed hover:underline-offset-2",
             className,
           )}
-          iconClassName={cn(
-            "size-3 shrink-0",
-            !showIcon && "hidden",
-            iconClassName,
-          )}
+          iconClassName={cn("size-3 shrink-0", !showIcon && "hidden", iconClassName)}
           {...props}
         />
       </div>

@@ -1,13 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -17,10 +11,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import {
-  BklitDonutChart,
-  BklitHorizontalBarChart,
-} from "@/components/charts/bklit-chart-kit";
+import { BklitDonutChart, BklitHorizontalBarChart } from "@/components/charts/bklit-chart-kit";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { UTMAnalyticsData } from "@/types/utm-analytics";
 import { Inset } from "@/components/ui/inset";
@@ -42,9 +33,7 @@ export function UTMAnalyticsPanel({ data, isLoading }: UTMAnalyticsPanelProps) {
   // Filter out "Direct / None" and "No Campaign" for cleaner charts
   const filteredSourceData = useMemo(() => {
     if (!data?.sourceData) return [];
-    return data.sourceData.filter(
-      (d) => d.source !== "Direct / None" && d.source !== "None",
-    );
+    return data.sourceData.filter((d) => d.source !== "Direct / None" && d.source !== "None");
   }, [data?.sourceData]);
 
   const filteredCampaignData = useMemo(() => {
@@ -115,12 +104,12 @@ export function UTMAnalyticsPanel({ data, isLoading }: UTMAnalyticsPanelProps) {
           </div>
           <h3 className="mb-2 text-lg font-semibold">No Campaign Data Yet</h3>
           <p className="text-muted-foreground max-w-sm text-sm">
-            Start using UTM parameters when creating short links to track your
-            marketing campaigns and see detailed performance analytics here.
+            Start using UTM parameters when creating short links to track your marketing campaigns
+            and see detailed performance analytics here.
           </p>
           <Inset className="mt-4 p-3 text-xs text-gray-600">
-            <strong>Tip:</strong> Enable &ldquo;UTM Builder&rdquo; in Advanced
-            Options when creating a link
+            <strong>Tip:</strong> Enable &ldquo;UTM Builder&rdquo; in Advanced Options when creating
+            a link
           </Inset>
         </CardContent>
       </Card>
@@ -139,18 +128,14 @@ export function UTMAnalyticsPanel({ data, isLoading }: UTMAnalyticsPanelProps) {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-muted-foreground text-xs">
-              {utmPercentage}% of all clicks
-            </div>
+            <div className="text-muted-foreground text-xs">{utmPercentage}% of all clicks</div>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="pb-2">
             <CardDescription>Active Sources</CardDescription>
-            <CardTitle className="text-2xl tabular-nums">
-              {filteredSourceData.length}
-            </CardTitle>
+            <CardTitle className="text-2xl tabular-nums">{filteredSourceData.length}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-muted-foreground text-xs">
@@ -162,9 +147,7 @@ export function UTMAnalyticsPanel({ data, isLoading }: UTMAnalyticsPanelProps) {
         <Card>
           <CardHeader className="pb-2">
             <CardDescription>Active Campaigns</CardDescription>
-            <CardTitle className="text-2xl tabular-nums">
-              {filteredCampaignData.length}
-            </CardTitle>
+            <CardTitle className="text-2xl tabular-nums">{filteredCampaignData.length}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-muted-foreground text-xs">
@@ -176,9 +159,7 @@ export function UTMAnalyticsPanel({ data, isLoading }: UTMAnalyticsPanelProps) {
         <Card>
           <CardHeader className="pb-2">
             <CardDescription>Active Mediums</CardDescription>
-            <CardTitle className="text-2xl tabular-nums">
-              {filteredMediumData.length}
-            </CardTitle>
+            <CardTitle className="text-2xl tabular-nums">{filteredMediumData.length}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-muted-foreground text-xs">
@@ -235,9 +216,7 @@ export function UTMAnalyticsPanel({ data, isLoading }: UTMAnalyticsPanelProps) {
         <Card>
           <CardHeader>
             <CardTitle className="text-base">Traffic by Medium</CardTitle>
-            <CardDescription>
-              Distribution by utm_medium parameter
-            </CardDescription>
+            <CardDescription>Distribution by utm_medium parameter</CardDescription>
           </CardHeader>
           <CardContent>
             <BklitDonutChart
@@ -257,9 +236,7 @@ export function UTMAnalyticsPanel({ data, isLoading }: UTMAnalyticsPanelProps) {
         <Card>
           <CardHeader>
             <CardTitle className="text-base">UTM Tracking Coverage</CardTitle>
-            <CardDescription>
-              Percentage of clicks with UTM parameters
-            </CardDescription>
+            <CardDescription>Percentage of clicks with UTM parameters</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="flex h-[250px] items-center justify-center">
@@ -296,16 +273,11 @@ export function UTMAnalyticsPanel({ data, isLoading }: UTMAnalyticsPanelProps) {
                 <div className="mt-4 flex justify-center gap-6 text-sm">
                   <div className="flex items-center gap-2">
                     <div className="h-3 w-3 rounded-full bg-emerald-500" />
-                    <span>
-                      {data?.utmCoverage.withUtm.toLocaleString() ?? 0} with UTM
-                    </span>
+                    <span>{data?.utmCoverage.withUtm.toLocaleString() ?? 0} with UTM</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <div className="h-3 w-3 rounded-full bg-gray-200" />
-                    <span>
-                      {data?.utmCoverage.withoutUtm.toLocaleString() ?? 0}{" "}
-                      without
-                    </span>
+                    <span>{data?.utmCoverage.withoutUtm.toLocaleString() ?? 0} without</span>
                   </div>
                 </div>
               </div>
@@ -319,9 +291,7 @@ export function UTMAnalyticsPanel({ data, isLoading }: UTMAnalyticsPanelProps) {
         <Card>
           <CardHeader>
             <CardTitle className="text-base">Source × Medium Matrix</CardTitle>
-            <CardDescription>
-              Top combinations of traffic source and medium
-            </CardDescription>
+            <CardDescription>Top combinations of traffic source and medium</CardDescription>
           </CardHeader>
           <CardContent>
             <Table>
@@ -361,14 +331,9 @@ export function UTMAnalyticsPanel({ data, isLoading }: UTMAnalyticsPanelProps) {
                       <TableCell className="text-right">
                         <div className="flex items-center justify-end gap-2">
                           <div className="bg-secondary h-2 w-16 overflow-hidden rounded-full">
-                            <div
-                              className="h-full bg-indigo-500"
-                              style={{ width: `${share}%` }}
-                            />
+                            <div className="h-full bg-indigo-500" style={{ width: `${share}%` }} />
                           </div>
-                          <span className="text-muted-foreground w-8 tabular-nums">
-                            {share}%
-                          </span>
+                          <span className="text-muted-foreground w-8 tabular-nums">{share}%</span>
                         </div>
                       </TableCell>
                     </TableRow>

@@ -22,10 +22,7 @@ export function formatChartNumber(value: unknown): string {
   return Number.isFinite(numeric) ? numberFormatter.format(numeric) : "0";
 }
 
-export function chartTotal<T extends object>(
-  data: T[] | undefined,
-  valueKey: string,
-): number {
+export function chartTotal<T extends object>(data: T[] | undefined, valueKey: string): number {
   return (data ?? []).reduce((sum, item) => {
     const value = getRecordValue(item as ChartRecord, valueKey);
     return sum + (typeof value === "number" ? value : Number(value ?? 0));
@@ -41,11 +38,7 @@ function EmptyState({
 }) {
   return (
     <div className="flex flex-col items-center text-center">
-      <EmptyStateImage
-        alt=""
-        className="mb-3 w-full max-w-[170px]"
-        name="noAnalytics"
-      />
+      <EmptyStateImage alt="" className="mb-3 w-full max-w-[170px]" name="noAnalytics" />
       <p className="text-foreground font-medium">{title}</p>
       <p className="text-muted-foreground mt-1 text-xs">{description}</p>
     </div>

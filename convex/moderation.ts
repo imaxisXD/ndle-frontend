@@ -1,11 +1,7 @@
 import { ConvexError, v } from "convex/values";
 import type { Doc } from "./_generated/dataModel";
 import { internal } from "./_generated/api";
-import {
-  internalMutation,
-  type MutationCtx,
-  type QueryCtx,
-} from "./_generated/server";
+import { internalMutation, type MutationCtx, type QueryCtx } from "./_generated/server";
 import { queueUrlSync } from "./serviceSync";
 import {
   destinationHostname,
@@ -20,8 +16,7 @@ import {
  * `npx convex run --prod moderation:disableLink '{"slug":"abc123"}'`.
  */
 
-export const BLOCKED_DESTINATION_MESSAGE =
-  "For safety reasons, this domain has been blocked.";
+export const BLOCKED_DESTINATION_MESSAGE = "For safety reasons, this domain has been blocked.";
 const DEFAULT_DISABLED_REASON = "Disabled by moderation";
 const DEFAULT_BLOCK_REASON = "Blocked by moderation";
 const MAX_REASON_LENGTH = 500;
@@ -39,9 +34,7 @@ const linkResult = {
 };
 
 /** Every destination a link can redirect to: its main URL and any A/B variants. */
-function linkDestinations(
-  url: Pick<Doc<"urls">, "fullurl" | "abVariants">,
-): string[] {
+function linkDestinations(url: Pick<Doc<"urls">, "fullurl" | "abVariants">): string[] {
   return [url.fullurl, ...(url.abVariants ?? []).map((variant) => variant.url)];
 }
 
@@ -67,10 +60,7 @@ async function findBlockedDomain(
 }
 
 /** New destinations must not use a blocked domain or any of its subdomains. */
-export async function ensureDestinationsAllowed(
-  ctx: QueryCtx,
-  destinations: string[],
-) {
+export async function ensureDestinationsAllowed(ctx: QueryCtx, destinations: string[]) {
   if (await findBlockedDomain(ctx, destinations)) {
     throw new ConvexError(BLOCKED_DESTINATION_MESSAGE);
   }
@@ -183,9 +173,7 @@ async function disableBlockedDomainLinksPage(
   domain: string,
   cursor: string | null,
 ) {
-  const result = await ctx.db
-    .query("urls")
-    .paginate({ cursor, numItems: BLOCK_SCAN_BATCH_SIZE });
+  const result = await ctx.db.query("urls").paginate({ cursor, numItems: BLOCK_SCAN_BATCH_SIZE });
   let disabled = 0;
   for (const url of result.page) {
     if (url.disabledAt !== undefined) continue;
@@ -222,10 +210,7 @@ export const blockDomain = internalMutation({
   handler: async (ctx, args) => {
     const domain = normalizeDomainArg(args.domain);
     const existing = await getBlockedDomain(ctx, domain);
-    const reason = normalizeReason(
-      args.reason,
-      existing?.reason ?? DEFAULT_BLOCK_REASON,
-    );
+    const reason = normalizeReason(args.reason, existing?.reason ?? DEFAULT_BLOCK_REASON);
     if (existing) {
       await ctx.db.patch("blocked_domains", existing._id, { reason });
     } else {

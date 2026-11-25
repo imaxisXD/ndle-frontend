@@ -69,9 +69,7 @@
      elevated surfaces) PLUS a faint dark inner hairline — the hairline is what
      actually reads on near-white cards, giving a gentle raised edge with no
      cast shadow. Use on light surfaces; use --shadow-rim on dark ones. */
-  --shadow-rim-soft:
-    inset 0 1px 0 rgba(255, 255, 255, 0.9),
-    inset 0 0 0 1px rgba(17, 17, 17, 0.08);
+  --shadow-rim-soft: inset 0 1px 0 rgba(255, 255, 255, 0.9), inset 0 0 0 1px rgba(17, 17, 17, 0.08);
   /* Surfaces — the app's layering system (light only).
      page:   the gray canvas everything sits on.
      raised: every surface above the page is white; depth comes from the
@@ -88,16 +86,8 @@
   --surface-page: var(--home);
   --surface-raised: oklch(1 0 0);
   --surface-tint: 3.5%;
-  --surface-inset: color-mix(
-    in oklab,
-    transparent,
-    oklch(0 0 0) var(--surface-tint)
-  );
-  --surface-tray: color-mix(
-    in oklab,
-    var(--surface-page),
-    oklch(0 0 0) var(--surface-tint)
-  );
+  --surface-inset: color-mix(in oklab, transparent, oklch(0 0 0) var(--surface-tint));
+  --surface-tray: color-mix(in oklab, var(--surface-page), oklch(0 0 0) var(--surface-tint));
   --surface-field: var(--surface-raised);
   --surface-hover: oklch(0 0 0 / 0.05);
   /* Elevation — stacked drop layers that double in size per step, so each
@@ -109,11 +99,10 @@
   --elevation-drop: oklch(0 0 0 / 0.06);
   --elevation-raised: 0 1px 1px -0.5px var(--elevation-drop);
   --elevation-floating:
-    0 1px 1px -0.5px var(--elevation-drop),
-    0 3px 3px -1.5px var(--elevation-drop), 0 6px 6px -3px var(--elevation-drop);
+    0 1px 1px -0.5px var(--elevation-drop), 0 3px 3px -1.5px var(--elevation-drop),
+    0 6px 6px -3px var(--elevation-drop);
   --elevation-modal:
-    0 1px 1px -0.5px var(--elevation-drop),
-    0 3px 3px -1.5px var(--elevation-drop),
+    0 1px 1px -0.5px var(--elevation-drop), 0 3px 3px -1.5px var(--elevation-drop),
     0 6px 6px -3px var(--elevation-drop), 0 12px 12px -6px var(--elevation-drop);
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
@@ -389,11 +378,7 @@
   content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(
-    to bottom,
-    rgba(255, 255, 255, 0.4),
-    rgba(255, 255, 255, 0) 60%
-  );
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0.4), rgba(255, 255, 255, 0) 60%);
   pointer-events: none;
 }
 
@@ -432,23 +417,19 @@
   }
 
   .animated-metric-roll-old-up {
-    animation: animated-metric-old-up 260ms cubic-bezier(0.16, 1, 0.3, 1)
-      forwards;
+    animation: animated-metric-old-up 260ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
   }
 
   .animated-metric-roll-new-up {
-    animation: animated-metric-new-up 260ms cubic-bezier(0.16, 1, 0.3, 1)
-      forwards;
+    animation: animated-metric-new-up 260ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
   }
 
   .animated-metric-roll-old-down {
-    animation: animated-metric-old-down 260ms cubic-bezier(0.16, 1, 0.3, 1)
-      forwards;
+    animation: animated-metric-old-down 260ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
   }
 
   .animated-metric-roll-new-down {
-    animation: animated-metric-new-down 260ms cubic-bezier(0.16, 1, 0.3, 1)
-      forwards;
+    animation: animated-metric-new-down 260ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
   }
 }
 
@@ -566,10 +547,7 @@
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background-image: radial-gradient(
-    rgba(255, 255, 255, 0.05) 1px,
-    transparent 1px
-  );
+  background-image: radial-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px);
   background-size: 3px 3px;
   mix-blend-mode: overlay;
   opacity: 0.6;
@@ -583,11 +561,7 @@
   background-color: var(--color-gray-100);
   background-repeat: repeat;
   background-size: 64px;
-  mask-image: radial-gradient(
-    circle farthest-corner at 50% 100%,
-    black 20%,
-    transparent 80%
-  );
+  mask-image: radial-gradient(circle farthest-corner at 50% 100%, black 20%, transparent 80%);
 }
 
 .dark {
@@ -671,8 +645,8 @@
     t-check-bob var(--check-bob-dur) var(--check-ease-bob) forwards;
 }
 .t-success-check[data-state="in"] svg path {
-  animation: t-check-draw var(--check-path-dur) var(--check-ease-path)
-    var(--check-path-delay, 0ms) forwards;
+  animation: t-check-draw var(--check-path-dur) var(--check-ease-path) var(--check-path-delay, 0ms)
+    forwards;
 }
 
 @keyframes t-check-fade {
@@ -806,8 +780,7 @@
    total (80, 60, 80, 60 = 280ms): 28.57%, 57.14%, 78.57%,
    100%. Recompute if any segment duration changes. */
 .t-input.is-shaking {
-  animation: t-input-shake calc(var(--shake-dur-a) * 2 + var(--shake-dur-b) * 2)
-    linear;
+  animation: t-input-shake calc(var(--shake-dur-a) * 2 + var(--shake-dur-b) * 2) linear;
 }
 @keyframes t-input-shake {
   0% {
@@ -915,12 +888,7 @@
     #000 var(--skel-fade-start),
     transparent 100%
   );
-  mask-image: linear-gradient(
-    to bottom,
-    #000 0%,
-    #000 var(--skel-fade-start),
-    transparent 100%
-  );
+  mask-image: linear-gradient(to bottom, #000 0%, #000 var(--skel-fade-start), transparent 100%);
 }
 
 /* Placeholder bar. A light band sweeps across it; --skel-delay staggers
@@ -939,12 +907,7 @@
   position: absolute;
   inset: 0;
   transform: translateX(-100%);
-  background: linear-gradient(
-    90deg,
-    transparent 0%,
-    oklch(1 0 0 / 0.8) 50%,
-    transparent 100%
-  );
+  background: linear-gradient(90deg, transparent 0%, oklch(1 0 0 / 0.8) 50%, transparent 100%);
   animation: skel-sweep 1.6s cubic-bezier(0.4, 0, 0.2, 1) infinite;
   animation-delay: var(--skel-delay, 0ms);
 }

@@ -52,9 +52,7 @@ export const COUNTRY_CLICKS = [
 export const HOURLY_CLICKS = Array.from({ length: 24 }, (_, h) => ({
   hour: String(h).padStart(2, "0"),
   clicks: Math.round(
-    40 +
-      160 * Math.exp(-((h - 10) ** 2) / 18) +
-      110 * Math.exp(-((h - 20) ** 2) / 10),
+    40 + 160 * Math.exp(-((h - 10) ** 2) / 18) + 110 * Math.exp(-((h - 20) ** 2) / 10),
   ),
 }));
 

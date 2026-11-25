@@ -10,8 +10,7 @@ import { makeShortLink } from "@/lib/config";
 
 // Expose the encoded value; the real component only renders dots.
 vi.mock("@/components/ui/qr-code", () => ({
-  QrCode: ({ value }: { value: string }) =>
-    createElement("svg", { "data-qr-value": value }),
+  QrCode: ({ value }: { value: string }) => createElement("svg", { "data-qr-value": value }),
 }));
 
 function QrOption({ shortUrl }: { shortUrl?: string }) {
@@ -42,9 +41,7 @@ function QrOption({ shortUrl }: { shortUrl?: string }) {
 function render(shortUrl?: string) {
   const markup = renderToStaticMarkup(createElement(QrOption, { shortUrl }));
   const download = (label: string) =>
-    markup.match(
-      new RegExp(`<button(?:(?!<button)[\\s\\S])*?${label}</button>`),
-    )?.[0];
+    markup.match(new RegExp(`<button(?:(?!<button)[\\s\\S])*?${label}</button>`))?.[0];
   return {
     markup,
     encoded: markup.match(/data-qr-value="([^"]*)"/)?.[1],

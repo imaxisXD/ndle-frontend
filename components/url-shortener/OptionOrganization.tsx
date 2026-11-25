@@ -5,19 +5,9 @@ import { api } from "@/convex/_generated/api";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { FormLabel } from "@/components/ui/form";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/base-tooltip";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/base-tooltip";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardHeader,
-  CardContent,
-  CardFooter,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardHeader, CardContent, CardFooter, CardTitle } from "@/components/ui/card";
 import {
   Combobox,
   ComboboxContent,
@@ -31,13 +21,7 @@ import {
 } from "@/components/ui/base-combobox";
 import { ColorSelector } from "@/components/collection/ColorSelector";
 import { getWindowsFolderNameError } from "@/lib/utils";
-import {
-  NavArrowDown,
-  Folder,
-  HelpCircle,
-  EditPencil,
-  Check,
-} from "iconoir-react";
+import { NavArrowDown, Folder, HelpCircle, EditPencil, Check } from "iconoir-react";
 import { FolderPlusIcon } from "@phosphor-icons/react";
 import type { UrlFormValues } from "../url-shortener";
 import { Inset } from "@/components/ui/inset";
@@ -50,30 +34,18 @@ type CollectionOption = {
 
 const NONE_VALUE = "none";
 
-export function OptionOrganization({
-  form,
-}: {
-  form: UseFormReturn<UrlFormValues>;
-}) {
+export function OptionOrganization({ form }: { form: UseFormReturn<UrlFormValues> }) {
   const {
     results: collections,
     status: collectionStatus,
     loadMore,
-  } = usePaginatedQuery(
-    api.collectionMangament.getCollectionsPage,
-    {},
-    { initialNumItems: 50 },
-  );
-  const createCollection = useMutation(
-    api.collectionMangament.createCollection,
-  );
+  } = usePaginatedQuery(api.collectionMangament.getCollectionsPage, {}, { initialNumItems: 50 });
+  const createCollection = useMutation(api.collectionMangament.createCollection);
 
   const selectedCollectionId =
     useWatch({ control: form.control, name: "collectionId" }) || undefined;
-  const pendingNewName =
-    useWatch({ control: form.control, name: "newCollectionName" }) || "";
-  const pendingNewColor =
-    useWatch({ control: form.control, name: "newCollectionColor" }) || "";
+  const pendingNewName = useWatch({ control: form.control, name: "newCollectionName" }) || "";
+  const pendingNewColor = useWatch({ control: form.control, name: "newCollectionColor" }) || "";
   const [comboboxOpen, setComboboxOpen] = useState(false);
   const [searchValue, setSearchValue] = useState("");
   const [nameError, setNameError] = useState<string | null>(null);
@@ -97,9 +69,7 @@ export function OptionOrganization({
 
   const activeLabel = useMemo(() => {
     if (selectedCollectionId) {
-      const match = collectionOptions.find(
-        (c) => c.id === selectedCollectionId,
-      );
+      const match = collectionOptions.find((c) => c.id === selectedCollectionId);
       return match?.name ?? "Selected folder";
     }
     if (pendingNewName.trim()) return `Create "${pendingNewName.trim()}"`;
@@ -162,9 +132,7 @@ export function OptionOrganization({
   const filteredOptions = useMemo(() => {
     const q = searchValue.trim().toLowerCase();
     if (!q) return collectionOptions;
-    return collectionOptions.filter((opt) =>
-      opt.name.toLowerCase().includes(q),
-    );
+    return collectionOptions.filter((opt) => opt.name.toLowerCase().includes(q));
   }, [collectionOptions, searchValue]);
 
   const hasExactMatch = useMemo(() => {
@@ -194,11 +162,7 @@ export function OptionOrganization({
           value={selectedCollectionId ?? NONE_VALUE}
           onValueChange={(val) => {
             const strVal = val as string;
-            if (
-              strVal &&
-              strVal !== NONE_VALUE &&
-              !strVal.startsWith("create:")
-            ) {
+            if (strVal && strVal !== NONE_VALUE && !strVal.startsWith("create:")) {
               handleSelectExisting(strVal);
             }
           }}
@@ -211,8 +175,7 @@ export function OptionOrganization({
                     <div
                       className="flex size-6 shrink-0 items-center justify-center rounded-xs"
                       style={{
-                        backgroundColor:
-                          (selectedCollection.color || "#3b82f6") + "20",
+                        backgroundColor: (selectedCollection.color || "#3b82f6") + "20",
                       }}
                     >
                       <Folder
@@ -222,18 +185,14 @@ export function OptionOrganization({
                         }}
                       />
                     </div>
-                    <span className="flex-1 truncate font-medium">
-                      {selectedCollection.name}
-                    </span>
+                    <span className="flex-1 truncate font-medium">{selectedCollection.name}</span>
                   </>
                 ) : (
                   <>
                     <div className="bg-surface-inset flex h-8 w-8 shrink-0 items-center justify-center rounded-lg">
                       <Folder className="text-muted-foreground h-4 w-4" />
                     </div>
-                    <span className="text-muted-foreground flex-1 truncate">
-                      {activeLabel}
-                    </span>
+                    <span className="text-muted-foreground flex-1 truncate">{activeLabel}</span>
                   </>
                 )
               }
@@ -254,9 +213,7 @@ export function OptionOrganization({
             </div>
             <ComboboxList className="max-h-[300px] overflow-y-auto">
               {filteredOptions.length === 0 && !searchValue.trim() && (
-                <div className="text-muted-foreground px-3 py-2 text-xs">
-                  No collections yet
-                </div>
+                <div className="text-muted-foreground px-3 py-2 text-xs">No collections yet</div>
               )}
               {filteredOptions.length === 0 && searchValue.trim() && (
                 <div className="text-muted-foreground px-3 py-2 text-xs">
@@ -277,14 +234,9 @@ export function OptionOrganization({
                         backgroundColor: (opt.color || "#3b82f6") + "20",
                       }}
                     >
-                      <Folder
-                        className="h-3.5 w-3.5"
-                        style={{ color: opt.color || "#3b82f6" }}
-                      />
+                      <Folder className="h-3.5 w-3.5" style={{ color: opt.color || "#3b82f6" }} />
                     </div>
-                    <span className="flex-1 truncate font-medium">
-                      {opt.name}
-                    </span>
+                    <span className="flex-1 truncate font-medium">{opt.name}</span>
                   </div>
                   <ComboboxItemIndicator className="static mr-4 translate-y-0" />
                 </ComboboxItem>
@@ -298,10 +250,7 @@ export function OptionOrganization({
                   className="border-border/50 flex items-center gap-2.5 rounded-none px-2 py-2 pl-7 text-sm"
                 >
                   <div className="flex size-7 shrink-0 items-center justify-center rounded bg-linear-to-br from-black to-black/70">
-                    <FolderPlusIcon
-                      weight="fill"
-                      className="text-accent size-4"
-                    />
+                    <FolderPlusIcon weight="fill" className="text-accent size-4" />
                   </div>
 
                   <span className="flex-1 truncate">
@@ -320,14 +269,9 @@ export function OptionOrganization({
                   className="mt-2 flex items-center justify-between border-t border-dashed px-3 py-2 ps-3 text-sm"
                 >
                   <div className="flex size-6 shrink-0 items-center justify-center rounded-xs bg-linear-to-br from-black to-black/70">
-                    <FolderPlusIcon
-                      weight="fill"
-                      className="text-accent size-3.5"
-                    />
+                    <FolderPlusIcon weight="fill" className="text-accent size-3.5" />
                   </div>
-                  <span className="flex-1 truncate text-left">
-                    Create new collection
-                  </span>
+                  <span className="flex-1 truncate text-left">Create new collection</span>
                 </ComboboxItem>
               )}
             </ComboboxList>
@@ -339,17 +283,11 @@ export function OptionOrganization({
                 onClick={() => loadMore(50)}
                 disabled={collectionStatus !== "CanLoadMore"}
               >
-                {collectionStatus === "CanLoadMore"
-                  ? "Load more collections"
-                  : "Loading…"}
+                {collectionStatus === "CanLoadMore" ? "Load more collections" : "Loading…"}
               </Button>
             )}
           </ComboboxContent>
-          {nameError && (
-            <p className="text-destructive mt-2 text-xs leading-tight">
-              {nameError}
-            </p>
-          )}
+          {nameError && <p className="text-destructive mt-2 text-xs leading-tight">{nameError}</p>}
         </Combobox>
         {pendingNewName && (
           <Card
@@ -357,9 +295,7 @@ export function OptionOrganization({
             className="border-border/70 border border-dashed bg-white shadow-none"
           >
             <CardHeader className="min-h-0 border-b-0 px-3 py-2.5">
-              <CardTitle className="text-xs font-medium">
-                Creating new collection
-              </CardTitle>
+              <CardTitle className="text-xs font-medium">Creating new collection</CardTitle>
               <div className="flex items-center gap-1.5">
                 {isEditingName ? (
                   <div className="flex items-center gap-1">
@@ -378,13 +314,9 @@ export function OptionOrganization({
                             return;
                           }
                           setNameError(null);
-                          form.setValue(
-                            "newCollectionName",
-                            editNameValue.trim(),
-                            {
-                              shouldDirty: true,
-                            },
-                          );
+                          form.setValue("newCollectionName", editNameValue.trim(), {
+                            shouldDirty: true,
+                          });
                           setIsEditingName(false);
                         }
                         if (e.key === "Escape") {
@@ -405,13 +337,9 @@ export function OptionOrganization({
                           return;
                         }
                         setNameError(null);
-                        form.setValue(
-                          "newCollectionName",
-                          editNameValue.trim(),
-                          {
-                            shouldDirty: true,
-                          },
-                        );
+                        form.setValue("newCollectionName", editNameValue.trim(), {
+                          shouldDirty: true,
+                        });
                         setIsEditingName(false);
                       }}
                     >
@@ -438,9 +366,7 @@ export function OptionOrganization({
               </div>
             </CardHeader>
             <CardContent className="flex flex-col gap-4 px-3">
-              <FormLabel className="text-xs">
-                Choose collection color:
-              </FormLabel>
+              <FormLabel className="text-xs">Choose collection color:</FormLabel>
               <ColorSelector
                 value={pendingNewColor}
                 onChange={(val) =>

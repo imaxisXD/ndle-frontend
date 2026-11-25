@@ -90,7 +90,9 @@ export function YourHomePage({
       <Card>
         <CardHeader className="flex w-full flex-col items-start justify-between gap-1">
           <CardTitle className="text-lg font-medium">Shorten a Link</CardTitle>
-          <CardDescription className="text-muted-foreground">Paste a long URL to create a short, trackable link</CardDescription>
+          <CardDescription className="text-muted-foreground">
+            Paste a long URL to create a short, trackable link
+          </CardDescription>
         </CardHeader>
         <CardContent className="space-y-2">
           <p className="text-sm font-medium">Enter your long link</p>
@@ -103,7 +105,10 @@ export function YourHomePage({
               )}
             >
               {value ? (
-                <span className="truncate rounded-[3px]" style={{ backgroundColor: `oklch(0.86 0.17 88 / ${0.4 * flash})` }}>
+                <span
+                  className="truncate rounded-[3px]"
+                  style={{ backgroundColor: `oklch(0.86 0.17 88 / ${0.4 * flash})` }}
+                >
                   {value}
                 </span>
               ) : (
@@ -127,8 +132,12 @@ export function YourHomePage({
               ) : (
                 <>
                   Shorten
-                  <kbd className="rounded-xs bg-black/55 px-1 font-mono text-[10px] leading-4 text-white">⌘</kbd>
-                  <kbd className="-ml-1 rounded-xs bg-black/55 px-1 font-mono text-[10px] leading-4 text-white">↵</kbd>
+                  <kbd className="rounded-xs bg-black/55 px-1 font-mono text-[10px] leading-4 text-white">
+                    ⌘
+                  </kbd>
+                  <kbd className="-ml-1 rounded-xs bg-black/55 px-1 font-mono text-[10px] leading-4 text-white">
+                    ↵
+                  </kbd>
                 </>
               )}
             </span>
@@ -139,7 +148,9 @@ export function YourHomePage({
       <Card>
         <CardHeader className="flex w-full flex-col items-start justify-between gap-1">
           <CardTitle className="text-lg font-medium">Recent Links</CardTitle>
-          <CardDescription className="text-muted-foreground">Your latest shortened links</CardDescription>
+          <CardDescription className="text-muted-foreground">
+            Your latest shortened links
+          </CardDescription>
         </CardHeader>
         <div className={cn(RECENT_COLS, "border-border border-b py-3 text-sm font-medium")}>
           <span>Status</span>
@@ -149,18 +160,29 @@ export function YourHomePage({
         </div>
         {listed ? (
           // Opens from nothing, as a new row does in the app
-          <div className="grid" style={{ gridTemplateRows: `${open}fr`, opacity: Math.min(1, open * 1.5) }}>
+          <div
+            className="grid"
+            style={{ gridTemplateRows: `${open}fr`, opacity: Math.min(1, open * 1.5) }}
+          >
             <div className="relative min-h-0 overflow-hidden" data-pass="row">
               <span
                 aria-hidden
                 className="absolute inset-0"
                 style={{ backgroundColor: `oklch(0.86 0.17 88 / ${0.14 * fresh})` }}
               />
-              <LinkRow status="pending" slug={slugOf(link)} destination={link.destination} clicks={0} created="just now" />
+              <LinkRow
+                status="pending"
+                slug={slugOf(link)}
+                destination={link.destination}
+                clicks={0}
+                created="just now"
+              />
             </div>
           </div>
         ) : (
-          <p className="text-muted-foreground px-5 py-6 text-sm">No links yet. Shorten one above.</p>
+          <p className="text-muted-foreground px-5 py-6 text-sm">
+            No links yet. Shorten one above.
+          </p>
         )}
       </Card>
 
@@ -200,7 +222,12 @@ export function YourLinkPage({
       margin: getQrMarginSize(QR_STYLE),
       logo: getQrLogo(QR_STYLE),
     });
-    void downloadQrPng(svg, QR_STYLE.size, `${short.slice(short.indexOf("/") + 1) || "ndle"}-qr.png`, 1);
+    void downloadQrPng(
+      svg,
+      QR_STYLE.size,
+      `${short.slice(short.indexOf("/") + 1) || "ndle"}-qr.png`,
+      1,
+    );
   };
 
   return (
@@ -220,20 +247,30 @@ export function YourLinkPage({
           </div>
           <p className="text-muted-foreground/70 text-xs">[Created just now]</p>
         </div>
-        <LinkActionsBar shortUrl={short} fullUrl={link.destination} qrEnabled onDownloadQR={downloadQr} />
+        <LinkActionsBar
+          shortUrl={short}
+          fullUrl={link.destination}
+          qrEnabled
+          onDownloadQR={downloadQr}
+        />
       </header>
 
       <LockedCounter locked={locked.blur} />
 
       {/* Everything under the counter is what a free account unlocks */}
-      <div className="relative space-y-5" style={{ filter: locked.blur > 0 ? `blur(${locked.blur}px)` : undefined }}>
+      <div
+        className="relative space-y-5"
+        style={{ filter: locked.blur > 0 ? `blur(${locked.blur}px)` : undefined }}
+      >
         <div className="border-border flex gap-8 border-b">
           {LINK_TABS.map(({ label, Icon, on }) => (
             <span
               key={label}
               className={cn(
                 "-mb-px flex items-center gap-2 border-b-2 pb-2.5 text-sm",
-                on ? "border-[var(--fg)] font-medium text-[var(--fg)]" : "text-muted-foreground border-transparent",
+                on
+                  ? "border-[var(--fg)] font-medium text-[var(--fg)]"
+                  : "text-muted-foreground border-transparent",
               )}
             >
               <Icon className="size-4" />
@@ -248,7 +285,9 @@ export function YourLinkPage({
               <ShieldCheckIcon className="text-muted-foreground size-5" weight="duotone" />
               Link Health Status
             </CardTitle>
-            <CardDescription className="mt-0.5">Waiting for its first check. ndle checks it every 30 minutes.</CardDescription>
+            <CardDescription className="mt-0.5">
+              Waiting for its first check. ndle checks it every 30 minutes.
+            </CardDescription>
           </CardHeader>
           <CardContent className="rounded-sm [&:last-child]:rounded-b-sm">
             <div className="grid grid-cols-3 gap-4">
@@ -264,7 +303,11 @@ export function YourLinkPage({
             </div>
           </CardContent>
         </Card>
-        <div aria-hidden className="absolute -inset-4 bg-[#f6f6f6]" style={{ opacity: locked.wash }} />
+        <div
+          aria-hidden
+          className="absolute -inset-4 bg-[#f6f6f6]"
+          style={{ opacity: locked.wash }}
+        />
       </div>
     </div>
   );
@@ -290,7 +333,8 @@ function LockedCounter({ locked }: { locked: number }) {
 
   useEffect(() => {
     if (!teasing || reduce) return;
-    const roll = () => setValue(TEASE.min + Math.floor(Math.random() * (TEASE.max - TEASE.min + 1)));
+    const roll = () =>
+      setValue(TEASE.min + Math.floor(Math.random() * (TEASE.max - TEASE.min + 1)));
     roll();
     const id = window.setInterval(roll, TEASE.every);
     return () => window.clearInterval(id);

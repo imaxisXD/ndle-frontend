@@ -42,9 +42,7 @@ export function StatusBadge({ status }: StatusBadgeProps) {
   const { icon: Icon, label, className } = statusConfig[status];
 
   return (
-    <span
-      className={`inline-flex items-center gap-1 px-1 text-xs ${className}`}
-    >
+    <span className={`inline-flex items-center gap-1 px-1 text-xs ${className}`}>
       {status === "pending" ? (
         <ArrowsClockwiseIcon className="h-3 w-3 animate-spin" />
       ) : Icon ? (

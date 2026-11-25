@@ -186,17 +186,24 @@ const BARS = [22, 30, 46, 64, 82, 96, 88, 70, 58, 66, 84, 92, 74, 50];
 export function Closing({ auth }: { auth: Auth }) {
   return (
     <>
-      <section aria-labelledby="cta-title" className="mx-auto max-w-[1240px] px-5 pt-20 pb-24 sm:px-8 lg:pt-28 lg:pb-32">
+      <section
+        aria-labelledby="cta-title"
+        className="mx-auto max-w-[1240px] px-5 pt-20 pb-24 sm:px-8 lg:pt-28 lg:pb-32"
+      >
         <div className="flex flex-col-reverse gap-10 lg:flex-row lg:items-end lg:justify-between lg:gap-8">
           <div className="lg:pb-6">
             {/* Leading after the size: tailwind-merge drops a leading that a
                 later font size could override. */}
-            <h2 id="cta-title" className={cn(INK_TITLE, "text-[clamp(3rem,6vw,4.5rem)] leading-[0.9]")}>
+            <h2
+              id="cta-title"
+              className={cn(INK_TITLE, "text-[clamp(3rem,6vw,4.5rem)] leading-[0.9]")}
+            >
               Add your links
               <span className="block">to ndle</span>
             </h2>
             <p className="mt-4 max-w-[38ch] font-mono text-[17px] leading-[1.45] text-[#141312]">
-              ndle shortens them, checks every one and tells you when one breaks. Free plan, no card needed.
+              ndle shortens them, checks every one and tells you when one breaks. Free plan, no card
+              needed.
             </p>
             <ByAuth
               auth={auth}
@@ -246,7 +253,12 @@ function Finale() {
         className="absolute top-0 left-0 origin-top-left"
         style={{ width: STAGE.width, height: STAGE.height, transform: `scale(${scale})` }}
       >
-        <svg className="absolute inset-0 overflow-visible" width={STAGE.width} height={STAGE.height} fill="none">
+        <svg
+          className="absolute inset-0 overflow-visible"
+          width={STAGE.width}
+          height={STAGE.height}
+          fill="none"
+        >
           {/* Pale wedges, behind everything */}
           {WEDGES.map((d) => (
             <path key={d} d={d} fill="#e7e6e2" />
@@ -256,29 +268,65 @@ function Finale() {
         {/* The dashboard card, whole: the pieces burst out of it */}
         <div
           className="absolute top-0 left-0 overflow-hidden rounded-[12px] border-2 border-[#141312] bg-white font-mono shadow-[3px_4px_0_0_#141312]"
-          style={{ width: CARD.width, transform: `translate(${CARD.x}px, ${CARD.y}px) rotate(${CARD.rotate}deg)` }}
+          style={{
+            width: CARD.width,
+            transform: `translate(${CARD.x}px, ${CARD.y}px) rotate(${CARD.rotate}deg)`,
+          }}
         >
-          <div className="border-b border-zinc-200 bg-zinc-50 px-4 py-2.5 text-xs font-medium text-zinc-700">Link Monitoring</div>
+          <div className="border-b border-zinc-200 bg-zinc-50 px-4 py-2.5 text-xs font-medium text-zinc-700">
+            Link Monitoring
+          </div>
           {ROWS.map((row) => (
-            <div key={row.slug} className={cn("flex items-center gap-3 border-t border-zinc-100 px-4 py-2.5 first-of-type:border-t-0", row.down && "bg-red-50/80")}>
-              <Badge variant={row.down ? "red" : "green"} className="w-[62px] shrink-0 justify-center">
+            <div
+              key={row.slug}
+              className={cn(
+                "flex items-center gap-3 border-t border-zinc-100 px-4 py-2.5 first-of-type:border-t-0",
+                row.down && "bg-red-50/80",
+              )}
+            >
+              <Badge
+                variant={row.down ? "red" : "green"}
+                className="w-[62px] shrink-0 justify-center"
+              >
                 {row.down ? "error" : "healthy"}
               </Badge>
-              <LinkWithFavicon url={`https://${SHORT_DOMAIN}/${row.slug}`} originalUrl={row.destination} faviconSrc={sampleFavicon(row.destination)} tabIndex={-1} size="sm" />
-              <span className={cn("ml-auto text-xs tabular-nums", row.down ? "text-red-600" : "text-green-600")}>{row.down ? "404" : row.latency}</span>
+              <LinkWithFavicon
+                url={`https://${SHORT_DOMAIN}/${row.slug}`}
+                originalUrl={row.destination}
+                faviconSrc={sampleFavicon(row.destination)}
+                tabIndex={-1}
+                size="sm"
+              />
+              <span
+                className={cn(
+                  "ml-auto text-xs tabular-nums",
+                  row.down ? "text-red-600" : "text-green-600",
+                )}
+              >
+                {row.down ? "404" : row.latency}
+              </span>
             </div>
           ))}
           <div className="border-t border-zinc-200 px-4 pt-2.5 pb-3">
             <p className="text-[11px] text-zinc-500">Clicks, last 14 hours</p>
             <div className="mt-2 flex h-[88px] items-end gap-1.5">
               {BARS.map((h, i) => (
-                <span key={i} className="flex-1 rounded-t-[3px] bg-[#ffc921]" style={{ height: `${h}%` }} />
+                <span
+                  key={i}
+                  className="flex-1 rounded-t-[3px] bg-[#ffc921]"
+                  style={{ height: `${h}%` }}
+                />
               ))}
             </div>
           </div>
         </div>
 
-        <svg className="absolute inset-0 overflow-visible" width={STAGE.width} height={STAGE.height} fill="none">
+        <svg
+          className="absolute inset-0 overflow-visible"
+          width={STAGE.width}
+          height={STAGE.height}
+          fill="none"
+        >
           {/* Speed lines, each cluster just after its piece lands */}
           {TICKS.map((d, i) =>
             reduce ? (
@@ -299,12 +347,30 @@ function Finale() {
         </svg>
 
         {PIECES.map((piece, i) => (
-          <Burst key={i} x={piece.x} y={piece.y} rotate={piece.rotate} index={i} out={out} reduce={reduce} z={piece.z}>
+          <Burst
+            key={i}
+            x={piece.x}
+            y={piece.y}
+            rotate={piece.rotate}
+            index={i}
+            out={out}
+            reduce={reduce}
+            z={piece.z}
+          >
             {piece.node}
           </Burst>
         ))}
         {DOODLES.map((doodle, i) => (
-          <Burst key={`doodle-${i}`} x={doodle.x} y={doodle.y} rotate={doodle.rotate} index={PIECES.length + i} out={out} reduce={reduce} z={5}>
+          <Burst
+            key={`doodle-${i}`}
+            x={doodle.x}
+            y={doodle.y}
+            rotate={doodle.rotate}
+            index={PIECES.length + i}
+            out={out}
+            reduce={reduce}
+            z={5}
+          >
             {doodle.node}
           </Burst>
         ))}
@@ -336,7 +402,10 @@ function Burst({
   // Still: already in place, no motion at all.
   if (reduce) {
     return (
-      <div className="absolute top-0 left-0" style={{ zIndex: z, transform: `translate(${x}px, ${y}px) rotate(${rotate}deg)` }}>
+      <div
+        className="absolute top-0 left-0"
+        style={{ zIndex: z, transform: `translate(${x}px, ${y}px) rotate(${rotate}deg)` }}
+      >
         {children}
       </div>
     );

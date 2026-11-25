@@ -50,10 +50,7 @@ describe("analytics request errors", () => {
 
     // A 403 passed through from the analytics service is an ordinary failure.
     const forwarded = await analyticsRequestError(
-      Response.json(
-        { error: "Failed to fetch analytics data" },
-        { status: 403 },
-      ),
+      Response.json({ error: "Failed to fetch analytics data" }, { status: 403 }),
       "Failed to load timeseries",
     );
     expect(isPlanRequiredError(forwarded)).toBe(false);
@@ -96,9 +93,7 @@ describe("link analytics state", () => {
       ...failedWith(new Error("timeout")),
       data: { data: [] },
     };
-    expect(getLinkAnalyticsState([settled, refreshFailed]).status).toBe(
-      "ready",
-    );
+    expect(getLinkAnalyticsState([settled, refreshFailed]).status).toBe("ready");
   });
 
   test("a retry in progress shows as loading", () => {
@@ -117,9 +112,7 @@ describe("link analytics state", () => {
         "Failed to load timeseries",
       ),
     );
-    expect(getLinkAnalyticsState([planLimited, planLimited]).status).toBe(
-      "plan-required",
-    );
+    expect(getLinkAnalyticsState([planLimited, planLimited]).status).toBe("plan-required");
     expect(getLinkAnalyticsState([settled], { rangeLocked: true })).toEqual({
       status: "plan-required",
       failed: [],

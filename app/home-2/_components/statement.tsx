@@ -1,6 +1,16 @@
 "use client";
 
-import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState, type CSSProperties, type MouseEvent, type ReactNode } from "react";
+import {
+  useCallback,
+  useEffect,
+  useId,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type CSSProperties,
+  type MouseEvent,
+  type ReactNode,
+} from "react";
 import { motion, useAnimate, useInView } from "motion/react";
 import { AnimatedMetricNumber } from "@/components/animated-metric-number";
 import { LiveDot } from "@/components/ui/live-dot";
@@ -91,7 +101,10 @@ export function Statement() {
   const playing = still || inView;
 
   return (
-    <section aria-label="Why ndle" className={cn(bebas.variable, "mx-auto max-w-[1240px] px-5 pt-8 pb-8 sm:px-8 lg:pt-12")}>
+    <section
+      aria-label="Why ndle"
+      className={cn(bebas.variable, "mx-auto max-w-[1240px] px-5 pt-8 pb-8 sm:px-8 lg:pt-12")}
+    >
       <p
         ref={ref}
         className="mx-auto max-w-[16ch] text-center font-[family-name:var(--font-bebas)] text-[clamp(3.25rem,8.5vw,7.5rem)] leading-[0.96] tracking-[-0.01em] text-balance uppercase"
@@ -124,7 +137,12 @@ function Clicks({ playing, still }: { playing: boolean; still: boolean }) {
   const press = useCallback(() => {
     if (still || !scope.current) return;
     animate(scope.current, { scale: PRESS.scale }, { duration: PRESS.duration, ease: "easeOut" });
-    if (hand.current) animate(hand.current, { scale: HAND.tap.scale, y: HAND.tap.y }, { duration: HAND.tap.duration, ease: "easeOut" });
+    if (hand.current)
+      animate(
+        hand.current,
+        { scale: HAND.tap.scale, y: HAND.tap.y },
+        { duration: HAND.tap.duration, ease: "easeOut" },
+      );
   }, [animate, scope, still]);
 
   // The hand's taps, each time the line comes into view.
@@ -186,7 +204,13 @@ function Clicks({ playing, still }: { playing: boolean; still: boolean }) {
           key={r.id}
           aria-hidden
           className="h2-ripple pointer-events-none absolute size-[0.5em] rounded-full"
-          style={{ left: r.x, top: r.y, marginLeft: "-0.25em", marginTop: "-0.25em", animationDuration: "550ms" }}
+          style={{
+            left: r.x,
+            top: r.y,
+            marginLeft: "-0.25em",
+            marginTop: "-0.25em",
+            animationDuration: "550ms",
+          }}
         />
       ))}
 
@@ -213,7 +237,12 @@ function Clicks({ playing, still }: { playing: boolean; still: boolean }) {
               tap sends a green ping out of it. */}
           <span className="relative mr-[0.1em] inline-flex">
             <LiveDot className="size-[0.55em]" />
-            {!still && bursts > 0 && <span key={bursts} className="h2-live-ping absolute inset-0 rounded-full border border-emerald-400" />}
+            {!still && bursts > 0 && (
+              <span
+                key={bursts}
+                className="h2-live-ping absolute inset-0 rounded-full border border-emerald-400"
+              />
+            )}
           </span>
           <AnimatedMetricNumber
             animationKey="home2-statement-clicks"
@@ -238,16 +267,32 @@ function Clicks({ playing, still }: { playing: boolean; still: boolean }) {
           first letter: the count has the other end to itself. It pops on as
           the line comes in; each tap bends its finger and dips it toward the
           fingertip, and the demo's taps send a ring out from it. */}
-      <span aria-hidden className="pointer-events-none absolute top-[0.5em] -left-[0.25em] size-[0.42em] -scale-x-100">
+      <span
+        aria-hidden
+        className="pointer-events-none absolute top-[0.5em] -left-[0.25em] size-[0.42em] -scale-x-100"
+      >
         <motion.span
           className="block size-full origin-[31%_12%]"
           initial={false}
-          animate={still || playing ? { opacity: 1, scale: 1, x: "0em", y: "0em" } : { opacity: 0, scale: 0.4, x: "0.2em", y: "0.24em" }}
+          animate={
+            still || playing
+              ? { opacity: 1, scale: 1, x: "0em", y: "0em" }
+              : { opacity: 0, scale: 0.4, x: "0.2em", y: "0.24em" }
+          }
           transition={still || !playing ? INSTANT : HAND.pop}
         >
-          {!still && demo > 0 && <span key={demo} className="h2-ripple absolute top-[-0.12em] left-[-0.05em] size-[0.34em] rounded-full" />}
+          {!still && demo > 0 && (
+            <span
+              key={demo}
+              className="h2-ripple absolute top-[-0.12em] left-[-0.05em] size-[0.34em] rounded-full"
+            />
+          )}
           <span ref={hand} className="block size-full origin-[31%_12%]">
-            <PointerDoodle color="blue" taps={still ? 0 : bursts} className="size-full -rotate-12" />
+            <PointerDoodle
+              color="blue"
+              taps={still ? 0 : bursts}
+              className="size-full -rotate-12"
+            />
           </span>
         </motion.span>
       </span>
@@ -267,13 +312,20 @@ function Ndle({ lit, still }: { lit: boolean; still: boolean }) {
   // above the bar).
   const box = "col-start-1 row-start-1 px-[0.14em] text-center";
   const before = cn(box, "font-sans text-[0.92em] font-semibold tracking-[-0.05em] normal-case");
-  const after = "relative font-doto roundness-100 text-[0.92em] font-black tracking-[-0.09em] normal-case";
+  const after =
+    "relative font-doto roundness-100 text-[0.92em] font-black tracking-[-0.09em] normal-case";
   const swiping = lit && !still;
-  const swipe = cn("ease-[cubic-bezier(0.65,0,0.35,1)]", swiping ? "transition-[clip-path] duration-[450ms]" : "transition-none");
+  const swipe = cn(
+    "ease-[cubic-bezier(0.65,0,0.35,1)]",
+    swiping ? "transition-[clip-path] duration-[450ms]" : "transition-none",
+  );
   const delay = { transitionDelay: swiping ? `${NDLE_AT}s` : "0s" };
   return (
     <span className="relative mx-[0.02em] inline-grid -rotate-2">
-      <span className={cn(before, swipe)} style={{ color: INK, clipPath: lit ? "inset(0 0 0 100%)" : "inset(0 0 0 0)", ...delay }}>
+      <span
+        className={cn(before, swipe)}
+        style={{ color: INK, clipPath: lit ? "inset(0 0 0 100%)" : "inset(0 0 0 0)", ...delay }}
+      >
         ndle
       </span>
       {/* The highlighter: a black bar with the word in Signal Yellow, swiped
@@ -362,7 +414,12 @@ function DoodleHeart({
   still,
 }: (typeof HEARTS)[number] & { lit: boolean; still: boolean }) {
   const id = useId().replace(/:/g, "");
-  const ids = { heart: `ndle-heart-${id}`, shade: `ndle-shade-${id}`, dots: `ndle-dots-${id}`, shadeDots: `ndle-shade-dots-${id}` };
+  const ids = {
+    heart: `ndle-heart-${id}`,
+    shade: `ndle-shade-${id}`,
+    dots: `ndle-dots-${id}`,
+    shadeDots: `ndle-shade-dots-${id}`,
+  };
   const playing = lit && !still;
   const pop = HEART_POP.at + delay;
 
@@ -376,10 +433,22 @@ function DoodleHeart({
           <path d={HEART.shade} />
         </clipPath>
         {/* The halftone: small dots all over, bigger and darker in shadow */}
-        <pattern id={ids.dots} width={3} height={3} patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+        <pattern
+          id={ids.dots}
+          width={3}
+          height={3}
+          patternUnits="userSpaceOnUse"
+          patternTransform="rotate(45)"
+        >
           <circle cx={1.5} cy={1.5} r={0.95} fill={HEART_COLOR.dots} />
         </pattern>
-        <pattern id={ids.shadeDots} width={3} height={3} patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+        <pattern
+          id={ids.shadeDots}
+          width={3}
+          height={3}
+          patternUnits="userSpaceOnUse"
+          patternTransform="rotate(45)"
+        >
           <circle cx={1.5} cy={1.5} r={1.25} fill={HEART_COLOR.shadeDots} />
         </pattern>
       </defs>
@@ -387,13 +456,26 @@ function DoodleHeart({
       <path d={HEART.fill} transform="translate(0.9 0.9)" fill={HEART_COLOR.base} />
       <g clipPath={`url(#${ids.heart})`}>
         <rect x={0} y={0} width={40} height={40} fill={`url(#${ids.dots})`} />
-        <rect x={0} y={0} width={40} height={40} fill={`url(#${ids.shadeDots})`} clipPath={`url(#${ids.shade})`} />
+        <rect
+          x={0}
+          y={0}
+          width={40}
+          height={40}
+          fill={`url(#${ids.shadeDots})`}
+          clipPath={`url(#${ids.shade})`}
+        />
       </g>
       {/* The light shade on the upper lobe */}
       <path d={HEART.shine} stroke={HEART_COLOR.shine} strokeWidth={3.2} strokeLinecap="round" />
       <circle cx={27.4} cy={10.2} r={1.3} fill={HEART_COLOR.shine} />
       {/* The ink line on top */}
-      <path d={HEART.outline} stroke={INK} strokeWidth={2.3} strokeLinecap="round" strokeLinejoin="round" />
+      <path
+        d={HEART.outline}
+        stroke={INK}
+        strokeWidth={2.3}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
       {/* The dotted trail, one dot after another once the heart has popped */}
       {trail &&
         TRAIL.map((dot, i) =>
@@ -406,7 +488,9 @@ function DoodleHeart({
               fill={INK}
               initial={false}
               animate={{ opacity: playing ? 1 : 0 }}
-              transition={playing ? { delay: pop + 0.25 + i * TRAIL_EVERY, duration: 0.12 } : INSTANT}
+              transition={
+                playing ? { delay: pop + 0.25 + i * TRAIL_EVERY, duration: 0.12 } : INSTANT
+              }
             />
           ),
         )}
@@ -418,7 +502,13 @@ function DoodleHeart({
 
   if (still) {
     return (
-      <svg aria-hidden viewBox="0 0 40 38" className={className} style={{ ...style, rotate: `${rotate}deg` }} fill="none">
+      <svg
+        aria-hidden
+        viewBox="0 0 40 38"
+        className={className}
+        style={{ ...style, rotate: `${rotate}deg` }}
+        fill="none"
+      >
         {art}
       </svg>
     );
@@ -431,13 +521,22 @@ function DoodleHeart({
       style={style}
       fill="none"
       initial={false}
-      animate={playing ? { opacity: 1, scale: HEART_POP.scale, rotate } : { opacity: 0, scale: 0.2, rotate: 0 }}
+      animate={
+        playing
+          ? { opacity: 1, scale: HEART_POP.scale, rotate }
+          : { opacity: 0, scale: 0.2, rotate: 0 }
+      }
       transition={
         playing
           ? {
               opacity: { delay: pop, duration: 0.12 },
               rotate: { ...HEART_POP.spring, delay: pop },
-              scale: { delay: pop, duration: HEART_POP.duration, times: HEART_POP.times, ease: "easeInOut" },
+              scale: {
+                delay: pop,
+                duration: HEART_POP.duration,
+                times: HEART_POP.times,
+                ease: "easeInOut",
+              },
             }
           : INSTANT
       }
@@ -450,7 +549,13 @@ function DoodleHeart({
 /* ───────── break: cracked, split, and caught ───────── */
 
 /* The crack, as the seam between two clip polygons, in % of the word's box. */
-const SEAM: Array<[number, number]> = [[52, 0], [47, 24], [56, 46], [45, 70], [53, 100]];
+const SEAM: Array<[number, number]> = [
+  [52, 0],
+  [47, 24],
+  [56, 46],
+  [45, 70],
+  [53, 100],
+];
 const seam = SEAM.map(([x, y]) => `${x}% ${y}%`);
 const LEFT = `polygon(0 0, ${seam.join(", ")}, 0 100%)`;
 const RIGHT = `polygon(${seam.join(", ")}, 100% 100%, 100% 0)`;
@@ -493,7 +598,12 @@ function ringPath(w: number, h: number) {
   const x = (n: number) => +((n * w) / 100).toFixed(1);
   const y = (n: number) => +((n * h) / 40).toFixed(1);
   const [fx, fy] = RING.from;
-  return `M${x(fx)} ${y(fy)}` + RING.curves.map(([a, b, c, d, e, f]) => ` C${x(a)} ${y(b)} ${x(c)} ${y(d)} ${x(e)} ${y(f)}`).join("");
+  return (
+    `M${x(fx)} ${y(fy)}` +
+    RING.curves
+      .map(([a, b, c, d, e, f]) => ` C${x(a)} ${y(b)} ${x(c)} ${y(d)} ${x(e)} ${y(f)}`)
+      .join("")
+  );
 }
 
 /* Beats, in s after the line comes into view. Resetting is instant. */
@@ -548,7 +658,10 @@ function Break({ broken, still }: { broken: boolean; still: boolean }) {
           <span
             key={side}
             aria-hidden
-            className={cn("absolute inset-0", side === "left" ? "origin-bottom-left" : "origin-bottom-right")}
+            className={cn(
+              "absolute inset-0",
+              side === "left" ? "origin-bottom-left" : "origin-bottom-right",
+            )}
             style={{
               clipPath: side === "left" ? LEFT : RIGHT,
               transform: `translate(${pose[side].x}, ${pose[side].y}) rotate(${pose[side].rotate}deg)`,
@@ -578,23 +691,39 @@ function Break({ broken, still }: { broken: boolean; still: boolean }) {
         <motion.span
           key={side}
           aria-hidden
-          className={cn("absolute inset-0", side === "left" ? "origin-bottom-left" : "origin-bottom-right")}
+          className={cn(
+            "absolute inset-0",
+            side === "left" ? "origin-bottom-left" : "origin-bottom-right",
+          )}
           style={{ clipPath: side === "left" ? LEFT : RIGHT }}
           initial={false}
-          animate={broken ? { opacity: 1, ...(mended ? MENDED : HALVES)[side] } : { opacity: 0, x: 0, y: 0, rotate: 0 }}
+          animate={
+            broken
+              ? { opacity: 1, ...(mended ? MENDED : HALVES)[side] }
+              : { opacity: 0, x: 0, y: 0, rotate: 0 }
+          }
           transition={
             !broken
               ? INSTANT
               : touched
                 ? { opacity: INSTANT, default: MEND_SPRING }
-                : { opacity: { delay: at(BREAK.split), duration: 0 }, default: { ...SPLIT_SPRING, delay: at(BREAK.split) } }
+                : {
+                    opacity: { delay: at(BREAK.split), duration: 0 },
+                    default: { ...SPLIT_SPRING, delay: at(BREAK.split) },
+                  }
           }
         >
           break
         </motion.span>
       ))}
       {/* The crack, drawn down the middle before it splits, and the ticks off it */}
-      <svg aria-hidden viewBox="0 0 100 100" preserveAspectRatio="none" className="pointer-events-none absolute inset-0 size-full overflow-visible" fill="none">
+      <svg
+        aria-hidden
+        viewBox="0 0 100 100"
+        preserveAspectRatio="none"
+        className="pointer-events-none absolute inset-0 size-full overflow-visible"
+        fill="none"
+      >
         <motion.path
           d={CRACK}
           stroke="#ffffff"
@@ -605,7 +734,10 @@ function Break({ broken, still }: { broken: boolean; still: boolean }) {
           animate={broken ? { pathLength: 1, opacity: 0 } : { pathLength: 0, opacity: 1 }}
           transition={
             broken
-              ? { pathLength: { delay: at(0), duration: BREAK.crack, ease: "easeIn" }, opacity: { delay: at(BREAK.split + 0.15), duration: 0.2 } }
+              ? {
+                  pathLength: { delay: at(0), duration: BREAK.crack, ease: "easeIn" },
+                  opacity: { delay: at(BREAK.split + 0.15), duration: 0.2 },
+                }
               : INSTANT
           }
         />
@@ -617,7 +749,9 @@ function Break({ broken, still }: { broken: boolean; still: boolean }) {
           vectorEffect="non-scaling-stroke"
           initial={false}
           animate={broken ? { opacity: [0, 1, 1, 0] } : { opacity: 0 }}
-          transition={broken ? { delay: at(BREAK.split), duration: 0.9, times: [0, 0.1, 0.6, 1] } : INSTANT}
+          transition={
+            broken ? { delay: at(BREAK.split), duration: 0.9, times: [0, 0.1, 0.6, 1] } : INSTANT
+          }
         />
       </svg>
       {CHIPS.map((chip) => (
@@ -625,9 +759,18 @@ function Break({ broken, still }: { broken: boolean; still: boolean }) {
           key={chip.top}
           aria-hidden
           className="absolute rounded-[0.01em] bg-[#1b1915]"
-          style={{ left: `${chip.left}%`, top: `${chip.top}%`, width: `${chip.size}em`, height: `${chip.size}em` }}
+          style={{
+            left: `${chip.left}%`,
+            top: `${chip.top}%`,
+            width: `${chip.size}em`,
+            height: `${chip.size}em`,
+          }}
           initial={false}
-          animate={broken ? { opacity: [0, 1, 0], y: chip.fall, rotate: chip.spin } : { opacity: 0, y: 0, rotate: 0 }}
+          animate={
+            broken
+              ? { opacity: [0, 1, 0], y: chip.fall, rotate: chip.spin }
+              : { opacity: 0, y: 0, rotate: 0 }
+          }
           transition={broken ? { delay: at(BREAK.split), duration: 0.8, ease: "easeIn" } : INSTANT}
         />
       ))}
@@ -665,15 +808,25 @@ function Bandage({ on, still }: { on: boolean; still: boolean }) {
     <span aria-hidden className="pointer-events-none absolute top-[48%] left-[51%] z-10">
       {CROSS.strips.map((strip, i) => (
         // Centred on the crack first, so both turn about the same point: an X
-        <span key={i} className="absolute top-0 left-0 -translate-x-1/2 -translate-y-1/2" style={{ rotate: `${strip.tilt}deg` }}>
+        <span
+          key={i}
+          className="absolute top-0 left-0 -translate-x-1/2 -translate-y-1/2"
+          style={{ rotate: `${strip.tilt}deg` }}
+        >
           {still ? (
             <Plaster />
           ) : (
             <motion.span
               className="block"
               initial={false}
-              animate={on ? { opacity: 1, scale: 1, y: "0em" } : { opacity: 0, scale: 1.35, y: "-0.05em" }}
-              transition={on ? { ...CROSS.spring, delay: strip.delay } : { duration: CROSS.peel, ease: "easeOut" }}
+              animate={
+                on ? { opacity: 1, scale: 1, y: "0em" } : { opacity: 0, scale: 1.35, y: "-0.05em" }
+              }
+              transition={
+                on
+                  ? { ...CROSS.spring, delay: strip.delay }
+                  : { duration: CROSS.peel, ease: "easeOut" }
+              }
             >
               <Plaster />
             </motion.span>
@@ -692,12 +845,33 @@ function Plaster() {
       style={{ width: CROSS.width }}
       fill="none"
     >
-      <path d={CROSS.outline} fill={CROSS.colors.tape} stroke={INK} strokeWidth={1.6} strokeLinejoin="round" />
-      <rect x={23} y={3.8} width={16} height={12.4} rx={2.6} fill={CROSS.colors.pad} stroke={CROSS.colors.holes} strokeWidth={0.8} />
+      <path
+        d={CROSS.outline}
+        fill={CROSS.colors.tape}
+        stroke={INK}
+        strokeWidth={1.6}
+        strokeLinejoin="round"
+      />
+      <rect
+        x={23}
+        y={3.8}
+        width={16}
+        height={12.4}
+        rx={2.6}
+        fill={CROSS.colors.pad}
+        stroke={CROSS.colors.holes}
+        strokeWidth={0.8}
+      />
       {HOLES.map(({ x, y }) => (
         <circle key={`${x}-${y}`} cx={x} cy={y} r={0.9} fill={CROSS.colors.holes} />
       ))}
-      <path d="M11 4.6 C18 4.1 26 4.2 34 4" stroke="#ffffff" strokeOpacity={0.55} strokeWidth={1.1} strokeLinecap="round" />
+      <path
+        d="M11 4.6 C18 4.1 26 4.2 34 4"
+        stroke="#ffffff"
+        strokeOpacity={0.55}
+        strokeWidth={1.1}
+        strokeLinecap="round"
+      />
     </svg>
   );
 }
@@ -722,7 +896,12 @@ function Ring({ broken, animated }: { broken: boolean; animated: boolean }) {
   }, []);
 
   const d = size && ringPath(size.w, size.h);
-  const pen = { d: d ?? "", stroke: SIG, strokeLinecap: "round" as const, style: { strokeWidth: RING_STROKE } };
+  const pen = {
+    d: d ?? "",
+    stroke: SIG,
+    strokeLinecap: "round" as const,
+    style: { strokeWidth: RING_STROKE },
+  };
   return (
     <span
       ref={ref}
@@ -730,13 +909,21 @@ function Ring({ broken, animated }: { broken: boolean; animated: boolean }) {
       className="pointer-events-none absolute -top-[0.2em] -left-[0.22em] -z-10 h-[calc(100%+0.4em)] w-[calc(100%+0.44em)]"
     >
       {size && (
-        <svg viewBox={`0 0 ${size.w} ${size.h}`} className="absolute inset-0 size-full overflow-visible" fill="none">
+        <svg
+          viewBox={`0 0 ${size.w} ${size.h}`}
+          className="absolute inset-0 size-full overflow-visible"
+          fill="none"
+        >
           {animated ? (
             <motion.path
               {...pen}
               initial={false}
               animate={broken ? { pathLength: 1, opacity: 1 } : { pathLength: 0, opacity: 0 }}
-              transition={broken ? { delay: at(BREAK.ring), duration: BREAK.ringFor, ease: [0.65, 0, 0.35, 1] } : INSTANT}
+              transition={
+                broken
+                  ? { delay: at(BREAK.ring), duration: BREAK.ringFor, ease: [0.65, 0, 0.35, 1] }
+                  : INSTANT
+              }
             />
           ) : (
             <path {...pen} />
@@ -753,10 +940,16 @@ function BreakFrame({
   animated = false,
   children,
   ...handlers
-}: { broken: boolean; animated?: boolean; children: ReactNode } & Partial<ReturnType<typeof useMend>["handlers"]>) {
+}: { broken: boolean; animated?: boolean; children: ReactNode } & Partial<
+  ReturnType<typeof useMend>["handlers"]
+>) {
   return (
     // A little extra room on the left, where the left half leans back.
-    <span className="relative isolate ml-[0.08em] inline-block whitespace-nowrap" style={{ color: INK }} {...handlers}>
+    <span
+      className="relative isolate ml-[0.08em] inline-block whitespace-nowrap"
+      style={{ color: INK }}
+      {...handlers}
+    >
       {/* The ring, drawn behind the word once it's caught */}
       <Ring broken={broken} animated={animated} />
 
@@ -769,8 +962,15 @@ function BreakFrame({
       {/* The full stop: the alert LED, lit red once the link breaks */}
       <span
         aria-hidden
-        className={cn("h2-led", animated && broken && "transition-[background-color] duration-300", broken && "h2-led-alert")}
-        style={{ backgroundColor: broken ? RED : UNLIT, transitionDelay: animated && broken ? `${at(BREAK.led)}s` : "0s" }}
+        className={cn(
+          "h2-led",
+          animated && broken && "transition-[background-color] duration-300",
+          broken && "h2-led-alert",
+        )}
+        style={{
+          backgroundColor: broken ? RED : UNLIT,
+          transitionDelay: animated && broken ? `${at(BREAK.led)}s` : "0s",
+        }}
       />
       <span className="sr-only">.</span>
     </span>

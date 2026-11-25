@@ -12,7 +12,8 @@ import "../home-2.css";
 const TITLE = "ndle: Free URL Shortener That Catches Broken Links";
 const DESCRIPTION =
   "Free URL shortener that checks every link every 30 minutes and flags 404s, timeouts and expired SSL. Click analytics, QR codes and 1 custom domain, free.";
-const SHARE_ALT = "ndle: short links, watched. A free URL shortener that checks every link every 30 minutes.";
+const SHARE_ALT =
+  "ndle: short links, watched. A free URL shortener that checks every link every 30 minutes.";
 
 export const HOME_METADATA: Metadata = {
   title: TITLE,
@@ -41,7 +42,12 @@ export const HOME_METADATA: Metadata = {
 const STRUCTURED_DATA = {
   "@context": "https://schema.org",
   "@graph": [
-    { "@type": "WebSite", "@id": "https://ndle.app/#website", name: "ndle", url: "https://ndle.app" },
+    {
+      "@type": "WebSite",
+      "@id": "https://ndle.app/#website",
+      name: "ndle",
+      url: "https://ndle.app",
+    },
     {
       "@type": "SoftwareApplication",
       name: "ndle",
@@ -53,12 +59,20 @@ const STRUCTURED_DATA = {
       author: {
         "@type": "Person",
         name: "Abhishek",
-        sameAs: ["https://x.com/abhishk_084", "https://www.linkedin.com/in/abhishek-ichi/", "https://github.com/imaxisXD"],
+        sameAs: [
+          "https://x.com/abhishk_084",
+          "https://www.linkedin.com/in/abhishek-ichi/",
+          "https://github.com/imaxisXD",
+        ],
       },
     },
     {
       "@type": "FAQPage",
-      mainEntity: FAQ.map(({ q, a }) => ({ "@type": "Question", name: q, acceptedAnswer: { "@type": "Answer", text: a } })),
+      mainEntity: FAQ.map(({ q, a }) => ({
+        "@type": "Question",
+        name: q,
+        acceptedAnswer: { "@type": "Answer", text: a },
+      })),
     },
   ],
 };
@@ -69,7 +83,9 @@ export function HomePage() {
     <div className={GeistSans.variable}>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(STRUCTURED_DATA).replace(/</g, "\\u003c") }}
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(STRUCTURED_DATA).replace(/</g, "\\u003c"),
+        }}
       />
       <ConvexClientProvider>
         <HomeTwo />

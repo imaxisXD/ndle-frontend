@@ -7,18 +7,10 @@ function TooltipProvider({
   delay = 0,
   ...props
 }: React.ComponentProps<typeof TooltipPrimitive.Provider>) {
-  return (
-    <TooltipPrimitive.Provider
-      data-slot="tooltip-provider"
-      delay={delay}
-      {...props}
-    />
-  );
+  return <TooltipPrimitive.Provider data-slot="tooltip-provider" delay={delay} {...props} />;
 }
 
-function Tooltip({
-  ...props
-}: React.ComponentProps<typeof TooltipPrimitive.Root>) {
+function Tooltip({ ...props }: React.ComponentProps<typeof TooltipPrimitive.Root>) {
   return (
     <TooltipProvider>
       <TooltipPrimitive.Root data-slot="tooltip" {...props} />
@@ -26,9 +18,7 @@ function Tooltip({
   );
 }
 
-function TooltipTrigger({
-  ...props
-}: React.ComponentProps<typeof TooltipPrimitive.Trigger>) {
+function TooltipTrigger({ ...props }: React.ComponentProps<typeof TooltipPrimitive.Trigger>) {
   return <TooltipPrimitive.Trigger data-slot="tooltip-trigger" {...props} />;
 }
 
@@ -39,8 +29,7 @@ const tooltipVariants = cva(
       variant: {
         default:
           "border border-border backdrop-blur-md text-white bg-black/80 text-white shadow-sm shadow-accent/10",
-        light:
-          "border border-border bg-surface-raised text-foreground shadow-floating",
+        light: "border border-border bg-surface-raised text-foreground shadow-floating",
       },
     },
     defaultVariants: {
@@ -149,11 +138,4 @@ function TooltipArrow({ className, variant, ...props }: TooltipArrowProps) {
   );
 }
 
-export {
-  Tooltip,
-  TooltipTrigger,
-  TooltipContent,
-  TooltipProvider,
-  TooltipArrow,
-  tooltipVariants,
-};
+export { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider, TooltipArrow, tooltipVariants };

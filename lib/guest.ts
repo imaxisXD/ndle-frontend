@@ -1,8 +1,7 @@
 const GUEST_ID_STORAGE_KEY = "ndle_guest_id";
 const GUEST_TOKEN_STORAGE_KEY = "ndle_guest_token";
 const GUEST_ID_COOKIE = "ndle_guest_id";
-const UUID_REGEX =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 export type GuestSession = {
   guestId: string;
@@ -43,9 +42,7 @@ export function readGuestId() {
   return "";
 }
 
-export async function ensureGuestSession(
-  startNew = false,
-): Promise<GuestSession> {
+export async function ensureGuestSession(startNew = false): Promise<GuestSession> {
   if (typeof window === "undefined") {
     throw new Error("Guest sessions are only available in the browser");
   }
@@ -57,19 +54,14 @@ export async function ensureGuestSession(
     body: JSON.stringify({
       startNew,
       guestId: existingGuestId || undefined,
-      guestToken:
-        window.localStorage.getItem(GUEST_TOKEN_STORAGE_KEY) || undefined,
+      guestToken: window.localStorage.getItem(GUEST_TOKEN_STORAGE_KEY) || undefined,
     }),
     cache: "no-store",
   });
 
   if (!response.ok) {
     const error = await response.json().catch(() => null);
-    if (
-      response.status === 401 &&
-      error?.code === "guest_session_expired" &&
-      !startNew
-    ) {
+    if (response.status === 401 && error?.code === "guest_session_expired" && !startNew) {
       return ensureGuestSession(true);
     }
     throw new Error(error?.error || "Guest session could not be created");

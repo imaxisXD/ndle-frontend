@@ -3,7 +3,9 @@ import { LinkTargetError, checkLink, parseTarget, verdictFor } from "./link-chec
 
 /* A fake web: each address answers with a status and, for redirects, a
    Location. Requests are recorded so HEAD-then-GET can be checked. */
-function fakeFetch(routes: Record<string, { status: number; location?: string } | "timeout" | "fail">) {
+function fakeFetch(
+  routes: Record<string, { status: number; location?: string } | "timeout" | "fail">,
+) {
   const calls: string[] = [];
   const impl = (async (input: RequestInfo | URL, init?: RequestInit) => {
     const url = String(input);
@@ -11,7 +13,10 @@ function fakeFetch(routes: Record<string, { status: number; location?: string } 
     const route = routes[url];
     if (route === "timeout") throw new DOMException("timed out", "TimeoutError");
     if (route === "fail" || !route) throw new TypeError("fetch failed");
-    return new Response(null, { status: route.status, headers: route.location ? { location: route.location } : {} });
+    return new Response(null, {
+      status: route.status,
+      headers: route.location ? { location: route.location } : {},
+    });
   }) as typeof fetch;
   return { impl, calls };
 }
@@ -24,7 +29,10 @@ describe("parseTarget", () => {
   it.each([
     ["", "Paste a link to check."],
     ["ftp://example.com", "Only http and https links can be checked."],
-    ["https://user:pass@example.com", "Links with a username or password in them can't be checked."],
+    [
+      "https://user:pass@example.com",
+      "Links with a username or password in them can't be checked.",
+    ],
     ["https://example.com:22", "Links on unusual ports can't be checked."],
     ["http://localhost:3000", "Links on unusual ports can't be checked."],
     ["http://localhost", "Only public websites can be checked."],
@@ -105,9 +113,19 @@ describe("checkLink", () => {
   });
 
   it("explains timeouts and failed connections", async () => {
-    const slow = await checkLink(new URL("https://slow.example.com/"), fakeFetch({ "https://slow.example.com/": "timeout" }).impl);
-    expect(slow).toMatchObject({ verdict: "broken", status: null, error: "The site took too long to respond." });
-    const down = await checkLink(new URL("https://down.example.com/"), fakeFetch({ "https://down.example.com/": "fail" }).impl);
+    const slow = await checkLink(
+      new URL("https://slow.example.com/"),
+      fakeFetch({ "https://slow.example.com/": "timeout" }).impl,
+    );
+    expect(slow).toMatchObject({
+      verdict: "broken",
+      status: null,
+      error: "The site took too long to respond.",
+    });
+    const down = await checkLink(
+      new URL("https://down.example.com/"),
+      fakeFetch({ "https://down.example.com/": "fail" }).impl,
+    );
     expect(down.error).toMatch(/Couldn't connect/);
   });
 });

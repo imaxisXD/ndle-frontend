@@ -50,7 +50,9 @@ describe("sampleTimeline", () => {
   });
 
   it("springs past its end value, then settles on it", () => {
-    const peak = Math.max(...[0.9, 1, 1.1, 1.2].map((t) => sampleTimeline(TIMELINE, t).group.lift.current.progress));
+    const peak = Math.max(
+      ...[0.9, 1, 1.1, 1.2].map((t) => sampleTimeline(TIMELINE, t).group.lift.current.progress),
+    );
     expect(peak).toBeGreaterThan(1);
     expect(sampleTimeline(TIMELINE, 2).group.lift.current.progress).toBeCloseTo(1, 2);
   });

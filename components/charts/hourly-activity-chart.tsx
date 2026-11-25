@@ -1,12 +1,6 @@
 "use client";
 
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { BklitVerticalBarChart } from "@/components/charts/bklit-bar-charts";
 import { Clock } from "iconoir-react";
 
@@ -27,9 +21,7 @@ export function HourlyActivityChart({
           <Clock className="size-5" />
           Hourly Activity
         </CardTitle>
-        <CardDescription className="text-xs">
-          Click activity throughout the day
-        </CardDescription>
+        <CardDescription className="text-xs">Click activity throughout the day</CardDescription>
       </CardHeader>
       <CardContent>
         <BklitVerticalBarChart

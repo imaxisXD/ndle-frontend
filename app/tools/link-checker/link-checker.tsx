@@ -2,7 +2,12 @@
 
 import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
 import Script from "next/script";
-import { ArrowRightIcon, CircleNotchIcon, LinkSimpleIcon, WarningCircleIcon } from "@phosphor-icons/react/dist/ssr";
+import {
+  ArrowRightIcon,
+  CircleNotchIcon,
+  LinkSimpleIcon,
+  WarningCircleIcon,
+} from "@phosphor-icons/react/dist/ssr";
 import { Badge } from "@ui/badge";
 import type { LinkCheckResult } from "@/lib/link-check";
 import { cn } from "@/lib/utils";
@@ -103,7 +108,9 @@ export function LinkChecker({ siteKey }: { siteKey: string }) {
       const body = await response.json().catch(() => ({}));
       if (!response.ok) {
         setResult(null);
-        setError(typeof body.error === "string" ? body.error : "That check didn't go through. Try again.");
+        setError(
+          typeof body.error === "string" ? body.error : "That check didn't go through. Try again.",
+        );
       } else {
         setResult(body as LinkCheckResult);
       }
@@ -117,7 +124,11 @@ export function LinkChecker({ siteKey }: { siteKey: string }) {
   };
 
   if (!siteKey) {
-    return <p className="font-mono text-sm text-[#3d3d3d]">The link checker isn&apos;t available right now.</p>;
+    return (
+      <p className="font-mono text-sm text-[#3d3d3d]">
+        The link checker isn&apos;t available right now.
+      </p>
+    );
   }
 
   return (
@@ -191,8 +202,13 @@ export function LinkChecker({ siteKey }: { siteKey: string }) {
       {result && (
         <div className="mt-2 border-2 border-[#141312] bg-white p-5">
           <div className="flex flex-wrap items-center gap-3">
-            <Badge variant={VERDICT[result.verdict].variant} label={VERDICT[result.verdict].label} />
-            <code className="min-w-0 truncate font-mono text-sm text-[#141312]">{result.finalUrl}</code>
+            <Badge
+              variant={VERDICT[result.verdict].variant}
+              label={VERDICT[result.verdict].label}
+            />
+            <code className="min-w-0 truncate font-mono text-sm text-[#141312]">
+              {result.finalUrl}
+            </code>
           </div>
           <p className="mt-3 text-[15px] leading-6 text-[var(--fg-2)]">{summary(result)}</p>
           {result.hops.length > 1 && (
@@ -207,7 +223,9 @@ export function LinkChecker({ siteKey }: { siteKey: string }) {
             </ol>
           )}
           <div className="mt-5 flex flex-wrap items-center gap-x-4 gap-y-3 border-t border-[var(--line)] pt-4">
-            <p className="text-sm text-[#141312]">Want to know if it breaks later? ndle checks every link every 30 minutes, free.</p>
+            <p className="text-sm text-[#141312]">
+              Want to know if it breaks later? ndle checks every link every 30 minutes, free.
+            </p>
             <ActionLink href={SIGN_UP}>Let ndle watch it</ActionLink>
           </div>
         </div>

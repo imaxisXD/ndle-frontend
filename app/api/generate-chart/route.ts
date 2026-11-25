@@ -73,20 +73,14 @@ DUCKDB DATE RULES (only when time filter is requested):
 export async function POST(req: Request) {
   console.log("[generate-chart] ======== NEW REQUEST ========");
   console.log("[generate-chart] Request method:", req.method);
-  console.log(
-    "[generate-chart] Content-Type:",
-    req.headers.get("Content-Type"),
-  );
+  console.log("[generate-chart] Content-Type:", req.headers.get("Content-Type"));
 
   try {
     if (process.env.NODE_ENV !== "development") {
-      return new Response(
-        JSON.stringify({ error: "This feature works only in dev mode." }),
-        {
-          status: 403,
-          headers: { "Content-Type": "application/json" },
-        },
-      );
+      return new Response(JSON.stringify({ error: "This feature works only in dev mode." }), {
+        status: 403,
+        headers: { "Content-Type": "application/json" },
+      });
     }
 
     const { userId } = await auth();
@@ -106,13 +100,10 @@ export async function POST(req: Request) {
       parsedBody = JSON.parse(rawBody);
     } catch (parseError) {
       console.error("[generate-chart] JSON parse error:", parseError);
-      return new Response(
-        JSON.stringify({ error: "Invalid JSON in request body" }),
-        {
-          status: 400,
-          headers: { "Content-Type": "application/json" },
-        },
-      );
+      return new Response(JSON.stringify({ error: "Invalid JSON in request body" }), {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      });
     }
 
     console.log("[generate-chart] Parsed body:", parsedBody);
@@ -134,11 +125,7 @@ export async function POST(req: Request) {
 
     const fullPrompt = `Generate UI for: ${prompt}`;
     console.log("[generate-chart] Full prompt to AI:", fullPrompt);
-    console.log(
-      "[generate-chart] System prompt length:",
-      SYSTEM_PROMPT.length,
-      "chars",
-    );
+    console.log("[generate-chart] System prompt length:", SYSTEM_PROMPT.length, "chars");
 
     // Stream textual JSONL patches
     console.log("[generate-chart] Creating streamText with model...");

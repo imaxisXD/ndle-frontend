@@ -2,19 +2,9 @@
 
 import { useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import {
-  Tooltip,
-  TooltipTrigger,
-  TooltipContent,
-} from "@/components/ui/base-tooltip";
+import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/base-tooltip";
 import { Badge } from "@/components/ui/badge";
-import {
-  Copy,
-  ShareAndroid,
-  QrCode,
-  OpenNewWindow,
-  Download,
-} from "iconoir-react";
+import { Copy, ShareAndroid, QrCode, OpenNewWindow, Download } from "iconoir-react";
 import { cn } from "@/lib/utils";
 import { useCopyToClipboard } from "@/hooks/use-copy-to-clipboard";
 
@@ -60,9 +50,7 @@ export function LinkActionsBar({
     node.setAttribute("data-state", "in");
   }, [copied]);
 
-  const normalizedShortUrl = /^https?:\/\//i.test(shortUrl)
-    ? shortUrl
-    : `https://${shortUrl}`;
+  const normalizedShortUrl = /^https?:\/\//i.test(shortUrl) ? shortUrl : `https://${shortUrl}`;
 
   const handleCopy = () => {
     void copy(normalizedShortUrl);
@@ -87,14 +75,9 @@ export function LinkActionsBar({
     }
   };
 
-  const statusVariant =
-    status === "active" ? "green" : status === "expired" ? "red" : "yellow";
+  const statusVariant = status === "active" ? "green" : status === "expired" ? "red" : "yellow";
   const statusLabel =
-    status === "active"
-      ? "Active"
-      : status === "expired"
-        ? "Expired"
-        : "Scheduled";
+    status === "active" ? "Active" : status === "expired" ? "Expired" : "Scheduled";
 
   return (
     <div className="flex shrink-0 flex-wrap items-center gap-3">
@@ -114,10 +97,7 @@ export function LinkActionsBar({
                 onClick={handleCopy}
                 className={cn("gap-1.5", phoneTapTarget)}
               >
-                <span
-                  className="t-icon-swap size-3.5"
-                  data-state={copied ? "b" : "a"}
-                >
+                <span className="t-icon-swap size-3.5" data-state={copied ? "b" : "a"}>
                   <span className="t-icon" data-icon="a" aria-hidden="true">
                     <Copy className="size-3.5" strokeWidth={1.8} />
                   </span>
@@ -160,11 +140,7 @@ export function LinkActionsBar({
                 onClick={handleShare}
                 className={phoneTapTarget}
               >
-                <ShareAndroid
-                  className="size-3.5"
-                  strokeWidth={1.8}
-                  aria-hidden="true"
-                />
+                <ShareAndroid className="size-3.5" strokeWidth={1.8} aria-hidden="true" />
                 <span className="hidden sm:inline">Share</span>
               </Button>
             }
@@ -183,16 +159,8 @@ export function LinkActionsBar({
                   onClick={onDownloadQR}
                   className={phoneTapTarget}
                 >
-                  <Download
-                    className="size-3.5"
-                    strokeWidth={1.8}
-                    aria-hidden="true"
-                  />
-                  <QrCode
-                    className="size-3.5"
-                    strokeWidth={1.8}
-                    aria-hidden="true"
-                  />
+                  <Download className="size-3.5" strokeWidth={1.8} aria-hidden="true" />
+                  <QrCode className="size-3.5" strokeWidth={1.8} aria-hidden="true" />
                 </Button>
               }
             />
@@ -210,11 +178,7 @@ export function LinkActionsBar({
                 onClick={handleOpenInNewTab}
                 className={phoneTapTarget}
               >
-                <OpenNewWindow
-                  className="size-3.5"
-                  strokeWidth={1.8}
-                  aria-hidden="true"
-                />
+                <OpenNewWindow className="size-3.5" strokeWidth={1.8} aria-hidden="true" />
                 <span className="hidden sm:inline">Open</span>
               </Button>
             }

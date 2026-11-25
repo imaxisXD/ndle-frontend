@@ -27,11 +27,7 @@ crons.interval(
   { cursor: null },
 );
 
-crons.interval(
-  "retry-service-updates",
-  { minutes: 1 },
-  internal.serviceSync.reconcile,
-);
+crons.interval("retry-service-updates", { minutes: 1 }, internal.serviceSync.reconcile);
 
 crons.interval(
   "trim-live-click-history",

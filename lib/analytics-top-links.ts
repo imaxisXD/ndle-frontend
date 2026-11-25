@@ -36,7 +36,7 @@ export function getAnalyticsTopLinks(
     .sort(([, left], [, right]) => right.clicks - left.clicks)
     .slice(0, limit)
     .map(([slug, { clicks, recordedDomain }]) => {
-      const detail = details.find(link => link.slugAssigned === slug);
+      const detail = details.find((link) => link.slugAssigned === slug);
       return {
         url: slug,
         originalUrl: detail?.fullurl ?? "Deleted link",

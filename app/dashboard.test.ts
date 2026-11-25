@@ -69,9 +69,7 @@ test.each(["Exhausted", "CanLoadMore"])(
   "the full list offers more links only when available: %s",
   (status) => {
     links.status = status;
-    const html = renderPage(
-      React.createElement(UrlTable, { showPagination: true }),
-    );
+    const html = renderPage(React.createElement(UrlTable, { showPagination: true }));
 
     expect(html.includes("Load more links")).toBe(status === "CanLoadMore");
     expect(html).not.toContain("links loaded");

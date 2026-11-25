@@ -1,13 +1,6 @@
 "use client";
 
-import {
-  lazy,
-  Suspense,
-  useMemo,
-  useState,
-  useEffect,
-  type ElementType,
-} from "react";
+import { lazy, Suspense, useMemo, useState, useEffect, type ElementType } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { useAnalyticsV2 } from "@/hooks/useAnalyticsV2";
 import { getAnalyticsDateWindow } from "@/lib/analytics-date-window";
@@ -53,9 +46,7 @@ function TotalClicksCard() {
       <CardContent className="p-6">
         <div className="flex items-start justify-between">
           <div className="flex-1">
-            <p className="text-muted-foreground text-xs">
-              Clicks on Active Links
-            </p>
+            <p className="text-muted-foreground text-xs">Clicks on Active Links</p>
             <div className="mt-2 text-2xl font-medium">
               {totalClicks == null ? (
                 <Skeleton className="h-8 w-16" />
@@ -66,10 +57,7 @@ function TotalClicksCard() {
             <div className="text-muted-foreground mt-1 text-xs">Real-time</div>
           </div>
           <div className="bg-muted rounded-lg p-3">
-            <CursorClickIcon
-              className="text-muted-foreground h-5 w-5"
-              aria-hidden="true"
-            />
+            <CursorClickIcon className="text-muted-foreground h-5 w-5" aria-hidden="true" />
           </div>
         </div>
       </CardContent>
@@ -97,11 +85,7 @@ function OverviewStatCard({
           <div className="flex-1">
             <p className="text-muted-foreground text-xs">{label}</p>
             <div className="mt-2 text-2xl font-medium">
-              {showSkeleton ? (
-                <Skeleton className="h-8 w-16" />
-              ) : (
-                <NumberFlow value={value} />
-              )}
+              {showSkeleton ? <Skeleton className="h-8 w-16" /> : <NumberFlow value={value} />}
             </div>
             <div className="text-muted-foreground mt-1 text-xs">{change}</div>
           </div>
@@ -114,11 +98,7 @@ function OverviewStatCard({
   );
 }
 
-function AnalyticsOverviewCards({
-  showSkeleton,
-}: {
-  showSkeleton: boolean;
-}) {
+function AnalyticsOverviewCards({ showSkeleton }: { showSkeleton: boolean }) {
   const linkCount = useQuery(api.urlAnalytics.getUsersLinkCount);
   return (
     <div className="grid gap-4 md:grid-cols-2">
@@ -140,9 +120,7 @@ export function Analytics() {
   const isDevMode = process.env.NODE_ENV === "development";
   const canUseAiChartBuilder = isDevMode && isPro;
 
-  const [filters, setFilters] = useState<AnalyticsFilterState>(
-    DEFAULT_ANALYTICS_FILTERS,
-  );
+  const [filters, setFilters] = useState<AnalyticsFilterState>(DEFAULT_ANALYTICS_FILTERS);
 
   const { start, end } = getAnalyticsDateWindow(filters.timeRange);
 
@@ -169,18 +147,14 @@ export function Analytics() {
   const analyticsData = serverData ?? null;
   const isLoading = showSkeleton;
   const topSlugs = useMemo(
-    () =>
-      getAnalyticsTopLinks(analyticsData?.linkCounts ?? {}).map(
-        (link) => link.url,
-      ),
+    () => getAnalyticsTopLinks(analyticsData?.linkCounts ?? {}).map((link) => link.url),
     [analyticsData?.linkCounts],
   );
   const topLinkDetails = useQuery(
     api.urlMainFuction.getLinkDetailsBySlugs,
     topSlugs.length > 0 ? { slugs: topSlugs } : "skip",
   );
-  const urlsLoading =
-    showSkeleton || (topSlugs.length > 0 && topLinkDetails === undefined);
+  const urlsLoading = showSkeleton || (topSlugs.length > 0 && topLinkDetails === undefined);
 
   const utmData: UTMAnalyticsData | null = analyticsData
     ? {
@@ -264,8 +238,7 @@ export function Analytics() {
   }, [analyticsData?.refererCounts]);
 
   const topLinks = useMemo(
-    () =>
-      getAnalyticsTopLinks(analyticsData?.linkCounts ?? {}, topLinkDetails ?? []),
+    () => getAnalyticsTopLinks(analyticsData?.linkCounts ?? {}, topLinkDetails ?? []),
     [topLinkDetails, analyticsData?.linkCounts],
   );
 
@@ -285,14 +258,8 @@ export function Analytics() {
       <div className="space-y-6">
         {filterBar}
         <div className="flex flex-col items-center px-6 py-12 text-center">
-          <EmptyStateImage
-            alt=""
-            className="mb-5 w-full max-w-[680px]"
-            name="errorAnalytics"
-          />
-          <h3 className="text-foreground text-sm font-medium">
-            Analytics could not load
-          </h3>
+          <EmptyStateImage alt="" className="mb-5 w-full max-w-[680px]" name="errorAnalytics" />
+          <h3 className="text-foreground text-sm font-medium">Analytics could not load</h3>
           <p className="text-muted-foreground mt-2 max-w-md text-xs">
             Try another date range or refresh the page. Your links are safe.
           </p>

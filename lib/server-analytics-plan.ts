@@ -36,10 +36,7 @@ export async function queryConvexAsUser<T>(
     );
   });
   try {
-    const token = await Promise.race([
-      getToken({ template: "convex" }),
-      stopped,
-    ]);
+    const token = await Promise.race([getToken({ template: "convex" }), stopped]);
     if (!token) return null;
     const response = await fetch(`${convexUrl.replace(/\/$/, "")}/api/query`, {
       method: "POST",

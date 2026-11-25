@@ -33,21 +33,15 @@ function Checkbox({
   className,
   size,
   ...props
-}: React.ComponentProps<typeof CheckboxPrimitive.Root> &
-  VariantProps<typeof checkboxVariants>) {
+}: React.ComponentProps<typeof CheckboxPrimitive.Root> & VariantProps<typeof checkboxVariants>) {
   return (
     <CheckboxPrimitive.Root
       data-slot="checkbox"
       className={cn(checkboxVariants({ size }), className)}
       {...props}
     >
-      <CheckboxPrimitive.Indicator
-        className={cn("flex items-center justify-center text-current")}
-      >
-        <Check
-          className="group-data-[state=indeterminate]:hidden"
-          strokeWidth={3.5}
-        />
+      <CheckboxPrimitive.Indicator className={cn("flex items-center justify-center text-current")}>
+        <Check className="group-data-[state=indeterminate]:hidden" strokeWidth={3.5} />
         <Minus className="hidden group-data-[state=indeterminate]:block" />
       </CheckboxPrimitive.Indicator>
     </CheckboxPrimitive.Root>

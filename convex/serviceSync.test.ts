@@ -36,9 +36,7 @@ describe("saved service updates", () => {
         clerkUserId: "user_test",
       }),
     );
-    const job = await backend.run((ctx) =>
-      ctx.db.query("serviceSyncJobs").first(),
-    );
+    const job = await backend.run((ctx) => ctx.db.query("serviceSyncJobs").first());
     await backend.action(internal.serviceSync.run, {
       jobId: job!._id,
       version,
@@ -47,9 +45,7 @@ describe("saved service updates", () => {
     expect(failed?.status).toBe("pending");
     expect(failed?.attempts).toBe(1);
     expect(failed?.lastError).toContain("503");
-    expect(
-      (await backend.run((ctx) => ctx.db.get(userId)))?.metadataSyncedAt,
-    ).toBeUndefined();
+    expect((await backend.run((ctx) => ctx.db.get(userId)))?.metadataSyncedAt).toBeUndefined();
     await backend.run((ctx) => ctx.db.patch(job!._id, { nextAttemptAt: 0 }));
     vi.stubGlobal(
       "fetch",
@@ -68,12 +64,8 @@ describe("saved service updates", () => {
       jobId: job!._id,
       version,
     });
-    expect((await backend.run((ctx) => ctx.db.get(job!._id)))?.status).toBe(
-      "complete",
-    );
-    expect(
-      (await backend.run((ctx) => ctx.db.get(userId)))?.metadataSyncedAt,
-    ).toBeTypeOf("number");
+    expect((await backend.run((ctx) => ctx.db.get(job!._id)))?.status).toBe("complete");
+    expect((await backend.run((ctx) => ctx.db.get(userId)))?.metadataSyncedAt).toBeTypeOf("number");
   });
 
   test("a newer update waits for the running version and cannot be marked complete by it", async () => {
@@ -85,9 +77,7 @@ describe("saved service updates", () => {
         ownerKeys: ["guest:first"],
       }),
     );
-    const job = await backend.run((ctx) =>
-      ctx.db.query("serviceSyncJobs").first(),
-    );
+    const job = await backend.run((ctx) => ctx.db.query("serviceSyncJobs").first());
     expect(
       await backend.mutation(internal.serviceSync.claim, {
         jobId: job!._id,
@@ -136,8 +126,7 @@ describe("saved service updates", () => {
           : {
               id: shape === "wrong user" ? "user_someone_else" : "user_test",
               public_metadata: {
-                convex_user_id:
-                  shape === "wrong metadata" ? "different-account" : userId,
+                convex_user_id: shape === "wrong metadata" ? "different-account" : userId,
                 membership: "free",
                 plan: "free",
               },
@@ -145,9 +134,7 @@ describe("saved service updates", () => {
       vi.stubGlobal(
         "fetch",
         vi.fn(async () =>
-          shape === "HTML"
-            ? new Response("<html>Sign in</html>")
-            : Response.json(body),
+          shape === "HTML" ? new Response("<html>Sign in</html>") : Response.json(body),
         ),
       );
       const version = await backend.run((ctx) =>
@@ -157,19 +144,13 @@ describe("saved service updates", () => {
           clerkUserId: "user_test",
         }),
       );
-      const job = await backend.run((ctx) =>
-        ctx.db.query("serviceSyncJobs").first(),
-      );
+      const job = await backend.run((ctx) => ctx.db.query("serviceSyncJobs").first());
       await backend.action(internal.serviceSync.run, {
         jobId: job!._id,
         version,
       });
-      expect((await backend.run((ctx) => ctx.db.get(job!._id)))?.status).toBe(
-        "pending",
-      );
-      expect(
-        (await backend.run((ctx) => ctx.db.get(userId)))?.metadataSyncedAt,
-      ).toBeUndefined();
+      expect((await backend.run((ctx) => ctx.db.get(job!._id)))?.status).toBe("pending");
+      expect((await backend.run((ctx) => ctx.db.get(userId)))?.metadataSyncedAt).toBeUndefined();
     },
   );
 
@@ -194,16 +175,12 @@ describe("saved service updates", () => {
           ownerKeys: [userId],
         }),
       );
-      const job = await backend.run((ctx) =>
-        ctx.db.query("serviceSyncJobs").first(),
-      );
+      const job = await backend.run((ctx) => ctx.db.query("serviceSyncJobs").first());
       await backend.action(internal.serviceSync.run, {
         jobId: job!._id,
         version,
       });
-      expect((await backend.run((ctx) => ctx.db.get(job!._id)))?.status).toBe(
-        "pending",
-      );
+      expect((await backend.run((ctx) => ctx.db.get(job!._id)))?.status).toBe("pending");
       await backend.run((ctx) => ctx.db.patch(job!._id, { nextAttemptAt: 0 }));
       vi.stubGlobal(
         "fetch",
@@ -213,9 +190,7 @@ describe("saved service updates", () => {
         jobId: job!._id,
         version,
       });
-      expect((await backend.run((ctx) => ctx.db.get(job!._id)))?.status).toBe(
-        "complete",
-      );
+      expect((await backend.run((ctx) => ctx.db.get(job!._id)))?.status).toBe("complete");
     },
   );
 
@@ -230,9 +205,9 @@ describe("saved service updates", () => {
       vi.stubEnv("INTERNAL_API_URL", "https://analytics.test/analytics/v2");
       vi.stubEnv("API_SECRET", "local-only");
       vi.stubEnv("OWNER_SYNC_SECRET", scoped);
-      const fetchMock = vi.fn<
-        (url: string, options?: RequestInit) => Promise<Response>
-      >(async () => Response.json({ success: true }));
+      const fetchMock = vi.fn<(url: string, options?: RequestInit) => Promise<Response>>(async () =>
+        Response.json({ success: true }),
+      );
       vi.stubGlobal("fetch", fetchMock);
       const version = await backend.run((ctx) =>
         queueServiceSync(ctx, `owner:${userId}`, {
@@ -241,23 +216,17 @@ describe("saved service updates", () => {
           ownerKeys: [userId],
         }),
       );
-      const job = await backend.run((ctx) =>
-        ctx.db.query("serviceSyncJobs").first(),
-      );
+      const job = await backend.run((ctx) => ctx.db.query("serviceSyncJobs").first());
       await backend.action(internal.serviceSync.run, {
         jobId: job!._id,
         version,
       });
       expect(fetchMock).toHaveBeenCalledTimes(1);
-      expect(fetchMock.mock.calls[0][0]).toBe(
-        "https://analytics.test/internal/owner-aliases",
-      );
+      expect(fetchMock.mock.calls[0][0]).toBe("https://analytics.test/internal/owner-aliases");
       expect(fetchMock.mock.calls[0][1]?.headers).toMatchObject({
         Authorization: expected,
       });
-      expect((await backend.run((ctx) => ctx.db.get(job!._id)))?.status).toBe(
-        "complete",
-      );
+      expect((await backend.run((ctx) => ctx.db.get(job!._id)))?.status).toBe("complete");
     },
   );
 
@@ -305,18 +274,14 @@ describe("saved service updates", () => {
     expect(job?.target).toMatchObject({ urlId: old.docId });
     const fetchMock = vi.fn(async (_url: string, options?: RequestInit) => {
       const command = JSON.parse(String(options?.body));
-      return Response.json(
-        Array.isArray(command[0]) ? [{ result: 1 }] : { result: 1 },
-      );
+      return Response.json(Array.isArray(command[0]) ? [{ result: 1 }] : { result: 1 });
     });
     vi.stubGlobal("fetch", fetchMock);
     await backend.action(internal.serviceSync.run, {
       jobId: job!._id,
       version: job!.version,
     });
-    expect(
-      (await backend.run((ctx) => ctx.db.get(job!._id)))?.lastError,
-    ).toBeUndefined();
+    expect((await backend.run((ctx) => ctx.db.get(job!._id)))?.lastError).toBeUndefined();
     expect(await backend.run((ctx) => ctx.db.get(job!._id))).toMatchObject({
       status: "complete",
     });
@@ -328,9 +293,10 @@ describe("saved service updates", () => {
       destination: "https://example.com/replacement",
       domain: null,
     });
-    expect(await backend.run((ctx) => ctx.db.get(replacementId))).toMatchObject(
-      { redisStatus: "OK", urlStatusMessage: "success" },
-    );
+    expect(await backend.run((ctx) => ctx.db.get(replacementId))).toMatchObject({
+      redisStatus: "OK",
+      urlStatusMessage: "success",
+    });
     expect(await backend.run((ctx) => ctx.db.get(job!._id))).toMatchObject({
       status: "complete",
       target: { urlId: replacementId },
@@ -385,8 +351,6 @@ describe("saved service updates", () => {
       }),
     );
     await backend.mutation(internal.serviceSync.reconcile, {});
-    expect((await backend.run((ctx) => ctx.db.get(jobId)))?.status).toBe(
-      "pending",
-    );
+    expect((await backend.run((ctx) => ctx.db.get(jobId)))?.status).toBe("pending");
   });
 });

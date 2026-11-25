@@ -1,10 +1,24 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type FormEvent } from "react";
+import {
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type CSSProperties,
+  type FormEvent,
+} from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useMutation } from "convex/react";
-import { AnimatePresence, animate, motion, useMotionValue, useReducedMotion, useTransform } from "motion/react";
+import {
+  AnimatePresence,
+  animate,
+  motion,
+  useMotionValue,
+  useReducedMotion,
+  useTransform,
+} from "motion/react";
 import {
   ArrowCounterClockwiseIcon,
   ArrowRightIcon,
@@ -238,7 +252,8 @@ export function HeroShortener({ onPass }: { onPass?: (link: YourLink) => void })
       const kind = new URLSearchParams(window.location.search).get("mock");
       if (isMockKind(kind)) return mockShorten(kind);
     }
-    if (!guestSession) throw new ShortenProblem(guestUnavailable ? PROBLEMS.unavailable : PROBLEMS.connecting);
+    if (!guestSession)
+      throw new ShortenProblem(guestUnavailable ? PROBLEMS.unavailable : PROBLEMS.connecting);
     const created = await createGuestUrl({
       url,
       guestId: guestSession.guestId,
@@ -385,7 +400,13 @@ export function ShortenForm({
     focusField.current = true;
   };
 
-  const label: LabelKind = landed ? (copied ? "copied" : "copy") : submitting || done ? "shortening" : "shorten";
+  const label: LabelKind = landed
+    ? copied
+      ? "copied"
+      : "copy"
+    : submitting || done
+      ? "shortening"
+      : "shorten";
 
   return (
     <>
@@ -453,7 +474,10 @@ export function ShortenForm({
                     <span className={cn("truncate", !landed && "opacity-0")}>{outcome.short}</span>
                     <ArrowSquareOutIcon
                       size={14}
-                      className={cn("shrink-0 text-[var(--fg-3)] transition-opacity duration-300", !landed && "opacity-0")}
+                      className={cn(
+                        "shrink-0 text-[var(--fg-3)] transition-opacity duration-300",
+                        !landed && "opacity-0",
+                      )}
                     />
                     <span className="sr-only">(opens in a new tab)</span>
                   </a>
@@ -482,17 +506,26 @@ export function ShortenForm({
                       jamming && "text-transparent caret-transparent placeholder:text-transparent",
                     )}
                   />
-                  {outcome.kind === "error" && jamming && <Jam key={outcome.id} shown={outcome.shown} />}
+                  {outcome.kind === "error" && jamming && (
+                    <Jam key={outcome.id} shown={outcome.shown} />
+                  )}
                 </>
               )}
             </div>
 
             {outcome.kind === "done" && (
-              <Savings key={`savings-${outcome.id}`} shown={outcome.shown} short={outcome.short} stage={stage} />
+              <Savings
+                key={`savings-${outcome.id}`}
+                shown={outcome.shown}
+                short={outcome.short}
+                stage={stage}
+              />
             )}
           </div>
 
-          {outcome.kind === "done" && landed && <Record destination={outcome.destination} watched={watchPreview} />}
+          {outcome.kind === "done" && landed && (
+            <Record destination={outcome.destination} watched={watchPreview} />
+          )}
         </div>
 
         <div className="flex shrink-0 flex-col sm:min-w-[9.5rem]">
@@ -518,7 +551,12 @@ export function ShortenForm({
                     type="button"
                     onClick={
                       onPass && outcome.kind === "done"
-                        ? () => onPass({ short: outcome.short, destination: outcome.destination, expiresAt: outcome.expiresAt })
+                        ? () =>
+                            onPass({
+                              short: outcome.short,
+                              destination: outcome.destination,
+                              expiresAt: outcome.expiresAt,
+                            })
                         : again
                     }
                     className={cn(
@@ -545,7 +583,11 @@ export function ShortenForm({
         </div>
       </form>
 
-      <div id="hero-url-note" aria-live="polite" className="mt-3 min-h-5 font-mono text-xs leading-5 text-balance">
+      <div
+        id="hero-url-note"
+        aria-live="polite"
+        className="mt-3 min-h-5 font-mono text-xs leading-5 text-balance"
+      >
         {outcome.kind === "error" ? (
           <ProblemNote key={outcome.id} problem={outcome.problem} />
         ) : landed && copyBlocked ? (
@@ -553,8 +595,8 @@ export function ShortenForm({
         ) : landed ? (
           <p className="h2-settle text-[var(--fg-2)]" style={delay(FINALE.note)}>
             <span className="sr-only">Short link ready: {outcome.short}. </span>
-            This guest link lasts 7 days. <SignUpLink onPoint={setWatchPreview} /> to keep it, and ndle checks it every 30
-            minutes.
+            This guest link lasts 7 days. <SignUpLink onPoint={setWatchPreview} /> to keep it, and
+            ndle checks it every 30 minutes.
             {/* With the dashboard pass on the button, starting over moves down here */}
             {onPass && (
               <>
@@ -574,7 +616,9 @@ export function ShortenForm({
             )}
           </p>
         ) : done ? null : (
-          <p className="text-[var(--fg-3)]">No sign-up. No ads. Guest links last 7 days; account links don&apos;t expire.</p>
+          <p className="text-[var(--fg-3)]">
+            No sign-up. No ads. Guest links last 7 days; account links don&apos;t expire.
+          </p>
         )}
       </div>
     </>
@@ -602,7 +646,13 @@ function Squeeze({ shown, short, stage }: { shown: Shown; short: string; stage: 
     >
       {Array.from({ length: slots }, (_, i) =>
         i < kept ? (
-          <RollChar key={i} from={chars[i]} to={target[i]} rolled={stage >= 2} delay={i * ROLL.every} />
+          <RollChar
+            key={i}
+            from={chars[i]}
+            to={target[i]}
+            rolled={stage >= 2}
+            delay={i * ROLL.every}
+          />
         ) : (
           <FeedChar key={i} char={chars[i]} fed={stage >= 1} delay={((i - kept) * every) / 1000} />
         ),
@@ -628,7 +678,11 @@ function FeedChar({ char, fed, delay }: { char: string; fed: boolean; delay: num
     <motion.span
       className="inline-block overflow-hidden"
       initial={false}
-      animate={fed ? { width: "0ch", opacity: 0, filter: FEED.blur } : { width: "1ch", opacity: 1, filter: "blur(0px)" }}
+      animate={
+        fed
+          ? { width: "0ch", opacity: 0, filter: FEED.blur }
+          : { width: "1ch", opacity: 1, filter: "blur(0px)" }
+      }
       transition={{ duration: FEED.each, ease: "easeIn", delay }}
     >
       {char}
@@ -638,7 +692,17 @@ function FeedChar({ char, fed, delay }: { char: string; fed: boolean; delay: num
 
 /** A character before the caret: it rolls over into the short link's
     character in the same place, the way the dashboard's numbers roll. */
-function RollChar({ from, to, rolled, delay }: { from?: string; to: string; rolled: boolean; delay: number }) {
+function RollChar({
+  from,
+  to,
+  rolled,
+  delay,
+}: {
+  from?: string;
+  to: string;
+  rolled: boolean;
+  delay: number;
+}) {
   const transition = { ...ROLL.spring, delay };
   return (
     <motion.span
@@ -720,10 +784,16 @@ function Record({ destination, watched }: { destination: string; watched: boolea
             className="h2-wipe absolute inset-x-0 top-0 border-t border-dashed border-[var(--dash)]"
             style={{ animationDelay: `${FINALE.unfold}ms` }}
           />
-          <span className="h2-settle grid size-[17px] shrink-0 place-items-center" style={delay(FINALE.record)}>
+          <span
+            className="h2-settle grid size-[17px] shrink-0 place-items-center"
+            style={delay(FINALE.record)}
+          >
             <SiteIcon url={destination} />
           </span>
-          <span className="h2-settle min-w-0 flex-1 truncate text-left text-[var(--fg-3)]" style={delay(FINALE.record)}>
+          <span
+            className="h2-settle min-w-0 flex-1 truncate text-left text-[var(--fg-3)]"
+            style={delay(FINALE.record)}
+          >
             <span className="sr-only">Goes to </span>
             {destination.replace(/^https?:\/\//, "")}
           </span>
@@ -741,7 +811,8 @@ function Record({ destination, watched }: { destination: string; watched: boolea
 function SiteIcon({ url }: { url: string }) {
   const { faviconUrl } = useFavicon(url);
   const [failed, setFailed] = useState(false);
-  if (!faviconUrl || failed) return <GlobeSimpleIcon size={16} weight="duotone" className="text-[var(--fg-3)]" />;
+  if (!faviconUrl || failed)
+    return <GlobeSimpleIcon size={16} weight="duotone" className="text-[var(--fg-3)]" />;
   return (
     <Image
       src={faviconUrl}
@@ -770,8 +841,21 @@ function WatchBadge({ watched }: { watched: boolean }) {
         style={{ backgroundColor: watched ? "var(--sig)" : UNLIT }}
       />
       <span className="grid">
-        <span className={cn("col-start-1 row-start-1 transition-opacity duration-200", watched && "opacity-0")}>not watched</span>
-        <span aria-hidden className={cn("col-start-1 row-start-1 transition-opacity duration-200", !watched && "opacity-0")}>
+        <span
+          className={cn(
+            "col-start-1 row-start-1 transition-opacity duration-200",
+            watched && "opacity-0",
+          )}
+        >
+          not watched
+        </span>
+        <span
+          aria-hidden
+          className={cn(
+            "col-start-1 row-start-1 transition-opacity duration-200",
+            !watched && "opacity-0",
+          )}
+        >
           watched
         </span>
       </span>
@@ -861,7 +945,10 @@ function FieldMark({ mark }: { mark: "link" | "alert" | "done" }) {
           {mark === "alert" && (
             // The page's alert LED, lit, with one ping
             <span className="relative flex size-[9px]">
-              <span className="h2-live-ping absolute inset-0 rounded-full" style={{ backgroundColor: RED }} />
+              <span
+                className="h2-live-ping absolute inset-0 rounded-full"
+                style={{ backgroundColor: RED }}
+              />
               <span
                 className="relative size-[9px] rounded-full shadow-[0_0_0_1px_oklch(0.5_0.2_27/0.45),0_0_8px_oklch(0.63_0.22_27/0.55)]"
                 style={{ backgroundColor: RED }}
@@ -881,7 +968,10 @@ function FieldMark({ mark }: { mark: "link" | "alert" | "done" }) {
 
 type LabelKind = "shorten" | "shortening" | "copy" | "copied";
 
-const LABELS: Record<LabelKind, { text: string; Icon: typeof ArrowRightIcon; after?: boolean; spin?: boolean }> = {
+const LABELS: Record<
+  LabelKind,
+  { text: string; Icon: typeof ArrowRightIcon; after?: boolean; spin?: boolean }
+> = {
   shorten: { text: "Shorten", Icon: ArrowRightIcon, after: true },
   shortening: { text: "Shortening…", Icon: CircleNotchIcon, spin: true },
   copy: { text: "Copy link", Icon: CopyIcon },
@@ -890,7 +980,13 @@ const LABELS: Record<LabelKind, { text: string; Icon: typeof ArrowRightIcon; aft
 
 function ButtonLabel({ kind, still }: { kind: LabelKind; still: boolean }) {
   const { text, Icon, after, spin } = LABELS[kind];
-  const icon = <Icon size={16} weight={kind === "copied" ? "bold" : undefined} className={cn(spin && "animate-spin")} />;
+  const icon = (
+    <Icon
+      size={16}
+      weight={kind === "copied" ? "bold" : undefined}
+      className={cn(spin && "animate-spin")}
+    />
+  );
   return (
     <AnimatePresence mode="popLayout" initial={false}>
       <motion.span

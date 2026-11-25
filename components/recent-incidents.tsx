@@ -22,8 +22,7 @@ export type Incident = {
 };
 
 const getIncidentCardStyles = (type: Incident["type"]) => {
-  const baseStyles =
-    "flex items-start gap-3 rounded-lg border p-3 sm:gap-4 sm:p-4";
+  const baseStyles = "flex items-start gap-3 rounded-lg border p-3 sm:gap-4 sm:p-4";
 
   switch (type) {
     case "warning":
@@ -67,15 +66,9 @@ const columns: ColumnDef<Incident>[] = [
         <div className="w-24 shrink-0">
           <Badge
             variant={
-              incident.type === "error"
-                ? "red"
-                : incident.type === "warning"
-                  ? "yellow"
-                  : "green"
+              incident.type === "error" ? "red" : incident.type === "warning" ? "yellow" : "green"
             }
-            label={
-              incident.type.charAt(0).toUpperCase() + incident.type.slice(1)
-            }
+            label={incident.type.charAt(0).toUpperCase() + incident.type.slice(1)}
           />
         </div>
       );
@@ -85,10 +78,7 @@ const columns: ColumnDef<Incident>[] = [
     accessorKey: "link",
     header: "Link",
     cell: ({ row }) => (
-      <code
-        className="block truncate text-sm font-medium"
-        title={row.original.link}
-      >
+      <code className="block truncate text-sm font-medium" title={row.original.link}>
         {row.original.link}
       </code>
     ),
@@ -106,9 +96,7 @@ const columns: ColumnDef<Incident>[] = [
     accessorKey: "time",
     header: "Time",
     cell: ({ row }) => (
-      <p className="text-muted-foreground text-right text-xs">
-        {row.original.time}
-      </p>
+      <p className="text-muted-foreground text-right text-xs">{row.original.time}</p>
     ),
   },
 ];
@@ -147,9 +135,7 @@ export function RecentIncidents({
     <Card className="p-4 sm:p-6">
       <div className="mb-6">
         <h3 className="text-base font-medium">Recent Incidents</h3>
-        <p className="text-muted-foreground mt-1 text-xs">
-          Latest monitoring alerts and issues
-        </p>
+        <p className="text-muted-foreground mt-1 text-xs">Latest monitoring alerts and issues</p>
       </div>
 
       {isLoading ? (
@@ -159,9 +145,7 @@ export function RecentIncidents({
           ))}
         </div>
       ) : incidents.length === 0 ? (
-        <p className="text-muted-foreground py-8 text-center text-sm">
-          No incidents recorded yet
-        </p>
+        <p className="text-muted-foreground py-8 text-center text-sm">No incidents recorded yet</p>
       ) : (
         <>
           {/* Card-based rows */}
@@ -169,44 +153,26 @@ export function RecentIncidents({
             {table.getRowModel().rows.map((row) => {
               const incident = row.original;
               return (
-                <div
-                  key={row.id}
-                  className={getIncidentCardStyles(incident.type)}
-                >
+                <div key={row.id} className={getIncidentCardStyles(incident.type)}>
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:gap-8">
                       {/* Phones: the time sits beside the badge instead of in
                           its own column. */}
                       <div className="flex w-full items-center justify-between gap-3 sm:w-auto">
-                        {flexRender(
-                          columns[0].cell,
-                          row.getVisibleCells()[0].getContext(),
-                        )}
+                        {flexRender(columns[0].cell, row.getVisibleCells()[0].getContext())}
                         <div className="shrink-0 sm:hidden">
-                          {flexRender(
-                            columns[3].cell,
-                            row.getVisibleCells()[3].getContext(),
-                          )}
+                          {flexRender(columns[3].cell, row.getVisibleCells()[3].getContext())}
                         </div>
                       </div>
                       <div className="flex w-full min-w-0 flex-col gap-1">
-                        {flexRender(
-                          columns[1].cell,
-                          row.getVisibleCells()[1].getContext(),
-                        )}
-                        {flexRender(
-                          columns[2].cell,
-                          row.getVisibleCells()[2].getContext(),
-                        )}
+                        {flexRender(columns[1].cell, row.getVisibleCells()[1].getContext())}
+                        {flexRender(columns[2].cell, row.getVisibleCells()[2].getContext())}
                       </div>
                     </div>
                   </div>
                   <div className="hidden shrink-0 flex-col gap-1 text-right sm:flex">
                     <p className="text-sm">Occurred</p>
-                    {flexRender(
-                      columns[3].cell,
-                      row.getVisibleCells()[3].getContext(),
-                    )}
+                    {flexRender(columns[3].cell, row.getVisibleCells()[3].getContext())}
                   </div>
                 </div>
               );
@@ -218,11 +184,8 @@ export function RecentIncidents({
             <div className="border-border mt-6 flex flex-wrap items-center justify-between gap-3 border-t pt-4">
               <div className="text-muted-foreground text-xs">
                 {pagination.pageIndex * pagination.pageSize + 1} -{" "}
-                {Math.min(
-                  (pagination.pageIndex + 1) * pagination.pageSize,
-                  incidents.length,
-                )}{" "}
-                of {incidents.length} incidents
+                {Math.min((pagination.pageIndex + 1) * pagination.pageSize, incidents.length)} of{" "}
+                {incidents.length} incidents
               </div>
               <span className="hidden text-xs sm:inline">
                 Page {currentPage} of {pageCount}

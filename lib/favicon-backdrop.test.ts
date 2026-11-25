@@ -43,6 +43,11 @@ describe("washesOut", () => {
   });
 
   test("keeps an empty favicon on the light container", () => {
-    expect(washesOut(favicon(() => CLEAR), SIZE)).toBe(false);
+    expect(
+      washesOut(
+        favicon(() => CLEAR),
+        SIZE,
+      ),
+    ).toBe(false);
   });
 });

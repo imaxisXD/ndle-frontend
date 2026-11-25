@@ -97,10 +97,7 @@ export function finderShapes(x: number, y: number) {
 }
 
 function escapeAttribute(value: string) {
-  return value
-    .replace(/&/g, "&amp;")
-    .replace(/"/g, "&quot;")
-    .replace(/</g, "&lt;");
+  return value.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
 }
 
 /** The code as a standalone SVG file, for downloads and the PNG renderer. */
@@ -114,9 +111,7 @@ export function qrCodeSvg(value: string, options: QrDrawOptions) {
   ];
 
   if (bg !== "transparent") {
-    parts.push(
-      `<rect width="${modules}" height="${modules}" fill="${escapeAttribute(bg)}"/>`,
-    );
+    parts.push(`<rect width="${modules}" height="${modules}" fill="${escapeAttribute(bg)}"/>`);
   }
 
   for (const finder of layout.finders) {

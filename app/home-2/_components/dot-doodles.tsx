@@ -32,17 +32,35 @@ const OFF = "translate(0.9 0.9)"; // the colour, a touch off the line
 /** Pattern and clip ids that don't collide between doodles on the page. */
 export function useIds() {
   const id = useId().replace(/:/g, "");
-  return { fill: `dd-fill-${id}`, shade: `dd-shade-${id}`, dots: `dd-dots-${id}`, shadeDots: `dd-shade-dots-${id}`, over: `dd-over-${id}` };
+  return {
+    fill: `dd-fill-${id}`,
+    shade: `dd-shade-${id}`,
+    dots: `dd-dots-${id}`,
+    shadeDots: `dd-shade-dots-${id}`,
+    over: `dd-over-${id}`,
+  };
 }
 
 /** The halftones: small dots all over, bigger and darker in shadow. */
 export function Halftones({ ids, p }: { ids: ReturnType<typeof useIds>; p: Palette }) {
   return (
     <>
-      <pattern id={ids.dots} width={3} height={3} patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+      <pattern
+        id={ids.dots}
+        width={3}
+        height={3}
+        patternUnits="userSpaceOnUse"
+        patternTransform="rotate(45)"
+      >
         <circle cx={1.5} cy={1.5} r={0.95} fill={p.dots} />
       </pattern>
-      <pattern id={ids.shadeDots} width={3} height={3} patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+      <pattern
+        id={ids.shadeDots}
+        width={3}
+        height={3}
+        patternUnits="userSpaceOnUse"
+        patternTransform="rotate(45)"
+      >
         <circle cx={1.5} cy={1.5} r={1.25} fill={p.shadeDots} />
       </pattern>
     </>
@@ -50,7 +68,17 @@ export function Halftones({ ids, p }: { ids: ReturnType<typeof useIds>; p: Palet
 }
 
 /** A filled shape coloured the hearts' way: base, dots, dots in shadow. */
-export function Colored({ d, shade, ids, p }: { d: string; shade: string; ids: ReturnType<typeof useIds>; p: Palette }) {
+export function Colored({
+  d,
+  shade,
+  ids,
+  p,
+}: {
+  d: string;
+  shade: string;
+  ids: ReturnType<typeof useIds>;
+  p: Palette;
+}) {
   return (
     <>
       <clipPath id={ids.fill}>
@@ -62,7 +90,12 @@ export function Colored({ d, shade, ids, p }: { d: string; shade: string; ids: R
       <path d={d} transform={OFF} fill={p.base} />
       <g clipPath={`url(#${ids.fill})`}>
         <rect width={64} height={64} fill={`url(#${ids.dots})`} />
-        <rect width={64} height={64} fill={`url(#${ids.shadeDots})`} clipPath={`url(#${ids.shade})`} />
+        <rect
+          width={64}
+          height={64}
+          fill={`url(#${ids.shadeDots})`}
+          clipPath={`url(#${ids.shade})`}
+        />
       </g>
     </>
   );
@@ -71,14 +104,25 @@ export function Colored({ d, shade, ids, p }: { d: string; shade: string; ids: R
 /** The drawing's box: decoration beside a title, so hidden from readers. */
 export function Sticker({ className, children }: { className?: string; children: ReactNode }) {
   return (
-    <svg aria-hidden viewBox="0 0 64 64" fill="none" className={cn("size-16 -rotate-6 overflow-visible", className)}>
+    <svg
+      aria-hidden
+      viewBox="0 0 64 64"
+      fill="none"
+      className={cn("size-16 -rotate-6 overflow-visible", className)}
+    >
       {children}
     </svg>
   );
 }
 
-export const ink = { stroke: INK, strokeWidth: LINE, strokeLinecap: "round", strokeLinejoin: "round" } as const;
-const shineOf = (p: Palette) => ({ stroke: p.shine, strokeWidth: 3.2, strokeLinecap: "round" }) as const;
+export const ink = {
+  stroke: INK,
+  strokeWidth: LINE,
+  strokeLinecap: "round",
+  strokeLinejoin: "round",
+} as const;
+const shineOf = (p: Palette) =>
+  ({ stroke: p.shine, strokeWidth: 3.2, strokeLinecap: "round" }) as const;
 
 /* ───────── A price tag, on its string: the plans ───────── */
 
@@ -148,8 +192,10 @@ export function AskDoodle({ className, color = "orange" }: DoodleProps) {
    the first at the bottom, the first over the second at the top. Drawn
    level, then turned to lean up and to the right. */
 const CHAIN = {
-  first: "M15.2 26.4 C11.1 26.6 8 29.7 8.2 33.5 C8.4 37.3 11.4 40.2 15.3 40 L28.8 39.5 C32.8 39.3 35.8 36.3 35.6 32.5 C35.4 28.8 32.3 25.9 28.5 26.1 Z",
-  second: "M35.4 24.9 C31.3 25.1 28.3 28.2 28.5 32 C28.7 35.8 31.7 38.7 35.6 38.5 L49.1 38 C53.1 37.8 56.1 34.8 55.9 31 C55.7 27.3 52.6 24.4 48.8 24.6 Z",
+  first:
+    "M15.2 26.4 C11.1 26.6 8 29.7 8.2 33.5 C8.4 37.3 11.4 40.2 15.3 40 L28.8 39.5 C32.8 39.3 35.8 36.3 35.6 32.5 C35.4 28.8 32.3 25.9 28.5 26.1 Z",
+  second:
+    "M35.4 24.9 C31.3 25.1 28.3 28.2 28.5 32 C28.7 35.8 31.7 38.7 35.6 38.5 L49.1 38 C53.1 37.8 56.1 34.8 55.9 31 C55.7 27.3 52.6 24.4 48.8 24.6 Z",
   // Where the first link comes back over the second: their top crossing
   overTop: { x: 26, y: 20, width: 12, height: 10 },
   lean: "rotate(-38 32 32)",
@@ -163,7 +209,13 @@ function ChainLink({ d, ids, p }: { d: string; ids: ReturnType<typeof useIds>; p
     <>
       <path d={d} stroke={INK} strokeWidth={CHAIN.rim} strokeLinejoin="round" />
       <path d={d} transform={OFF} stroke={p.base} strokeWidth={CHAIN.ring} strokeLinejoin="round" />
-      <path d={d} transform={OFF} stroke={`url(#${ids.dots})`} strokeWidth={CHAIN.ring} strokeLinejoin="round" />
+      <path
+        d={d}
+        transform={OFF}
+        stroke={`url(#${ids.dots})`}
+        strokeWidth={CHAIN.ring}
+        strokeLinejoin="round"
+      />
       <path
         d={d}
         transform={OFF}
@@ -231,7 +283,8 @@ export function HeartDoodle({ className, color = "orange" }: DoodleProps) {
 
 const SPARKLE = {
   // A four-point star, each side bowing in, closed a touch past its start
-  outline: "M32.4 5.6 C34.2 20.2 38.6 25.8 56.8 29.6 C38.8 33.9 34.6 39.8 32.2 58.4 C29.8 40 25.6 34.2 7.4 30.4 C25.4 26 29.9 20.4 31.6 8.2",
+  outline:
+    "M32.4 5.6 C34.2 20.2 38.6 25.8 56.8 29.6 C38.8 33.9 34.6 39.8 32.2 58.4 C29.8 40 25.6 34.2 7.4 30.4 C25.4 26 29.9 20.4 31.6 8.2",
   fill: "M32.8 12 C34.5 22.5 38.8 27.3 51.2 30.2 C39 33.4 34.8 38.4 32.7 51.6 C30.6 38.6 26.4 33.9 13.8 31.2 C26.1 28 30.4 23.2 32.8 12 Z",
   shade: "M64 26 C52 38 44 46 28 64 L64 64 Z",
   shine: "M28.4 22.6 C30.1 20.4 30.9 18 31.4 15.2",
@@ -304,7 +357,11 @@ const FINGER = {
 };
 
 /** Bends the finger once each time `taps` goes up. */
-export function PointerDoodle({ className, color = "blue", taps = 0 }: DoodleProps & { taps?: number }) {
+export function PointerDoodle({
+  className,
+  color = "blue",
+  taps = 0,
+}: DoodleProps & { taps?: number }) {
   const ids = useIds();
   const p = PALETTES[color];
   return (
@@ -319,10 +376,17 @@ export function PointerDoodle({ className, color = "blue", taps = 0 }: DoodlePro
       <g key={taps} className={cn(taps > 0 && "h2-finger-bend")}>
         <path d={FINGER.fill} transform={OFF} fill={p.base} />
         <path d={FINGER.fill} transform={OFF} fill={`url(#${ids.dots})`} />
-        <path d={FINGER.fill} transform={OFF} fill={`url(#${ids.shadeDots})`} clipPath={`url(#${ids.shade})`} />
+        <path
+          d={FINGER.fill}
+          transform={OFF}
+          fill={`url(#${ids.shadeDots})`}
+          clipPath={`url(#${ids.shade})`}
+        />
         <path d={FINGER.shine} {...shineOf(p)} strokeWidth={2.4} />
         <path d={FINGER.line} {...ink} />
-        {taps > 0 && <path d={FINGER.crease} {...ink} strokeWidth={1.8} className="h2-finger-crease" />}
+        {taps > 0 && (
+          <path d={FINGER.crease} {...ink} strokeWidth={1.8} className="h2-finger-crease" />
+        )}
       </g>
     </Sticker>
   );

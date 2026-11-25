@@ -22,9 +22,7 @@ describe("buildClickTimeline", () => {
     expect(points).toHaveLength(7);
     // Local midnight in the browser, so chart labels show the same day.
     const last = new Date(points[6].time);
-    expect([last.getFullYear(), last.getMonth() + 1, last.getDate()]).toEqual([
-      2026, 9, 26,
-    ]);
+    expect([last.getFullYear(), last.getMonth() + 1, last.getDate()]).toEqual([2026, 9, 26]);
   });
 
   it("starts all-time charts at the first event instead of 1970", () => {

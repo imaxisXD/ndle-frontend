@@ -23,9 +23,7 @@ import { GlobeHemisphereWestIcon } from "@phosphor-icons/react/dist/ssr";
  * Displays user's custom domains and allows adding/removing domains
  */
 export function CustomDomainSettings() {
-  const [verifyingDomainId, setVerifyingDomainId] = useState<string | null>(
-    null,
-  );
+  const [verifyingDomainId, setVerifyingDomainId] = useState<string | null>(null);
   const domains = useQuery(api.customDomains.listUserDomains);
   const limits = useQuery(api.customDomains.getDomainLimits);
   const deleteDomain = useMutation(api.customDomains.deleteDomain);
@@ -135,9 +133,7 @@ function EmptyDomainsState() {
   return (
     <div className="rounded-lg border border-dashed border-gray-300 p-6 text-center">
       <GlobeHemisphereWestIcon className="text-muted-foreground mx-auto h-8 w-8" />
-      <p className="text-muted-foreground mt-2 text-sm">
-        No custom domains added yet
-      </p>
+      <p className="text-muted-foreground mt-2 text-sm">No custom domains added yet</p>
     </div>
   );
 }

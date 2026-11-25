@@ -25,12 +25,10 @@ export function cn(...inputs: ClassValue[]): string {
  */
 export function getWindowsFolderNameError(name: string): string | null {
   const trimmed = name.trim();
-  if (trimmed.length === 0)
-    return "Collection name cannot be empty or whitespace";
+  if (trimmed.length === 0) return "Collection name cannot be empty or whitespace";
   if (trimmed === "." || trimmed === "..") return "Name cannot be '.' or '..'";
   if (/\p{Cc}/u.test(trimmed)) return "Name cannot contain control characters";
-  if (/[<>:"/\\|?*]/.test(trimmed))
-    return 'Name cannot contain < > : " / \\ | ? *';
+  if (/[<>:"/\\|?*]/.test(trimmed)) return 'Name cannot contain < > : " / \\ | ? *';
   if (/[ .]$/.test(trimmed)) return "Name cannot end with a space or period";
   if (/^(con|prn|aux|nul|com[1-9]|lpt[1-9])(\..*)?$/i.test(trimmed))
     return "Reserved Windows name not allowed";
@@ -48,10 +46,8 @@ export function formatRelative(ts: number): string {
   const diffMs = Date.now() - ts;
   // Future timestamps (e.g. an expiry date) read "in 3 days", not "just now".
   const isFuture = diffMs < 0;
-  const relative = (amount: string) =>
-    isFuture ? `in ${amount}` : `${amount} ago`;
-  const plural = (value: number, unit: string) =>
-    `${value} ${unit}${value === 1 ? "" : "s"}`;
+  const relative = (amount: string) => (isFuture ? `in ${amount}` : `${amount} ago`);
+  const plural = (value: number, unit: string) => `${value} ${unit}${value === 1 ? "" : "s"}`;
 
   // Seconds
   const seconds = Math.floor(Math.abs(diffMs) / 1000);

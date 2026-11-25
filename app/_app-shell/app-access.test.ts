@@ -10,14 +10,10 @@ import { AppAccess } from "./app-access";
 vi.mock("@clerk/nextjs", () => ({ useAuth: vi.fn() }));
 vi.mock("convex/react", () => ({ useConvexAuth: vi.fn() }));
 
-const renderPrivatePage = vi.fn(() =>
-  createElement("h1", null, "Your saved links"),
-);
+const renderPrivatePage = vi.fn(() => createElement("h1", null, "Your saved links"));
 
 function renderPage() {
-  return renderToStaticMarkup(
-    createElement(AppAccess, null, createElement(renderPrivatePage)),
-  );
+  return renderToStaticMarkup(createElement(AppAccess, null, createElement(renderPrivatePage)));
 }
 
 describe("account access", () => {

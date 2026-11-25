@@ -10,42 +10,26 @@ import {
 } from "@/lib/server-analytics-plan";
 
 export function getAnalyticsBaseUrl(): string {
-  return (process.env.INTERNAL_API_URL || "")
-    .replace(/\/analytics\/v2\/?$/, "")
-    .replace(/\/$/, "");
+  return (process.env.INTERNAL_API_URL || "").replace(/\/analytics\/v2\/?$/, "").replace(/\/$/, "");
 }
 
 export interface AnalyticsRouteConfig<TParams> {
   routeName: string;
-  parseParams: (
-    request: NextRequest,
-  ) => { ok: true; data: TParams } | { ok: false; error: string };
-  checkAccess: (
-    params: TParams,
-    viewer: SignedInAnalyticsViewer,
-  ) => string | null;
-  buildBackendUrl: (
-    params: TParams,
-    request: NextRequest,
-    baseUrl: string,
-  ) => URL;
+  parseParams: (request: NextRequest) => { ok: true; data: TParams } | { ok: false; error: string };
+  checkAccess: (params: TParams, viewer: SignedInAnalyticsViewer) => string | null;
+  buildBackendUrl: (params: TParams, request: NextRequest, baseUrl: string) => URL;
   transformResponse?: (payload: unknown, params: TParams) => unknown;
   timeoutMs?: number;
   errorLabel: string;
   backendErrorMessage: string;
 }
 
-export function createAnalyticsHandler<TParams>(
-  config: AnalyticsRouteConfig<TParams>,
-) {
+export function createAnalyticsHandler<TParams>(config: AnalyticsRouteConfig<TParams>) {
   return async function GET(request: NextRequest) {
     try {
       const { userId: clerkUserId, getToken } = await auth();
       if (!clerkUserId) {
-        return NextResponse.json(
-          { error: "Sign in to view analytics" },
-          { status: 401 },
-        );
+        return NextResponse.json({ error: "Sign in to view analytics" }, { status: 401 });
       }
 
       const parsed = config.parseParams(request);
@@ -94,9 +78,7 @@ export function createAnalyticsHandler<TParams>(
           Authorization: `Bearer ${secret}`,
         },
         cache: "no-store",
-        signal: AbortSignal.timeout(
-          config.timeoutMs ?? ANALYTICS_READ_TIMEOUT_MS,
-        ),
+        signal: AbortSignal.timeout(config.timeoutMs ?? ANALYTICS_READ_TIMEOUT_MS),
       });
 
       if (!response.ok) {

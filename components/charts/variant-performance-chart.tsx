@@ -1,12 +1,6 @@
 "use client";
 
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { BklitHorizontalBarChart } from "@/components/charts/bklit-chart-kit";
 import { Shuffle } from "iconoir-react"; // Icon for A/B testing
 
@@ -44,8 +38,7 @@ export function VariantPerformanceChart({
   // a URL in a bar label gets cut to "Control (htt…".
   const chartData = (data || []).map((item) => ({
     ...item,
-    label:
-      variantMap?.[item.variant_id]?.name || getVariantName(item.variant_id),
+    label: variantMap?.[item.variant_id]?.name || getVariantName(item.variant_id),
     url: variantMap?.[item.variant_id]?.url,
   }));
   const destinations = chartData.filter((item) => item.url);
@@ -57,9 +50,7 @@ export function VariantPerformanceChart({
           <Shuffle className="size-5" />
           A/B Test Performance
         </CardTitle>
-        <CardDescription className="text-xs">
-          Click distribution across variants
-        </CardDescription>
+        <CardDescription className="text-xs">Click distribution across variants</CardDescription>
       </CardHeader>
       <CardContent>
         <BklitHorizontalBarChart
@@ -83,10 +74,7 @@ export function VariantPerformanceChart({
                 className="grid grid-cols-[auto_minmax(0,1fr)] gap-2"
               >
                 <span className="shrink-0 font-medium">{item.label}</span>
-                <span
-                  className="text-muted-foreground min-w-0 truncate"
-                  title={item.url}
-                >
+                <span className="text-muted-foreground min-w-0 truncate" title={item.url}>
                   {item.url}
                 </span>
               </li>

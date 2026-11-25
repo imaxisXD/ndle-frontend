@@ -79,7 +79,10 @@ export const POSTS: Post[] = [
     tags: ["Guide", "Links"],
     author: "Abhishek",
     sections: [
-      { id: "shorten-a-link-in-ndle-without-signing-up", title: "Shorten a link in ndle without signing up" },
+      {
+        id: "shorten-a-link-in-ndle-without-signing-up",
+        title: "Shorten a link in ndle without signing up",
+      },
       { id: "what-you-give-up-without-an-account", title: "What you give up without an account" },
       { id: "when-to-make-a-free-account-instead", title: "When to make a free account instead" },
     ],
@@ -135,7 +138,7 @@ export const POSTS: Post[] = [
     sections: [
       { id: "the-short-answer-by-service", title: "The short answer, by service" },
       { id: "what-happened-to-googl", title: "What happened to goo.gl" },
-      { id: "never-expires-comes-with-conditions", title: "\"Never expires\" comes with conditions" },
+      { id: "never-expires-comes-with-conditions", title: '"Never expires" comes with conditions' },
       { id: "what-about-qr-codes", title: "What about QR codes?" },
       { id: "how-to-keep-a-link-working-for-years", title: "How to keep a link working for years" },
       { id: "where-ndle-stands", title: "Where ndle stands" },
@@ -192,8 +195,14 @@ export const POSTS: Post[] = [
     author: "Abhishek",
     sections: [
       { id: "find-which-part-broke", title: "Find which part broke" },
-      { id: "why-the-link-behind-a-qr-code-stops-working", title: "Why the link behind a QR code stops working" },
-      { id: "static-or-dynamic-which-did-you-print", title: "Static or dynamic: which did you print?" },
+      {
+        id: "why-the-link-behind-a-qr-code-stops-working",
+        title: "Why the link behind a QR code stops working",
+      },
+      {
+        id: "static-or-dynamic-which-did-you-print",
+        title: "Static or dynamic: which did you print?",
+      },
       { id: "fix-a-code-thats-already-printed", title: "Fix a code that's already printed" },
       { id: "keep-the-next-one-working", title: "Keep the next one working" },
     ],

@@ -4,18 +4,11 @@ import type { scaleBand } from "@visx/scale";
 import type { Transition } from "motion/react";
 import { motion } from "motion/react";
 import { memo, useId, useMemo } from "react";
-import {
-  chartCssVars,
-  useChart,
-  useChartStable,
-  useYScale,
-} from "./chart-context";
+import { chartCssVars, useChart, useChartStable, useYScale } from "./chart-context";
 import { useChartLegendHover } from "./chart-legend-hover";
 import { transitionWithDelay } from "./motion-utils";
 
-type ScaleBand<Domain extends { toString(): string }> = ReturnType<
-  typeof scaleBand<Domain>
->;
+type ScaleBand<Domain extends { toString(): string }> = ReturnType<typeof scaleBand<Domain>>;
 
 export type BarLineCap = "round" | "butt" | number;
 export type BarAnimationType = "grow" | "fade";
@@ -114,15 +107,10 @@ function AnimatedBar({
   const initial = isHorizontal
     ? { width: 0, height, x: 0, y }
     : { width, height: 0, x, y: innerHeight };
-  const target = isHorizontal
-    ? { width, height, x: 0, y }
-    : { width, height, x, y };
+  const target = isHorizontal ? { width, height, x: 0, y } : { width, height, x, y };
 
   return (
-    <g
-      opacity={isFaded ? fadedOpacity : 1}
-      style={{ transition: "opacity 0.15s ease-in-out" }}
-    >
+    <g opacity={isFaded ? fadedOpacity : 1} style={{ transition: "opacity 0.15s ease-in-out" }}>
       <motion.rect
         animate={target}
         fill={fill}
@@ -187,8 +175,7 @@ const BarInner = memo(function BarInner({
   const seriesConfig = lines[seriesIndex];
   const valueScale = useYScale(yAxisId ?? seriesConfig?.yAxisId);
 
-  const isLegendDimmed =
-    legendHoveredIndex !== null && legendHoveredIndex !== seriesIndex;
+  const isLegendDimmed = legendHoveredIndex !== null && legendHoveredIndex !== seriesIndex;
 
   const seriesCount = lines.length;
   const isLastSeries = seriesIndex === seriesCount - 1;
@@ -259,13 +246,9 @@ const BarInner = memo(function BarInner({
             x = 0;
             // For grouped bars, offset y position
             const effectiveGroupGap = seriesCount > 1 ? groupGap : 0;
-            const groupHeight =
-              seriesCount * barWidth + (seriesCount - 1) * effectiveGroupGap;
+            const groupHeight = seriesCount * barWidth + (seriesCount - 1) * effectiveGroupGap;
             const rowOffset = Math.max(0, (bandSize - groupHeight) / 2);
-            y =
-              bandPos +
-              rowOffset +
-              seriesIndex * (barWidth + effectiveGroupGap);
+            y = bandPos + rowOffset + seriesIndex * (barWidth + effectiveGroupGap);
           }
         } else {
           // Vertical bars: category on x-axis, value on y-axis
@@ -289,18 +272,13 @@ const BarInner = memo(function BarInner({
             y = valuePos;
             // For grouped bars, offset x position
             const effectiveGroupGap = seriesCount > 1 ? groupGap : 0;
-            const groupWidth =
-              seriesCount * barWidth + (seriesCount - 1) * effectiveGroupGap;
+            const groupWidth = seriesCount * barWidth + (seriesCount - 1) * effectiveGroupGap;
             const rowOffset = Math.max(0, (bandSize - groupWidth) / 2);
-            x =
-              bandPos +
-              rowOffset +
-              seriesIndex * (barWidth + effectiveGroupGap);
+            x = bandPos + rowOffset + seriesIndex * (barWidth + effectiveGroupGap);
           }
         }
 
-        const isFaded =
-          (hoveredBarIndex !== null && hoveredBarIndex !== i) || isLegendDimmed;
+        const isFaded = (hoveredBarIndex !== null && hoveredBarIndex !== i) || isLegendDimmed;
 
         // Use categoryValue as key since it's the unique identifier from data
         const barKey = `bar-${dataKey}-${categoryValue}`;
@@ -369,12 +347,7 @@ export function Bar(props: BarProps) {
   }
 
   return (
-    <BarInner
-      {...props}
-      bandWidth={bandWidth}
-      barScale={barScale}
-      barXAccessor={barXAccessor}
-    />
+    <BarInner {...props} bandWidth={bandWidth} barScale={barScale} barXAccessor={barXAccessor} />
   );
 }
 

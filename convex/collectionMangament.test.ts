@@ -31,10 +31,9 @@ afterEach(() => {
 describe("collection creation", () => {
   test("assigns and persists a backend color when the client omits it", async () => {
     const { backend, client } = await setup();
-    const collectionId = await client.mutation(
-      api.collectionMangament.createCollection,
-      { name: "Backend colored" },
-    );
+    const collectionId = await client.mutation(api.collectionMangament.createCollection, {
+      name: "Backend colored",
+    });
 
     const collection = await backend.run((ctx) => ctx.db.get(collectionId));
 
@@ -44,10 +43,10 @@ describe("collection creation", () => {
 
   test("preserves a valid explicit color and rejects invalid colors", async () => {
     const { backend, client } = await setup();
-    const collectionId = await client.mutation(
-      api.collectionMangament.createCollection,
-      { name: "Custom colored", collectionColor: "#ABCDEF" },
-    );
+    const collectionId = await client.mutation(api.collectionMangament.createCollection, {
+      name: "Custom colored",
+      collectionColor: "#ABCDEF",
+    });
 
     const collection = await backend.run((ctx) => ctx.db.get(collectionId));
     expect(collection?.collectionColor).toBe("#abcdef");
@@ -83,17 +82,11 @@ describe("collection membership", () => {
       });
       return { urls, collectionId };
     });
-    await backend.mutation(
-      internal.collectionMangament.migrateCollectionMembers,
-      {},
-    );
+    await backend.mutation(internal.collectionMangament.migrateCollectionMembers, {});
     expect(
-      (await client.query(api.collectionMangament.getUserCollections, {}))[0]
-        .totalClickCount,
+      (await client.query(api.collectionMangament.getUserCollections, {}))[0].totalClickCount,
     ).toBeNull();
-    expect(
-      await backend.run((ctx) => ctx.db.query("collectionLinks").collect()),
-    ).toHaveLength(100);
+    expect(await backend.run((ctx) => ctx.db.query("collectionLinks").collect())).toHaveLength(100);
     await backend.run(async (ctx) => {
       // The last legacy member is not copied yet. Its baseline must include this click.
       await accountCounter.inc(ctx, `url:${urls[104]}`);
@@ -109,15 +102,12 @@ describe("collection membership", () => {
       await addLinkToCollection(ctx, collectionId, newUrl);
     });
     await backend.finishAllScheduledFunctions(vi.runAllTimers);
-    const collection = await client.query(
-      api.collectionMangament.getCollectionById,
-      { collectionId },
-    );
+    const collection = await client.query(api.collectionMangament.getCollectionById, {
+      collectionId,
+    });
     expect(collection?.membersReady).toBe(true);
     expect(collection?.urls).toEqual([]);
-    const summary = (
-      await client.query(api.collectionMangament.getUserCollections, {})
-    )[0];
+    const summary = (await client.query(api.collectionMangament.getUserCollections, {}))[0];
     expect(summary.urlCount).toBe(106);
     expect(summary.totalClickCount).toBe(218);
     expect(summary.previewUrls).toHaveLength(3);
@@ -133,12 +123,8 @@ describe("collection membership", () => {
       paginationOpts: { cursor: first.continueCursor, numItems: 50 },
     });
     expect(second.page).toHaveLength(50);
-    expect(
-      new Set([...first.page, ...second.page].map((row) => row._id)).size,
-    ).toBe(100);
-    expect(
-      await client.query(api.urlLists.getUrlListCount, { collectionId }),
-    ).toBe(106);
+    expect(new Set([...first.page, ...second.page].map((row) => row._id)).size).toBe(100);
+    expect(await client.query(api.urlLists.getUrlListCount, { collectionId })).toBe(106);
   });
 
   test("deleting a link during deferred click delivery keeps every collection total at zero", async () => {
@@ -173,16 +159,10 @@ describe("collection membership", () => {
       await ctx.db.delete(urlId);
     });
     await backend.finishAllScheduledFunctions(vi.runAllTimers);
-    expect(
-      await backend.run((ctx) => ctx.db.query("collectionLinks").collect()),
-    ).toHaveLength(0);
+    expect(await backend.run((ctx) => ctx.db.query("collectionLinks").collect())).toHaveLength(0);
     expect(
       await backend.run((ctx) =>
-        Promise.all(
-          collectionIds.map((id) =>
-            accountCounter.count(ctx, `collection-v2:${id}`),
-          ),
-        ),
+        Promise.all(collectionIds.map((id) => accountCounter.count(ctx, `collection-v2:${id}`))),
       ),
     ).toEqual(Array(102).fill(0));
     expect(
@@ -227,11 +207,9 @@ describe("collection membership", () => {
       return id;
     });
     await backend.finishAllScheduledFunctions(vi.runAllTimers);
-    expect(
-      await backend.run((ctx) =>
-        accountCounter.count(ctx, `collection-v2:${addedId}`),
-      ),
-    ).toBe(1);
+    expect(await backend.run((ctx) => accountCounter.count(ctx, `collection-v2:${addedId}`))).toBe(
+      1,
+    );
   });
 
   test("migration skips deleted legacy links and does not restore their membership", async () => {
@@ -261,14 +239,9 @@ describe("collection membership", () => {
       await ctx.db.delete(deleted);
       return id;
     });
-    await backend.mutation(
-      internal.collectionMangament.migrateCollectionMembers,
-      {},
-    );
+    await backend.mutation(internal.collectionMangament.migrateCollectionMembers, {});
     await backend.finishAllScheduledFunctions(vi.runAllTimers);
-    const summary = (
-      await client.query(api.collectionMangament.getUserCollections, {})
-    )[0];
+    const summary = (await client.query(api.collectionMangament.getUserCollections, {}))[0];
     expect(summary.urlCount).toBe(1);
     expect(summary.totalClickCount).toBe(3);
     expect(

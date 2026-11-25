@@ -7,14 +7,7 @@
 
 "use client";
 
-import React, {
-  createContext,
-  useContext,
-  useCallback,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import React, { createContext, useContext, useCallback, useMemo, useRef, useState } from "react";
 import { useDuckDB } from "./use-duckdb";
 import { useAuth } from "@clerk/nextjs";
 import type { ColdFile } from "@/types/analytics-v2";
@@ -72,20 +65,14 @@ function sanitizeSQLValue(value: string): string {
   return value.replace(/'/g, "''");
 }
 
-function resolveColumn(
-  columns: Set<string>,
-  candidates: string[],
-): string | null {
+function resolveColumn(columns: Set<string>, candidates: string[]): string | null {
   for (const candidate of candidates) {
     if (columns.has(candidate)) return candidate;
   }
   return null;
 }
 
-function buildScopeWhereClause(
-  columns: Set<string>,
-  filters: ChartScopeFilters,
-): string {
+function buildScopeWhereClause(columns: Set<string>, filters: ChartScopeFilters): string {
   const conditions: string[] = [];
 
   if (filters.country && filters.country !== "all" && columns.has("country")) {
@@ -93,20 +80,12 @@ function buildScopeWhereClause(
   }
 
   const deviceColumn = resolveColumn(columns, ["device", "device_type"]);
-  if (
-    filters.device &&
-    filters.device !== "all" &&
-    deviceColumn
-  ) {
-    conditions.push(
-      `LOWER(${deviceColumn}) = LOWER('${sanitizeSQLValue(filters.device)}')`,
-    );
+  if (filters.device && filters.device !== "all" && deviceColumn) {
+    conditions.push(`LOWER(${deviceColumn}) = LOWER('${sanitizeSQLValue(filters.device)}')`);
   }
 
   if (filters.browser && filters.browser !== "all" && columns.has("browser")) {
-    conditions.push(
-      `LOWER(browser) LIKE LOWER('%${sanitizeSQLValue(filters.browser)}%')`,
-    );
+    conditions.push(`LOWER(browser) LIKE LOWER('%${sanitizeSQLValue(filters.browser)}%')`);
   }
 
   if (filters.os && filters.os !== "all" && columns.has("os")) {
@@ -118,9 +97,7 @@ function buildScopeWhereClause(
     const hasShortUrl = columns.has("short_url");
     const hasLinkSlug = columns.has("link_slug");
     if (hasShortUrl && hasLinkSlug) {
-      conditions.push(
-        `(short_url = '${sanitizedLink}' OR link_slug = '${sanitizedLink}')`,
-      );
+      conditions.push(`(short_url = '${sanitizedLink}' OR link_slug = '${sanitizedLink}')`);
     } else if (hasShortUrl) {
       conditions.push(`short_url = '${sanitizedLink}'`);
     } else if (hasLinkSlug) {
@@ -156,7 +133,10 @@ export function ChartQueryProvider({
   const registeredFiles = useMemo(() => {
     if (!db) return new Map<string, string>();
     let files = registeredFilesByDatabase.get(db);
-    if (!files) { files = new Map(); registeredFilesByDatabase.set(db, files); }
+    if (!files) {
+      files = new Map();
+      registeredFilesByDatabase.set(db, files);
+    }
     return files;
   }, [db]);
   const { getToken } = useAuth();
@@ -203,9 +183,12 @@ export function ChartQueryProvider({
     );
   }, [applyFiles, coldFiles, hotFile, filesExpireAt]);
 
-  const setFiles = useCallback((files: ColdFile[]) => {
-    applyFiles(files);
-  }, [applyFiles]);
+  const setFiles = useCallback(
+    (files: ColdFile[]) => {
+      applyFiles(files);
+    },
+    [applyFiles],
+  );
 
   const execute = useCallback(
     async (query: string): Promise<Array<Record<string, unknown>>> => {
@@ -219,8 +202,12 @@ export function ChartQueryProvider({
       setError(null);
 
       try {
-        if (query.includes("{DATA}") && (!allFilesRef.current.length || expiresAtRef.current <= Date.now() + 30_000)) {
-          if (!scopeDateRange?.start || !scopeDateRange?.end) throw new Error("Refresh chart data before running this chart.");
+        if (
+          query.includes("{DATA}") &&
+          (!allFilesRef.current.length || expiresAtRef.current <= Date.now() + 30_000)
+        ) {
+          if (!scopeDateRange?.start || !scopeDateRange?.end)
+            throw new Error("Refresh chart data before running this chart.");
           const snapshot = await loadCompleteChartFiles(scopeDateRange.start, scopeDateRange.end);
           applyFiles(snapshot.files);
           expiresAtRef.current = snapshot.expiresAt;
@@ -243,10 +230,7 @@ export function ChartQueryProvider({
             allFilesRef.current.length,
             "files",
           );
-          console.log(
-            "[ChartQueryContext] Query includes {DATA}:",
-            query.includes("{DATA}"),
-          );
+          console.log("[ChartQueryContext] Query includes {DATA}:", query.includes("{DATA}"));
 
           if (query.includes("{DATA}") && allFilesRef.current.length > 0) {
             // Register each parquet file
@@ -273,10 +257,7 @@ export function ChartQueryProvider({
               const stableFileName = getStableFileName(file.key);
 
               // Register in DuckDB
-              await db.registerFileBuffer(
-                stableFileName,
-                new Uint8Array(buffer),
-              );
+              await db.registerFileBuffer(stableFileName, new Uint8Array(buffer));
               registeredFiles.set(file.key, stableFileName);
               parquetParts.push(`'${stableFileName}'`);
             }
@@ -291,9 +272,7 @@ export function ChartQueryProvider({
           // Apply dashboard-level filter scope (not time range).
           let scopedDataSource = dataSource;
           if (query.includes("{DATA}")) {
-            const schemaResult = await conn.query(
-              `DESCRIBE SELECT * FROM ${dataSource} LIMIT 1`,
-            );
+            const schemaResult = await conn.query(`DESCRIBE SELECT * FROM ${dataSource} LIMIT 1`);
             const availableColumns = new Set<string>();
             for (const row of Array.from(schemaResult.toArray())) {
               const json = row.toJSON() as { column_name?: string };
@@ -302,10 +281,7 @@ export function ChartQueryProvider({
               }
             }
 
-            const scopeWhereClause = buildScopeWhereClause(
-              availableColumns,
-              scopeFilters,
-            );
+            const scopeWhereClause = buildScopeWhereClause(availableColumns, scopeFilters);
             if (scopeWhereClause) {
               scopedDataSource = `(SELECT * FROM ${dataSource} ${scopeWhereClause})`;
             }
@@ -319,10 +295,7 @@ export function ChartQueryProvider({
           // Execute the query
           const result = await conn.query(finalQuery);
 
-          console.log(
-            "[ChartQueryContext] Query result numRows:",
-            result.numRows,
-          );
+          console.log("[ChartQueryContext] Query result numRows:", result.numRows);
           console.log(
             "[ChartQueryContext] Query result schema:",
             result.schema.fields.map((f) => f.name),
@@ -339,8 +312,7 @@ export function ChartQueryProvider({
               if (column) {
                 const value = column.get(i);
                 // Convert BigInt to Number for Recharts compatibility
-                row[field.name] =
-                  typeof value === "bigint" ? Number(value) : value;
+                row[field.name] = typeof value === "bigint" ? Number(value) : value;
               }
             }
             rows.push(row);
@@ -380,9 +352,7 @@ export function ChartQueryProvider({
 export function useChartQueryContext(): ChartQueryContextValue {
   const context = useContext(ChartQueryContext);
   if (!context) {
-    throw new Error(
-      "useChartQueryContext must be used within a ChartQueryProvider",
-    );
+    throw new Error("useChartQueryContext must be used within a ChartQueryProvider");
   }
   return context;
 }

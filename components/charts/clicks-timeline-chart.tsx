@@ -1,12 +1,6 @@
 "use client";
 
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { BklitLineSeriesChart } from "@/components/charts/bklit-chart-kit";
 import { MouseButtonLeft } from "iconoir-react";
 

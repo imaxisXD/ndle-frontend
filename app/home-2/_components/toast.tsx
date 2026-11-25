@@ -15,7 +15,10 @@ import { SHORT_DOMAIN } from "./sample-data";
 
 type ToastTone = "ready" | "down" | "up";
 
-const TOAST_DOT: Record<ToastTone, { Icon: ComponentType<{ size?: number; weight?: "bold" }>; className: string }> = {
+const TOAST_DOT: Record<
+  ToastTone,
+  { Icon: ComponentType<{ size?: number; weight?: "bold" }>; className: string }
+> = {
   ready: { Icon: CheckIcon, className: "bg-[var(--sig)] text-[#141312]" },
   down: { Icon: ExclamationMarkIcon, className: "bg-red-500 text-white" },
   up: { Icon: CheckIcon, className: "bg-green-500 text-white" },
@@ -48,7 +51,12 @@ export function Toast({
       )}
     >
       <div className="flex items-start gap-3.5 rounded-xl bg-[#141312] px-4 py-3.5 font-sans text-white shadow-[inset_0_1px_0_oklch(1_0_0/0.1),0_1px_2px_oklch(0_0_0/0.2),0_16px_40px_-12px_oklch(0_0_0/0.45)]">
-        <span className={cn("mt-px flex size-[18px] shrink-0 items-center justify-center rounded-full", className)}>
+        <span
+          className={cn(
+            "mt-px flex size-[18px] shrink-0 items-center justify-center rounded-full",
+            className,
+          )}
+        >
           <Icon size={11} weight="bold" />
         </span>
         <div className="min-w-0">
@@ -63,7 +71,9 @@ export function Toast({
 /** Where toasts land: the bottom right of whatever holds them, stacked in
     one spot. `className` moves the spot, e.g. clear of a slanted edge. */
 export function ToastStack({ className, children }: { className?: string; children: ReactNode }) {
-  return <div className={cn("absolute right-6 bottom-6 z-10 grid w-[340px]", className)}>{children}</div>;
+  return (
+    <div className={cn("absolute right-6 bottom-6 z-10 grid w-[340px]", className)}>{children}</div>
+  );
 }
 
 /** The sample short link, as it reads inside a toast. */
@@ -73,7 +83,15 @@ export function ShortLink() {
 
 /* The two alerts ndle sends while /launch is down and when it's back. The
    caller decides when each is up; the recovery tucks the outage behind it. */
-export function LinkAlertToasts({ down, up, className }: { down: boolean; up: boolean; className?: string }) {
+export function LinkAlertToasts({
+  down,
+  up,
+  className,
+}: {
+  down: boolean;
+  up: boolean;
+  className?: string;
+}) {
   return (
     <ToastStack className={className}>
       <Toast

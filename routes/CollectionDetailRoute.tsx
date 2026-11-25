@@ -4,11 +4,7 @@ import { api } from "@/convex/_generated/api";
 import { UrlTable } from "@/components/url-table/UrlTable";
 import { Id } from "@/convex/_generated/dataModel";
 import { useState } from "react";
-import {
-  Dialog,
-  DialogContent,
-  DialogTitle,
-} from "@/components/ui/base-dialog";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/base-dialog";
 import { UrlPickerTable } from "@/components/collection/UrlPickerTable";
 import { AddUrlsButton } from "@/components/collection/AddUrlsButton";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -67,8 +63,8 @@ export default function CollectionDetailRoute() {
             ndle can&apos;t find this collection
           </h1>
           <p className="text-muted-foreground mt-2 text-sm">
-            This collection seems to have vanished into the digital void. It
-            might not exist or you don&apos;t have access to it.
+            This collection seems to have vanished into the digital void. It might not exist or you
+            don&apos;t have access to it.
           </p>
           <div className="mt-4 inline-block">
             <NavLink
@@ -113,10 +109,7 @@ export default function CollectionDetailRoute() {
             ← Back to Collections
           </NavLink>
 
-          <AddUrlsButton
-            onOpen={() => setIsAddDialogOpen(true)}
-            label="Add Links"
-          />
+          <AddUrlsButton onOpen={() => setIsAddDialogOpen(true)} label="Add Links" />
         </div>
       </header>
 
@@ -126,17 +119,14 @@ export default function CollectionDetailRoute() {
         </h2>
         {!collection.membersReady ? (
           <output className="text-muted-foreground block py-8 text-sm">
-            Updating your saved collection. Its links will appear here when the
-            update finishes.
+            Updating your saved collection. Its links will appear here when the update finishes.
           </output>
         ) : (collection.linkCount ?? 0) === 0 ? (
           <>
             {/* The table header normally names the collection; keep the name
               visible while it is still empty. */}
             <div>
-              <p className="text-lg font-medium [overflow-wrap:anywhere]">
-                {collection.name} [0]
-              </p>
+              <p className="text-lg font-medium [overflow-wrap:anywhere]">{collection.name} [0]</p>
               {collection.description ? (
                 <p className="text-muted-foreground mt-1 text-sm [overflow-wrap:anywhere]">
                   {collection.description}
@@ -144,9 +134,7 @@ export default function CollectionDetailRoute() {
               ) : null}
             </div>
             <div className="border-border from-muted/60 mt-6 flex flex-col gap-6 rounded-lg border-2 border-dashed bg-gradient-to-t to-white/10 p-6 text-center sm:gap-10 sm:p-10">
-              <h3 className="text-sm font-medium">
-                ndle is ready to help you organize your links
-              </h3>
+              <h3 className="text-sm font-medium">ndle is ready to help you organize your links</h3>
               <div className="mt-4 flex flex-col items-center gap-6 sm:mt-10 sm:gap-10">
                 <div className="flex flex-col items-center gap-2">
                   <div className="rounded-lg bg-gradient-to-br from-gray-200/80 to-gray-300/60 p-2">
@@ -157,10 +145,7 @@ export default function CollectionDetailRoute() {
                   </p>
                 </div>
                 <div className="mt-4 inline-block">
-                  <AddUrlsButton
-                    hotkey=""
-                    onOpen={() => setIsAddDialogOpen(true)}
-                  />
+                  <AddUrlsButton hotkey="" onOpen={() => setIsAddDialogOpen(true)} />
                 </div>
               </div>
             </div>

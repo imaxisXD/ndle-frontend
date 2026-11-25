@@ -2,11 +2,7 @@
 
 import { NavLink } from "react-router";
 import Link from "next/link";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/base-tooltip";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/base-tooltip";
 import {
   ChartBarIcon,
   FolderIcon,
@@ -54,11 +50,7 @@ export function Sidebar() {
           <Tooltip key={to}>
             <TooltipTrigger
               render={
-                <NavLink
-                  to={to}
-                  aria-label={label}
-                  className={navLinkClassName}
-                >
+                <NavLink to={to} aria-label={label} className={navLinkClassName}>
                   {({ isActive }) => (
                     <Icon
                       className={iconClassName ? `size-5 ${iconClassName}` : "size-5"}
@@ -78,11 +70,7 @@ export function Sidebar() {
         <Tooltip>
           <TooltipTrigger
             render={
-              <NavLink
-                to="/settings"
-                aria-label="Settings"
-                className={navLinkClassName}
-              >
+              <NavLink to="/settings" aria-label="Settings" className={navLinkClassName}>
                 {({ isActive }) => (
                   <GearIcon
                     className="size-5"
@@ -106,11 +94,7 @@ export function Sidebar() {
                 aria-label="Feedback"
                 className="text-muted-foreground hover:text-accent-foreground flex h-10 w-10 items-center justify-center rounded-md transition-colors hover:bg-blue-500/20"
               >
-                <HeadsetIcon
-                  className="size-5 text-blue-500"
-                  weight="duotone"
-                  aria-hidden="true"
-                />
+                <HeadsetIcon className="size-5 text-blue-500" weight="duotone" aria-hidden="true" />
               </Link>
             }
           />

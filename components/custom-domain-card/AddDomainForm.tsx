@@ -7,13 +7,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormMessage,
-} from "@/components/ui/form";
+import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
 import { cn } from "@/lib/utils";
 import { Input } from "../ui/input";
 import { PlusIcon, SpinnerIcon } from "@phosphor-icons/react/dist/ssr";
@@ -33,8 +27,7 @@ const domainFormSchema = z.object({
         normalized = normalized.split("/")[0];
 
         // Check if it's a valid domain pattern
-        const domainPattern =
-          /^(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}$/;
+        const domainPattern = /^(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}$/;
         return domainPattern.test(normalized);
       },
       {
@@ -94,9 +87,7 @@ export function AddDomainForm({ onSuccess }: AddDomainFormProps) {
             <FormItem className="flex-1">
               <FormControl>
                 <Input
-                  className={cn(
-                    fieldState.invalid && "border-red-300 ring-1 ring-red-200",
-                  )}
+                  className={cn(fieldState.invalid && "border-red-300 ring-1 ring-red-200")}
                   placeholder="links.yourdomain.com"
                   aria-invalid={fieldState.invalid}
                   {...field}

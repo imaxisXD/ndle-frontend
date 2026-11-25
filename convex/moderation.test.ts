@@ -85,7 +85,9 @@ describe("moderation tools", () => {
 describe("disabling a link", () => {
   test("projects is_active: false, and enabling restores it", async () => {
     const { backend, userId, client } = await setup();
-    const urlId = await insertLink(backend, "phish1", "https://example.com/a", { userTableId: userId });
+    const urlId = await insertLink(backend, "phish1", "https://example.com/a", {
+      userTableId: userId,
+    });
     expect((await projection(backend, urlId)).is_active).toBe(true);
 
     expect(
@@ -107,9 +109,11 @@ describe("disabling a link", () => {
     expect(page.page[0].disabledAt).toBe(disabled?.disabledAt);
     expect(page.page[0]).not.toHaveProperty("disabledReason");
 
-    expect(
-      await backend.mutation(internal.moderation.enableLink, { slug: "phish1" }),
-    ).toEqual({ urlId, slug: "phish1", wasDisabled: true });
+    expect(await backend.mutation(internal.moderation.enableLink, { slug: "phish1" })).toEqual({
+      urlId,
+      slug: "phish1",
+      wasDisabled: true,
+    });
     const enabled = await backend.run((ctx) => ctx.db.get(urlId));
     expect(enabled?.disabledAt).toBeUndefined();
     expect(enabled?.disabledReason).toBeUndefined();
@@ -257,23 +261,27 @@ describe("blocking a domain", () => {
     ).find((job) => job.name.includes("moderation:disableBlockedDomainLinks"));
     expect(next).toBeDefined();
     const args = next!.args[0] as { domain: string; cursor: string };
-    expect(
-      await backend.mutation(internal.moderation.disableBlockedDomainLinks, args),
-    ).toEqual({ scanned: 1, disabled: 1, isDone: true });
+    expect(await backend.mutation(internal.moderation.disableBlockedDomainLinks, args)).toEqual({
+      scanned: 1,
+      disabled: 1,
+      isDone: true,
+    });
     expect((await projection(backend, last)).is_active).toBe(false);
 
     await backend.mutation(internal.moderation.unblockDomain, { domain: "evil.example" });
-    expect(
-      await backend.mutation(internal.moderation.disableBlockedDomainLinks, args),
-    ).toEqual({ scanned: 0, disabled: 0, isDone: true });
+    expect(await backend.mutation(internal.moderation.disableBlockedDomainLinks, args)).toEqual({
+      scanned: 0,
+      disabled: 0,
+      isDone: true,
+    });
   });
 
   test("refuses input that is not a hostname or would block a whole suffix", async () => {
     const { backend } = await setup();
     for (const domain of ["", "com", "http://", "not a host"]) {
-      await expect(
-        backend.mutation(internal.moderation.blockDomain, { domain }),
-      ).rejects.toThrow("Enter a hostname");
+      await expect(backend.mutation(internal.moderation.blockDomain, { domain })).rejects.toThrow(
+        "Enter a hostname",
+      );
     }
   });
 });

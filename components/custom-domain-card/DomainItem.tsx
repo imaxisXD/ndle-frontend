@@ -82,16 +82,12 @@ function DnsRecordTable({
         <dd className="font-mono text-gray-600">{type}</dd>
         <dt className="text-xs font-medium text-gray-500">Name</dt>
         <dd className="flex min-w-0 items-center gap-2">
-          <code className="min-w-0 font-mono break-all text-gray-900">
-            {name}
-          </code>
+          <code className="min-w-0 font-mono break-all text-gray-900">{name}</code>
           <CopyButton value={name} />
         </dd>
         <dt className="text-xs font-medium text-gray-500">Content</dt>
         <dd className="flex min-w-0 items-center gap-2">
-          <code className="min-w-0 font-mono break-all text-gray-900">
-            {content}
-          </code>
+          <code className="min-w-0 font-mono break-all text-gray-900">{content}</code>
           <CopyButton value={content} />
         </dd>
       </dl>
@@ -107,9 +103,7 @@ function DnsRecordTable({
           </thead>
           <tbody>
             <tr>
-              <td className="px-4 py-3 font-mono whitespace-nowrap text-gray-600">
-                {type}
-              </td>
+              <td className="px-4 py-3 font-mono whitespace-nowrap text-gray-600">{type}</td>
               <td className="px-4 py-3">
                 <div className="flex items-center gap-2">
                   <code className="font-mono text-gray-900">{name}</code>
@@ -130,24 +124,15 @@ function DnsRecordTable({
   );
 }
 
-export function DomainItem({
-  domain,
-  onDelete,
-  onVerify,
-  isVerifying = false,
-}: DomainItemProps) {
+export function DomainItem({ domain, onDelete, onVerify, isVerifying = false }: DomainItemProps) {
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const domainLabels = domain.domain.split(".");
   const isLikelyApexDomain = domainLabels.length === 2;
   const recordType = isLikelyApexDomain ? "ALIAS / ANAME" : "CNAME";
-  const recordName = isLikelyApexDomain
-    ? "@"
-    : domainLabels.slice(0, -2).join(".");
+  const recordName = isLikelyApexDomain ? "@" : domainLabels.slice(0, -2).join(".");
   const shortDomain = getShortDomain();
   // Same relative-name convention as the CNAME record below.
-  const challengeName = isLikelyApexDomain
-    ? "_ndle-challenge"
-    : `_ndle-challenge.${recordName}`;
+  const challengeName = isLikelyApexDomain ? "_ndle-challenge" : `_ndle-challenge.${recordName}`;
 
   return (
     <div className="space-y-2 rounded-sm border border-dashed border-gray-300 p-2">
@@ -160,11 +145,7 @@ export function DomainItem({
           </span>
         </div>
         <div className="flex shrink-0 items-center gap-2">
-          <Button
-            variant={"destructive"}
-            size={"sm"}
-            onClick={() => setIsDeleteOpen(true)}
-          >
+          <Button variant={"destructive"} size={"sm"} onClick={() => setIsDeleteOpen(true)}>
             <TrashIcon weight="duotone" className="size-4 fill-white" />
             <span className="sr-only sm:not-sr-only">Delete</span>
           </Button>
@@ -172,46 +153,45 @@ export function DomainItem({
       </div>
 
       {/* Unverified: prove DNS control before the hostname is claimed */}
-      {domain.status === "awaiting_verification" &&
-        domain.challengeRecordValue && (
-          <div className="border-border space-y-4 border-t pt-4">
-            <DnsRecordTable
-              title="Add this TXT record to verify you own this domain"
-              type="TXT"
-              name={challengeName}
-              content={domain.challengeRecordValue}
-            />
+      {domain.status === "awaiting_verification" && domain.challengeRecordValue && (
+        <div className="border-border space-y-4 border-t pt-4">
+          <DnsRecordTable
+            title="Add this TXT record to verify you own this domain"
+            type="TXT"
+            name={challengeName}
+            content={domain.challengeRecordValue}
+          />
 
-            <div className="flex flex-col gap-3 pb-2 sm:flex-row sm:items-start sm:justify-between">
-              <p className="flex items-start gap-1 text-xs text-blue-500">
-                <InfoIcon weight="duotone" className="mt-px size-4 shrink-0" />
-                <span>
-                  If your DNS provider needs the full name, use{" "}
-                  <code className="font-mono [overflow-wrap:anywhere]">
-                    {domain.challengeRecordName}
-                  </code>
-                  . Unverified domains are removed after 7 days.
-                </span>
-              </p>
-              <Button
-                type="button"
-                size={"sm"}
-                disabled={isVerifying || !onVerify}
-                onClick={() => onVerify?.(domain._id as Id<"custom_domains">)}
-                className="shrink-0 max-sm:w-full"
-              >
-                {isVerifying ? (
-                  <>
-                    <SpinnerIcon className="size-4 animate-spin" />
-                    Checking...
-                  </>
-                ) : (
-                  "Verify"
-                )}
-              </Button>
-            </div>
+          <div className="flex flex-col gap-3 pb-2 sm:flex-row sm:items-start sm:justify-between">
+            <p className="flex items-start gap-1 text-xs text-blue-500">
+              <InfoIcon weight="duotone" className="mt-px size-4 shrink-0" />
+              <span>
+                If your DNS provider needs the full name, use{" "}
+                <code className="font-mono [overflow-wrap:anywhere]">
+                  {domain.challengeRecordName}
+                </code>
+                . Unverified domains are removed after 7 days.
+              </span>
+            </p>
+            <Button
+              type="button"
+              size={"sm"}
+              disabled={isVerifying || !onVerify}
+              onClick={() => onVerify?.(domain._id as Id<"custom_domains">)}
+              className="shrink-0 max-sm:w-full"
+            >
+              {isVerifying ? (
+                <>
+                  <SpinnerIcon className="size-4 animate-spin" />
+                  Checking...
+                </>
+              ) : (
+                "Verify"
+              )}
+            </Button>
           </div>
-        )}
+        </div>
+      )}
 
       {/* Pending: DNS Instructions */}
       {domain.status === "pending" && (
@@ -225,10 +205,7 @@ export function DomainItem({
 
           <p className="flex items-start gap-1 pb-2 text-xs text-blue-500">
             <InfoIcon weight="duotone" className="mt-px size-4 shrink-0" />
-            <span>
-              DNS changes can take a few minutes to propagate. We check
-              automatically.
-            </span>
+            <span>DNS changes can take a few minutes to propagate. We check automatically.</span>
           </p>
         </div>
       )}
@@ -237,8 +214,7 @@ export function DomainItem({
         <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
           <p className="font-medium">Verification failed</p>
           <p className="mt-1 text-red-600">
-            Check your CNAME record and make sure Cloudflare proxy (orange
-            cloud) is disabled.
+            Check your CNAME record and make sure Cloudflare proxy (orange cloud) is disabled.
           </p>
         </div>
       )}
@@ -280,10 +256,7 @@ function DeleteDialog({
         </div>
         <DialogFooter className="flex items-center border-t border-dashed pt-4">
           <DialogClose className="border-border border">Cancel</DialogClose>
-          <DialogAction
-            onClick={onConfirm}
-            className="bg-red-600 text-white hover:bg-red-700"
-          >
+          <DialogAction onClick={onConfirm} className="bg-red-600 text-white hover:bg-red-700">
             <TrashIcon weight="duotone" className="size-4 fill-white" />
             Remove Domain
           </DialogAction>

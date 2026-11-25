@@ -7,27 +7,13 @@
  * the same primitives used by the native analytics charts.
  */
 
-import type {
-  ComponentRegistry,
-  ComponentRenderProps,
-} from "@json-render/react";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import type { ComponentRegistry, ComponentRenderProps } from "@json-render/react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { useChartQueryContext } from "@/hooks/chart-query-context";
 import { useEffect, useMemo, useState, type ReactNode } from "react";
-import {
-  ChartBarIcon,
-  ChartLineIcon,
-  ChartPieIcon,
-  StackIcon,
-} from "@phosphor-icons/react";
+import { ChartBarIcon, ChartLineIcon, ChartPieIcon, StackIcon } from "@phosphor-icons/react";
 import {
   BklitAreaSeriesChart,
   BklitDonutChart,
@@ -55,8 +41,7 @@ const CHART_COLORS = [
   "#14b8a6",
 ];
 
-const CARD_CLASS =
-  "min-w-0 flex h-full flex-col text-zinc-900";
+const CARD_CLASS = "min-w-0 flex h-full flex-col text-zinc-900";
 const CONTENT_HEIGHT = "clamp(220px, 35vh, 280px)";
 const PIE_CONTENT_HEIGHT = "clamp(220px, 32vh, 260px)";
 const AI_TIME_KEY = "__bklitTime";
@@ -79,9 +64,7 @@ function formatCellValue(value: unknown): string {
   if (value === null || value === undefined) return "—";
   if (value instanceof Date) return value.toISOString();
   if (typeof value === "number") {
-    return Number.isFinite(value)
-      ? new Intl.NumberFormat("en-US").format(value)
-      : String(value);
+    return Number.isFinite(value) ? new Intl.NumberFormat("en-US").format(value) : String(value);
   }
   if (typeof value === "bigint") {
     return new Intl.NumberFormat("en-US").format(Number(value));
@@ -128,10 +111,7 @@ function normalizeColumnName(value: unknown): string | null {
   return null;
 }
 
-function resolveRowValue(
-  row: Record<string, unknown>,
-  column: string,
-): unknown {
+function resolveRowValue(row: Record<string, unknown>, column: string): unknown {
   if (column in row) {
     return row[column];
   }
@@ -211,11 +191,7 @@ function coerceTimeSeriesRows(
 }
 
 function useChartData(query?: string) {
-  const {
-    execute,
-    isLoading: isQueryLoading,
-    isReady,
-  } = useChartQueryContext();
+  const { execute, isLoading: isQueryLoading, isReady } = useChartQueryContext();
   const [data, setData] = useState<Array<Record<string, unknown>>>([]);
   const [error, setError] = useState<string | null>(null);
 
@@ -235,8 +211,7 @@ function useChartData(query?: string) {
       })
       .catch((err: unknown) => {
         if (!isCancelled) {
-          const message =
-            err instanceof Error ? err.message : "Failed to load chart data";
+          const message = err instanceof Error ? err.message : "Failed to load chart data";
           setError(message);
         }
       });
@@ -280,9 +255,7 @@ function ChartCardShell({
           {title || "Chart"}
         </CardTitle>
         {description ? (
-          <CardDescription className="text-xs text-zinc-400">
-            {description}
-          </CardDescription>
+          <CardDescription className="text-xs text-zinc-400">{description}</CardDescription>
         ) : null}
       </CardHeader>
       <CardContent className="grow p-4 sm:p-6">
@@ -292,10 +265,7 @@ function ChartCardShell({
             <p className="mt-2 line-clamp-4 text-xs text-red-500">{error}</p>
           </div>
         ) : isLoading ? (
-          <div
-            className="flex flex-col justify-between"
-            style={{ height: CONTENT_HEIGHT }}
-          >
+          <div className="flex flex-col justify-between" style={{ height: CONTENT_HEIGHT }}>
             {[1, 2, 3, 4, 5, 6].map((i) => (
               <Skeleton key={i} className="h-8 w-full rounded" />
             ))}
@@ -313,15 +283,14 @@ function ChartCardShell({
 }
 
 function BarChartComponent({ element }: ComponentRenderProps) {
-  const { title, description, xKey, yKey, orientation, color } =
-    element.props as {
-      title?: string;
-      description?: string;
-      xKey?: string;
-      yKey?: string;
-      orientation?: "horizontal" | "vertical";
-      color?: string;
-    };
+  const { title, description, xKey, yKey, orientation, color } = element.props as {
+    title?: string;
+    description?: string;
+    xKey?: string;
+    yKey?: string;
+    orientation?: "horizontal" | "vertical";
+    color?: string;
+  };
 
   const { data, error, isLoading } = useChartData(element.props.query as string);
 
@@ -368,14 +337,13 @@ function BarChartComponent({ element }: ComponentRenderProps) {
 }
 
 function LineChartComponent({ element }: ComponentRenderProps) {
-  const { title, description, xKey, yKey, color } =
-    element.props as {
-      title?: string;
-      description?: string;
-      xKey?: string;
-      yKey?: string;
-      color?: string;
-    };
+  const { title, description, xKey, yKey, color } = element.props as {
+    title?: string;
+    description?: string;
+    xKey?: string;
+    yKey?: string;
+    color?: string;
+  };
 
   const { data, error, isLoading } = useChartData(element.props.query as string);
 
@@ -457,13 +425,12 @@ function AreaChartComponent({ element }: ComponentRenderProps) {
 }
 
 function PieChartComponent({ element }: ComponentRenderProps) {
-  const { title, description, nameKey, valueKey } =
-    element.props as {
-      title?: string;
-      description?: string;
-      nameKey?: string;
-      valueKey?: string;
-    };
+  const { title, description, nameKey, valueKey } = element.props as {
+    title?: string;
+    description?: string;
+    nameKey?: string;
+    valueKey?: string;
+  };
 
   const { data, error, isLoading } = useChartData(element.props.query as string);
 
@@ -562,14 +529,13 @@ function DataTableComponent({ element }: ComponentRenderProps) {
 }
 
 function FallbackCardComponent({ element }: ComponentRenderProps) {
-  const { title, description, reason, suggestion, examplePrompt } =
-    element.props as {
-      title?: string;
-      description?: string;
-      reason?: string;
-      suggestion?: string;
-      examplePrompt?: string;
-    };
+  const { title, description, reason, suggestion, examplePrompt } = element.props as {
+    title?: string;
+    description?: string;
+    reason?: string;
+    suggestion?: string;
+    examplePrompt?: string;
+  };
 
   return (
     <Card className={CARD_CLASS}>
@@ -589,9 +555,7 @@ function FallbackCardComponent({ element }: ComponentRenderProps) {
             Suggested request: <span className="font-medium">{suggestion}</span>
           </p>
         ) : null}
-        {examplePrompt ? (
-          <p className="text-zinc-500">Example: {examplePrompt}</p>
-        ) : null}
+        {examplePrompt ? <p className="text-zinc-500">Example: {examplePrompt}</p> : null}
       </CardContent>
     </Card>
   );

@@ -3,12 +3,7 @@
 import { useMemo, useState } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { CalendarPreset } from "@/components/ui/calendar-presets";
-import {
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
+import { FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { format } from "date-fns";
 import {
   Collapsible,
@@ -20,11 +15,7 @@ import { useWatch, type UseFormReturn } from "react-hook-form";
 import type { UrlFormValues } from "../url-shortener";
 import { Inset } from "@/components/ui/inset";
 
-export function OptionScheduling({
-  form,
-}: {
-  form: UseFormReturn<UrlFormValues>;
-}) {
+export function OptionScheduling({ form }: { form: UseFormReturn<UrlFormValues> }) {
   const expiresEnabled = useWatch({
     control: form.control,
     name: "expiresEnabled",

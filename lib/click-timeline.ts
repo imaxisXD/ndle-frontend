@@ -32,27 +32,21 @@ export function buildClickTimeline(
   const local = Boolean(response?.timezone && response.range);
   const clicks = new Map<string, number>();
   for (const row of rows) {
-    const day = local
-      ? row.bucket_start.slice(0, 10)
-      : utcDay(row.bucket_start);
+    const day = local ? row.bucket_start.slice(0, 10) : utcDay(row.bucket_start);
     clicks.set(day, (clicks.get(day) ?? 0) + row.clicks);
   }
   const firstDataDay = [...clicks.keys()].sort()[0];
   let start: string;
   let end: string;
   if (local && response?.range) {
-    start =
-      range === "all"
-        ? (response.firstEventDate ?? firstDataDay)
-        : response.range.start;
+    start = range === "all" ? (response.firstEventDate ?? firstDataDay) : response.range.start;
     end = response.range.end;
   } else {
     const utc = getUtcRange(range);
     start = utc.start.toISOString().slice(0, 10);
     end = now.toISOString().slice(0, 10);
   }
-  if (firstDataDay && addDays(start, MAX_EMPTY_LEAD_DAYS) < firstDataDay)
-    start = firstDataDay;
+  if (firstDataDay && addDays(start, MAX_EMPTY_LEAD_DAYS) < firstDataDay) start = firstDataDay;
   const points: Array<{ time: string; clicks: number }> = [];
   for (let day = start; day <= end; day = addDays(day, 1))
     points.push({

@@ -64,11 +64,7 @@ export function UrlTableHeader({
         <span role="columnheader" className="g-clicks" data-glide>
           {clicks}
         </span>
-        <span
-          className="g-slash text-muted-foreground/60"
-          aria-hidden="true"
-          data-glide
-        >
+        <span className="g-slash text-muted-foreground/60" aria-hidden="true" data-glide>
           /
         </span>
         <span role="columnheader" className="g-created" data-glide>

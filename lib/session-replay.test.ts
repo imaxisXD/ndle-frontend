@@ -1,9 +1,5 @@
 import { describe, expect, test, vi } from "vitest";
-import {
-  createReplayGuard,
-  isReplayPausedPath,
-  type ReplayWindow,
-} from "./session-replay";
+import { createReplayGuard, isReplayPausedPath, type ReplayWindow } from "./session-replay";
 
 function fakeRecorder() {
   let running = false;

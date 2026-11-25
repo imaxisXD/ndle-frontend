@@ -18,11 +18,7 @@ export function SkeletonBone({
   return (
     <span
       aria-hidden="true"
-      className={cn(
-        "skel-bone block rounded-sm",
-        onPage && "skel-bone-page",
-        className,
-      )}
+      className={cn("skel-bone block rounded-sm", onPage && "skel-bone-page", className)}
       style={{ "--skel-delay": `${delay}ms` } as CSSProperties}
     />
   );

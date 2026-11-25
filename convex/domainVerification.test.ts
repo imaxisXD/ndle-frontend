@@ -115,10 +115,12 @@ describe("adding a custom domain", () => {
         true,
       );
     }
-    expect(await owner.mutation(api.customDomains.addDomain, { domain: "d.example.test" })).toEqual({
-      success: false,
-      error: "You can have up to 3 domains waiting for verification. Verify or remove one first.",
-    });
+    expect(await owner.mutation(api.customDomains.addDomain, { domain: "d.example.test" })).toEqual(
+      {
+        success: false,
+        error: "You can have up to 3 domains waiting for verification. Verify or remove one first.",
+      },
+    );
   });
 
   test("deleting an unverified domain touches neither Cloudflare nor links", async () => {
@@ -131,6 +133,16 @@ describe("adding a custom domain", () => {
     expect(await domainJobs(backend)).toHaveLength(0);
   });
 });
+
+async function setClockFromLastAttempt(
+  backend: Backend,
+  domainId: Id<"custom_domains">,
+  offsetMs: number,
+) {
+  const attemptAt =
+    (await backend.run((ctx) => ctx.db.get(domainId)))?.lastVerificationAttemptAt ?? Date.now();
+  vi.setSystemTime(attemptAt + offsetMs);
+}
 
 describe("verifying a custom domain", () => {
   test("accepts only the exact challenge value, then claims the hostname and starts Cloudflare", async () => {
@@ -162,7 +174,7 @@ describe("verifying a custom domain", () => {
     );
 
     // Long TXT values arrive as several quoted strings that join into one record.
-    vi.advanceTimersByTime(10_000);
+    await setClockFromLastAttempt(backend, created.domainId!, 10_000);
     answer = dnsAnswer('"v=spf1 -all"', `"ndle-verify=" "${token}"`);
     expect(
       await owner.action(api.customDomains.verifyDomain, { domainId: created.domainId! }),
@@ -190,7 +202,7 @@ describe("verifying a custom domain", () => {
     const created = await owner.mutation(api.customDomains.addDomain, { domain });
     const fetchMock = stubDns(() => dnsAnswer('"unrelated"'));
     await owner.action(api.customDomains.verifyDomain, { domainId: created.domainId! });
-    vi.advanceTimersByTime(9_000);
+    await setClockFromLastAttempt(backend, created.domainId!, 9_000);
     expect(
       await owner.action(api.customDomains.verifyDomain, { domainId: created.domainId! }),
     ).toEqual({ success: false, error: "Please wait a few seconds before checking again." });
@@ -225,7 +237,7 @@ describe("verifying a custom domain", () => {
       });
       expect(result.success).toBe(false);
       expect(result.error).toContain(error);
-      vi.advanceTimersByTime(10_000);
+      await setClockFromLastAttempt(backend, created.domainId!, 10_000);
     }
     expect((await backend.run((ctx) => ctx.db.get(created.domainId!)))?.status).toBe(
       "awaiting_verification",
@@ -286,15 +298,16 @@ describe("verifying a custom domain", () => {
       }),
     ).toEqual({ success: true });
     const remaining = () =>
-      backend.run(async (ctx) =>
-        (
-          await ctx.db
-            .query("custom_domains")
-            .withIndex("by_domain_and_status", (q) =>
-              q.eq("domain", domain).eq("status", "awaiting_verification"),
-            )
-            .collect()
-        ).length,
+      backend.run(
+        async (ctx) =>
+          (
+            await ctx.db
+              .query("custom_domains")
+              .withIndex("by_domain_and_status", (q) =>
+                q.eq("domain", domain).eq("status", "awaiting_verification"),
+              )
+              .collect()
+          ).length,
       );
     expect(await remaining()).toBe(1);
     const next = (
@@ -339,9 +352,7 @@ describe("unverified domain expiry", () => {
 
     // Past its lifetime, a row cannot be verified even before cleanup runs.
     const fetchMock = stubDns(() => dnsAnswer(`"ndle-verify=${"0".repeat(32)}"`));
-    expect(
-      await owner.action(api.customDomains.verifyDomain, { domainId: staleIds[0] }),
-    ).toEqual({
+    expect(await owner.action(api.customDomains.verifyDomain, { domainId: staleIds[0] })).toEqual({
       success: false,
       error: "This verification expired. Remove the domain and add it again.",
     });
@@ -388,9 +399,9 @@ describe("grandfathered custom domains", () => {
     const fetchMock = stubDns(() => new Response(null, { status: 500 }));
 
     // "Verify" on a pending row re-checks Cloudflare as before; no DNS challenge.
-    expect(
-      await owner.action(api.customDomains.verifyDomain, { domainId: pendingId }),
-    ).toEqual({ success: true });
+    expect(await owner.action(api.customDomains.verifyDomain, { domainId: pendingId })).toEqual({
+      success: true,
+    });
     expect(fetchMock).not.toHaveBeenCalled();
     expect(await domainJobs(backend)).toMatchObject([
       { target: { kind: "domain", hostname: domain, domainId: pendingId, hostnameId: "cf-id" } },

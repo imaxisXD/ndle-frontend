@@ -1,12 +1,6 @@
 "use client";
 
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardToolbar,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardToolbar } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { formatRelative } from "@/lib/utils";
 import { Link, Clock, AntennaSignal } from "iconoir-react";
@@ -47,9 +41,7 @@ export function LinkSettingsPanel({
         <CardHeader>
           <div className="flex items-center gap-2">
             <Link className="text-muted-foreground size-4" aria-hidden="true" />
-            <CardTitle className="text-sm font-medium">
-              Destination URL
-            </CardTitle>
+            <CardTitle className="text-sm font-medium">Destination URL</CardTitle>
           </div>
         </CardHeader>
         <CardContent>
@@ -63,13 +55,8 @@ export function LinkSettingsPanel({
       <Card>
         <CardHeader>
           <div className="flex items-center gap-2">
-            <AntennaSignal
-              className="text-muted-foreground size-4"
-              aria-hidden="true"
-            />
-            <CardTitle className="text-sm font-medium">
-              Analytics Tracking
-            </CardTitle>
+            <AntennaSignal className="text-muted-foreground size-4" aria-hidden="true" />
+            <CardTitle className="text-sm font-medium">Analytics Tracking</CardTitle>
           </div>
           <CardToolbar>
             <Badge variant={trackingEnabled ? "green" : "default"}>
@@ -94,9 +81,7 @@ export function LinkSettingsPanel({
             <CardTitle className="text-sm font-medium">Expiration</CardTitle>
           </div>
           <CardToolbar>
-            <Badge
-              variant={isExpired ? "red" : expiresAt ? "yellow" : "default"}
-            >
+            <Badge variant={isExpired ? "red" : expiresAt ? "yellow" : "default"}>
               {isExpired ? "Expired" : expiresAt ? "Scheduled" : "Never"}
             </Badge>
           </CardToolbar>
@@ -142,9 +127,7 @@ export function LinkSettingsPanel({
                   className="border-border size-4 rounded border"
                   style={{
                     backgroundColor:
-                      qrStyle.bg === "transparent"
-                        ? "transparent"
-                        : qrStyle.bg || "#ffffff",
+                      qrStyle.bg === "transparent" ? "transparent" : qrStyle.bg || "#ffffff",
                   }}
                   title="Background"
                 />
@@ -159,9 +142,7 @@ export function LinkSettingsPanel({
               </p>
             </div>
           ) : (
-            <p className="text-muted-foreground text-sm">
-              QR code is not enabled for this link
-            </p>
+            <p className="text-muted-foreground text-sm">QR code is not enabled for this link</p>
           )}
         </CardContent>
       </Card>

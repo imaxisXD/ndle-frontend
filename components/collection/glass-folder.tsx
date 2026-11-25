@@ -33,7 +33,8 @@ const HEX = /^#([0-9a-f]{6})$/i;
 const WHITE: Rgb = [255, 255, 255];
 const BLACK: Rgb = [0, 0, 0];
 
-const mix = (a: Rgb, b: Rgb, t: number): Rgb => [0, 1, 2].map((i) => Math.round(a[i] + (b[i] - a[i]) * t)) as Rgb;
+const mix = (a: Rgb, b: Rgb, t: number): Rgb =>
+  [0, 1, 2].map((i) => Math.round(a[i] + (b[i] - a[i]) * t)) as Rgb;
 const rgba = ([r, g, b]: Rgb, alpha = 1) => `rgba(${r},${g},${b},${alpha})`;
 
 /** Glass tones for any 6-digit hex colour. Dark colours get light type. */
@@ -138,7 +139,10 @@ export function GlassFolder({
 
   return (
     <motion.span
-      className={cn("relative block aspect-[300/252] w-full [container-type:inline-size] [perspective:900px]", className)}
+      className={cn(
+        "relative block aspect-[300/252] w-full [container-type:inline-size] [perspective:900px]",
+        className,
+      )}
       onMouseEnter={hovered === undefined ? () => setPointer(true) : undefined}
       onMouseLeave={hovered === undefined ? () => setPointer(false) : undefined}
       initial={false}
@@ -183,7 +187,10 @@ export function GlassFolder({
         animate={{ rotateX: pose === "open" ? -16 : pose === "lift" ? -8 : 0 }}
         transition={SPRING}
       >
-        <span aria-hidden className="absolute -top-[13cqw] -left-[11cqw] h-[48cqw] w-[69cqw] rounded-full bg-white/25 blur-2xl" />
+        <span
+          aria-hidden
+          className="absolute -top-[13cqw] -left-[11cqw] h-[48cqw] w-[69cqw] rounded-full bg-white/25 blur-2xl"
+        />
         <span className="absolute inset-x-[7.3cqw] bottom-[6.3cqw] flex flex-col gap-[1.6cqw] text-left">
           <span
             className="truncate text-[clamp(15px,7.3cqw,22px)] leading-[1.1] font-medium tracking-[-0.02em]"
@@ -226,17 +233,9 @@ function parseDisplayHost(rawUrl: string): string {
 }
 
 /** A link preview sheet: favicon and host on top, a preview block under it. */
-function Sheet({
-  url,
-  staticPreview,
-}: {
-  url: string | null;
-  staticPreview: boolean;
-}) {
+function Sheet({ url, staticPreview }: { url: string | null; staticPreview: boolean }) {
   const [failed, setFailed] = useState(false);
-  const { faviconUrl, isLoading, hostname } = useFavicon(
-    staticPreview ? null : url,
-  );
+  const { faviconUrl, isLoading, hostname } = useFavicon(staticPreview ? null : url);
   const displayHost = url ? (hostname ?? parseDisplayHost(url)) : null;
 
   const icon =

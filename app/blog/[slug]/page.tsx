@@ -36,7 +36,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       tags: post.tags,
       // The image is the post's own card, from opengraph-image.tsx.
     },
-    twitter: { card: "summary_large_image", title, description: post.description, creator: "@abhishk_084" },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description: post.description,
+      creator: "@abhishk_084",
+    },
   };
 }
 
@@ -62,7 +67,9 @@ export default async function PostPage({ params }: Props) {
     <article>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData).replace(/</g, "\\u003c") }}
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(structuredData).replace(/</g, "\\u003c"),
+        }}
       />
 
       {/* The title sits on the landing page's dot-grid canvas, closed by a 2px
@@ -87,7 +94,9 @@ export default async function PostPage({ params }: Props) {
             <h1 className="mt-5 font-[family-name:var(--font-bebas)] text-[clamp(2.9rem,6vw,4.5rem)] leading-[0.9] tracking-[-0.005em] text-balance text-[#141312] uppercase">
               {post.title}
             </h1>
-            <p className="mt-5 max-w-[60ch] font-mono text-[15px] leading-[1.5] text-pretty text-[#3d3d3d]">{post.description}</p>
+            <p className="mt-5 max-w-[60ch] font-mono text-[15px] leading-[1.5] text-pretty text-[#3d3d3d]">
+              {post.description}
+            </p>
             <p className="mt-6 font-mono text-xs text-[#3d3d3d]">By {post.author}</p>
           </div>
         </div>
@@ -106,7 +115,13 @@ export default async function PostPage({ params }: Props) {
               <ol className="mt-3 space-y-2 text-sm leading-5">
                 {post.sections.map((section) => (
                   <li key={section.id}>
-                    <a href={`#${section.id}`} className={cn("text-[#3d3d3d] hover:text-[#141312] hover:underline hover:decoration-[var(--sig)] hover:decoration-2 hover:underline-offset-4", FOCUS)}>
+                    <a
+                      href={`#${section.id}`}
+                      className={cn(
+                        "text-[#3d3d3d] hover:text-[#141312] hover:underline hover:decoration-[var(--sig)] hover:decoration-2 hover:underline-offset-4",
+                        FOCUS,
+                      )}
+                    >
                       {section.title}
                     </a>
                   </li>
@@ -146,7 +161,9 @@ function MorePosts({ current }: { current: string }) {
               <span className="block text-lg leading-snug font-medium text-[#141312] decoration-[var(--sig)] decoration-2 underline-offset-4 group-hover:underline">
                 {post.title}
               </span>
-              <span className="mt-1 block font-mono text-[13px] leading-5 text-[#3d3d3d]">{post.description}</span>
+              <span className="mt-1 block font-mono text-[13px] leading-5 text-[#3d3d3d]">
+                {post.description}
+              </span>
             </Link>
           </li>
         ))}

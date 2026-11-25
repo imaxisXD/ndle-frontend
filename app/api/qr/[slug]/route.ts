@@ -5,10 +5,7 @@ import { getShortDomain, makeShortLinkWithDomain } from "@/lib/config";
 import { getBrandBadgeDataUrl } from "@/lib/qr";
 import { type QrLogo, qrCodeSvg } from "@/lib/qr-code";
 import { getQrRateLimit } from "@/lib/rateLimit";
-import {
-  getSignedInAnalyticsViewer,
-  queryConvexAsUser,
-} from "@/lib/server-analytics-plan";
+import { getSignedInAnalyticsViewer, queryConvexAsUser } from "@/lib/server-analytics-plan";
 import {
   canonicalHostname,
   hasBlockedLocalSuffix,
@@ -26,8 +23,7 @@ type LogoMode = "brand" | "custom" | "none";
 
 const MAX_LOGO_BYTES = 1_000_000;
 const VALID_SLUG_PATTERN = /^[a-zA-Z0-9._-]{1,128}$/;
-const VALID_DOMAIN_PATTERN =
-  /^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,}$/;
+const VALID_DOMAIN_PATTERN = /^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,}$/;
 
 const NO_STORE_HEADERS = { "Cache-Control": "no-store" } as const;
 const PRIVATE_CACHE_HEADERS = { "Cache-Control": "private, max-age=3600" } as const;
@@ -120,10 +116,7 @@ async function fetchImageAsDataUrl(url: string): Promise<string | null> {
   }
 }
 
-export async function GET(
-  req: NextRequest,
-  ctx: { params: Promise<{ slug: string }> },
-) {
+export async function GET(req: NextRequest, ctx: { params: Promise<{ slug: string }> }) {
   try {
     const { userId, getToken } = await auth();
     if (!userId) {
@@ -151,9 +144,7 @@ export async function GET(
       );
     }
 
-    const format = (requestUrl.searchParams.get("format") || "png")
-      .toLowerCase()
-      .trim();
+    const format = (requestUrl.searchParams.get("format") || "png").toLowerCase().trim();
     const wantSvg = format === "svg";
     const wantPng = format === "png";
     if (!wantSvg && !wantPng) {
@@ -163,20 +154,10 @@ export async function GET(
       );
     }
 
-    const size = clamp(
-      parseNumber(requestUrl.searchParams.get("size"), 512),
-      64,
-      2048,
-    );
-    const margin = clamp(
-      parseNumber(requestUrl.searchParams.get("margin"), 2),
-      0,
-      8,
-    );
+    const size = clamp(parseNumber(requestUrl.searchParams.get("size"), 512), 64, 2048);
+    const margin = clamp(parseNumber(requestUrl.searchParams.get("margin"), 2), 0, 8);
     const eccParam = (requestUrl.searchParams.get("ecc") || "H").toUpperCase();
-    const ecc: EccLevel = ["L", "M", "Q", "H"].includes(eccParam)
-      ? (eccParam as EccLevel)
-      : "H";
+    const ecc: EccLevel = ["L", "M", "Q", "H"].includes(eccParam) ? (eccParam as EccLevel) : "H";
     const fg = parseHexColor(requestUrl.searchParams.get("fg"), "#000000");
     const bgRaw = requestUrl.searchParams.get("bg");
     const bg =
@@ -222,15 +203,15 @@ export async function GET(
             { status: 400, headers: NO_STORE_HEADERS },
           );
         }
-        const activeDomains = await queryConvexAsUser<
-          Array<{ domain?: unknown }>
-        >(getToken, "customDomains:getActiveDomains");
+        const activeDomains = await queryConvexAsUser<Array<{ domain?: unknown }>>(
+          getToken,
+          "customDomains:getActiveDomains",
+        );
         const ownsDomain =
           Array.isArray(activeDomains) &&
           activeDomains.some(
             (entry) =>
-              typeof entry?.domain === "string" &&
-              canonicalHostname(entry.domain) === normalized,
+              typeof entry?.domain === "string" && canonicalHostname(entry.domain) === normalized,
           );
         if (!ownsDomain) {
           return NextResponse.json(

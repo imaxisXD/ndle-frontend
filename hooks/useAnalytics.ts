@@ -34,15 +34,7 @@ export function useTimeseries({
 }) {
   const tz = browserTimeZone();
   return useQuery({
-    queryKey: [
-      "analytics",
-      "timeseries",
-      scope,
-      linkSlug,
-      range,
-      tz,
-      excludeBots,
-    ],
+    queryKey: ["analytics", "timeseries", scope, linkSlug, range, tz, excludeBots],
     queryFn: async () => {
       const q = qs({
         range,
@@ -51,8 +43,7 @@ export function useTimeseries({
         exclude_bots: botsParam(excludeBots),
       });
       const res = await fetch(`/api/analytics/timeseries?${q}`);
-      if (!res.ok)
-        throw await analyticsRequestError(res, "Failed to load timeseries");
+      if (!res.ok) throw await analyticsRequestError(res, "Failed to load timeseries");
       return res.json();
     },
     enabled,
@@ -74,14 +65,7 @@ export function useVariantPerformance({
   excludeBots?: boolean;
 }) {
   return useQuery({
-    queryKey: [
-      "analytics",
-      "variants",
-      "performance",
-      linkId,
-      range,
-      excludeBots,
-    ],
+    queryKey: ["analytics", "variants", "performance", linkId, range, excludeBots],
     queryFn: async () => {
       const q = qs({
         range,
@@ -90,11 +74,7 @@ export function useVariantPerformance({
         exclude_bots: botsParam(excludeBots),
       });
       const res = await fetch(`/api/analytics/variants?${q}`);
-      if (!res.ok)
-        throw await analyticsRequestError(
-          res,
-          "Failed to load variant performance",
-        );
+      if (!res.ok) throw await analyticsRequestError(res, "Failed to load variant performance");
       return res.json() as Promise<{
         variants: Array<{
           variant_id: string;

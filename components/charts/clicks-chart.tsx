@@ -48,9 +48,7 @@ export function ClicksChart({
                 <RefreshDouble className="text-muted-foreground h-3 w-3 animate-spin" />
               )}
             </CardTitle>
-            <CardDescription className="text-xs">
-              Click activity by day of week
-            </CardDescription>
+            <CardDescription className="text-xs">Click activity by day of week</CardDescription>
           </div>
         </div>
       </CardHeader>
@@ -71,9 +69,7 @@ export function ClicksChart({
         <CardFooter className="flex-col items-start gap-2 pt-4 text-sm">
           <div className="text-muted-foreground flex w-full items-center justify-between text-xs">
             <span>Average per day</span>
-            <span className="text-foreground font-medium">
-              [{averageClicks}]
-            </span>
+            <span className="text-foreground font-medium">[{averageClicks}]</span>
           </div>
         </CardFooter>
       )}

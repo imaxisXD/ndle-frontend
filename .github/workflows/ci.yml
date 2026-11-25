@@ -2,19 +2,19 @@ name: Frontend checks
 on:
   pull_request:
   push:
+permissions:
+  contents: read
 jobs:
   verify:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      # v5 and later run on Node 24; v4 ran on the deprecated Node 20.
       - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v7
         with:
           node-version: 26
-          # pnpm is installed in the next step, so there's nothing to cache yet.
-          package-manager-cache: false
-      - run: npm install --global pnpm@11.9.0
+          cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm check
       - run: pnpm build

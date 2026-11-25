@@ -1,17 +1,10 @@
 "use client";
 
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { BklitDonutChart } from "@/components/charts/bklit-chart-kit";
 import { ShieldAlert } from "iconoir-react";
 
-export const description =
-  "A donut chart showing bot vs human traffic with active sector";
+export const description = "A donut chart showing bot vs human traffic with active sector";
 
 export function BotTrafficChart({
   data,
@@ -34,23 +27,14 @@ export function BotTrafficChart({
           <ShieldAlert className="size-5" />
           Traffic Analysis
         </CardTitle>
-        <CardDescription className="text-xs">
-          Human vs bot traffic distribution
-        </CardDescription>
+        <CardDescription className="text-xs">Human vs bot traffic distribution</CardDescription>
       </CardHeader>
       <CardContent>
-        <BklitDonutChart
-          data={chartData}
-          heightClassName="h-[250px]"
-          isLoading={isLoading}
-        />
+        <BklitDonutChart data={chartData} heightClassName="h-[250px]" isLoading={isLoading} />
         <div className="mt-4 flex justify-center gap-6">
           {chartData.map((item) => (
             <div key={item.label} className="flex items-center gap-2">
-              <div
-                className="h-3 w-3 rounded-full"
-                style={{ backgroundColor: item.color }}
-              />
+              <div className="h-3 w-3 rounded-full" style={{ backgroundColor: item.color }} />
               <span className="text-sm">{item.label}</span>
               <span className="text-muted-foreground text-sm tabular-nums">
                 {item.value.toLocaleString()}

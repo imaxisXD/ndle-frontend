@@ -13,11 +13,7 @@ import NumberFlow from "@number-flow/react";
 import { makeShortLinkWithDomain } from "@/lib/config";
 import { NavLink } from "react-router";
 import { NavArrowRight } from "iconoir-react";
-import {
-  Tooltip,
-  TooltipTrigger,
-  TooltipContent,
-} from "@/components/ui/base-tooltip";
+import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/base-tooltip";
 import { LinkWithFavicon } from "@/components/ui/link-with-favicon";
 import { CopyIcon, LinkIcon, RankingIcon } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
@@ -53,9 +49,7 @@ export function TopLinksChart({
 
   const handleCopy = useCallback(
     (shortUrl: string) => {
-      const normalized = /^https?:\/\//i.test(shortUrl)
-        ? shortUrl
-        : `https://${shortUrl}`;
+      const normalized = /^https?:\/\//i.test(shortUrl) ? shortUrl : `https://${shortUrl}`;
       navigator.clipboard.writeText(normalized);
       add({
         type: "success",
@@ -98,10 +92,7 @@ export function TopLinksChart({
           </div>
         ) : (
           displayData.map((link, index) => {
-            const shortLink = makeShortLinkWithDomain(
-              link.url,
-              link.customDomain,
-            );
+            const shortLink = makeShortLinkWithDomain(link.url, link.customDomain);
             const normalizedHref = /^https?:\/\//i.test(shortLink)
               ? shortLink
               : `https://${shortLink}`;
@@ -171,10 +162,7 @@ export function TopLinksChart({
                       <span className="sr-only"> clicks</span>
                     </p>
                     {/* Hidden on phones to leave room for the link. */}
-                    <p
-                      aria-hidden="true"
-                      className="text-muted-foreground hidden text-xs sm:block"
-                    >
+                    <p aria-hidden="true" className="text-muted-foreground hidden text-xs sm:block">
                       [clicks]
                     </p>
                   </div>

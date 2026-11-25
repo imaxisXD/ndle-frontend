@@ -30,8 +30,7 @@ export function AppAccess({ children }: { children?: ReactNode }) {
         <div role="alert">
           <h1 className="text-base font-medium">Your account could not load</h1>
           <p className="text-muted-foreground mt-2 max-w-md text-sm">
-            You are signed in, but we could not connect to your account. Please
-            try again.
+            You are signed in, but we could not connect to your account. Please try again.
           </p>
         </div>
         <Button type="button" onClick={() => window.location.reload()}>

@@ -24,13 +24,16 @@ export function Tag({ children, lit = false }: { children: ReactNode; lit?: bool
 /** The sign-up box beside each post, and at the end of it on small screens. */
 export function SignupBox({ className }: { className?: string }) {
   return (
-    <aside aria-label="Try ndle" className={cn("border-2 border-[#141312] bg-white p-5", className)}>
+    <aside
+      aria-label="Try ndle"
+      className={cn("border-2 border-[#141312] bg-white p-5", className)}
+    >
       <p className="font-[family-name:var(--font-bebas)] text-[28px] leading-[0.95] tracking-[-0.005em] text-[#141312] uppercase">
         ndle watches your links, free
       </p>
       <p className="mt-2 font-mono text-[13px] leading-5 text-[#3d3d3d]">
-        ndle checks every short link every 30 minutes and flags the ones that break. No ads, and links don&apos;t
-        expire.
+        ndle checks every short link every 30 minutes and flags the ones that break. No ads, and
+        links don&apos;t expire.
       </p>
       <ActionLink href={SIGN_UP} className="mt-4 w-full">
         Start free

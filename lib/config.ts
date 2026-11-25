@@ -7,10 +7,8 @@ export function getShortDomain(): string {
 }
 
 const PRODUCTION_APP_HOSTS = new Set(["ndle.app", "www.ndle.app"]);
-export const DEFAULT_FILE_PROXY_URL =
-  "https://proxy-file-worker-prod.sunny735084.workers.dev";
-const DEVELOPMENT_FILE_PROXY_URL =
-  "https://proxy-file-worker.sunny735084.workers.dev";
+export const DEFAULT_FILE_PROXY_URL = "https://proxy-file-worker-prod.sunny735084.workers.dev";
+const DEVELOPMENT_FILE_PROXY_URL = "https://proxy-file-worker.sunny735084.workers.dev";
 
 function parseAbsoluteHttpOrigin(value: string | undefined): string | null {
   const trimmed = value?.trim();
@@ -39,9 +37,7 @@ export function getFileProxyUrl(
   if (process.env.NEXT_PUBLIC_FILE_PROXY_URL) {
     return process.env.NEXT_PUBLIC_FILE_PROXY_URL;
   }
-  return PRODUCTION_APP_HOSTS.has(hostname)
-    ? "/apiv2"
-    : DEVELOPMENT_FILE_PROXY_URL;
+  return PRODUCTION_APP_HOSTS.has(hostname) ? "/apiv2" : DEVELOPMENT_FILE_PROXY_URL;
 }
 
 /**
@@ -74,10 +70,7 @@ export function makeShortLink(slugOrPath: string): string {
  * Create a short link with an optional custom domain.
  * If customDomain is provided, use it; otherwise use the default domain.
  */
-export function makeShortLinkWithDomain(
-  slugOrPath: string,
-  customDomain?: string | null,
-): string {
+export function makeShortLinkWithDomain(slugOrPath: string, customDomain?: string | null): string {
   const domain = customDomain || getShortDomain();
   const path = String(slugOrPath || "").replace(/^\/+/, "");
   return path ? `${domain}/${path}` : domain;

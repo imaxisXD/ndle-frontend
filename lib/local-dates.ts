@@ -16,9 +16,7 @@ function dayFormatter(timeZone: string): Intl.DateTimeFormat {
   return format;
 }
 
-export function isValidTimeZone(
-  value: string | null | undefined,
-): value is string {
+export function isValidTimeZone(value: string | null | undefined): value is string {
   if (!value || value.length > 64) return false;
   try {
     dayFormatter(value);
@@ -45,16 +43,12 @@ export function localDate(instant: Date, timeZone: string): string {
 
 export function addDays(date: string, days: number): string {
   const [year, month, day] = date.split("-").map(Number);
-  return new Date(Date.UTC(year, month - 1, day + days))
-    .toISOString()
-    .slice(0, 10);
+  return new Date(Date.UTC(year, month - 1, day + days)).toISOString().slice(0, 10);
 }
 
 function addMonths(date: string, months: number): string {
   const [year, month, day] = date.split("-").map(Number);
-  return new Date(Date.UTC(year, month - 1 + months, day))
-    .toISOString()
-    .slice(0, 10);
+  return new Date(Date.UTC(year, month - 1 + months, day)).toISOString().slice(0, 10);
 }
 
 /** Whole local days covered by a range, mirroring the UTC range rules. */

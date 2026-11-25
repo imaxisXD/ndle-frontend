@@ -15,8 +15,7 @@ type DotmatrixLoaderIconProps = {
   style?: CSSProperties;
 };
 
-const SUNSET_FILL =
-  "linear-gradient(135deg, #ff5f6d 0%, #ffc371 52%, #ffe29a 100%)";
+const SUNSET_FILL = "linear-gradient(135deg, #ff5f6d 0%, #ffc371 52%, #ffe29a 100%)";
 
 const D1 = 0x01;
 const D2 = 0x02;
@@ -88,18 +87,11 @@ export function DotmatrixLoaderIcon({
         } as CSSProperties
       }
     >
-      <span
-        aria-hidden="true"
-        className="dmx-grid"
-        style={{ gap: `${cellPadding}px` }}
-      >
+      <span aria-hidden="true" className="dmx-grid" style={{ gap: `${cellPadding}px` }}>
         {CELLS.map(({ key, bit, isGap }) => (
           <span
             key={key}
-            className={cn(
-              "dmx-dot",
-              bit !== null && `dmx-square9-bit ${BIT_CLASS[bit]}`,
-            )}
+            className={cn("dmx-dot", bit !== null && `dmx-square9-bit ${BIT_CLASS[bit]}`)}
             style={{
               width: dotSize,
               height: dotSize,

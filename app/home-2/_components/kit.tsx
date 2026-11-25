@@ -122,7 +122,12 @@ export const INK_TITLE =
    pulled in by the edge's width. */
 
 /** How far each corner is pulled in, as [x, y] px, clockwise from top left. */
-export type Cut = { tl?: [number, number]; tr?: [number, number]; br?: [number, number]; bl?: [number, number] };
+export type Cut = {
+  tl?: [number, number];
+  tr?: [number, number];
+  br?: [number, number];
+  bl?: [number, number];
+};
 
 const EDGE = 2; // the ink edge, as the bento's outlines
 

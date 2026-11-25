@@ -40,9 +40,7 @@ export function useTableSortingURL() {
   const updateSorting: OnChangeFn<SortingState> = useCallback(
     (updaterOrValue) => {
       const newSorting =
-        typeof updaterOrValue === "function"
-          ? updaterOrValue(sorting)
-          : updaterOrValue;
+        typeof updaterOrValue === "function" ? updaterOrValue(sorting) : updaterOrValue;
 
       const compactSorting = sortingToCompact(newSorting);
 

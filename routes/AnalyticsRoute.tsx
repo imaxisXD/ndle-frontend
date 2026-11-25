@@ -10,12 +10,8 @@ export default function AnalyticsRoute() {
   return (
     <>
       <header>
-        <h1 className="font-doto roundness-100 text-4xl font-black">
-          Analytics
-        </h1>
-        <p className="text-muted-foreground mt-2 text-sm">
-          Detailed insights and statistics
-        </p>
+        <h1 className="font-doto roundness-100 text-4xl font-black">Analytics</h1>
+        <p className="text-muted-foreground mt-2 text-sm">Detailed insights and statistics</p>
       </header>
       <section aria-labelledby="analytics-content-heading">
         <h2 className="sr-only" id="analytics-content-heading">

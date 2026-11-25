@@ -40,7 +40,10 @@ export const PROBLEMS = {
 const REWORDED: Array<{ match: RegExp; problem: (found: RegExpMatchArray) => Problem }> = [
   {
     match: /allows up to (\d+) links each day/i,
-    problem: ([, limit]) => ({ title: `You've made today's ${limit} guest links.`, signUp: "to keep shortening." }),
+    problem: ([, limit]) => ({
+      title: `You've made today's ${limit} guest links.`,
+      signUp: "to keep shortening.",
+    }),
   },
   {
     match: /from your network reached today's limit of (\d+)/i,
@@ -59,7 +62,10 @@ const REWORDED: Array<{ match: RegExp; problem: (found: RegExpMatchArray) => Pro
   },
   {
     match: /domain has been blocked/i,
-    problem: () => ({ title: "ndle doesn't shorten links to this site.", detail: "Its domain is blocked for safety reasons." }),
+    problem: () => ({
+      title: "ndle doesn't shorten links to this site.",
+      detail: "Its domain is blocked for safety reasons.",
+    }),
   },
   {
     match: /guest sessions are not configured/i,
@@ -74,7 +80,10 @@ const REWORDED: Array<{ match: RegExp; problem: (found: RegExpMatchArray) => Pro
   },
   {
     match: /guest session (is invalid|is required|not found)/i,
-    problem: () => ({ title: "Your guest session ran out.", detail: "Refresh the page and try again." }),
+    problem: () => ({
+      title: "Your guest session ran out.",
+      detail: "Refresh the page and try again.",
+    }),
   },
 ];
 

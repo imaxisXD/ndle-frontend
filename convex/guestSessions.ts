@@ -3,11 +3,7 @@ import type { Doc } from "./_generated/dataModel";
 import type { MutationCtx } from "./_generated/server";
 import { ensureGuestId } from "./ownership";
 
-export async function upsertGuestSession(
-  ctx: MutationCtx,
-  guestId: string,
-  email?: string,
-) {
+export async function upsertGuestSession(ctx: MutationCtx, guestId: string, email?: string) {
   const normalizedGuestId = ensureGuestId(guestId);
   const normalizedEmail = email?.trim().toLowerCase() || undefined;
   const existing = await ctx.db

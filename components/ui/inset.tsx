@@ -9,10 +9,7 @@ function Inset({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="inset"
-      className={cn(
-        "bg-surface-inset border-border rounded-md border",
-        className,
-      )}
+      className={cn("bg-surface-inset border-border rounded-md border", className)}
       {...props}
     />
   );

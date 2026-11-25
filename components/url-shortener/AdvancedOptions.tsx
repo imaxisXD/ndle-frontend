@@ -4,10 +4,7 @@ import { useState, type ComponentType } from "react";
 import { UseFormReturn, useWatch } from "react-hook-form";
 import type { UrlFormValues } from "../url-shortener";
 import { cn } from "@/lib/utils";
-import {
-  Collapsible,
-  CollapsiblePanel,
-} from "@/components/ui/base-collapsible";
+import { Collapsible, CollapsiblePanel } from "@/components/ui/base-collapsible";
 import { Switch, SwitchWrapper } from "@/components/ui/switch";
 import { AnimatePresence, motion } from "motion/react";
 import { OptionScheduling } from "./OptionScheduling";
@@ -137,16 +134,11 @@ export function AdvancedOptions({
 
   // Create a map of enable key -> watched value for checking active states
   const enabledMap = ENABLE_KEYS_ARRAY.reduce((acc, key) => {
-    (acc as Record<EnableKey, UrlFormValues[EnableKey]>)[key] =
-      watchedValues?.[key];
+    (acc as Record<EnableKey, UrlFormValues[EnableKey]>)[key] = watchedValues?.[key];
     return acc;
   }, {} as Partial<UrlFormValues>);
 
-  const handleSwitchChange = (
-    key: string,
-    enableKey: EnableKey,
-    checked: boolean,
-  ) => {
+  const handleSwitchChange = (key: string, enableKey: EnableKey, checked: boolean) => {
     form.setValue(enableKey, checked, { shouldDirty: true });
     if (checked) {
       setExpandedKey(key);
@@ -206,7 +198,7 @@ export function AdvancedOptions({
                           type="button"
                           onClick={() => handleRowClick(item.key)}
                           aria-expanded={isExpanded}
-                          className="flex min-w-0 cursor-pointer items-center gap-3 overflow-hidden text-left after:absolute after:inset-0 after:rounded-lg after:content-[''] focus-visible:outline-none focus-visible:after:ring-[3px] focus-visible:after:ring-accent/50"
+                          className="focus-visible:after:ring-accent/50 flex min-w-0 cursor-pointer items-center gap-3 overflow-hidden text-left after:absolute after:inset-0 after:rounded-lg after:content-[''] focus-visible:outline-none focus-visible:after:ring-[3px]"
                         >
                           <span
                             className={cn(
@@ -216,15 +208,10 @@ export function AdvancedOptions({
                                 : "text-muted-foreground group-hover:text-foreground bg-white",
                             )}
                           >
-                            <Icon
-                              className="size-4"
-                              weight={isEnabled ? "duotone" : "regular"}
-                            />
+                            <Icon className="size-4" weight={isEnabled ? "duotone" : "regular"} />
                           </span>
                           <span className="flex min-w-0 flex-col">
-                            <span className="truncate text-sm font-medium">
-                              {item.label}
-                            </span>
+                            <span className="truncate text-sm font-medium">{item.label}</span>
                             <span className="text-muted-foreground truncate text-xs">
                               {item.description}
                             </span>
@@ -237,11 +224,7 @@ export function AdvancedOptions({
                               <Switch
                                 checked={isEnabled}
                                 onCheckedChange={(checked) =>
-                                  handleSwitchChange(
-                                    item.key,
-                                    item.enableKey!,
-                                    checked,
-                                  )
+                                  handleSwitchChange(item.key, item.enableKey!, checked)
                                 }
                                 size="sm"
                               />
@@ -269,8 +252,7 @@ export function AdvancedOptions({
                               <div
                                 className={cn(
                                   "pt-4",
-                                  isContentDisabled &&
-                                    "pointer-events-none opacity-60 grayscale",
+                                  isContentDisabled && "pointer-events-none opacity-60 grayscale",
                                 )}
                               >
                                 <item.component form={form} />

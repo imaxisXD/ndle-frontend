@@ -94,9 +94,7 @@ describe("monitor result delivery", () => {
       paginationOpts: { numItems: 25, cursor: null },
     });
     expect(page.page[0].uptime).toBe(100);
-    expect(
-      await backend.run((ctx) => ctx.db.query("linkIncidents").collect()),
-    ).toHaveLength(0);
+    expect(await backend.run((ctx) => ctx.db.query("linkIncidents").collect())).toHaveLength(0);
   });
 
   test("the first known failure after an unknown result creates one incident", async () => {
@@ -140,13 +138,12 @@ describe("monitor result delivery", () => {
       ...result,
       monitoringVersion: 1,
     });
-    expect(
-      await backend.run((ctx) => ctx.db.query("linkHealthChecks").collect()),
-    ).toHaveLength(0);
+    expect(await backend.run((ctx) => ctx.db.query("linkHealthChecks").collect())).toHaveLength(0);
     await backend.run((ctx) => ctx.db.delete(urlId));
-    expect(
-      await backend.mutation(api.linkHealth.recordHealthCheck, result),
-    ).toEqual({ success: false, reason: "url_not_found" });
+    expect(await backend.mutation(api.linkHealth.recordHealthCheck, result)).toEqual({
+      success: false,
+      reason: "url_not_found",
+    });
   });
 
   test("deletion hides orphan health rows and pagination includes pending live links", async () => {
@@ -170,8 +167,7 @@ describe("monitor result delivery", () => {
     expect(first.isDone).toBe(false);
     expect(
       first.page.every(
-        (row) =>
-          row.checkedAt === null && row.uptime === null && row.urlId !== urlId,
+        (row) => row.checkedAt === null && row.uptime === null && row.urlId !== urlId,
       ),
     ).toBe(true);
     const second = await client.query(api.linkHealth.getMonitoringPage, {
@@ -189,9 +185,7 @@ describe("monitor result delivery", () => {
       checkedAt: Date.now() - 36 * 86400_000,
     });
     expect(
-      await backend.run((ctx) =>
-        ctx.db.query("processedHealthChecks").collect(),
-      ),
+      await backend.run((ctx) => ctx.db.query("processedHealthChecks").collect()),
     ).toHaveLength(0);
   });
 
@@ -224,9 +218,7 @@ describe("monitor result delivery", () => {
     vi.stubEnv("MONITOR_SERVICE_URL", "https://monitor.test");
     vi.stubEnv("MONITORING_API_SECRET", "test-only");
     const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
-    const fetchMock = vi.fn<
-      (url: string, options?: RequestInit) => Promise<Response>
-    >(async () =>
+    const fetchMock = vi.fn<(url: string, options?: RequestInit) => Promise<Response>>(async () =>
       Response.json(
         {
           success: false,
@@ -251,9 +243,7 @@ describe("monitor result delivery", () => {
       version,
     });
     const saved = await backend.run((ctx) => ctx.db.get(job!._id));
-    expect(fetchMock.mock.calls[0][0]).toBe(
-      "https://monitor.test/monitors/register",
-    );
+    expect(fetchMock.mock.calls[0][0]).toBe("https://monitor.test/monitors/register");
     expect(saved?.status).toBe("complete");
     expect(saved?.lastError).toBeUndefined();
     expect(warn).toHaveBeenCalledWith(
@@ -329,9 +319,7 @@ describe("monitor result delivery", () => {
       "fetch",
       vi.fn(async () => Response.json({ success: true })),
     );
-    await expect(deliverMonitoringChange(args)).rejects.toThrow(
-      "did not confirm",
-    );
+    await expect(deliverMonitoringChange(args)).rejects.toThrow("did not confirm");
     vi.stubGlobal(
       "fetch",
       vi.fn(async () =>
@@ -342,14 +330,10 @@ describe("monitor result delivery", () => {
         }),
       ),
     );
-    await expect(deliverMonitoringChange(args)).rejects.toThrow(
-      "did not confirm",
-    );
+    await expect(deliverMonitoringChange(args)).rejects.toThrow("did not confirm");
     vi.stubGlobal(
       "fetch",
-      vi.fn(async () =>
-        Response.json({ success: true, monitoringVersion: 2, isDeleted: true }),
-      ),
+      vi.fn(async () => Response.json({ success: true, monitoringVersion: 2, isDeleted: true })),
     );
     await expect(deliverMonitoringChange(args)).resolves.toBeUndefined();
     vi.stubGlobal(
@@ -375,17 +359,12 @@ describe("monitor result delivery", () => {
       longUrl: "https://stale.test",
       shortUrl: "stale",
     });
-    const first = await backend.run((ctx) =>
-      ctx.db.query("serviceSyncJobs").unique(),
-    );
+    const first = await backend.run((ctx) => ctx.db.query("serviceSyncJobs").unique());
     expect(first?.target).toEqual({ kind: "monitor", urlId: result.urlId });
-    await backend.action(
-      internal.linkHealth.unregisterUrlFromMonitoringService,
-      { convexUrlId: result.urlId },
-    );
-    const second = await backend.run((ctx) =>
-      ctx.db.query("serviceSyncJobs").unique(),
-    );
+    await backend.action(internal.linkHealth.unregisterUrlFromMonitoringService, {
+      convexUrlId: result.urlId,
+    });
+    const second = await backend.run((ctx) => ctx.db.query("serviceSyncJobs").unique());
     expect(second!.version).toBeGreaterThan(first!.version);
     expect(fetch).not.toHaveBeenCalled();
   });
@@ -403,7 +382,9 @@ describe("incident messages", () => {
   test("timeouts and fixed monitoring failures read as plain language", () => {
     expect(describeIncident("down", 408, "Connection timed out")).toContain("timed out");
     expect(describeIncident("down", 408)).toContain("timed out");
-    expect(describeIncident("down", 0, "Domain does not resolve")).toContain("domain name could not be found");
+    expect(describeIncident("down", 0, "Domain does not resolve")).toContain(
+      "domain name could not be found",
+    );
     expect(describeIncident("down", 0, "Secure connection failed")).toContain("certificate");
     expect(describeIncident("down", 0, "Too many redirects")).toContain("redirects too many times");
     expect(describeIncident("down", 0, "Unexpected error")).toContain("Unable to reach");

@@ -21,19 +21,14 @@ export function canonicalHostname(hostname: string): string {
 
 /** URL keeps IPv6 literals in brackets ("[::1]"); the address checks need them bare. */
 export function withoutIPv6Brackets(hostname: string): string {
-  return hostname.startsWith("[") && hostname.endsWith("]")
-    ? hostname.slice(1, -1)
-    : hostname;
+  return hostname.startsWith("[") && hostname.endsWith("]") ? hostname.slice(1, -1) : hostname;
 }
 
 /** Check if the hostname is localhost or a loopback literal. */
 export function isLocalhost(hostname: string): boolean {
   const host = withoutIPv6Brackets(canonicalHostname(hostname));
   return (
-    host === "localhost" ||
-    host === "127.0.0.1" ||
-    host === "::1" ||
-    host.endsWith(".localhost")
+    host === "localhost" || host === "127.0.0.1" || host === "::1" || host.endsWith(".localhost")
   );
 }
 
@@ -87,11 +82,7 @@ export function parseIPv6(address: string): number[] | null {
   const tail = halves[1] ? halves[1].split(":") : [];
   const missing = 8 - head.length - tail.length;
   if (halves.length === 1 ? missing !== 0 : missing < 1) return null;
-  const groups = [
-    ...head,
-    ...Array<string>(halves.length === 2 ? missing : 0).fill("0"),
-    ...tail,
-  ];
+  const groups = [...head, ...Array<string>(halves.length === 2 ? missing : 0).fill("0"), ...tail];
   if (!groups.every((group) => /^[0-9a-f]{1,4}$/.test(group))) return null;
   return groups.map((group) => parseInt(group, 16));
 }
@@ -114,8 +105,7 @@ export function isPrivateIPv6(address: string): boolean {
   if ((first & 0xff00) === 0xff00) return true;
   if (first === 0x2001 && second === 0x0db8) return true;
 
-  const zeroUntil = (end: number) =>
-    groups.slice(0, end).every((group) => group === 0);
+  const zeroUntil = (end: number) => groups.slice(0, end).every((group) => group === 0);
   const embedsIPv4 =
     (zeroUntil(5) && (groups[5] === 0 || groups[5] === 0xffff)) ||
     (zeroUntil(4) && groups[4] === 0xffff && groups[5] === 0) ||
@@ -124,12 +114,7 @@ export function isPrivateIPv6(address: string): boolean {
       groups.slice(2, 6).every((group) => group === 0));
   if (embedsIPv4) {
     // Also covers :: (0.0.0.0) and ::1 (0.0.0.1).
-    return isPrivateIPv4([
-      groups[6] >> 8,
-      groups[6] & 0xff,
-      groups[7] >> 8,
-      groups[7] & 0xff,
-    ]);
+    return isPrivateIPv4([groups[6] >> 8, groups[6] & 0xff, groups[7] >> 8, groups[7] & 0xff]);
   }
   return false;
 }
@@ -174,9 +159,7 @@ export function isValidWebUrl(input: string): boolean {
     return false;
   }
 
-  const candidate = /^https?:\/\//i.test(trimmed)
-    ? trimmed
-    : `https://${trimmed}`;
+  const candidate = /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
 
   let parsed: URL;
   try {
@@ -206,8 +189,6 @@ export function isValidWebUrl(input: string): boolean {
   if (!/^[a-z]{2,}$|^xn--[a-z0-9-]{2,}$/i.test(tld)) return false;
   return labels.every(
     (label) =>
-      label.length >= 1 &&
-      label.length <= 63 &&
-      /^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/i.test(label),
+      label.length >= 1 && label.length <= 63 && /^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/i.test(label),
   );
 }

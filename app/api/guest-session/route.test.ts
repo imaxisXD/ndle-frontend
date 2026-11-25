@@ -29,7 +29,16 @@ afterEach(() => {
   newSessionLimit.allow = true;
 });
 function request(body: unknown, cookie?: string, origin = "https://ndle.test", ip?: string) {
-  return new NextRequest("https://ndle.test/api/guest-session", { method: "POST", headers: { "Content-Type": "application/json", origin, ...(cookie ? { cookie: `${GUEST_CREDENTIAL_COOKIE}=${cookie}` } : {}), ...(ip ? { "cf-connecting-ip": ip } : {}) }, body: JSON.stringify(body) });
+  return new NextRequest("https://ndle.test/api/guest-session", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      origin,
+      ...(cookie ? { cookie: `${GUEST_CREDENTIAL_COOKIE}=${cookie}` } : {}),
+      ...(ip ? { "cf-connecting-ip": ip } : {}),
+    },
+    body: JSON.stringify(body),
+  });
 }
 async function networkOf(guestToken: string, guestId: string) {
   return (await verifyGuestSessionCredential(guestId, guestToken)).networkKey;
@@ -54,14 +63,19 @@ describe("guest credentials", () => {
   test("supports legacy signed tokens and explicit rotation after claiming", async () => {
     const ownId = crypto.randomUUID();
     const session = await createGuestSessionToken(ownId);
-    expect((await (await POST(request({ guestToken: session.guestToken }))).json()).guestId).toBe(ownId);
-    expect((await (await POST(request({ startNew: true }, session.guestToken))).json()).guestId).not.toBe(ownId);
+    expect((await (await POST(request({ guestToken: session.guestToken }))).json()).guestId).toBe(
+      ownId,
+    );
+    expect(
+      (await (await POST(request({ startNew: true }, session.guestToken))).json()).guestId,
+    ).not.toBe(ownId);
   });
   test("rejects forged, extra-part and expired credentials", async () => {
     const session = await createGuestSessionToken(crypto.randomUUID());
     expect((await POST(request({}, `${session.guestToken}x`))).status).toBe(401);
     expect((await POST(request({}, `${session.guestToken}.extra`))).status).toBe(401);
-    vi.useFakeTimers(); vi.setSystemTime(Date.now() + 9 * 86400_000);
+    vi.useFakeTimers();
+    vi.setSystemTime(Date.now() + 9 * 86400_000);
     expect((await POST(request({}, session.guestToken))).status).toBe(401);
   });
   test("renews credentials signed before the dedicated secret only during the legacy window", async () => {
@@ -86,7 +100,9 @@ describe("guest credentials", () => {
 describe("guest network limits", () => {
   test("signs a hashed network key, never the address, into every session", async () => {
     const first = await (await POST(request({}, undefined, undefined, "203.0.113.7"))).json();
-    const second = await (await POST(request({ startNew: true }, undefined, undefined, "203.0.113.7"))).json();
+    const second = await (
+      await POST(request({ startNew: true }, undefined, undefined, "203.0.113.7"))
+    ).json();
     const elsewhere = await (await POST(request({}, undefined, undefined, "198.51.100.4"))).json();
     const expected = await deriveGuestNetworkKey("203.0.113.7");
     expect(expected).toMatch(/^[0-9a-f]{32}$/);
@@ -95,7 +111,9 @@ describe("guest network limits", () => {
     expect(second.guestId).not.toBe(first.guestId);
     expect(await networkOf(second.guestToken, second.guestId)).toBe(expected);
     expect(await networkOf(elsewhere.guestToken, elsewhere.guestId)).not.toBe(expected);
-    expect(atob(first.guestToken.split(".")[0].replace(/-/g, "+").replace(/_/g, "/"))).not.toContain("203.0.113.7");
+    expect(
+      atob(first.guestToken.split(".")[0].replace(/-/g, "+").replace(/_/g, "/")),
+    ).not.toContain("203.0.113.7");
     expect(first).not.toHaveProperty("net");
   });
   test("caps new sessions per network but never renewals", async () => {
@@ -123,9 +141,13 @@ describe("guest network limits", () => {
     const ownId = crypto.randomUUID();
     const legacy = await createGuestSessionToken(ownId);
     expect(await networkOf(legacy.guestToken, ownId)).toBeUndefined();
-    const renewed = await (await POST(request({}, legacy.guestToken, undefined, "198.51.100.4"))).json();
+    const renewed = await (
+      await POST(request({}, legacy.guestToken, undefined, "198.51.100.4"))
+    ).json();
     expect(renewed.guestId).toBe(ownId);
-    expect(await networkOf(renewed.guestToken, ownId)).toBe(await deriveGuestNetworkKey("198.51.100.4"));
+    expect(await networkOf(renewed.guestToken, ownId)).toBe(
+      await deriveGuestNetworkKey("198.51.100.4"),
+    );
     expect(newSessionLimit.keys).toHaveLength(0);
   });
 });

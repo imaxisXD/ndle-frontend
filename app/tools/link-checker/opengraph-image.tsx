@@ -5,5 +5,9 @@ export const contentType = "image/png";
 export const alt = "ndle's free link checker";
 
 export default async function Image() {
-  return blogCard({ title: "Is this link working?", tags: ["Free tool", "Link checker"], footer: "ndle.app/tools" });
+  return blogCard({
+    title: "Is this link working?",
+    tags: ["Free tool", "Link checker"],
+    footer: "ndle.app/tools",
+  });
 }

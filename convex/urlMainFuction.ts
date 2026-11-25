@@ -1,12 +1,7 @@
 import { ConvexError, v } from "convex/values";
 import type { Doc, Id } from "./_generated/dataModel";
 import { internal } from "./_generated/api";
-import {
-  internalMutation,
-  mutation,
-  query,
-  type MutationCtx,
-} from "./_generated/server";
+import { internalMutation, mutation, query, type MutationCtx } from "./_generated/server";
 import { upsertGuestSession } from "./guestSessions";
 import { verifyGuestSessionCredential } from "./guestTokens";
 import {
@@ -23,10 +18,7 @@ import {
 import { getCurrentUser } from "./users";
 import { queueServiceSync } from "./syncQueue";
 import { includeLinkInAccount, removeLinkFromAccount } from "./accountCounters";
-import {
-  addLinkToCollection,
-  removeLinkFromCollections,
-} from "./collectionMangament";
+import { addLinkToCollection, removeLinkFromCollections } from "./collectionMangament";
 import { getClaimedDomain } from "./domainSync";
 import {
   BLOCKED_DESTINATION_MESSAGE,
@@ -42,21 +34,15 @@ const HEALTH_CLEANUP_BATCH_SIZE = 100;
 const errorCopyByCode: Record<string, string> = {
   [VALIDATION_ERRORS.INVALID_FORMAT]: "We couldn’t process that link.",
   [VALIDATION_ERRORS.INVALID_PROTOCOL]: "Unsupported link protocol.",
-  [VALIDATION_ERRORS.MISSING_HOST]:
-    "Missing a valid website domain in the link.",
-  [VALIDATION_ERRORS.LOCALHOST_NOT_ALLOWED]:
-    "Links to localhost are not supported.",
+  [VALIDATION_ERRORS.MISSING_HOST]: "Missing a valid website domain in the link.",
+  [VALIDATION_ERRORS.LOCALHOST_NOT_ALLOWED]: "Links to localhost are not supported.",
   [VALIDATION_ERRORS.PRIVATE_IP_NOT_ALLOWED]:
     "Links to private or internal network addresses are not supported.",
-  [VALIDATION_ERRORS.SUSPICIOUS_PATTERN]:
-    "The link includes characters we can’t safely shorten.",
-  [VALIDATION_ERRORS.URL_TOO_LONG]:
-    "The link is longer than the supported length.",
-  [VALIDATION_ERRORS.INVALID_PORT]:
-    "The port number in the link is outside the allowed range.",
+  [VALIDATION_ERRORS.SUSPICIOUS_PATTERN]: "The link includes characters we can’t safely shorten.",
+  [VALIDATION_ERRORS.URL_TOO_LONG]: "The link is longer than the supported length.",
+  [VALIDATION_ERRORS.INVALID_PORT]: "The port number in the link is outside the allowed range.",
   [VALIDATION_ERRORS.BLACKLISTED_DOMAIN]: BLOCKED_DESTINATION_MESSAGE,
-  [VALIDATION_ERRORS.USERINFO_NOT_ALLOWED]:
-    "Links cannot contain embedded usernames or passwords.",
+  [VALIDATION_ERRORS.USERINFO_NOT_ALLOWED]: "Links cannot contain embedded usernames or passwords.",
   [VALIDATION_ERRORS.SELF_DOMAIN_NOT_ALLOWED]:
     "You cannot create a redirect to ndle's own domains.",
 };
@@ -114,9 +100,7 @@ function normalizeCustomDomain(domain: string | undefined): string | undefined {
     .replace(/^www\./, "")
     .split("/")[0]
     .replace(/\.$/, "");
-  if (
-    !/^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,}$/.test(normalized)
-  ) {
+  if (!/^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,}$/.test(normalized)) {
     throw new ConvexError("Invalid custom domain.");
   }
   return normalized;
@@ -133,20 +117,14 @@ async function ensureCustomDomainAllowed(
   // Unverified rows for the same hostname may belong to other accounts.
   const domainRecord = await getClaimedDomain(ctx, normalizedDomain);
 
-  if (
-    !domainRecord ||
-    domainRecord.userId !== user._id ||
-    domainRecord.status !== "active"
-  ) {
+  if (!domainRecord || domainRecord.userId !== user._id || domainRecord.status !== "active") {
     throw new ConvexError("Custom domain is not active for this account.");
   }
 
   return normalizedDomain;
 }
 
-function normalizeQrStyle(
-  args: SignedInCreateArgs,
-): SignedInCreateArgs["qrStyle"] {
+function normalizeQrStyle(args: SignedInCreateArgs): SignedInCreateArgs["qrStyle"] {
   if (!args.qrStyle) return undefined;
   if (args.qrStyle.logoMode !== "custom" || !args.qrStyle.customLogoUrl) {
     return args.qrStyle;
@@ -173,11 +151,7 @@ function normalizeAbVariants(
   const seen = new Set([destinationUrl]);
   let totalWeight = 0;
   return args.abVariants.map((variant, index) => {
-    if (
-      !Number.isFinite(variant.weight) ||
-      variant.weight <= 0 ||
-      variant.weight > 100
-    ) {
+    if (!Number.isFinite(variant.weight) || variant.weight <= 0 || variant.weight > 100) {
       throw new ConvexError("A/B variant weights must be between 1 and 100.");
     }
     totalWeight += variant.weight;
@@ -230,9 +204,7 @@ function validateSignedInPlan(user: Doc<"users">, args: SignedInCreateArgs) {
   }
 
   if (args.expiresAt) {
-    const activeDaysAhead = Math.ceil(
-      (args.expiresAt - Date.now()) / (24 * 60 * 60 * 1000),
-    );
+    const activeDaysAhead = Math.ceil((args.expiresAt - Date.now()) / (24 * 60 * 60 * 1000));
     if (activeDaysAhead > 30) {
       throw new ConvexError("Free plan links can expire up to 30 days ahead.");
     }
@@ -250,9 +222,7 @@ async function ensureBelowUserLimit(ctx: MutationCtx, user: Doc<"users">) {
     .take(FREE_ACTIVE_LINK_LIMIT);
 
   if (activeUrls.length >= FREE_ACTIVE_LINK_LIMIT) {
-    throw new ConvexError(
-      `Free plan supports up to ${FREE_ACTIVE_LINK_LIMIT} active links.`,
-    );
+    throw new ConvexError(`Free plan supports up to ${FREE_ACTIVE_LINK_LIMIT} active links.`);
   }
 }
 
@@ -268,14 +238,10 @@ async function ensureBelowGuestLimits(
   const now = Date.now();
   const guestUrls = await ctx.db
     .query("urls")
-    .withIndex("by_guest", (q) =>
-      q.eq("guestId", guestId).gte("_creationTime", now - DAY_MS),
-    )
+    .withIndex("by_guest", (q) => q.eq("guestId", guestId).gte("_creationTime", now - DAY_MS))
     .take(GUEST_LINKS_PER_DAY);
   if (guestUrls.length >= GUEST_LINKS_PER_DAY) {
-    throw new ConvexError(
-      `Guest mode allows up to ${GUEST_LINKS_PER_DAY} links each day.`,
-    );
+    throw new ConvexError(`Guest mode allows up to ${GUEST_LINKS_PER_DAY} links each day.`);
   }
 
   if (networkKey) {
@@ -285,9 +251,7 @@ async function ensureBelowGuestLimits(
         ? await ctx.db
             .query("urls")
             .withIndex("by_guestNetworkKey", (q) =>
-              q
-                .eq("guestNetworkKey", networkKey)
-                .gte("_creationTime", now - DAY_MS),
+              q.eq("guestNetworkKey", networkKey).gte("_creationTime", now - DAY_MS),
             )
             .take(networkLimit)
         : [];
@@ -354,11 +318,7 @@ async function cleanupUrlHealthRows(ctx: MutationCtx, urlId: Id<"urls">) {
     summaries.length === HEALTH_CLEANUP_BATCH_SIZE ||
     incidents.length === HEALTH_CLEANUP_BATCH_SIZE
   ) {
-    await ctx.scheduler.runAfter(
-      0,
-      internal.urlMainFuction.continueHealthCleanup,
-      { urlId },
-    );
+    await ctx.scheduler.runAfter(0, internal.urlMainFuction.continueHealthCleanup, { urlId });
   }
 }
 
@@ -410,17 +370,8 @@ export const createUrl = mutation({
         bg: v.string(),
         margin: v.number(),
         includeMargin: v.boolean(),
-        ecc: v.union(
-          v.literal("L"),
-          v.literal("M"),
-          v.literal("Q"),
-          v.literal("H"),
-        ),
-        logoMode: v.union(
-          v.literal("brand"),
-          v.literal("custom"),
-          v.literal("none"),
-        ),
+        ecc: v.union(v.literal("L"), v.literal("M"), v.literal("Q"), v.literal("H")),
+        logoMode: v.union(v.literal("brand"), v.literal("custom"), v.literal("none")),
         logoScale: v.number(),
         customLogoUrl: v.optional(v.string()),
       }),
@@ -458,11 +409,7 @@ export const createUrl = mutation({
 
     const normalizedUrl = normalizeDestination(args.url);
     const normalizedQrStyle = normalizeQrStyle(args);
-    const normalizedCustomDomain = await ensureCustomDomainAllowed(
-      ctx,
-      user,
-      args.customDomain,
-    );
+    const normalizedCustomDomain = await ensureCustomDomainAllowed(ctx, user, args.customDomain);
     const abVariantsWithIds = normalizeAbVariants(normalizedUrl, args);
     await ensureDestinationsAllowed(ctx, [
       normalizedUrl,
@@ -510,11 +457,9 @@ export const createUrl = mutation({
     });
 
     if (args.expiresAt !== undefined) {
-      await ctx.scheduler.runAt(
-        args.expiresAt,
-        internal.urlMainFuction.deleteUrlById,
-        { urlId: docId },
-      );
+      await ctx.scheduler.runAt(args.expiresAt, internal.urlMainFuction.deleteUrlById, {
+        urlId: docId,
+      });
     }
 
     if (args.collectionId) {
@@ -595,11 +540,7 @@ export const createGuestUrl = mutation({
       slug,
     });
 
-    await ctx.scheduler.runAt(
-      expiresAt,
-      internal.urlMainFuction.deleteUrlById,
-      { urlId: docId },
-    );
+    await ctx.scheduler.runAt(expiresAt, internal.urlMainFuction.deleteUrlById, { urlId: docId });
 
     return { docId, slug, expiresAt };
   },
@@ -654,16 +595,10 @@ export const deleteUrl = mutation({
   },
 });
 
-export const isUrlOwner = async (
-  ctx: MutationCtx,
-  user: Doc<"users">,
-  urlSlug: string,
-) => {
+export const isUrlOwner = async (ctx: MutationCtx, user: Doc<"users">, urlSlug: string) => {
   const url = await ctx.db
     .query("urls")
-    .withIndex("by_user_slug", (q) =>
-      q.eq("userTableId", user._id).eq("slugAssigned", urlSlug),
-    )
+    .withIndex("by_user_slug", (q) => q.eq("userTableId", user._id).eq("slugAssigned", urlSlug))
     .unique();
 
   if (!url) {
@@ -682,20 +617,15 @@ export const getLinkDetailsBySlugs = query({
   handler: async (ctx, { slugs }) => {
     const user = await getCurrentUser(ctx);
     if (!user) return [];
-    if (slugs.length > 20)
-      throw new ConvexError("Request up to 20 links at a time");
+    if (slugs.length > 20) throw new ConvexError("Request up to 20 links at a time");
     const links = await Promise.all(
       slugs.map((slug) =>
         ctx.db
           .query("urls")
-          .withIndex("by_user_slug", (q) =>
-            q.eq("userTableId", user._id).eq("slugAssigned", slug),
-          )
+          .withIndex("by_user_slug", (q) => q.eq("userTableId", user._id).eq("slugAssigned", slug))
           .unique(),
       ),
     );
-    return links
-      .filter((link): link is Doc<"urls"> => !!link)
-      .map(toOwnerLinkView);
+    return links.filter((link): link is Doc<"urls"> => !!link).map(toOwnerLinkView);
   },
 });

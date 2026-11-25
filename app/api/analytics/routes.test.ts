@@ -36,9 +36,7 @@ beforeEach(() => {
             value: { userId: "verified-account", membership: "free" },
           }),
         )
-      : new Response(
-          JSON.stringify({ data: [{ time: "2026-01-03", clicks: 3 }] }),
-        );
+      : new Response(JSON.stringify({ data: [{ time: "2026-01-03", clicks: 3 }] }));
   });
   vi.stubGlobal("fetch", request);
 });
@@ -65,9 +63,7 @@ it.each(Object.keys(routes))(
       ),
     );
     expect(response.status).toBe(200);
-    const backend = request.mock.calls.find((call) =>
-      String(call[0]).includes("ingest.example"),
-    );
+    const backend = request.mock.calls.find((call) => String(call[0]).includes("ingest.example"));
     expect(backend).toBeDefined();
     expect(backend![1]).toMatchObject({
       cache: "no-store",
@@ -92,9 +88,7 @@ it.each(Object.keys(routes))(
       ),
     );
     expect(response.status).toBe(200);
-    const backend = request.mock.calls.find((call) =>
-      String(call[0]).includes("ingest.example"),
-    );
+    const backend = request.mock.calls.find((call) => String(call[0]).includes("ingest.example"));
     expect(backend![1]).toMatchObject({
       headers: { Authorization: "Bearer analytics-read-only" },
     });
@@ -104,45 +98,27 @@ it.each(Object.keys(routes))(
 it("does not read analytics when the user is signed out", async () => {
   mocks.auth.mockResolvedValue({ userId: null, getToken: async () => null });
   const { GET } = await import("./timeseries/route");
-  expect(
-    (await GET(new NextRequest("https://app.example/api/analytics/timeseries")))
-      .status,
-  ).toBe(401);
+  expect((await GET(new NextRequest("https://app.example/api/analytics/timeseries"))).status).toBe(
+    401,
+  );
   expect(request).not.toHaveBeenCalled();
 });
 
 it("blocks a paid range using the authoritative plan", async () => {
   const { GET } = await import("./timeseries/route");
   expect(
-    (
-      await GET(
-        new NextRequest(
-          "https://app.example/api/analytics/timeseries?range=12mo",
-        ),
-      )
-    ).status,
+    (await GET(new NextRequest("https://app.example/api/analytics/timeseries?range=12mo"))).status,
   ).toBe(403);
-  expect(
-    request.mock.calls.some((call) =>
-      String(call[0]).includes("ingest.example"),
-    ),
-  ).toBe(false);
+  expect(request.mock.calls.some((call) => String(call[0]).includes("ingest.example"))).toBe(false);
 });
 
 it("reports account setup as retryable without asking the user to sign in again", async () => {
   request.mockImplementation(
-    async () =>
-      new Response(
-        JSON.stringify({ status: "success", value: { membership: "guest" } }),
-      ),
+    async () => new Response(JSON.stringify({ status: "success", value: { membership: "guest" } })),
   );
   const { GET } = await import("./timeseries/route");
   expect(
-    (
-      await GET(
-        new NextRequest("https://app.example/api/analytics/timeseries?range=7d"),
-      )
-    ).status,
+    (await GET(new NextRequest("https://app.example/api/analytics/timeseries?range=7d"))).status,
   ).toBe(503);
 });
 
@@ -168,14 +144,10 @@ it("timeseries preserves service data and supplies chart fields", async () => {
   );
   expect(response.status).toBe(200);
   const body = await response.json();
-  expect(body.data).toEqual([
-    { time: "2026-08-08", clicks: 1, bucket_start: "2026-08-08" },
-  ]);
+  expect(body.data).toEqual([{ time: "2026-08-08", clicks: 1, bucket_start: "2026-08-08" }]);
   expect(body.meta.coverage.complete).toBe(true);
   expect(body.granularity).toBe("day");
-  expect(new Date(body.data[0].bucket_start).toISOString()).toBe(
-    "2026-08-08T00:00:00.000Z",
-  );
+  expect(new Date(body.data[0].bucket_start).toISOString()).toBe("2026-08-08T00:00:00.000Z");
   expect(body.data[0]).not.toHaveProperty("human_clicks");
   expect(body.data[0]).not.toHaveProperty("bot_clicks");
 });
@@ -194,20 +166,12 @@ it.each(botFilterRoutes)(
       );
       expect(response.status).toBe(200);
       return new URL(
-        String(
-          request.mock.calls.find((call) =>
-            String(call[0]).includes("ingest.example"),
-          )![0],
-        ),
+        String(request.mock.calls.find((call) => String(call[0]).includes("ingest.example"))![0]),
       );
     };
     expect((await backendUrl("")).searchParams.has("excludeBots")).toBe(false);
-    expect(
-      (await backendUrl("&exclude_bots=false")).searchParams.has("excludeBots"),
-    ).toBe(false);
-    expect(
-      (await backendUrl("&exclude_bots=true")).searchParams.get("excludeBots"),
-    ).toBe("true");
+    expect((await backendUrl("&exclude_bots=false")).searchParams.has("excludeBots")).toBe(false);
+    expect((await backendUrl("&exclude_bots=true")).searchParams.get("excludeBots")).toBe("true");
   },
 );
 
@@ -253,9 +217,7 @@ it("new link slugs share the account's bucket instead of opening new ones", asyn
   useLimiterBuckets();
   const statuses: number[] = [];
   for (let index = 0; index <= ANALYTICS_RATE_LIMIT.requests; index += 1) {
-    statuses.push(
-      (await getRoute(`timeseries?range=7d&link_slug=random-${index}`)).status,
-    );
+    statuses.push((await getRoute(`timeseries?range=7d&link_slug=random-${index}`)).status);
   }
   expect(statuses.slice(0, -1).every((status) => status === 200)).toBe(true);
   expect(statuses.at(-1)).toBe(429);
@@ -270,18 +232,14 @@ it("opening a link page and switching ranges several times is not rate-limited",
   ];
   const burst = Array.from({ length: 10 }, () => linkPageLoad).flat();
   const responses = await Promise.all(burst.map(getRoute));
-  expect(responses.map((response) => response.status)).toEqual(
-    burst.map(() => 200),
-  );
+  expect(responses.map((response) => response.status)).toEqual(burst.map(() => 200));
 });
 
 it.each(["timeseries", "variants"] as const)(
   "%s refuses an oversized link slug before any lookup",
   async (name) => {
     const tooLong = "a".repeat(129);
-    const response = await getRoute(
-      `${name}?range=7d&link_slug=${tooLong}&link_id=${tooLong}`,
-    );
+    const response = await getRoute(`${name}?range=7d&link_slug=${tooLong}&link_id=${tooLong}`);
     expect(response.status).toBe(400);
     expect(request).not.toHaveBeenCalled();
   },
