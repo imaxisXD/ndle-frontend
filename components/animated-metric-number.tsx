@@ -19,8 +19,19 @@ type AnimatedMetricNumberProps = {
   value: number;
 };
 
+const MAX_TRACKED_METRIC_KEYS = 200;
 const metricNumberFormatter = new Intl.NumberFormat("en-US");
 const lastSeenMetricValues = new Map<string, number>();
+
+function recordMetricValue(key: string, value: number) {
+  if (lastSeenMetricValues.has(key)) {
+    lastSeenMetricValues.delete(key);
+  } else if (lastSeenMetricValues.size >= MAX_TRACKED_METRIC_KEYS) {
+    const oldest = lastSeenMetricValues.keys().next().value;
+    if (oldest !== undefined) lastSeenMetricValues.delete(oldest);
+  }
+  lastSeenMetricValues.set(key, value);
+}
 
 function formatDefaultMetricValue(value: number) {
   return metricNumberFormatter.format(value);
@@ -48,7 +59,7 @@ export function AnimatedMetricNumber({
 
     previousValueRef.current = value;
     if (animationKey) {
-      lastSeenMetricValues.set(animationKey, value);
+      recordMetricValue(animationKey, value);
     }
 
     if (previousValue === value) {

@@ -1,6 +1,6 @@
 "use client";
 
-import { memo, useMemo, useState, useEffect } from "react";
+import { memo, useMemo, useState } from "react";
 import {
   type Column,
   type ColumnDef,
@@ -26,6 +26,8 @@ import {
   getResponseTimeColor,
   getMonitoringStatus,
 } from "@/lib/utils";
+import { getStatusBadgeVariant } from "@/lib/status-badge";
+import { useMinuteNow } from "@/hooks/use-minute-now";
 import { LinkWithFavicon } from "./ui/link-with-favicon";
 import { EmptyStateImage } from "@/components/empty-state-image";
 import { AnimatedMetricNumber } from "@/components/animated-metric-number";
@@ -41,8 +43,8 @@ import {
 const shortDomain = getShortDomain();
 
 type HealthChecksWithStats = FunctionReturnType<
-  typeof api.linkHealth.getHealthChecksWithStats
->;
+  typeof api.linkHealth.getMonitoringPage
+>["page"];
 type RecentIncidentsResponse = FunctionReturnType<
   typeof api.linkHealth.getRecentIncidents
 >;
@@ -97,13 +99,6 @@ function formatUptimeMetric(value: number) {
 
 function formatLatencyMetric(value: number) {
   return `${Math.round(value)}ms`;
-}
-
-function getStatusBadgeVariant(status: MonitoringStatus) {
-  if (status === "healthy") return "green";
-  if (status === "warning") return "yellow";
-  if (status === "error") return "red";
-  return "default";
 }
 
 function MonitoringSortHeader({
@@ -730,11 +725,7 @@ function MonitoringSkeleton() {
 }
 
 export function LinkMonitoring() {
-  const [now, setNow] = useState(() => Date.now());
-  useEffect(() => {
-    const timer = window.setInterval(() => setNow(Date.now()), 60_000);
-    return () => window.clearInterval(timer);
-  }, []);
+  const now = useMinuteNow();
   const {
     results: healthData,
     status: pageStatus,

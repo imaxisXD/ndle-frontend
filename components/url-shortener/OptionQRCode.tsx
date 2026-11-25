@@ -21,7 +21,7 @@ import { COLLECTION_COLORS } from "@/components/collection/colors";
 import { getQrLogo, getQrMarginSize, normalizeQrStyle } from "@/lib/qr";
 import { qrCodeSvg } from "@/lib/qr-code";
 import { downloadQrPng, downloadQrSvg } from "@/lib/qr-file";
-import { makeShortLink } from "@/lib/config";
+import { getShortDomain, makeShortLink } from "@/lib/config";
 import { Inset } from "@/components/ui/inset";
 
 // Generated slugs never contain "-", so this placeholder can never open a real link.
@@ -417,8 +417,17 @@ export function OptionQRCode({ form, isPro = false }: Props) {
               target="_blank"
               rel="noreferrer"
               href={(() => {
-                const parts = String(shortUrl).split("/");
-                const slug = parts[parts.length - 1] || "";
+                const normalizedShort = String(shortUrl).replace(
+                  /^https?:\/\//i,
+                  "",
+                );
+                const slashIndex = normalizedShort.indexOf("/");
+                const host =
+                  slashIndex >= 0 ? normalizedShort.slice(0, slashIndex) : "";
+                const slug =
+                  slashIndex >= 0
+                    ? normalizedShort.slice(slashIndex + 1)
+                    : normalizedShort;
                 const params = new URLSearchParams();
                 const hostedLogoMode =
                   !isPro && qrStyle.logoMode !== "brand"
@@ -431,13 +440,19 @@ export function OptionQRCode({ form, isPro = false }: Props) {
                 params.set("margin", String(getQrMarginSize(qrStyle)));
                 params.set("ecc", qrStyle.ecc);
                 params.set("logoMode", hostedLogoMode);
+                if (
+                  host &&
+                  host.toLowerCase() !== getShortDomain().toLowerCase()
+                ) {
+                  params.set("domain", host);
+                }
                 if (hostedLogoMode === "custom" && qrStyle.customLogoUrl) {
                   params.set("logoUrl", qrStyle.customLogoUrl);
                 }
                 if (Number.isFinite(qrStyle.logoScale)) {
                   params.set("logoScale", String(qrStyle.logoScale));
                 }
-                return `/api/qr/${slug}?${params.toString()}`;
+                return `/api/qr/${encodeURIComponent(slug)}?${params.toString()}`;
               })()}
             >
               <CloudDownload className="size-3.5" />

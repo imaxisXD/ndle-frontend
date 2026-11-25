@@ -1,18 +1,22 @@
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { NextRequest } from "next/server";
 import { ANALYTICS_RATE_LIMIT } from "@/lib/rateLimit";
+
 const mocks = vi.hoisted(() => ({
   auth: vi.fn(),
   limit: vi.fn(),
   defaultLimit: vi.fn(),
 }));
+
 vi.mock("@clerk/nextjs/server", () => ({ auth: mocks.auth }));
 vi.mock("@/lib/rateLimit", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/lib/rateLimit")>()),
   getRateLimit: () => ({ limit: mocks.defaultLimit }),
   getAnalyticsRateLimit: () => ({ limit: mocks.limit }),
 }));
+
 let request: ReturnType<typeof vi.fn>;
+
 beforeEach(() => {
   vi.stubEnv("NEXT_PUBLIC_CONVEX_URL", "https://convex.example");
   vi.stubEnv("INTERNAL_API_URL", "https://ingest.example/analytics/v2");
@@ -23,9 +27,8 @@ beforeEach(() => {
     getToken: async () => "signed-token",
   });
   mocks.limit.mockResolvedValue({ success: true, limit: 100, remaining: 99 });
-  request = vi.fn(async (input: string | URL, _options?: RequestInit) => {
+  request = vi.fn(async (input: string | URL) => {
     const url = String(input);
-    const dimension = new URL(url).searchParams.get("dimension") ?? "country";
     return url.includes("convex.example")
       ? new Response(
           JSON.stringify({
@@ -33,39 +36,31 @@ beforeEach(() => {
             value: { userId: "verified-account", membership: "free" },
           }),
         )
-      : new Response(JSON.stringify({ data: [
-          url.includes("endpoint=breakdown")
-            ? { [dimension]: "IN", clicks: 3 }
-            : url.includes("endpoint=traffic-sources")
-              ? { source: "ndle.app", clicks: 3 }
-              : { time: "2026-01-03", clicks: 3 },
-        ] }));
+      : new Response(
+          JSON.stringify({ data: [{ time: "2026-01-03", clicks: 3 }] }),
+        );
   });
   vi.stubGlobal("fetch", request);
 });
+
 afterEach(() => {
   vi.unstubAllGlobals();
   vi.unstubAllEnvs();
   vi.clearAllMocks();
 });
+
 const routes = {
   timeseries: () => import("./timeseries/route"),
-  breakdown: () => import("./breakdown/route"),
-  "top-links": () => import("./top-links/route"),
-  "traffic-sources": () => import("./traffic-sources/route"),
-  live: () => import("./live/route"),
-  "recent-activity": () => import("./recent-activity/route"),
-  dashboard: () => import("./dashboard/route"),
-  overview: () => import("./overview/route"),
   variants: () => import("./variants/route"),
 };
+
 it.each(Object.keys(routes))(
   "%s forwards only the verified account and bounds the backend read",
   async (name) => {
     const route = await routes[name as keyof typeof routes]();
     const response = await route.GET(
       new NextRequest(
-        `https://app.example/api/analytics/${name}?range=7d&dimension=country&link_slug=example&link_id=example`,
+        `https://app.example/api/analytics/${name}?range=7d&link_slug=example&link_id=example`,
         { headers: { "x-user-id": "attacker" } },
       ),
     );
@@ -85,6 +80,7 @@ it.each(Object.keys(routes))(
     expect(response.headers.get("Cache-Control")).toBe("private, no-store");
   },
 );
+
 it.each(Object.keys(routes))(
   "%s authenticates ingest reads with the scoped analytics secret when set",
   async (name) => {
@@ -92,7 +88,7 @@ it.each(Object.keys(routes))(
     const route = await routes[name as keyof typeof routes]();
     const response = await route.GET(
       new NextRequest(
-        `https://app.example/api/analytics/${name}?range=7d&dimension=country&link_slug=example&link_id=example`,
+        `https://app.example/api/analytics/${name}?range=7d&link_slug=example&link_id=example`,
       ),
     );
     expect(response.status).toBe(200);
@@ -104,6 +100,7 @@ it.each(Object.keys(routes))(
     });
   },
 );
+
 it("does not read analytics when the user is signed out", async () => {
   mocks.auth.mockResolvedValue({ userId: null, getToken: async () => null });
   const { GET } = await import("./timeseries/route");
@@ -113,6 +110,7 @@ it("does not read analytics when the user is signed out", async () => {
   ).toBe(401);
   expect(request).not.toHaveBeenCalled();
 });
+
 it("blocks a paid range using the authoritative plan", async () => {
   const { GET } = await import("./timeseries/route");
   expect(
@@ -130,6 +128,7 @@ it("blocks a paid range using the authoritative plan", async () => {
     ),
   ).toBe(false);
 });
+
 it("reports account setup as retryable without asking the user to sign in again", async () => {
   request.mockImplementation(
     async () =>
@@ -137,49 +136,51 @@ it("reports account setup as retryable without asking the user to sign in again"
         JSON.stringify({ status: "success", value: { membership: "guest" } }),
       ),
   );
-  const { GET } = await import("./live/route");
+  const { GET } = await import("./timeseries/route");
   expect(
-    (await GET(new NextRequest("https://app.example/api/analytics/live")))
-      .status,
+    (
+      await GET(
+        new NextRequest("https://app.example/api/analytics/timeseries?range=7d"),
+      )
+    ).status,
   ).toBe(503);
 });
 
-it.each([
-  { route: "breakdown" as const, dimension: "country", row: { country: "IN", clicks: 1 }, aliases: { label: "IN" } },
-  { route: "breakdown" as const, dimension: "browser", row: { browser: "Chrome", clicks: 1 }, aliases: { label: "Chrome" } },
-  { route: "breakdown" as const, dimension: "device", row: { device: "desktop", clicks: 1 }, aliases: { label: "desktop" } },
-  { route: "breakdown" as const, dimension: "os", row: { os: "macOS", clicks: 1 }, aliases: { label: "macOS" } },
-  { route: "traffic-sources" as const, dimension: "", row: { source: "ndle.app", clicks: 1 }, aliases: { referer_domain: "ndle.app" } },
-  { route: "timeseries" as const, dimension: "", row: { time: "2026-08-08", clicks: 1 }, aliases: { bucket_start: "2026-08-08" } },
-])("$route $dimension preserves service data and supplies chart fields", async ({ route, dimension, row, aliases }) => {
-  request.mockImplementation(async (url: string) => Response.json(
-    url.includes("convex.example")
-      ? { status: "success", value: { userId: "verified-account", membership: "free" } }
-      : { data: [row], meta: { coverage: { complete: true } } },
-  ));
-  const { GET } = await routes[route]();
-  const response = await GET(new NextRequest(`https://app.example/api/analytics/${route}?range=30d&dimension=${dimension}&link_slug=elevenricelaugh`));
+it("timeseries preserves service data and supplies chart fields", async () => {
+  request.mockImplementation(async (url: string) =>
+    Response.json(
+      url.includes("convex.example")
+        ? {
+            status: "success",
+            value: { userId: "verified-account", membership: "free" },
+          }
+        : {
+            data: [{ time: "2026-08-08", clicks: 1 }],
+            meta: { coverage: { complete: true } },
+          },
+    ),
+  );
+  const { GET } = await routes.timeseries();
+  const response = await GET(
+    new NextRequest(
+      "https://app.example/api/analytics/timeseries?range=30d&link_slug=elevenricelaugh",
+    ),
+  );
   expect(response.status).toBe(200);
   const body = await response.json();
-  expect(body.data).toEqual([{ ...row, ...aliases }]);
+  expect(body.data).toEqual([
+    { time: "2026-08-08", clicks: 1, bucket_start: "2026-08-08" },
+  ]);
   expect(body.meta.coverage.complete).toBe(true);
-  if (route === "timeseries") {
-    expect(body.granularity).toBe("day");
-    expect(new Date(body.data[0].bucket_start).toISOString()).toBe("2026-08-08T00:00:00.000Z");
-    expect(body.data[0]).not.toHaveProperty("human_clicks");
-    expect(body.data[0]).not.toHaveProperty("bot_clicks");
-  }
+  expect(body.granularity).toBe("day");
+  expect(new Date(body.data[0].bucket_start).toISOString()).toBe(
+    "2026-08-08T00:00:00.000Z",
+  );
+  expect(body.data[0]).not.toHaveProperty("human_clicks");
+  expect(body.data[0]).not.toHaveProperty("bot_clicks");
 });
 
-const botFilterRoutes = [
-  "timeseries",
-  "breakdown",
-  "top-links",
-  "traffic-sources",
-  "live",
-  "recent-activity",
-  "variants",
-] as const;
+const botFilterRoutes = ["timeseries", "variants"] as const;
 it.each(botFilterRoutes)(
   "%s includes bots by default and forwards the exclude-bots filter",
   async (name) => {
@@ -188,7 +189,7 @@ it.each(botFilterRoutes)(
       request.mockClear();
       const response = await route.GET(
         new NextRequest(
-          `https://app.example/api/analytics/${name}?range=7d&dimension=country&link_slug=example&link_id=example${query}`,
+          `https://app.example/api/analytics/${name}?range=7d&link_slug=example&link_id=example${query}`,
         ),
       );
       expect(response.status).toBe(200);
@@ -238,7 +239,7 @@ it.each(Object.keys(limitedRoutes))(
   async (name) => {
     const slug = "attacker-chosen-slug";
     const response = await getRoute(
-      `${name}?range=7d&dimension=country&link_slug=${slug}&link_id=${slug}&link=${slug}&start=${today}&end=${today}`,
+      `${name}?range=7d&link_slug=${slug}&link_id=${slug}&link=${slug}&start=${today}&end=${today}`,
     );
     expect(response.status).toBe(200);
     expect(mocks.limit).toHaveBeenCalledTimes(1);
@@ -262,49 +263,26 @@ it("new link slugs share the account's bucket instead of opening new ones", asyn
 
 it("opening a link page and switching ranges several times is not rate-limited", async () => {
   useLimiterBuckets();
-  // Everything the link page requests at once on load.
   const linkPageLoad = [
     "timeseries?range=7d&link_slug=example",
-    ...["browser", "device", "os", "country"].map(
-      (dimension) => `breakdown?range=7d&dimension=${dimension}&link_slug=example`,
-    ),
-    "traffic-sources?range=7d&link_slug=example",
     "variants?range=7d&link_id=example",
     `v2?start=${today}&end=${today}&link=example`,
   ];
-  // Ten loads inside one window, plus the live counter polling alongside.
-  const burst = [
-    ...Array.from({ length: 10 }, () => linkPageLoad).flat(),
-    "live?link_slug=example",
-    "live?link_slug=example",
-  ];
+  const burst = Array.from({ length: 10 }, () => linkPageLoad).flat();
   const responses = await Promise.all(burst.map(getRoute));
   expect(responses.map((response) => response.status)).toEqual(
     burst.map(() => 200),
   );
 });
 
-it.each([
-  "timeseries",
-  "breakdown",
-  "traffic-sources",
-  "live",
-  "recent-activity",
-  "dashboard",
-  "overview",
-  "variants",
-] as const)("%s refuses an oversized link slug before any lookup", async (name) => {
-  const tooLong = "a".repeat(129);
-  const response = await getRoute(
-    `${name}?range=7d&dimension=country&link_slug=${tooLong}&link_id=${tooLong}`,
-  );
-  expect(response.status).toBe(400);
-  expect(mocks.limit).not.toHaveBeenCalled();
-  expect(request).not.toHaveBeenCalled();
-});
-
-it("marks a range the plan does not include so the page can explain it", async () => {
-  const response = await getRoute("timeseries?range=12mo&link_slug=example");
-  expect(response.status).toBe(403);
-  expect(await response.json()).toMatchObject({ code: "plan_required" });
-});
+it.each(["timeseries", "variants"] as const)(
+  "%s refuses an oversized link slug before any lookup",
+  async (name) => {
+    const tooLong = "a".repeat(129);
+    const response = await getRoute(
+      `${name}?range=7d&link_slug=${tooLong}&link_id=${tooLong}`,
+    );
+    expect(response.status).toBe(400);
+    expect(request).not.toHaveBeenCalled();
+  },
+);

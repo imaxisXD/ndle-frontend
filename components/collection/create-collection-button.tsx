@@ -209,9 +209,6 @@ export function CreateCollectionButton({
                   !form.formState.isValid
                 }
                 hotkey="meta+enter"
-                onClick={() => {
-                  form.handleSubmit(handleCreateCollection)();
-                }}
                 className="disabled:opacity-70"
               >
                 {form.formState.isSubmitting

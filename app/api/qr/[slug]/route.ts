@@ -1,9 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
+import { auth } from "@clerk/nextjs/server";
 import { Resvg } from "@cf-wasm/resvg";
-import { getCacheHeadersPreset } from "@/lib/cacheHeaders";
-import { makeShortLink } from "@/lib/config";
+import { getShortDomain, makeShortLinkWithDomain } from "@/lib/config";
 import { getBrandBadgeDataUrl } from "@/lib/qr";
 import { type QrLogo, qrCodeSvg } from "@/lib/qr-code";
+import { getQrRateLimit } from "@/lib/rateLimit";
+import {
+  getSignedInAnalyticsViewer,
+  queryConvexAsUser,
+} from "@/lib/server-analytics-plan";
+import {
+  canonicalHostname,
+  hasBlockedLocalSuffix,
+  isLocalhost,
+  isPrivateIP,
+  withoutIPv6Brackets,
+} from "@/lib/url-safety";
 import { lookup } from "node:dns/promises";
 import net from "node:net";
 
@@ -11,7 +23,14 @@ export const runtime = "nodejs";
 
 type EccLevel = "L" | "M" | "Q" | "H";
 type LogoMode = "brand" | "custom" | "none";
+
 const MAX_LOGO_BYTES = 1_000_000;
+const VALID_SLUG_PATTERN = /^[a-zA-Z0-9._-]{1,128}$/;
+const VALID_DOMAIN_PATTERN =
+  /^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,}$/;
+
+const NO_STORE_HEADERS = { "Cache-Control": "no-store" } as const;
+const PRIVATE_CACHE_HEADERS = { "Cache-Control": "private, max-age=3600" } as const;
 
 function clamp(n: number, min: number, max: number): number {
   return Math.max(min, Math.min(max, n));
@@ -32,43 +51,11 @@ function parseNumber(value: string | null, fallback: number): number {
   return Number.isFinite(n) ? n : fallback;
 }
 
-function isPrivateIpv4(ip: string): boolean {
-  const parts = ip.split(".").map((part) => Number(part));
-  if (
-    parts.length !== 4 ||
-    parts.some((part) => !Number.isInteger(part) || part < 0 || part > 255)
-  ) {
-    return true;
+function parseLogoMode(value: string | null): LogoMode {
+  if (value === "custom" || value === "none" || value === "brand") {
+    return value;
   }
-  const [a, b] = parts;
-  return (
-    a === 0 ||
-    a === 10 ||
-    a === 127 ||
-    (a === 100 && b >= 64 && b <= 127) ||
-    (a === 169 && b === 254) ||
-    (a === 172 && b >= 16 && b <= 31) ||
-    (a === 192 && (b === 0 || b === 168)) ||
-    (a === 198 && (b === 18 || b === 19)) ||
-    a >= 224
-  );
-}
-
-function isPrivateIpv6(ip: string): boolean {
-  const normalized = ip.toLowerCase();
-  return (
-    normalized === "::" ||
-    normalized === "::1" ||
-    normalized.startsWith("fc") ||
-    normalized.startsWith("fd") ||
-    normalized.startsWith("fe80:") ||
-    normalized.startsWith("::ffff:10.") ||
-    normalized.startsWith("::ffff:127.") ||
-    normalized.startsWith("::ffff:169.254.") ||
-    normalized.startsWith("::ffff:172.") ||
-    normalized.startsWith("::ffff:192.168.") ||
-    normalized.startsWith("2001:db8:")
-  );
+  return "brand";
 }
 
 async function assertPublicHttpUrl(url: URL): Promise<void> {
@@ -78,9 +65,14 @@ async function assertPublicHttpUrl(url: URL): Promise<void> {
   if (url.username || url.password) {
     throw new Error("Logo URL must not include credentials");
   }
-  const hostname = url.hostname.toLowerCase();
-  if (hostname === "localhost" || hostname.endsWith(".localhost")) {
-    throw new Error("Local logo hosts are not allowed");
+  const hostname = withoutIPv6Brackets(canonicalHostname(url.hostname));
+  if (
+    !hostname ||
+    isLocalhost(hostname) ||
+    hasBlockedLocalSuffix(hostname) ||
+    isPrivateIP(hostname)
+  ) {
+    throw new Error("Local or private logo hosts are not allowed");
   }
 
   const records = await lookup(hostname, { all: true, verbatim: true });
@@ -89,10 +81,7 @@ async function assertPublicHttpUrl(url: URL): Promise<void> {
   }
   for (const record of records) {
     const family = net.isIP(record.address);
-    if (family === 4 && isPrivateIpv4(record.address)) {
-      throw new Error("Logo host resolves to a private address");
-    }
-    if (family === 6 && isPrivateIpv6(record.address)) {
+    if ((family === 4 || family === 6) && isPrivateIP(record.address)) {
       throw new Error("Logo host resolves to a private address");
     }
   }
@@ -105,7 +94,6 @@ async function fetchImageAsDataUrl(url: string): Promise<string | null> {
     for (let redirectCount = 0; redirectCount <= 3; redirectCount++) {
       await assertPublicHttpUrl(currentUrl);
       res = await fetch(currentUrl.toString(), {
-        // 4s timeout to protect server
         signal: AbortSignal.timeout(4000),
         headers: { "User-Agent": "ndle-qr/1.0" },
         cache: "no-store",
@@ -116,8 +104,7 @@ async function fetchImageAsDataUrl(url: string): Promise<string | null> {
       if (!location) return null;
       currentUrl = new URL(location, currentUrl);
     }
-    if (!res) return null;
-    if (!res.ok) return null;
+    if (!res || !res.ok) return null;
     const contentType = res.headers.get("content-type") || "";
     const isPng = contentType.startsWith("image/png");
     const isJpeg = contentType.startsWith("image/jpeg");
@@ -138,24 +125,29 @@ export async function GET(
   ctx: { params: Promise<{ slug: string }> },
 ) {
   try {
-    const requestUrl = new URL(req.url);
-    const debug = requestUrl.searchParams.get("debug") === "1";
-    const log = (...args: unknown[]) => {
-      if (debug || process.env.NODE_ENV !== "production") {
-        console.log("[qr-api]", ...args);
-      }
-    };
-    const logError = (...args: unknown[]) => {
-      console.error("[qr-api]", ...args);
-    };
+    const { userId, getToken } = await auth();
+    if (!userId) {
+      return NextResponse.json(
+        { error: "Sign in to download QR codes" },
+        { status: 401, headers: NO_STORE_HEADERS },
+      );
+    }
 
+    const rate = await getQrRateLimit().limit(`qr:${userId}`);
+    if (!rate.success) {
+      return NextResponse.json(
+        { error: "Too many QR requests. Try again shortly." },
+        { status: 429, headers: NO_STORE_HEADERS },
+      );
+    }
+
+    const requestUrl = new URL(req.url);
     const { slug: rawSlug } = await ctx.params;
     const slug = (rawSlug || "").trim();
-    if (!slug) {
-      logError("missing slug");
+    if (!slug || !VALID_SLUG_PATTERN.test(slug)) {
       return NextResponse.json(
-        { error: "Missing slug" },
-        { status: 400, headers: getCacheHeadersPreset("ERROR") },
+        { error: "Invalid slug" },
+        { status: 400, headers: NO_STORE_HEADERS },
       );
     }
 
@@ -165,10 +157,9 @@ export async function GET(
     const wantSvg = format === "svg";
     const wantPng = format === "png";
     if (!wantSvg && !wantPng) {
-      log("unsupported format", format);
       return NextResponse.json(
         { error: "Unsupported format" },
-        { status: 406, headers: getCacheHeadersPreset("ERROR") },
+        { status: 406, headers: NO_STORE_HEADERS },
       );
     }
 
@@ -193,9 +184,7 @@ export async function GET(
         ? "transparent"
         : parseHexColor(bgRaw, "#ffffff");
 
-    const logoMode: LogoMode =
-      ((requestUrl.searchParams.get("logoMode") || "brand") as LogoMode) ||
-      "brand";
+    const logoMode = parseLogoMode(requestUrl.searchParams.get("logoMode"));
     const logoScale = clamp(
       parseNumber(requestUrl.searchParams.get("logoScale"), 0.18),
       0.08,
@@ -203,52 +192,93 @@ export async function GET(
     );
     const logoUrl = requestUrl.searchParams.get("logoUrl") || "";
 
-    const target = `https://${makeShortLink(slug)}`;
-    log("params", { slug, size, margin, ecc, fg, bg, logoMode, logoScale });
-    log("target", target);
+    // Enforce Pro plan for custom or logo-free QR codes.
+    if (logoMode === "custom" || logoMode === "none") {
+      const viewer = await getSignedInAnalyticsViewer(getToken);
+      if (!viewer) {
+        return NextResponse.json(
+          { error: "Your account is getting ready. Try again shortly." },
+          { status: 503, headers: NO_STORE_HEADERS },
+        );
+      }
+      if (viewer.plan !== "pro") {
+        return NextResponse.json(
+          { error: "Custom or logo-free QR codes require a Pro plan." },
+          { status: 403, headers: NO_STORE_HEADERS },
+        );
+      }
+    }
 
-    // The logo, if any. A custom logo that can't be fetched falls back to
-    // ndle's badge.
+    // Validate optional custom domain against the authenticated user's active domains.
+    const defaultDomain = canonicalHostname(getShortDomain());
+    const requestedDomainRaw = requestUrl.searchParams.get("domain")?.trim();
+    let verifiedCustomDomain: string | null = null;
+    if (requestedDomainRaw) {
+      const normalized = canonicalHostname(requestedDomainRaw);
+      if (normalized && normalized !== defaultDomain) {
+        if (!VALID_DOMAIN_PATTERN.test(normalized)) {
+          return NextResponse.json(
+            { error: "Invalid custom domain" },
+            { status: 400, headers: NO_STORE_HEADERS },
+          );
+        }
+        const activeDomains = await queryConvexAsUser<
+          Array<{ domain?: unknown }>
+        >(getToken, "customDomains:getActiveDomains");
+        const ownsDomain =
+          Array.isArray(activeDomains) &&
+          activeDomains.some(
+            (entry) =>
+              typeof entry?.domain === "string" &&
+              canonicalHostname(entry.domain) === normalized,
+          );
+        if (!ownsDomain) {
+          return NextResponse.json(
+            { error: "Custom domain is not active on your account" },
+            { status: 403, headers: NO_STORE_HEADERS },
+          );
+        }
+        verifiedCustomDomain = normalized;
+      }
+    }
+
+    const target = `https://${makeShortLinkWithDomain(slug, verifiedCustomDomain)}`;
+
+    // The logo, if any. A custom logo that can't be fetched falls back to ndle's badge.
     const logoSize = Math.max(8, Math.round(size * logoScale));
     let logo: QrLogo | undefined;
     if (logoMode === "brand") {
-      log("overlay", "brand");
       logo = { href: getBrandBadgeDataUrl(fg), size: logoSize };
     } else if (logoMode === "custom" && logoUrl) {
-      log("overlay", "custom", logoUrl);
       const dataUrl = await fetchImageAsDataUrl(logoUrl);
       if (dataUrl) {
         logo = { href: dataUrl, size: logoSize, backdrop: true };
       } else {
-        log("custom logo fetch failed, fallback brand");
         logo = { href: getBrandBadgeDataUrl(fg), size: logoSize };
       }
     }
 
-    // Drawn by the same renderer as the in-app preview (lib/qr-code.ts).
     let svg: string;
     try {
       svg = qrCodeSvg(target, { size, fg, bg, ecc, margin, logo });
     } catch (e) {
-      logError("qrcode generation failed", e);
+      console.error("[qr-api] qrcode generation failed", e);
       return NextResponse.json(
         { error: "QR generation failed" },
-        { status: 500, headers: getCacheHeadersPreset("ERROR") },
+        { status: 500, headers: NO_STORE_HEADERS },
       );
     }
 
-    log("svg-length", svg.length);
     if (wantSvg) {
       return new NextResponse(svg, {
         status: 200,
         headers: {
           "Content-Type": "image/svg+xml",
-          ...getCacheHeadersPreset("STATIC"),
+          ...PRIVATE_CACHE_HEADERS,
         },
       });
     }
 
-    // PNG: convert the SVG with a renderer that works in Cloudflare Workers.
     try {
       const renderer = await Resvg.async(svg, {
         fitTo: { mode: "width", value: size },
@@ -265,7 +295,7 @@ export async function GET(
             status: 200,
             headers: {
               "Content-Type": "image/png",
-              ...getCacheHeadersPreset("STATIC"),
+              ...PRIVATE_CACHE_HEADERS,
             },
           });
         } finally {
@@ -275,17 +305,17 @@ export async function GET(
         renderer.free();
       }
     } catch (e) {
-      logError("png conversion failed", e);
+      console.error("[qr-api] png conversion failed", e);
       return NextResponse.json(
         { error: "PNG conversion failed" },
-        { status: 500, headers: getCacheHeadersPreset("ERROR") },
+        { status: 500, headers: NO_STORE_HEADERS },
       );
     }
   } catch (err) {
     console.error("[qr-api] unhandled error", err);
     return NextResponse.json(
       { error: "Failed to generate QR" },
-      { status: 500, headers: getCacheHeadersPreset("ERROR") },
+      { status: 500, headers: NO_STORE_HEADERS },
     );
   }
 }

@@ -21,8 +21,8 @@ describe("click delivery", () => {
     expect(first.outcome).toBe("recorded"); expect(second.outcome).toBe("duplicate");
     expect(await client.query(api.urlAnalytics.getUsersTotalClicks, {})).toBe(1);
     expect((await client.query(api.urlAnalytics.getUrlAnalytics, { urlSlug: link.slug })).analytics?.totalClickCounts).toBe(1);
-    const analytics = await backend.run(ctx => ctx.db.query("urlAnalytics").first());
-    expect(analytics?.urlStatusCode).toBe(0);
+    expect(await backend.run(ctx => ctx.db.query("urlAnalytics").first())).toBeNull();
+    expect(await backend.run(ctx => ctx.db.query("linkHealthChecks").first())).toBeNull();
   });
   test("deleted and disabled links have explicit terminal outcomes", async () => {
     const { backend, client, event, link } = await setup(false);
@@ -70,7 +70,7 @@ describe("click delivery", () => {
     expect(await backend.run(ctx => ctx.db.query("clickEvents").collect())).toEqual(before);
     expect(await client.query(api.urlAnalytics.getUsersTotalClicks, {})).toBe(4);
     expect(await client.query(api.clickEvents.getRecentByLinkSlug, { linkSlug: guest.slug })).toHaveLength(4);
-    const ownerJob = await backend.run(ctx => ctx.db.query("serviceSyncJobs").withIndex("by_key", q => q.eq("key", `owner:${claimed.id}:guest:${guestId}`)).unique());
+    const ownerJob = await backend.run(ctx => ctx.db.query("serviceSyncJobs").withIndex("by_key", q => q.eq("key", `owner:${claimed.id}`)).unique());
     expect(ownerJob?.target).toMatchObject({ ownerKeys: expect.arrayContaining([`guest:${guestId}`]) });
     expect(await client.mutation(api.users.store, { guestId, guestToken: token.guestToken })).toMatchObject({ claimedLinkCount: 0, guestSessionClaimed: false });
     expect(await client.query(api.urlAnalytics.getUsersTotalClicks, {})).toBe(4);

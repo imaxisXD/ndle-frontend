@@ -12,7 +12,7 @@ import {
 } from "@phosphor-icons/react/dist/ssr";
 import { Badge } from "@ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@ui/card";
-import { BklitHorizontalBarChart } from "@/components/charts/bklit-chart-kit";
+import { BklitHorizontalBarChart } from "@/components/charts/bklit-bar-charts";
 import { GlassFolder } from "@/components/collection/glass-folder";
 import { DoodleCurlArrow, Handwritten } from "@/components/doodle-icons";
 import { LinkWithFavicon } from "@/components/ui/link-with-favicon";
@@ -432,6 +432,7 @@ function CollectionsStage() {
               tilt={FOLDERS.tilts[i]}
               hovered={opening === i}
               open={opening === i}
+              staticPreview
             />
           </span>
         ))}

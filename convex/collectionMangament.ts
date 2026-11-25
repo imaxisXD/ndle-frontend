@@ -53,13 +53,6 @@ const collectionSummary = v.object({
   isUpdating: v.boolean(),
   previewUrls: v.array(v.string()),
 });
-const pickerRow = v.object({
-  _id: v.id("urls"),
-  fullurl: v.string(),
-  shortUrl: v.string(),
-  slugAssigned: v.optional(v.string()),
-  _creationTime: v.number(),
-});
 
 async function includeMember(
   ctx: MutationCtx,
@@ -326,44 +319,6 @@ export const getCollectionsPage = query({
       continueCursor: result.continueCursor,
       isDone: result.isDone,
     };
-  },
-});
-
-export const getUserUrlsNotInCollection = query({
-  args: { collectionId: v.id("collections") },
-  returns: v.array(pickerRow),
-  handler: async (ctx, { collectionId }) => {
-    const user = await getCurrentUser(ctx);
-    const collection = await ctx.db.get(collectionId);
-    if (!user || collection?.userTableId !== user._id) return [];
-    const urls = await ctx.db
-      .query("urls")
-      .withIndex("by_user", (q) => q.eq("userTableId", user._id))
-      .order("desc")
-      .take(100);
-    const available = await Promise.all(
-      urls.map(async (url) => {
-        const member = await ctx.db
-          .query("collectionLinks")
-          .withIndex("by_collectionId_and_urlId", (q) =>
-            q.eq("collectionId", collectionId).eq("urlId", url._id),
-          )
-          .unique();
-        return member ||
-          (!collection.membersReady && collection.urls.includes(url._id))
-          ? null
-          : {
-              _id: url._id,
-              fullurl: url.fullurl,
-              shortUrl: url.shortUrl,
-              slugAssigned: url.slugAssigned,
-              _creationTime: url._creationTime,
-            };
-      }),
-    );
-    return available.filter(
-      (url): url is NonNullable<typeof url> => url !== null,
-    );
   },
 });
 

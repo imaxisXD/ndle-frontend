@@ -581,21 +581,6 @@ async function monitoringRows(
   );
 }
 
-export const getHealthChecksWithStats = query({
-  args: { now: v.optional(v.number()), limit: v.optional(v.number()) },
-  returns: v.array(monitoringRowValidator),
-  handler: async (ctx, args) => {
-    const user = await getCurrentUser(ctx);
-    if (!user) return [];
-    const urls = await ctx.db
-      .query("urls")
-      .withIndex("by_user", (q) => q.eq("userTableId", user._id))
-      .order("desc")
-      .take(Math.min(100, Math.max(1, args.limit ?? 100)));
-    return monitoringRows(ctx, urls, args.now);
-  },
-});
-
 export const getMonitoringPage = query({
   args: { paginationOpts: paginationOptsValidator, now: v.number() },
   returns: v.object({

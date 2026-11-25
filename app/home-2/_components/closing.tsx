@@ -91,6 +91,7 @@ const PIECES: Array<{ x: number; y: number; rotate: number; z: number; node: Rea
           lift={false}
           hovered
           open
+          staticPreview
         />
       </span>
     ),

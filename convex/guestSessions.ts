@@ -1,8 +1,7 @@
-import { ConvexError, v } from "convex/values";
+import { ConvexError } from "convex/values";
 import type { Doc } from "./_generated/dataModel";
-import { mutation, type MutationCtx } from "./_generated/server";
+import type { MutationCtx } from "./_generated/server";
 import { ensureGuestId } from "./ownership";
-import { verifyGuestSessionToken } from "./guestTokens";
 
 export async function upsertGuestSession(
   ctx: MutationCtx,
@@ -17,7 +16,11 @@ export async function upsertGuestSession(
     .unique();
 
   if (existing) {
-    if (existing.claimedUserId) throw new ConvexError("These guest links were moved to an account. Start a new guest session.");
+    if (existing.claimedUserId) {
+      throw new ConvexError(
+        "These guest links were moved to an account. Start a new guest session.",
+      );
+    }
     await ctx.db.patch(existing._id, {
       email: normalizedEmail ?? existing.email,
       updatedAt: Date.now(),
@@ -60,24 +63,3 @@ export async function getClaimableGuestSessions(
 
   return Array.from(sessionMap.values());
 }
-
-export const saveGuestEmail = mutation({
-  args: {
-    guestId: v.string(),
-    guestToken: v.string(),
-    email: v.string(),
-  },
-  returns: v.object({
-    success: v.boolean(),
-  }),
-  handler: async (ctx, args) => {
-    const email = args.email.trim().toLowerCase();
-    if (!email) {
-      throw new ConvexError("Email is required");
-    }
-    const guestId = ensureGuestId(args.guestId);
-    await verifyGuestSessionToken(guestId, args.guestToken);
-    await upsertGuestSession(ctx, guestId, email);
-    return { success: true };
-  },
-});

@@ -14,12 +14,10 @@ const isPublicRoute = createRouteMatcher([
   "/tools(.*)",
   "/api/tools(.*)",
   "/api/favicon(.*)",
-  "/api/getFavicon(.*)",
   "/api/guest-session",
   "/sign-in(.*)",
   "/sign-up(.*)",
 ]);
-const isAppRoute = createRouteMatcher(["/static-app-shell(.*)"]);
 
 export default clerkMiddleware(async (auth, req) => {
   // Nothing is published under /.well-known/. Without this, a request for one
@@ -30,17 +28,6 @@ export default clerkMiddleware(async (auth, req) => {
   }
 
   if (isPublicRoute(req)) {
-    return;
-  }
-
-  if (isAppRoute(req)) {
-    await auth.protect();
-    if (
-      req.nextUrl.pathname === "/static-app-shell" ||
-      req.nextUrl.pathname.startsWith("/static-app-shell/")
-    ) {
-      return NextResponse.redirect(new URL("/dashboard", req.nextUrl));
-    }
     return;
   }
 

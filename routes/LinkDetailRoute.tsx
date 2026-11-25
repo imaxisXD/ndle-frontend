@@ -1,5 +1,5 @@
 import { useParams, useNavigate } from "react-router";
-import { useState, useMemo, useEffect } from "react";
+import { useState, useEffect } from "react";
 import type { AnalyticsRange } from "@/lib/analyticsRanges";
 import { useMutation } from "convex/react";
 import { useQuery } from "convex-helpers/react/cache/hooks";
@@ -14,22 +14,9 @@ import { LinkSettingsPanel } from "@/components/LinkSettingsPanel";
 import { LinkActivityLog } from "@/components/LinkActivityLog";
 import { LinkNotesPanel } from "@/components/LinkNotesPanel";
 import { LinkHealthPanel } from "@/components/LinkHealthPanel";
-import {
-  useTimeseries,
-  useBreakdown,
-  useTrafficSources,
-  useVariantPerformance,
-} from "@/hooks/useAnalytics";
-import { getUtcRange } from "@/lib/analyticsRanges";
 import { isRangeAvailable } from "@/lib/analytics-access";
-import { getLinkAnalyticsState } from "@/lib/analytics-request";
-import {
-  getVariantName,
-  type VariantLabels,
-} from "@/components/charts/variant-performance-chart";
-import { useAnalyticsV2 } from "@/hooks/useAnalyticsV2";
+import { useLinkDetailAnalytics } from "@/hooks/use-link-detail-analytics";
 import { useRefreshLinkAnalytics } from "@/hooks/use-refresh-link-analytics";
-import { buildClickTimeline } from "@/lib/click-timeline";
 import {
   Tabs,
   TabsList,
@@ -50,7 +37,6 @@ export default function LinkDetailRoute() {
   // Bots are counted by default; the filter removes them from every chart.
   const [excludeBots, setExcludeBots] = useState(false);
 
-  // Fetch link config to check for A/B testing
   const deleteUrl = useMutation(api.urlMainFuction.deleteUrl);
   const queryResult = useQuery(api.urlAnalytics.getUrlAnalytics, {
     urlSlug: slug,
@@ -73,8 +59,9 @@ export default function LinkDetailRoute() {
     message: "",
   };
 
-  const isABTestEnabled =
-    url && url.abEnabled && url.abVariants && url.abVariants.length > 0;
+  const isABTestEnabled = Boolean(
+    url && url.abEnabled && url.abVariants && url.abVariants.length > 0,
+  );
   const linkId = url?.linkId || url?._id;
   useRefreshLinkAnalytics({
     linkSlug: String(slug),
@@ -82,186 +69,17 @@ export default function LinkDetailRoute() {
     liveClickCount: analyticsData?.totalClickCounts,
   });
 
-  // Direct API calls via TanStack Query (bypasses Convex, uses DuckDB backend)
-  const timeseries = useTimeseries({
-    range,
-    linkSlug: String(slug),
-    scope: "link",
-    enabled: !rangeLocked,
-    excludeBots,
-  });
-  const browsers = useBreakdown({
-    dimension: "browser",
-    range,
-    linkSlug: String(slug),
-    scope: "link",
-    enabled: !rangeLocked,
-    excludeBots,
-  });
-  const devices = useBreakdown({
-    dimension: "device",
-    range,
-    linkSlug: String(slug),
-    scope: "link",
-    enabled: !rangeLocked,
-    excludeBots,
-  });
-  const os = useBreakdown({
-    dimension: "os",
-    range,
-    linkSlug: String(slug),
-    scope: "link",
-    enabled: !rangeLocked,
-    excludeBots,
-  });
-  const countries = useBreakdown({
-    dimension: "country",
-    range,
-    linkSlug: String(slug),
-    scope: "link",
-    enabled: !rangeLocked,
-    excludeBots,
-  });
-  const referers = useTrafficSources({
-    range,
-    linkSlug: String(slug),
-    scope: "link",
-    enabled: !rangeLocked,
-    excludeBots,
-  });
-  const trafficRange = getUtcRange(range);
-  const trafficSummary = useAnalyticsV2({
-    start: trafficRange.start.toISOString().slice(0, 10),
-    end: trafficRange.end.toISOString().slice(0, 10),
-    filters: { link: String(slug), excludeBots },
-    pollingInterval: 60_000,
-    enabled: !rangeLocked,
-  });
+  const { derived, analyticsState, retryFailedAnalytics } =
+    useLinkDetailAnalytics({
+      slug: String(slug),
+      range,
+      excludeBots,
+      rangeLocked,
+      isABTestEnabled,
+      linkId: linkId ? String(linkId) : undefined,
+      abVariants: url?.abVariants,
+    });
 
-  // A/B Test Variant Performance
-  const variantPerf = useVariantPerformance({
-    range,
-    linkId: isABTestEnabled && linkId ? linkId : undefined,
-    enabled: !!isABTestEnabled && !rangeLocked,
-    excludeBots,
-  });
-
-  // Derive display data from raw analytics
-  const derived = useMemo(() => {
-    // One point per calendar day: the viewer's days when the service
-    // supports time zones, otherwise UTC days.
-    const clicksTimelineData = buildClickTimeline(timeseries.data, range);
-
-    // Daily totals cannot reveal the hour of a click or whether it was a bot.
-    const hourlyActivityData = null;
-    const traffic = trafficSummary.data?.bot_traffic;
-    const botHumanData =
-      traffic && Number.isFinite(traffic.human) && Number.isFinite(traffic.bot)
-        ? [
-            { name: "Human", value: traffic.human, color: "#22c55e" },
-            { name: "Bot", value: traffic.bot, color: "#ef4444" },
-          ]
-        : null;
-
-    // Latency buckets (placeholder)
-    const latencyBuckets = [
-      { range: "< 50ms", count: 0 },
-      { range: "50-100ms", count: 0 },
-      { range: "100-200ms", count: 0 },
-      { range: "200-500ms", count: 0 },
-      { range: "> 500ms", count: 0 },
-    ];
-
-    // Breakdown data - transform to match AnalyticsSection prop types
-    const browserData = (browsers.data?.data ?? []).map(
-      (row: { label: string; clicks: number }) => ({
-        month: row.label ?? "Unknown",
-        clicks: row.clicks,
-      }),
-    );
-
-    const countryData = (countries.data?.data ?? []).map(
-      (row: { label: string; clicks: number }) => ({
-        country: row.label ?? "Unknown",
-        clicks: row.clicks,
-      }),
-    );
-
-    const deviceData = (devices.data?.data ?? []).map(
-      (row: { label: string; clicks: number }) => ({
-        device: row.label ?? "Unknown",
-        clicks: row.clicks,
-      }),
-    );
-
-    const osData = (os.data?.data ?? []).map(
-      (row: { label: string; clicks: number }) => ({
-        os: row.label ?? "Unknown",
-        clicks: row.clicks,
-      }),
-    );
-
-    // Referrer data from traffic sources
-    const referrerData = (referers.data?.data ?? []).map(
-      (row: { referer_domain: string; clicks: number }) => {
-        return {
-          domain: row.referer_domain || "Direct / None",
-          clicks: row.clicks,
-        };
-      },
-    );
-
-    // Variant Performance Data
-    const variantData = variantPerf.data?.variants || undefined;
-
-    // Build Variant Map (ID -> Name/URL)
-    const variantMap: VariantLabels = {
-      control: { name: getVariantName("control") },
-    };
-    if (url?.abVariants) {
-      url.abVariants.forEach((v: { url: string }, i: number) => {
-        const variantId = `variant_${i}`;
-        variantMap[variantId] = { name: getVariantName(variantId), url: v.url };
-      });
-    }
-
-    return {
-      clicksTimelineData,
-      browserData,
-      countryData,
-      deviceData,
-      osData,
-      botHumanData,
-      latencyBuckets,
-      hourlyActivityData,
-      referrerData,
-      variantData,
-      variantMap,
-    };
-  }, [
-    timeseries.data,
-    browsers.data,
-    countries.data,
-    devices.data,
-    os.data,
-    referers.data,
-    trafficSummary.data,
-    variantPerf.data,
-    range,
-    url,
-  ]);
-
-  // A failed or plan-limited load must not render as empty charts ("0 clicks").
-  // The traffic summary is left out: its card already says when it is unavailable.
-  const analyticsState = getLinkAnalyticsState(
-    [timeseries, browsers, devices, os, countries, referers, variantPerf],
-    { rangeLocked },
-  );
-  const retryFailedAnalytics = () => {
-    for (const query of analyticsState.failed) void query.refetch();
-  };
-
-  // Build shortUrl using custom domain if available (after url is defined)
   const shortUrl = makeShortLinkWithDomain(String(slug), url?.customDomain);
 
   useEffect(() => {
@@ -353,12 +171,10 @@ export default function LinkDetailRoute() {
             deviceData={derived.deviceData}
             osData={derived.osData}
             botHumanData={derived.botHumanData}
-            // latencyBuckets={derived.latencyBuckets}
-            hourlyActivityData={derived.hourlyActivityData}
             referrerData={derived.referrerData}
             variantData={derived.variantData}
             variantMap={derived.variantMap}
-            isLoading={analyticsState.isLoading || trafficSummary.isLoading}
+            isLoading={analyticsState.isLoading}
             status={analyticsState.status}
             onRetry={retryFailedAnalytics}
             onShowAvailableRange={() => setRange("30d")}
@@ -399,7 +215,7 @@ export default function LinkDetailRoute() {
 
         {/* Health Tab */}
         <TabsContent value="health">
-          <LinkHealthPanel urlId={url?._id} />
+          {url?._id && <LinkHealthPanel urlId={url._id} />}
         </TabsContent>
       </Tabs>
     </div>

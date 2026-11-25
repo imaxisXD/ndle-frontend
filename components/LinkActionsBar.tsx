@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Tooltip,
@@ -16,6 +16,7 @@ import {
   Download,
 } from "iconoir-react";
 import { cn } from "@/lib/utils";
+import { useCopyToClipboard } from "@/hooks/use-copy-to-clipboard";
 
 interface LinkActionsBarProps {
   shortUrl: string;
@@ -34,7 +35,7 @@ export function LinkActionsBar({
   status = "active",
   onDownloadQR,
 }: LinkActionsBarProps) {
-  const [copied, setCopied] = useState(false);
+  const { copied, copy } = useCopyToClipboard();
   const checkWrapRef = useRef<HTMLSpanElement>(null);
   const checkPathRef = useRef<SVGPathElement>(null);
 
@@ -59,43 +60,29 @@ export function LinkActionsBar({
     node.setAttribute("data-state", "in");
   }, [copied]);
 
-  const handleCopy = async () => {
-    try {
-      const normalized = /^https?:\/\//i.test(shortUrl)
-        ? shortUrl
-        : `https://${shortUrl}`;
-      await navigator.clipboard.writeText(normalized);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch (err) {
-      console.error("Failed to copy:", err);
-    }
+  const normalizedShortUrl = /^https?:\/\//i.test(shortUrl)
+    ? shortUrl
+    : `https://${shortUrl}`;
+
+  const handleCopy = () => {
+    void copy(normalizedShortUrl);
   };
 
   const handleOpenInNewTab = () => {
-    const normalized = /^https?:\/\//i.test(shortUrl)
-      ? shortUrl
-      : `https://${shortUrl}`;
-    window.open(normalized, "_blank", "noopener");
+    window.open(normalizedShortUrl, "_blank", "noopener");
   };
 
   const handleShare = async () => {
-    const normalized = /^https?:\/\//i.test(shortUrl)
-      ? shortUrl
-      : `https://${shortUrl}`;
-
     if (navigator.share) {
       try {
         await navigator.share({
           title: "Shared Link",
-          url: normalized,
+          url: normalizedShortUrl,
         });
-      } catch (err) {
-        // User cancelled or error
-        console.log("Share cancelled or failed:", err);
+      } catch {
+        // User dismissed share sheet.
       }
     } else {
-      // Fallback: copy to clipboard
       handleCopy();
     }
   };
@@ -127,8 +114,6 @@ export function LinkActionsBar({
                 onClick={handleCopy}
                 className={cn("gap-1.5", phoneTapTarget)}
               >
-                {/* Icon slot: clipboard (a) cross-fades to the success
-                    check (b) when `copied` toggles. */}
                 <span
                   className="t-icon-swap size-3.5"
                   data-state={copied ? "b" : "a"}
@@ -137,7 +122,6 @@ export function LinkActionsBar({
                     <Copy className="size-3.5" strokeWidth={1.8} />
                   </span>
                   <span className="t-icon" data-icon="b" aria-hidden="true">
-                    {/* success-check: plays the celebratory draw on `copied` */}
                     <span
                       ref={checkWrapRef}
                       className="t-success-check size-3.5 text-green-600"
@@ -172,10 +156,15 @@ export function LinkActionsBar({
               <Button
                 variant="outline"
                 size="sm"
+                aria-label="Share link"
                 onClick={handleShare}
                 className={phoneTapTarget}
               >
-                <ShareAndroid className="size-3.5" strokeWidth={1.8} />
+                <ShareAndroid
+                  className="size-3.5"
+                  strokeWidth={1.8}
+                  aria-hidden="true"
+                />
                 <span className="hidden sm:inline">Share</span>
               </Button>
             }
@@ -190,11 +179,20 @@ export function LinkActionsBar({
                 <Button
                   variant="outline"
                   size="sm"
+                  aria-label="Download QR code"
                   onClick={onDownloadQR}
                   className={phoneTapTarget}
                 >
-                  <Download className="size-3.5" strokeWidth={1.8} />
-                  <QrCode className="size-3.5" strokeWidth={1.8} />
+                  <Download
+                    className="size-3.5"
+                    strokeWidth={1.8}
+                    aria-hidden="true"
+                  />
+                  <QrCode
+                    className="size-3.5"
+                    strokeWidth={1.8}
+                    aria-hidden="true"
+                  />
                 </Button>
               }
             />
@@ -208,10 +206,15 @@ export function LinkActionsBar({
               <Button
                 variant="outline"
                 size="sm"
+                aria-label="Open link in new tab"
                 onClick={handleOpenInNewTab}
                 className={phoneTapTarget}
               >
-                <OpenNewWindow className="size-3.5" strokeWidth={1.8} />
+                <OpenNewWindow
+                  className="size-3.5"
+                  strokeWidth={1.8}
+                  aria-hidden="true"
+                />
                 <span className="hidden sm:inline">Open</span>
               </Button>
             }

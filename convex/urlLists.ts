@@ -13,9 +13,6 @@ const link = v.object({
   ...schema.tables.urls.validator.fields,
 });
 const analytics = v.object({
-  _id: v.id("urlAnalytics"),
-  _creationTime: v.number(),
-  ...schema.tables.urlAnalytics.validator.fields,
   totalClickCounts: v.number(),
 });
 const health = v.object({
@@ -40,23 +37,16 @@ const pageFields = { continueCursor: v.string(), isDone: v.boolean() };
 async function enrich(ctx: QueryCtx, urls: Doc<"urls">[]) {
   return Promise.all(
     urls.map(async (url) => {
-      const [savedAnalytics, latestHealthCheck, totalClickCounts] =
-        await Promise.all([
-          ctx.db
-            .query("urlAnalytics")
-            .withIndex("by_url", (q) => q.eq("urlId", url._id))
-            .unique(),
-          ctx.db
-            .query("linkHealthChecks")
-            .withIndex("by_url_id", (q) => q.eq("urlId", url._id))
-            .unique(),
-          accountCounter.count(ctx, `url:${url._id}`),
-        ]);
+      const [latestHealthCheck, totalClickCounts] = await Promise.all([
+        ctx.db
+          .query("linkHealthChecks")
+          .withIndex("by_url_id", (q) => q.eq("urlId", url._id))
+          .unique(),
+        accountCounter.count(ctx, `url:${url._id}`),
+      ]);
       return {
         ...toOwnerLinkView(url),
-        analytics: savedAnalytics
-          ? { ...savedAnalytics, totalClickCounts }
-          : null,
+        analytics: { totalClickCounts },
         latestHealthCheck,
       };
     }),

@@ -85,6 +85,25 @@ export default function CollectionDetailRoute() {
 
   return (
     <>
+      <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+        <DialogContent fullscreen className="p-0">
+          <div className="flex h-full flex-col">
+            <div className="border-b px-4 py-3">
+              <DialogTitle>Add Links to Collection</DialogTitle>
+              <p className="text-muted-foreground mt-1 text-xs">
+                Let ndle help you pick the perfect links
+              </p>
+            </div>
+            <div className="flex-1 overflow-auto p-3">
+              <UrlPickerTable
+                collectionId={collection._id as Id<"collections">}
+                onClose={() => setIsAddDialogOpen(false)}
+              />
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       <header>
         <div className="mb-6 flex items-center justify-between gap-3">
           <NavLink
@@ -94,30 +113,10 @@ export default function CollectionDetailRoute() {
             ← Back to Collections
           </NavLink>
 
-          <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-            <AddUrlsButton
-              onOpen={() => setIsAddDialogOpen(true)}
-              label="Add Links"
-            />
-            <DialogContent fullscreen className="p-0">
-              <div className="flex h-full flex-col">
-                <div className="border-b px-4 py-3">
-                  <DialogTitle>Add Links to Collection</DialogTitle>
-                  <p className="text-muted-foreground mt-1 text-xs">
-                    Let ndle help you pick the perfect links
-                  </p>
-                </div>
-                <div className="flex-1 overflow-auto p-3">
-                  {collection && (
-                    <UrlPickerTable
-                      collectionId={collection._id as Id<"collections">}
-                      onClose={() => setIsAddDialogOpen(false)}
-                    />
-                  )}
-                </div>
-              </div>
-            </DialogContent>
-          </Dialog>
+          <AddUrlsButton
+            onOpen={() => setIsAddDialogOpen(true)}
+            label="Add Links"
+          />
         </div>
       </header>
 
@@ -157,32 +156,12 @@ export default function CollectionDetailRoute() {
                     Start building your curated link collection
                   </p>
                 </div>
-                <Dialog
-                  open={isAddDialogOpen}
-                  onOpenChange={setIsAddDialogOpen}
-                >
-                  <div className="mt-4 inline-block">
-                    <AddUrlsButton onOpen={() => setIsAddDialogOpen(true)} />
-                  </div>
-                  <DialogContent fullscreen className="p-0">
-                    <div className="flex h-full flex-col">
-                      <div className="border-b px-4 py-3">
-                        <DialogTitle>Add Links to Collection</DialogTitle>
-                        <p className="text-muted-foreground mt-1 text-xs">
-                          Let ndle help you pick the perfect links
-                        </p>
-                      </div>
-                      <div className="flex-1 overflow-auto p-3">
-                        {collection && (
-                          <UrlPickerTable
-                            collectionId={collection._id as Id<"collections">}
-                            onClose={() => setIsAddDialogOpen(false)}
-                          />
-                        )}
-                      </div>
-                    </div>
-                  </DialogContent>
-                </Dialog>
+                <div className="mt-4 inline-block">
+                  <AddUrlsButton
+                    hotkey=""
+                    onOpen={() => setIsAddDialogOpen(true)}
+                  />
+                </div>
               </div>
             </div>
           </>

@@ -4,9 +4,8 @@ import { Redis } from "@upstash/redis";
 const DEFAULT_GUEST_SESSIONS_PER_NETWORK_PER_DAY = 5;
 
 /**
- * Analytics reads per route and account. One link page load sends about eight
- * requests at once (four of them to the breakdown route) and dashboards poll
- * every 10 seconds, so this is looser than the default limiter.
+ * Analytics reads per route and account. Dashboards and link detail views
+ * poll on intervals, so this is looser than the default limiter.
  */
 export const ANALYTICS_RATE_LIMIT = { requests: 60, window: "10 s" } as const;
 
@@ -15,6 +14,8 @@ let rateLimitInstance: Ratelimit | null = null;
 let analyticsRateLimitInstance: Ratelimit | null = null;
 let guestSessionNetworkLimitInstance: Ratelimit | null = null;
 let linkCheckLimitInstance: Ratelimit | null = null;
+let faviconLimitInstance: Ratelimit | null = null;
+let qrLimitInstance: Ratelimit | null = null;
 
 function getRedis() {
   if (!redisInstance) {
@@ -32,7 +33,6 @@ export function getRateLimit() {
       redis: getRedis(),
       limiter: Ratelimit.slidingWindow(10, "10 s"),
       prefix: "@upstash/ratelimit",
-      analytics: true,
     });
   }
   return rateLimitInstance;
@@ -52,7 +52,6 @@ export function getAnalyticsRateLimit() {
         ANALYTICS_RATE_LIMIT.window,
       ),
       prefix: "@upstash/ratelimit:analytics",
-      analytics: true,
     });
   }
   return analyticsRateLimitInstance;
@@ -94,4 +93,28 @@ export function getLinkCheckRateLimit() {
     });
   }
   return linkCheckLimitInstance;
+}
+
+/** Public favicon proxy limiter keyed by client IP. */
+export function getFaviconRateLimit() {
+  if (!faviconLimitInstance) {
+    faviconLimitInstance = new Ratelimit({
+      redis: getRedis(),
+      limiter: Ratelimit.slidingWindow(60, "1 m"),
+      prefix: "@upstash/ratelimit:favicon",
+    });
+  }
+  return faviconLimitInstance;
+}
+
+/** Authenticated QR generation limiter keyed by account ID. */
+export function getQrRateLimit() {
+  if (!qrLimitInstance) {
+    qrLimitInstance = new Ratelimit({
+      redis: getRedis(),
+      limiter: Ratelimit.slidingWindow(30, "1 m"),
+      prefix: "@upstash/ratelimit:qr",
+    });
+  }
+  return qrLimitInstance;
 }

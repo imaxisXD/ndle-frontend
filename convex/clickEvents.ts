@@ -1,7 +1,6 @@
 import { v } from "convex/values";
-import { query, internalMutation, internalQuery } from "./_generated/server";
+import { query } from "./_generated/server";
 import { getCurrentUser } from "./users";
-import { getOwnerSnapshot } from "./ownership";
 
 /**
  * Query to get recent click events for a specific link.
@@ -13,7 +12,6 @@ export const getRecentByLinkSlug = query({
     limit: v.optional(v.number()),
   },
   handler: async (ctx, { linkSlug, limit = 20 }) => {
-    // check if user is auth and link is owned by user
     const user = await getCurrentUser(ctx);
     if (!user) {
       return [];
@@ -23,71 +21,14 @@ export const getRecentByLinkSlug = query({
       .query("urls")
       .withIndex("by_slug", (q) => q.eq("slugAssigned", linkSlug))
       .first();
-    if (!link) {
+    if (!link || link.userTableId !== user._id) {
       return [];
     }
-    if (link.userTableId !== user._id) {
-      return [];
-    }
-    const events = await ctx.db
+
+    return await ctx.db
       .query("clickEvents")
       .withIndex("by_url", (q) => q.eq("urlId", link._id))
       .order("desc")
       .take(Math.min(100, Math.max(1, Math.floor(limit))));
-
-    return events;
-  },
-});
-
-/**
- * Query to get recent click events for a user (all links).
- */
-export const getRecentByUser = internalQuery({
-  args: {
-    userId: v.id("users"),
-    limit: v.optional(v.number()),
-  },
-  handler: async (ctx, { userId, limit = 20 }) => {
-    const events = await ctx.db
-      .query("clickEvents")
-      .withIndex("by_user", (q) => q.eq("userId", userId))
-      .order("desc")
-      .take(Math.min(100, Math.max(1, Math.floor(limit))));
-
-    return events;
-  },
-});
-
-/**
- * Internal mutation to insert a click event.
- * Called from CF Worker via mutateUrlAnalytics.
- */
-export const insertClickEvent = internalMutation({
-  args: {
-    linkSlug: v.string(),
-    urlId: v.id("urls"),
-    occurredAt: v.number(),
-    country: v.string(),
-    city: v.optional(v.string()),
-    deviceType: v.string(),
-    browser: v.string(),
-    os: v.string(),
-    referer: v.optional(v.string()),
-  },
-  returns: v.id("clickEvents"),
-  handler: async (ctx, args) => {
-    const url = await ctx.db.get(args.urlId);
-    if (!url) {
-      throw new Error("URL not found");
-    }
-
-    const owner = getOwnerSnapshot(url);
-    const id = await ctx.db.insert("clickEvents", {
-      ...args,
-      userId: owner.userId,
-      guestId: owner.guestId,
-      analyticsOwnerKey: owner.analyticsOwnerKey,
-    });
-    return id;
   },
 });

@@ -9,7 +9,7 @@ vi.mock("@/components/ui/dotmatrix-loader-icon", () => ({
   DotmatrixLoaderIcon: () => null,
 }));
 
-test("missing hourly and traffic-type data are shown as unavailable, not measured zeroes", () => {
+test("missing traffic-type data is shown as unavailable, not measured zeroes", () => {
   const markup = renderToStaticMarkup(
     createElement(AnalyticsSection, {
       clicksTimelineData: [{ time: "2026-08-08", clicks: 1 }],
@@ -19,15 +19,11 @@ test("missing hourly and traffic-type data are shown as unavailable, not measure
       osData: [],
       referrerData: [],
       botHumanData: null,
-      hourlyActivityData: null,
       isLoading: false,
     }),
   );
   expect(markup).toContain(
     "Human and bot counts are unavailable for this date range.",
-  );
-  expect(markup).toContain(
-    "Hourly activity is unavailable for this date range. Daily totals are shown above.",
   );
 });
 

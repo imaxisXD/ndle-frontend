@@ -1,7 +1,6 @@
 const GUEST_ID_STORAGE_KEY = "ndle_guest_id";
 const GUEST_TOKEN_STORAGE_KEY = "ndle_guest_token";
 const GUEST_ID_COOKIE = "ndle_guest_id";
-const CLAIMED_COUNT_KEY = "ndle_claimed_link_count";
 const UUID_REGEX =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
@@ -44,21 +43,9 @@ export function readGuestId() {
   return "";
 }
 
-export function readGuestSession(): GuestSession | null {
-  if (typeof window === "undefined") {
-    return null;
-  }
-
-  const guestId = readGuestId();
-  const guestToken = window.localStorage.getItem(GUEST_TOKEN_STORAGE_KEY);
-  if (!guestId || !guestToken) {
-    return null;
-  }
-
-  return { guestId, guestToken, expiresAt: 0 };
-}
-
-export async function ensureGuestSession(startNew = false): Promise<GuestSession> {
+export async function ensureGuestSession(
+  startNew = false,
+): Promise<GuestSession> {
   if (typeof window === "undefined") {
     throw new Error("Guest sessions are only available in the browser");
   }
@@ -70,14 +57,19 @@ export async function ensureGuestSession(startNew = false): Promise<GuestSession
     body: JSON.stringify({
       startNew,
       guestId: existingGuestId || undefined,
-      guestToken: window.localStorage.getItem(GUEST_TOKEN_STORAGE_KEY) || undefined,
+      guestToken:
+        window.localStorage.getItem(GUEST_TOKEN_STORAGE_KEY) || undefined,
     }),
     cache: "no-store",
   });
 
   if (!response.ok) {
     const error = await response.json().catch(() => null);
-    if (response.status === 401 && error?.code === "guest_session_expired" && !startNew) {
+    if (
+      response.status === 401 &&
+      error?.code === "guest_session_expired" &&
+      !startNew
+    ) {
       return ensureGuestSession(true);
     }
     throw new Error(error?.error || "Guest session could not be created");
@@ -88,26 +80,4 @@ export async function ensureGuestSession(startNew = false): Promise<GuestSession
   window.localStorage.setItem(GUEST_TOKEN_STORAGE_KEY, session.guestToken);
   writeGuestCookie(session.guestId);
   return session;
-}
-
-export function setClaimedLinkCount(count: number) {
-  if (typeof window === "undefined") {
-    return;
-  }
-
-  if (count > 0) {
-    window.sessionStorage.setItem(CLAIMED_COUNT_KEY, String(count));
-  } else {
-    window.sessionStorage.removeItem(CLAIMED_COUNT_KEY);
-  }
-}
-
-export function consumeClaimedLinkCount() {
-  if (typeof window === "undefined") {
-    return 0;
-  }
-
-  const value = window.sessionStorage.getItem(CLAIMED_COUNT_KEY);
-  window.sessionStorage.removeItem(CLAIMED_COUNT_KEY);
-  return value ? Number(value) : 0;
 }

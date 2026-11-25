@@ -6,17 +6,24 @@ import type { Doc } from "./_generated/dataModel";
 import {
   internalAction,
   internalMutation,
-  type MutationCtx,
+  type QueryCtx,
 } from "./_generated/server";
 import schema from "./schema";
 import { serviceSyncTarget } from "./serviceSyncTypes";
 import { buildRedirectProjection } from "./redisProjection";
 import { getOwnerSnapshot, getViewerPlan } from "./ownership";
 import { deliverMonitoringChange } from "./linkHealth";
-import { deliverDomainChange, deliverLegacyDomainDeletion } from "./domainSync";
+import {
+  deliverDomainChange,
+  deliverLegacyDomainDeletion,
+  getClaimedDomain,
+} from "./domainSync";
+import { queueServiceSync, queueUrlSync } from "./syncQueue";
+
+export { queueServiceSync, queueUrlSync };
 
 const RUN_LEASE_MS = 11 * 60_000;
-type SyncTarget = Infer<typeof serviceSyncTarget>;
+const COMPLETE_REFRESH_INTERVAL_MS = 86_400_000;
 
 export const enqueue = internalMutation({
   args: { key: v.string(), target: serviceSyncTarget },
@@ -24,60 +31,41 @@ export const enqueue = internalMutation({
   handler: async (ctx, { key, target }) => queueServiceSync(ctx, key, target),
 });
 
-/** Save desired state in the same transaction as the user's change. */
-export async function queueServiceSync(
-  ctx: MutationCtx,
-  key: string,
-  target: SyncTarget,
-) {
-  const previous = await ctx.db
-    .query("serviceSyncJobs")
-    .withIndex("by_key", (q) => q.eq("key", key))
+async function resolveRedirectUrl(
+  ctx: QueryCtx,
+  target: Extract<Infer<typeof serviceSyncTarget>, { kind: "redirect" }>,
+): Promise<Doc<"urls"> | null> {
+  const bySlug = await ctx.db
+    .query("urls")
+    .withIndex("by_slug", (q) => q.eq("slugAssigned", target.slug))
     .unique();
-  const now = Date.now();
-  const version = Math.max(now, (previous?.version ?? 0) + 1);
-  if (previous?.target.kind === "owner" && target.kind === "owner") {
-    target = {
-      ...target,
-      ownerKeys: [
-        ...new Set([...previous.target.ownerKeys, ...target.ownerKeys]),
-      ],
-    };
+  if (bySlug) return bySlug;
+
+  const original = await ctx.db.get(target.urlId);
+  // Older rows may only have shortUrl. Never revive an ID under another slug.
+  if (original && (original.slugAssigned ?? original.shortUrl) === target.slug) {
+    return original;
   }
-  const running =
-    previous?.status === "running" && previous.nextAttemptAt > now;
-  const change = {
-    key,
-    target,
-    version,
-    status: running ? ("running" as const) : ("pending" as const),
-    attempts: 0,
-    nextAttemptAt: running ? previous.nextAttemptAt : now,
-    updatedAt: now,
-    lastError: undefined,
-    runningVersion: running ? previous.runningVersion : undefined,
-  };
-  const jobId =
-    previous?._id ?? (await ctx.db.insert("serviceSyncJobs", change));
-  if (previous) await ctx.db.patch(previous._id, change);
-  if (!running)
-    await ctx.scheduler.runAfter(0, internal.serviceSync.run, {
-      jobId,
-      version,
-    });
-  return version;
+  return null;
 }
 
-export async function queueUrlSync(ctx: MutationCtx, url: Doc<"urls">) {
-  await queueServiceSync(ctx, `redirect:${url.slugAssigned ?? url.shortUrl}`, {
-    kind: "redirect",
-    urlId: url._id,
-    slug: url.slugAssigned ?? url.shortUrl,
-  });
-  await queueServiceSync(ctx, `monitor:${url._id}`, {
-    kind: "monitor",
-    urlId: url._id,
-  });
+async function isTombstoneTarget(
+  ctx: QueryCtx,
+  target: Infer<typeof serviceSyncTarget>,
+): Promise<boolean> {
+  switch (target.kind) {
+    case "redirect":
+      return (await resolveRedirectUrl(ctx, target)) === null;
+    case "monitor":
+      return (await ctx.db.get(target.urlId)) === null;
+    case "domain":
+      return (await getClaimedDomain(ctx, target.hostname)) === null;
+    case "domain_lookup":
+      return true;
+    case "owner":
+    case "clerk":
+      return (await ctx.db.get(target.userId)) === null;
+  }
 }
 
 const runArgs = { jobId: v.id("serviceSyncJobs"), version: v.number() };
@@ -106,18 +94,7 @@ export const claim = internalMutation({
     let target = job.target;
     let url: Doc<"urls"> | null = null;
     if (target.kind === "redirect") {
-      const slug = target.slug;
-      // Legacy actions can hold an ID from before this slug was reused.
-      url = await ctx.db
-        .query("urls")
-        .withIndex("by_slug", (q) => q.eq("slugAssigned", slug))
-        .unique();
-      if (!url) {
-        const original = await ctx.db.get(target.urlId);
-        // Older rows may only have shortUrl. Never revive an ID under another slug.
-        if (original && (original.slugAssigned ?? original.shortUrl) === slug)
-          url = original;
-      }
+      url = await resolveRedirectUrl(ctx, target);
       if (url) target = { ...target, urlId: url._id };
     } else if (target.kind === "monitor") {
       url = await ctx.db.get(target.urlId);
@@ -154,6 +131,7 @@ export const finish = internalMutation({
     await ctx.db.patch(jobId, {
       status: pending ? "pending" : "complete",
       runningVersion: undefined,
+      ...(pending ? {} : { attempts: 0 }),
       nextAttemptAt: now + delay,
       updatedAt: now,
       lastError: superseded ? undefined : error,
@@ -164,14 +142,21 @@ export const finish = internalMutation({
         version: job.version,
       });
     } else if (job.target.kind === "clerk") {
-      if (await ctx.db.get(job.target.userId))
+      const user = await ctx.db.get(job.target.userId);
+      if (user && !user.metadataSyncedAt) {
         await ctx.db.patch(job.target.userId, { metadataSyncedAt: now });
+      }
     } else if (job.target.kind === "redirect") {
-      if (await ctx.db.get(job.target.urlId))
+      const url = await ctx.db.get(job.target.urlId);
+      if (
+        url &&
+        (url.redisStatus !== "OK" || url.urlStatusMessage !== "success")
+      ) {
         await ctx.db.patch(job.target.urlId, {
           redisStatus: "OK",
           urlStatusMessage: "success",
         });
+      }
     }
     return null;
   },
@@ -292,13 +277,14 @@ export const run = internalAction({
           await deliverMonitoringChange({
             convexUrlId: target.urlId,
             monitoringVersion: job.version,
-            registration: url?.userTableId
-              ? {
-                  convexUserId: url.userTableId,
-                  longUrl: url.fullurl,
-                  shortUrl: url.slugAssigned ?? url.shortUrl,
-                }
-              : undefined,
+            registration:
+              url?.userTableId && url.disabledAt === undefined
+                ? {
+                    convexUserId: url.userTableId,
+                    longUrl: url.fullurl,
+                    shortUrl: url.slugAssigned ?? url.shortUrl,
+                  }
+                : undefined,
           });
           break;
         case "owner": {
@@ -368,7 +354,7 @@ export const run = internalAction({
   },
 });
 
-/** Recover interrupted actions; refresh completed projections to repair external drift. */
+/** Recover interrupted actions; refresh live completed projections and prune completed tombstones. */
 export const reconcile = internalMutation({
   args: {},
   returns: v.null(),
@@ -382,14 +368,21 @@ export const reconcile = internalMutation({
             .eq("status", status)
             .lte(
               "nextAttemptAt",
-              status === "complete" ? now - 86_400_000 : now,
+              status === "complete"
+                ? now - COMPLETE_REFRESH_INTERVAL_MS
+                : now,
             ),
         )
         .take(25);
       for (const job of due) {
+        if (status === "complete" && (await isTombstoneTarget(ctx, job.target))) {
+          await ctx.db.delete(job._id);
+          continue;
+        }
         await ctx.db.patch(job._id, {
           status: "pending",
           runningVersion: undefined,
+          ...(status === "complete" ? { attempts: 0 } : {}),
           nextAttemptAt: now,
           updatedAt: now,
         });

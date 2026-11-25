@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { GeistSans } from "geist/font/sans";
+import ConvexClientProvider from "@/components/ConvexClientProvider";
 import { FAQ } from "./faq";
 import { HomeTwo } from "./home-two";
 import "../home-2.css";
@@ -70,7 +71,9 @@ export function HomePage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(STRUCTURED_DATA).replace(/</g, "\\u003c") }}
       />
-      <HomeTwo />
+      <ConvexClientProvider>
+        <HomeTwo />
+      </ConvexClientProvider>
     </div>
   );
 }

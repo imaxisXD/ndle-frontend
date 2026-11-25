@@ -1,158 +1,59 @@
-import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { auth } from "@clerk/nextjs/server";
-import { getAnalyticsRateLimit } from "@/lib/rateLimit";
-import { AnalyticsRange, getUtcRange } from "@/lib/analyticsRanges";
-import {
-  ANALYTICS_PLAN_REQUIRED,
-  getRangeAccessError,
-} from "@/lib/analytics-access";
+import { ANALYTICS_RANGES, getUtcRange, type AnalyticsRange } from "@/lib/analyticsRanges";
+import { getRangeAccessError } from "@/lib/analytics-access";
 import { normalizeAnalyticsTimeseries } from "@/lib/analytics-response";
 import { getLocalDayRange, isValidTimeZone } from "@/lib/local-dates";
-import {
-  getSignedInAnalyticsViewer,
-  ANALYTICS_READ_TIMEOUT_MS,
-  getAnalyticsReadSecret,
-} from "@/lib/server-analytics-plan";
 import { forwardExcludeBots } from "@/lib/analytics-bots";
-
-// Strip /analytics/v2 suffix to get base URL
-const INTERNAL_API_URL = (process.env.INTERNAL_API_URL || "").replace(
-  /\/analytics\/v2$/,
-  "",
-);
+import { createAnalyticsHandler } from "@/lib/analytics-route";
 
 const schema = z.object({
-  range: z
-    .union([
-      z.literal("24h"),
-      z.literal("7d"),
-      z.literal("30d"),
-      z.literal("3mo"),
-      z.literal("12mo"),
-      z.literal("mtd"),
-      z.literal("qtd"),
-      z.literal("ytd"),
-      z.literal("all"),
-    ])
-    .default("7d"),
+  range: z.enum(ANALYTICS_RANGES).default("7d"),
   link_slug: z.string().min(1).max(128).optional(),
   tz: z.string().max(64).optional(),
 });
 
-export async function GET(req: NextRequest) {
-  try {
-    const rateLimit = getAnalyticsRateLimit();
-    const { userId: clerkUserId, getToken } = await auth();
-    const { searchParams } = new URL(req.url);
+export const GET = createAnalyticsHandler({
+  routeName: "timeseries",
+  errorLabel: "timeseries",
+  backendErrorMessage: "Failed to fetch analytics data",
+  parseParams(request) {
+    const { searchParams } = request.nextUrl;
     const parsed = schema.safeParse({
       range: searchParams.get("range") ?? undefined,
       link_slug: searchParams.get("link_slug") ?? undefined,
       tz: searchParams.get("tz") ?? undefined,
     });
-    if (!parsed.success) {
-      return NextResponse.json({ error: "Invalid params" }, { status: 400 });
+    return parsed.success
+      ? { ok: true, data: parsed.data }
+      : { ok: false, error: "Invalid params" };
+  },
+  checkAccess(params, viewer) {
+    return getRangeAccessError(params.range, viewer.plan);
+  },
+  buildBackendUrl(params, request, baseUrl) {
+    const { start, end } = getUtcRange(params.range as AnalyticsRange);
+    const target = new URL(`${baseUrl}/analytics/unified`);
+    forwardExcludeBots(request.nextUrl.searchParams, target);
+    target.searchParams.set("endpoint", "timeseries");
+    target.searchParams.set("start", start.toISOString().split("T")[0]);
+    target.searchParams.set("end", end.toISOString().split("T")[0]);
+    if (params.link_slug) {
+      target.searchParams.set("link_slug", params.link_slug);
     }
-    const { range, link_slug, tz } = parsed.data;
-
-    if (!clerkUserId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (isValidTimeZone(params.tz)) {
+      const local = getLocalDayRange(params.range as AnalyticsRange, params.tz);
+      target.searchParams.set("tz", params.tz);
+      target.searchParams.set("local_start", local.start);
+      target.searchParams.set("local_end", local.end);
     }
-
-    const identifier = `analytics:timeseries:${clerkUserId}`;
-    const {
-      success,
-      limit: rlLimit,
-      remaining,
-    } = await rateLimit.limit(identifier);
-    if (!success) {
-      return NextResponse.json(
-        { error: "Too many requests", limit: rlLimit, remaining },
-        { status: 429 },
-      );
-    }
-
-    const viewer = await getSignedInAnalyticsViewer(getToken);
-    if (!viewer)
-      return NextResponse.json(
-        {
-          error:
-            "Your account is still being prepared. Please try again shortly.",
-        },
-        { status: 503 },
-      );
-    const convexUserId = viewer.userId;
-
-    const rangeError = getRangeAccessError(range, viewer.plan);
-    if (rangeError) {
-      return NextResponse.json(
-        { error: rangeError, code: ANALYTICS_PLAN_REQUIRED },
-        { status: 403 },
-      );
-    }
-
-    // Convert range to start/end dates
-    const { start, end } = getUtcRange(range as AnalyticsRange);
-    const startDate = start.toISOString().split("T")[0];
-    const endDate = end.toISOString().split("T")[0];
-
-    // Build backend URL
-    const backendUrl = new URL(`${INTERNAL_API_URL}/analytics/unified`);
-    forwardExcludeBots(searchParams, backendUrl);
-    backendUrl.searchParams.set("endpoint", "timeseries");
-    backendUrl.searchParams.set("start", startDate);
-    backendUrl.searchParams.set("end", endDate);
-    if (link_slug) {
-      backendUrl.searchParams.set("link_slug", link_slug);
-    }
-    // Local calendar days for the viewer. A service without zone support
-    // ignores these and answers UTC days for start/end, as before.
-    if (isValidTimeZone(tz)) {
-      const local = getLocalDayRange(range as AnalyticsRange, tz);
-      backendUrl.searchParams.set("tz", tz);
-      backendUrl.searchParams.set("local_start", local.start);
-      backendUrl.searchParams.set("local_end", local.end);
-    }
-
-    const response = await fetch(backendUrl.toString(), {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        "x-user-id": convexUserId,
-        Authorization: `Bearer ${getAnalyticsReadSecret()}`,
-      },
-      cache: "no-store",
-      signal: AbortSignal.timeout(ANALYTICS_READ_TIMEOUT_MS),
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error("Backend error:", response.status, errorText);
-      return NextResponse.json(
-        { error: "Failed to fetch analytics data" },
-        { status: response.status },
-      );
-    }
-
-    const result = await response.json();
-    const res = NextResponse.json({
+    return target;
+  },
+  transformResponse(payload) {
+    const result = payload as Record<string, unknown>;
+    return {
       ...result,
       data: normalizeAnalyticsTimeseries(result.data),
       granularity: "day",
-    });
-    res.headers.set("Cache-Control", "private, no-store");
-    return res;
-  } catch (e: unknown) {
-    console.error("Timeseries error:", e);
-    if (e instanceof Error) {
-      return NextResponse.json(
-        {
-          error:
-            "Analytics is temporarily unavailable. Please try again shortly.",
-        },
-        { status: 502 },
-      );
-    }
-    return NextResponse.json({ error: "Server error" }, { status: 502 });
-  }
-}
+    };
+  },
+});

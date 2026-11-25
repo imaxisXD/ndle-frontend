@@ -1,14 +1,17 @@
 // UTC time range helpers for analytics
-export type AnalyticsRange =
-  | "24h"
-  | "7d"
-  | "30d"
-  | "3mo"
-  | "12mo"
-  | "mtd"
-  | "qtd"
-  | "ytd"
-  | "all";
+export const ANALYTICS_RANGES = [
+  "24h",
+  "7d",
+  "30d",
+  "3mo",
+  "12mo",
+  "mtd",
+  "qtd",
+  "ytd",
+  "all",
+] as const;
+
+export type AnalyticsRange = (typeof ANALYTICS_RANGES)[number];
 
 function toUtcDate(y: number, m: number, d: number, h = 0, mi = 0, s = 0) {
   return new Date(Date.UTC(y, m, d, h, mi, s, 0));

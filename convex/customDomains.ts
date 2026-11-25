@@ -4,7 +4,6 @@ import {
   mutation,
   query,
   internalMutation,
-  internalQuery,
   internalAction,
   type MutationCtx,
 } from "./_generated/server";
@@ -13,7 +12,7 @@ import { getCurrentUser } from "./users";
 import { internal } from "./_generated/api";
 import { getViewerPlan } from "./ownership";
 import { getClaimedDomain, queueDomainSync } from "./domainSync";
-import { queueServiceSync, queueUrlSync } from "./serviceSync";
+import { queueServiceSync, queueUrlSync } from "./syncQueue";
 import { normalizeHostname } from "./utils";
 
 // ============================================================================
@@ -456,13 +455,11 @@ export const deleteDomain = mutation({
 
     const domain = await ctx.db.get(args.domainId);
     if (!domain) {
-      console.log("Domain not found");
       return { success: false, error: "Domain not found" };
     }
 
     // Verify ownership
     if (domain.userId !== user._id) {
-      console.log("Not authorized to delete this domain");
       return { success: false, error: "Not authorized to delete this domain" };
     }
 
@@ -717,27 +714,6 @@ export const internalUpdateDomain = internalMutation({
   },
 });
 
-export const internalDeleteDomain = internalMutation({
-  args: { domainId: v.id("custom_domains") },
-  returns: v.null(),
-  handler: async (ctx, { domainId }) => {
-    const domain = await ctx.db.get(domainId);
-    if (domain?.status === "awaiting_verification") {
-      await ctx.db.delete("custom_domains", domainId);
-    } else if (domain) {
-      await queueDomainSync(ctx, domain);
-      await ctx.db.delete(domainId);
-      await detachDomainLinksPage(
-        ctx,
-        domain.userId,
-        normalizeHostname(domain.domain),
-        null,
-      );
-    }
-    return null;
-  },
-});
-
 /** Continues a domain deletion for owners with more links than one page. */
 export const detachDomainLinks = internalMutation({
   args: {
@@ -765,109 +741,5 @@ export const internalDeleteFromCloudflare = internalAction({
       target: { kind: "domain_lookup", hostnameId: cloudflareHostnameId },
     });
     return null;
-  },
-});
-
-export const internalRegisterWithCloudflare = internalAction({
-  args: { domainId: v.id("custom_domains") },
-  returns: v.null(),
-  handler: async (ctx, args) => {
-    await ctx.runMutation(internal.domainSync.requestDomainSync, args);
-    return null;
-  },
-});
-
-export const internalVerifyDomainStatus = internalAction({
-  args: { domainId: v.id("custom_domains") },
-  returns: v.null(),
-  handler: async (ctx, args) => {
-    await ctx.runMutation(internal.domainSync.requestDomainSync, args);
-    return null;
-  },
-});
-
-// ============================================================================
-// INTERNAL QUERIES (for actions to call)
-// ============================================================================
-
-/**
- * Internal query to get domain by ID (for actions)
- */
-export const getDomainById = internalQuery({
-  args: { domainId: v.id("custom_domains") },
-  returns: v.union(
-    v.object({
-      _id: v.id("custom_domains"),
-      userId: v.id("users"),
-      domain: v.string(),
-      status: v.union(
-        v.literal("awaiting_verification"),
-        v.literal("pending"),
-        v.literal("active"),
-        v.literal("failed"),
-      ),
-      cloudflareHostnameId: v.optional(v.string()),
-      sslStatus: v.optional(v.string()),
-    }),
-    v.null(),
-  ),
-  handler: async (ctx, args) => {
-    const domain = await ctx.db.get(args.domainId);
-    if (!domain) {
-      return null;
-    }
-    return {
-      _id: domain._id,
-      userId: domain.userId,
-      domain: domain.domain,
-      status: domain.status,
-      cloudflareHostnameId: domain.cloudflareHostnameId,
-      sslStatus: domain.sslStatus,
-    };
-  },
-});
-
-/**
- * Bounded compatibility query; the cron uses paginated domain sync.
- */
-export const getPendingDomains = internalQuery({
-  args: {},
-  returns: v.array(
-    v.object({
-      _id: v.id("custom_domains"),
-      domain: v.string(),
-      cloudflareHostnameId: v.optional(v.string()),
-    }),
-  ),
-  handler: async (ctx) => {
-    const domains = await ctx.db
-      .query("custom_domains")
-      .withIndex("by_status", (q) => q.eq("status", "pending"))
-      .take(MAX_DOMAINS_READ);
-
-    return domains.map((d) => ({
-      _id: d._id,
-      domain: d.domain,
-      cloudflareHostnameId: d.cloudflareHostnameId,
-    }));
-  },
-});
-
-/**
- * Queue bounded pages of pending domains for durable status checks.
- * This is called by a cron job every 2 minutes.
- */
-export const checkAllPendingDomains = internalAction({
-  args: {},
-  returns: v.object({
-    checked: v.number(),
-    updated: v.number(),
-  }),
-  handler: async (ctx): Promise<{ checked: number; updated: number }> => {
-    const checked = await ctx.runMutation(
-      internal.domainSync.queuePendingDomainPage,
-      { cursor: null },
-    );
-    return { checked, updated: 0 };
   },
 });

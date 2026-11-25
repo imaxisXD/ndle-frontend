@@ -14,6 +14,13 @@
    requests can't reach private networks; the address rules below also keep
    the local dev server from being pointed at itself or the LAN. */
 
+import {
+  canonicalHostname,
+  hasBlockedLocalSuffix,
+  isIpLiteral,
+  isLocalhost,
+} from "@/lib/url-safety";
+
 export type LinkCheckVerdict = "working" | "slow" | "broken" | "unclear";
 
 export type LinkCheckHop = { url: string; status: number; ms: number };
@@ -36,7 +43,6 @@ const HOP_TIMEOUT_MS = 8_000;
 const GET_RETRY_STATUSES = new Set([400, 403, 404, 405, 406, 501]);
 const UNCLEAR_STATUSES = new Set([401, 403, 405, 406, 429, 503]);
 const ALLOWED_PORTS = new Set(["", "80", "443", "8080", "8443"]);
-const BLOCKED_SUFFIXES = [".localhost", ".local", ".internal", ".lan", ".home.arpa"];
 const USER_AGENT = "ndle-link-checker/1.0 (+https://ndle.app/tools/link-checker)";
 
 export class LinkTargetError extends Error {}
@@ -66,14 +72,13 @@ function assertPublic(url: URL) {
   if (!ALLOWED_PORTS.has(url.port)) {
     throw new LinkTargetError("Links on unusual ports can't be checked.");
   }
-  const host = url.hostname.toLowerCase().replace(/\.$/, "");
-  const isIpLiteral = /^\d{1,3}(\.\d{1,3}){3}$/.test(host) || host.startsWith("[");
+  const host = canonicalHostname(url.hostname);
   if (
     !host.includes(".") ||
-    host === "localhost" ||
-    BLOCKED_SUFFIXES.some((suffix) => host.endsWith(suffix)) ||
+    isLocalhost(host) ||
+    hasBlockedLocalSuffix(host) ||
     // Public sites are reached by name; IP addresses are how private ones are reached.
-    isIpLiteral
+    isIpLiteral(host)
   ) {
     throw new LinkTargetError("Only public websites can be checked.");
   }

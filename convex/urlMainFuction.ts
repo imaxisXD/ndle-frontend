@@ -1,7 +1,6 @@
-import { ShardedCounter } from "@convex-dev/sharded-counter";
 import { ConvexError, v } from "convex/values";
 import type { Doc, Id } from "./_generated/dataModel";
-import { components, internal } from "./_generated/api";
+import { internal } from "./_generated/api";
 import {
   internalMutation,
   mutation,
@@ -22,9 +21,12 @@ import {
   makeUserOwnerKey,
 } from "./ownership";
 import { getCurrentUser } from "./users";
-import { queueServiceSync } from "./serviceSync";
+import { queueServiceSync } from "./syncQueue";
 import { includeLinkInAccount, removeLinkFromAccount } from "./accountCounters";
-import { addLinkToCollection, removeLinkFromCollections } from "./collectionMangament";
+import {
+  addLinkToCollection,
+  removeLinkFromCollections,
+} from "./collectionMangament";
 import { getClaimedDomain } from "./domainSync";
 import {
   BLOCKED_DESTINATION_MESSAGE,
@@ -33,9 +35,9 @@ import {
 } from "./moderation";
 import { createSlug, isValidHttpUrl, VALIDATION_ERRORS } from "./utils";
 
-const counter = new ShardedCounter(components.shardedCounter);
 const HOUR_MS = 60 * 60 * 1000;
 const DAY_MS = 24 * HOUR_MS;
+const HEALTH_CLEANUP_BATCH_SIZE = 100;
 
 const errorCopyByCode: Record<string, string> = {
   [VALIDATION_ERRORS.INVALID_FORMAT]: "We couldn’t process that link.",
@@ -112,7 +114,9 @@ function normalizeCustomDomain(domain: string | undefined): string | undefined {
     .replace(/^www\./, "")
     .split("/")[0]
     .replace(/\.$/, "");
-  if (!/^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,}$/.test(normalized)) {
+  if (
+    !/^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,}$/.test(normalized)
+  ) {
     throw new ConvexError("Invalid custom domain.");
   }
   return normalized;
@@ -140,7 +144,9 @@ async function ensureCustomDomainAllowed(
   return normalizedDomain;
 }
 
-function normalizeQrStyle(args: SignedInCreateArgs): SignedInCreateArgs["qrStyle"] {
+function normalizeQrStyle(
+  args: SignedInCreateArgs,
+): SignedInCreateArgs["qrStyle"] {
   if (!args.qrStyle) return undefined;
   if (args.qrStyle.logoMode !== "custom" || !args.qrStyle.customLogoUrl) {
     return args.qrStyle;
@@ -167,7 +173,11 @@ function normalizeAbVariants(
   const seen = new Set([destinationUrl]);
   let totalWeight = 0;
   return args.abVariants.map((variant, index) => {
-    if (!Number.isFinite(variant.weight) || variant.weight <= 0 || variant.weight > 100) {
+    if (
+      !Number.isFinite(variant.weight) ||
+      variant.weight <= 0 ||
+      variant.weight > 100
+    ) {
       throw new ConvexError("A/B variant weights must be between 1 and 100.");
     }
     totalWeight += variant.weight;
@@ -187,23 +197,6 @@ function normalizeAbVariants(
       weight: variant.weight,
     };
   });
-}
-
-function buildRedisAbVariants(
-  destinationUrl: string,
-  variants: Array<{ id: string; url: string; weight: number }> | undefined,
-): Array<{ id: string; url: string; weight: number }> | undefined {
-  if (!variants?.length) return undefined;
-
-  const testWeight = variants.reduce((sum, variant) => sum + variant.weight, 0);
-  return [
-    {
-      id: "control",
-      url: destinationUrl,
-      weight: Math.max(0, 100 - testWeight),
-    },
-    ...variants,
-  ];
 }
 
 function validateExpiration(expiresAt: number | undefined) {
@@ -237,9 +230,9 @@ function validateSignedInPlan(user: Doc<"users">, args: SignedInCreateArgs) {
   }
 
   if (args.expiresAt) {
-    const activeDaysAhead = args.expiresAt
-      ? Math.ceil((args.expiresAt - Date.now()) / (24 * 60 * 60 * 1000))
-      : 0;
+    const activeDaysAhead = Math.ceil(
+      (args.expiresAt - Date.now()) / (24 * 60 * 60 * 1000),
+    );
     if (activeDaysAhead > 30) {
       throw new ConvexError("Free plan links can expire up to 30 days ahead.");
     }
@@ -285,8 +278,6 @@ async function ensureBelowGuestLimits(
     );
   }
 
-  // New guest sessions do not reset this. Tokens issued before network keys
-  // existed have none and only get the per-guest limit above.
   if (networkKey) {
     const networkLimit = getGuestLinksPerNetworkPerDay();
     const networkUrls =
@@ -307,7 +298,6 @@ async function ensureBelowGuestLimits(
     }
   }
 
-  // Circuit breaker across every guest.
   const hourlyLimit = getGuestLinksPerHour();
   const recentGuestUrls =
     hourlyLimit > 0
@@ -339,48 +329,68 @@ async function createUniqueSlug(ctx: MutationCtx, slugType: "random" | "human") 
   return slug;
 }
 
-async function syncUrlToRedis(
-  ctx: MutationCtx,
-  args: {
-    docId: Id<"urls">;
-    slugAssigned: string;
-    fullUrl: string;
-    analyticsOwnerKey: string;
-    convexUserId?: Id<"users">;
-    trackingEnabled: boolean;
-    expiresAt?: number;
-    utmSource?: string;
-    utmMedium?: string;
-    utmCampaign?: string;
-    utmTerm?: string;
-    utmContent?: string;
-    abEnabled?: boolean;
-    abVariants?: Array<{
-      id: string;
-      url: string;
-      weight: number;
-    }>;
-    overwrite?: boolean;
-  },
-) {
-  await queueServiceSync(ctx, `redirect:${args.slugAssigned}`, { kind: "redirect", urlId: args.docId, slug: args.slugAssigned });
+async function cleanupUrlHealthRows(ctx: MutationCtx, urlId: Id<"urls">) {
+  const [checks, summaries, incidents] = await Promise.all([
+    ctx.db
+      .query("linkHealthChecks")
+      .withIndex("by_url_id", (q) => q.eq("urlId", urlId))
+      .take(HEALTH_CLEANUP_BATCH_SIZE),
+    ctx.db
+      .query("linkHealthDailySummary")
+      .withIndex("by_url_and_date", (q) => q.eq("urlId", urlId))
+      .take(HEALTH_CLEANUP_BATCH_SIZE),
+    ctx.db
+      .query("linkIncidents")
+      .withIndex("by_url_id", (q) => q.eq("urlId", urlId))
+      .take(HEALTH_CLEANUP_BATCH_SIZE),
+  ]);
+
+  for (const row of checks) await ctx.db.delete(row._id);
+  for (const row of summaries) await ctx.db.delete(row._id);
+  for (const row of incidents) await ctx.db.delete(row._id);
+
+  if (
+    checks.length === HEALTH_CLEANUP_BATCH_SIZE ||
+    summaries.length === HEALTH_CLEANUP_BATCH_SIZE ||
+    incidents.length === HEALTH_CLEANUP_BATCH_SIZE
+  ) {
+    await ctx.scheduler.runAfter(
+      0,
+      internal.urlMainFuction.continueHealthCleanup,
+      { urlId },
+    );
+  }
 }
 
+export const continueHealthCleanup = internalMutation({
+  args: { urlId: v.id("urls") },
+  returns: v.null(),
+  handler: async (ctx, { urlId }) => {
+    await cleanupUrlHealthRows(ctx, urlId);
+    return null;
+  },
+});
+
 async function deleteUrlRecord(ctx: MutationCtx, url: Doc<"urls">) {
-  await queueServiceSync(ctx, `monitor:${url._id}`, { kind: "monitor", urlId: url._id });
+  await queueServiceSync(ctx, `monitor:${url._id}`, {
+    kind: "monitor",
+    urlId: url._id,
+  });
   await queueServiceSync(ctx, `redirect:${url.slugAssigned ?? url.shortUrl}`, {
-    kind: "redirect", urlId: url._id, slug: url.slugAssigned ?? url.shortUrl,
+    kind: "redirect",
+    urlId: url._id,
+    slug: url.slugAssigned ?? url.shortUrl,
   });
 
   const analytics = await ctx.db
     .query("urlAnalytics")
     .withIndex("by_url", (q) => q.eq("urlId", url._id))
     .unique();
-
   if (analytics) {
     await ctx.db.delete(analytics._id);
   }
 
+  await cleanupUrlHealthRows(ctx, url._id);
   await removeLinkFromCollections(ctx, url._id);
   await removeLinkFromAccount(ctx, url);
   await ctx.db.delete(url._id);
@@ -484,40 +494,27 @@ export const createUrl = mutation({
       utmTerm: args.utmTerm,
       utmContent: args.utmContent,
       abEnabled: args.abEnabled,
-      abVariants: abVariantsWithIds?.map(({ url, weight }) => ({ url, weight })),
+      abVariants: abVariantsWithIds?.map(({ url, weight }) => ({
+        url,
+        weight,
+      })),
     });
 
     const savedUrl = await ctx.db.get(docId);
     if (savedUrl) await includeLinkInAccount(ctx, savedUrl);
 
-    await ctx.db.insert("urlAnalytics", {
+    await queueServiceSync(ctx, `redirect:${slug}`, {
+      kind: "redirect",
       urlId: docId,
-      updatedAt: Date.now(),
-      urlStatusMessage: "no traffic",
-      urlStatusCode: 0,
-    });
-
-    await syncUrlToRedis(ctx, {
-      docId,
-      slugAssigned: slug,
-      fullUrl: normalizedUrl,
-      analyticsOwnerKey: ownerKey,
-      convexUserId: user._id,
-      trackingEnabled: args.trackingEnabled,
-      expiresAt: args.expiresAt,
-      utmSource: args.utmSource,
-      utmMedium: args.utmMedium,
-      utmCampaign: args.utmCampaign,
-      utmTerm: args.utmTerm,
-      utmContent: args.utmContent,
-      abEnabled: args.abEnabled,
-      abVariants: buildRedisAbVariants(normalizedUrl, abVariantsWithIds),
+      slug,
     });
 
     if (args.expiresAt !== undefined) {
-      await ctx.scheduler.runAt(args.expiresAt, internal.urlMainFuction.deleteUrlById, {
-        urlId: docId,
-      });
+      await ctx.scheduler.runAt(
+        args.expiresAt,
+        internal.urlMainFuction.deleteUrlById,
+        { urlId: docId },
+      );
     }
 
     if (args.collectionId) {
@@ -528,7 +525,10 @@ export const createUrl = mutation({
       await addLinkToCollection(ctx, args.collectionId, docId);
     }
 
-    await queueServiceSync(ctx, `monitor:${docId}`, { kind: "monitor", urlId: docId });
+    await queueServiceSync(ctx, `monitor:${docId}`, {
+      kind: "monitor",
+      urlId: docId,
+    });
 
     return { docId, slug };
   },
@@ -589,44 +589,19 @@ export const createGuestUrl = mutation({
     const savedUrl = await ctx.db.get(docId);
     if (savedUrl) await includeLinkInAccount(ctx, savedUrl);
 
-    await ctx.db.insert("urlAnalytics", {
+    await queueServiceSync(ctx, `redirect:${slug}`, {
+      kind: "redirect",
       urlId: docId,
-      updatedAt: Date.now(),
-      urlStatusMessage: "no traffic",
-      urlStatusCode: 0,
+      slug,
     });
 
-    await syncUrlToRedis(ctx, {
-      docId,
-      slugAssigned: slug,
-      fullUrl: normalizedUrl,
-      analyticsOwnerKey: ownerKey,
-      trackingEnabled: true,
+    await ctx.scheduler.runAt(
       expiresAt,
-    });
-
-    await ctx.scheduler.runAt(expiresAt, internal.urlMainFuction.deleteUrlById, {
-      urlId: docId,
-    });
+      internal.urlMainFuction.deleteUrlById,
+      { urlId: docId },
+    );
 
     return { docId, slug, expiresAt };
-  },
-});
-
-export const updateUrlStatus = internalMutation({
-  args: {
-    docId: v.id("urls"),
-    urlStatusMessage: v.string(),
-    redisStatus: v.string(),
-  },
-  returns: v.null(),
-  async handler(ctx, args) {
-    if (!await ctx.db.get(args.docId)) return null;
-    await ctx.db.patch(args.docId, {
-      urlStatusMessage: args.urlStatusMessage,
-      redisStatus: args.redisStatus,
-    });
-    return null;
   },
 });
 
@@ -635,9 +610,7 @@ export const updateUrlStatus = internalMutation({
  * by an account since then must survive its original 7-day expiry.
  */
 function isDueForScheduledDeletion(url: Doc<"urls">, now: number) {
-  // Unclaimed guest link (legacy rows may predate ownershipState). Claiming sets userTableId.
   if (!url.userTableId) return url.ownershipState !== "user";
-  // Otherwise only a link created signed in with its own expiry, once it is reached.
   return (
     url.ownershipState !== "guest" &&
     url.claimedAt === undefined &&
@@ -658,36 +631,6 @@ export const deleteUrlById = internalMutation({
     }
     await deleteUrlRecord(ctx, url);
     return null;
-  },
-});
-
-/** Compatibility endpoints reject oversized results; current callers use urlLists pagination. */
-async function enrichLegacyUrls(ctx: import("./_generated/server").QueryCtx, urls: Doc<"urls">[]) {
-  if (urls.length > 100) throw new ConvexError("This list needs pagination. Use the updated links page.");
-  return Promise.all(urls.map(async url => {
-    const analytics = await ctx.db.query("urlAnalytics").withIndex("by_url", q => q.eq("urlId", url._id)).unique();
-    const latestHealthCheck = await ctx.db.query("linkHealthChecks").withIndex("by_url_id", q => q.eq("urlId", url._id)).unique();
-    return { ...toOwnerLinkView(url), analytics: analytics ? { ...analytics, totalClickCounts: await counter.count(ctx, `url:${url._id}`) } : null, latestHealthCheck };
-  }));
-}
-export const getUserUrls = query({ args: {}, handler: async ctx => {
-  const user = await getCurrentUser(ctx); if (!user) return null;
-  const urls = await ctx.db.query("urls").withIndex("by_user", q => q.eq("userTableId", user._id)).take(101);
-  if (urls.length > 100) throw new ConvexError("This list needs pagination. Use the updated links page.");
-  return urls.map(toOwnerLinkView);
-} });
-export const getUserUrlsWithAnalytics = query({ args: {}, handler: async ctx => {
-  const user = await getCurrentUser(ctx); if (!user) return null;
-  return enrichLegacyUrls(ctx, await ctx.db.query("urls").withIndex("by_user", q => q.eq("userTableId", user._id)).order("desc").take(101));
-} });
-export const getUserUrlsWithAnalyticsByCollection = query({
-  args: { collectionId: v.id("collections") }, handler: async (ctx, { collectionId }) => {
-    const user = await getCurrentUser(ctx); const collection = await ctx.db.get(collectionId);
-    if (!user || collection?.userTableId !== user._id) return null;
-    const ids = collection.membersReady ? (await ctx.db.query("collectionLinks").withIndex("by_collectionId_and_urlId", q => q.eq("collectionId", collectionId)).take(101)).map(member => member.urlId) : collection.urls;
-    if (ids.length > 100) throw new ConvexError("This list needs pagination. Use the updated links page.");
-    const urls = await Promise.all(ids.map(id => ctx.db.get(id)));
-    return enrichLegacyUrls(ctx, urls.filter((url): url is Doc<"urls"> => !!url && url.userTableId === user._id));
   },
 });
 
@@ -739,8 +682,20 @@ export const getLinkDetailsBySlugs = query({
   handler: async (ctx, { slugs }) => {
     const user = await getCurrentUser(ctx);
     if (!user) return [];
-    if (slugs.length > 20) throw new ConvexError("Request up to 20 links at a time");
-    const links = await Promise.all(slugs.map(slug => ctx.db.query("urls").withIndex("by_user_slug", q => q.eq("userTableId", user._id).eq("slugAssigned", slug)).unique()));
-    return links.filter((link): link is Doc<"urls"> => !!link).map(toOwnerLinkView);
+    if (slugs.length > 20)
+      throw new ConvexError("Request up to 20 links at a time");
+    const links = await Promise.all(
+      slugs.map((slug) =>
+        ctx.db
+          .query("urls")
+          .withIndex("by_user_slug", (q) =>
+            q.eq("userTableId", user._id).eq("slugAssigned", slug),
+          )
+          .unique(),
+      ),
+    );
+    return links
+      .filter((link): link is Doc<"urls"> => !!link)
+      .map(toOwnerLinkView);
   },
 });

@@ -422,6 +422,13 @@ const WEEKDAY_ABBREVIATIONS: Record<string, string> = {
  * @param abbreviation - The abbreviated weekday name (e.g., "sun", "mon").
  * @returns The full weekday name (e.g., "Sunday", "Monday"), or the original input if not recognized.
  */
+const HEX_COLOR_RE = /^#[0-9a-f]{6}$/i;
+
+/** True for a 6-digit hex color such as `#3b82f6`. */
+export function isHexColor(value: string | undefined | null): value is string {
+  return typeof value === "string" && HEX_COLOR_RE.test(value.trim());
+}
+
 export function expandWeekday(abbreviation: string): string {
   if (!abbreviation) return abbreviation;
   const lower = abbreviation.toLowerCase();

@@ -3,7 +3,7 @@
 import { useState, useCallback } from "react";
 import { MoreVertCircle, BinMinusIn, Page, KeyCommand } from "iconoir-react";
 import { CreateCollectionButton } from "./create-collection-button";
-import { isHexColor } from "./collection-folder";
+import { isHexColor } from "@/lib/utils";
 import { GlassFolder, glassTone } from "./glass-folder";
 import { getCollectionFallbackColor } from "./colors";
 import { NavLink, useNavigate } from "react-router";

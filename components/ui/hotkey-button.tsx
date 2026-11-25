@@ -1,3 +1,4 @@
+import { useRef } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 import { Button } from "./button";
 import { Kbd, KbdGroup } from "./kbd";
@@ -11,7 +12,7 @@ interface HotkeyButtonProps extends Omit<
   "onClick"
 > {
   hotkey: string | string[];
-  onClick: () => void;
+  onClick?: () => void;
   variant?: VariantProps<typeof Button>["variant"];
   size?: VariantProps<typeof Button>["size"];
   asChild?: boolean;
@@ -21,28 +22,11 @@ interface HotkeyButtonProps extends Omit<
   loading?: boolean;
 }
 
-/**
- * HotkeyButton - A reusable button component with keyboard shortcut support
- *
- * Usage examples:
- * - Single key: <HotkeyButton hotkey="n" onClick={...}>Create</HotkeyButton>
- * - Multiple keys: <HotkeyButton hotkey={["n", "c"]} onClick={...}>Create</HotkeyButton>
- * - With modifiers: <HotkeyButton hotkey="meta+n" onClick={...}>Create</HotkeyButton>
- * - Multiple modifiers: <HotkeyButton hotkey="meta+enter" onClick={...}>Submit</HotkeyButton>
- * - Conditional enabling: <HotkeyButton hotkey="n" enabled={!isDialogOpen} onClick={...}>Create</HotkeyButton>
- *
- * Supported modifiers: meta (⌘/Ctrl), ctrl, shift (⇧), alt (⌥), cmd, control, option
- * Special keys: enter (↵), space (␣), escape (Esc), backspace (⌫), delete (⌦), tab (⇥)
- *
- * Note: Modifier combinations like "meta+enter" will render as separate Kbd components
- * Use the `enabled` prop to conditionally enable/disable hotkeys (useful for dialogs)
- */
-
 function formatHotkey(hotkey: string): string[] {
   const parts = hotkey.split("+").map((part) => part.trim().toLowerCase());
 
   const modifierMap: Record<string, string> = {
-    meta: "⌘", // react-hotkeys-hook uses 'meta' for cross-platform modifier
+    meta: "⌘",
     ctrl: "Ctrl",
     shift: "⇧",
     alt: "⌥",
@@ -57,15 +41,15 @@ function formatHotkey(hotkey: string): string[] {
     tab: "⇥",
   };
 
-  const formattedParts = parts.map((part) => {
-    if (modifierMap[part]) {
-      return modifierMap[part];
-    }
-    // For regular keys, capitalize them
-    return part.toUpperCase();
-  });
+  return parts.map((part) => modifierMap[part] ?? part.toUpperCase());
+}
 
-  return formattedParts;
+function assignRef<T>(ref: React.Ref<T> | undefined, value: T | null) {
+  if (typeof ref === "function") {
+    ref(value);
+  } else if (ref && "current" in ref) {
+    (ref as React.MutableRefObject<T | null>).current = value;
+  }
 }
 
 export function HotkeyButton({
@@ -78,24 +62,38 @@ export function HotkeyButton({
   loading = false,
   className,
   disabled,
+  ref,
   ...props
 }: HotkeyButtonProps) {
+  const internalRef = useRef<HTMLButtonElement | null>(null);
   const buttonDisabled = Boolean(disabled || loading);
 
-  // Check if hotkey is empty
   const hasHotkey = Array.isArray(hotkey)
     ? hotkey.some((key) => key.trim() !== "")
     : hotkey.trim() !== "";
 
-  // Register hotkeys with react-hotkeys-hook only if hotkey is provided
-  useHotkeys(hotkey, onClick, {
+  const handleHotkey = () => {
+    if (onClick) {
+      onClick();
+      return;
+    }
+    if (props.type === "submit") {
+      const form = internalRef.current?.form;
+      if (form) {
+        form.requestSubmit();
+        return;
+      }
+    }
+    internalRef.current?.click();
+  };
+
+  useHotkeys(hotkey, handleHotkey, {
     preventDefault: true,
     enableOnFormTags,
     enabled: enabled && hasHotkey && !buttonDisabled,
   });
 
   const renderHotkeyDisplay = () => {
-    // Don't render anything if no hotkey is provided
     if (!hasHotkey) {
       return null;
     }
@@ -105,7 +103,6 @@ export function HotkeyButton({
       formattedKey: string,
       key: string,
     ) => {
-      // Use KeyCommand icon for meta modifier
       if (
         originalPart.toLowerCase() === "meta" ||
         originalPart.toLowerCase() === "cmd"
@@ -157,6 +154,10 @@ export function HotkeyButton({
   return (
     <Button
       {...props}
+      ref={(node) => {
+        internalRef.current = node;
+        assignRef(ref, node);
+      }}
       onClick={onClick}
       disabled={buttonDisabled}
       aria-busy={loading ? true : props["aria-busy"]}

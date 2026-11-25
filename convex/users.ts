@@ -1,16 +1,14 @@
 import { Doc } from "./_generated/dataModel";
 import { v } from "convex/values";
 import {
-  internalAction,
   mutation,
   query,
   QueryCtx,
   type MutationCtx,
 } from "./_generated/server";
-import { internal } from "./_generated/api";
 import { getClaimableGuestSessions } from "./guestSessions";
 import { verifyGuestSessionToken } from "./guestTokens";
-import { queueServiceSync, queueUrlSync } from "./serviceSync";
+import { queueServiceSync, queueUrlSync } from "./syncQueue";
 import { transferGuestLinkToAccount } from "./accountCounters";
 import {
   FREE_ACTIVE_LINK_LIMIT,
@@ -31,7 +29,6 @@ export const store = mutation({
   },
   returns: v.object({
     id: v.id("users"),
-    metadataUpdated: v.boolean(),
     membership: v.string(),
     claimedLinkCount: v.number(),
     /** This browser's guest ID now belongs to the account; issue a fresh one. */
@@ -51,25 +48,38 @@ export const store = mutation({
       .unique();
 
     if (existingUser !== null) {
-      if (typeof identity.name === "string" && existingUser.name !== identity.name) {
+      if (
+        typeof identity.name === "string" &&
+        existingUser.name !== identity.name
+      ) {
         await ctx.db.patch(existingUser._id, { name: identity.name });
       }
-      const { claimedLinkCount, guestSessionClaimed } = await claimGuestLinksForUser(
-        ctx,
-        existingUser,
-        args.guestId,
-        args.guestToken,
-      );
+      const { claimedLinkCount, guestSessionClaimed } =
+        await claimGuestLinksForUser(
+          ctx,
+          existingUser,
+          args.guestId,
+          args.guestToken,
+        );
 
-      await queueServiceSync(ctx, `owner:${existingUser._id}`, { kind: "owner", userId: existingUser._id,
-        ownerKeys: [existingUser._id, makeUserOwnerKey(existingUser._id)] });
-      if (!existingUser.metadataSyncedAt) await queueServiceSync(ctx, `clerk:${existingUser._id}`, {
-        kind: "clerk", userId: existingUser._id, clerkUserId: identity.subject,
-      });
+      if (!existingUser.externalSyncReady) {
+        await queueServiceSync(ctx, `owner:${existingUser._id}`, {
+          kind: "owner",
+          userId: existingUser._id,
+          ownerKeys: [existingUser._id, makeUserOwnerKey(existingUser._id)],
+        });
+        await ctx.db.patch(existingUser._id, { externalSyncReady: true });
+      }
+      if (!existingUser.metadataSyncedAt) {
+        await queueServiceSync(ctx, `clerk:${existingUser._id}`, {
+          kind: "clerk",
+          userId: existingUser._id,
+          clerkUserId: identity.subject,
+        });
+      }
 
       return {
         id: existingUser._id,
-        metadataUpdated: false,
         membership: existingUser.membership,
         claimedLinkCount,
         guestSessionClaimed,
@@ -85,6 +95,7 @@ export const store = mutation({
       email: identity.email ?? "",
       tokenIdentifier: identity.tokenIdentifier,
       countersReady: true,
+      externalSyncReady: true,
     });
 
     const newUser = await ctx.db.get(userId);
@@ -92,24 +103,25 @@ export const store = mutation({
       throw new Error("Failed to create user");
     }
 
-    // Extract Clerk user ID from identity.subject (this is the raw Clerk user_xxx ID)
     const clerkUserId = identity.subject;
 
-    await queueServiceSync(ctx, `clerk:${userId}`, { kind: "clerk", userId, clerkUserId });
+    await queueServiceSync(ctx, `clerk:${userId}`, {
+      kind: "clerk",
+      userId,
+      clerkUserId,
+    });
 
-    const { claimedLinkCount, guestSessionClaimed } = await claimGuestLinksForUser(
-      ctx,
-      newUser,
-      args.guestId,
-      args.guestToken,
-    );
+    const { claimedLinkCount, guestSessionClaimed } =
+      await claimGuestLinksForUser(ctx, newUser, args.guestId, args.guestToken);
 
-    await queueServiceSync(ctx, `owner:${userId}`, { kind: "owner", userId,
-      ownerKeys: [userId, makeUserOwnerKey(userId)] });
+    await queueServiceSync(ctx, `owner:${userId}`, {
+      kind: "owner",
+      userId,
+      ownerKeys: [userId, makeUserOwnerKey(userId)],
+    });
 
     return {
       id: userId,
-      metadataUpdated: false,
       membership,
       claimedLinkCount,
       guestSessionClaimed,
@@ -117,32 +129,20 @@ export const store = mutation({
   },
 });
 
-/** Compatibility for actions already scheduled before the migration. */
-export const syncMetadataToClerk = internalAction({
-  args: { convexUserId: v.id("users"), clerkUserId: v.string(), membership: v.string() },
-  returns: v.null(),
-  handler: async (ctx, args) => {
-    await ctx.runMutation(internal.serviceSync.enqueue, { key: `clerk:${args.convexUserId}`,
-      target: { kind: "clerk", userId: args.convexUserId, clerkUserId: args.clerkUserId } });
-    return null;
-  },
-});
-export const syncOwnerAliasesToIngest = internalAction({
-  args: { accountUserId: v.id("users"), ownerKeys: v.array(v.string()) },
-  returns: v.null(),
-  handler: async (ctx, args) => {
-    await ctx.runMutation(internal.serviceSync.enqueue, { key: `owner:${args.accountUserId}`,
-      target: { kind: "owner", userId: args.accountUserId, ownerKeys: args.ownerKeys } });
-    return null;
-  },
-});
-
 export const getAccountSyncState = query({
   args: {},
-  returns: v.union(v.null(), v.object({ userId: v.id("users"), metadataSyncedAt: v.optional(v.number()) })),
+  returns: v.union(
+    v.null(),
+    v.object({
+      userId: v.id("users"),
+      metadataSyncedAt: v.optional(v.number()),
+    }),
+  ),
   handler: async (ctx) => {
     const user = await getCurrentUser(ctx);
-    return user ? { userId: user._id, metadataSyncedAt: user.metadataSyncedAt } : null;
+    return user
+      ? { userId: user._id, metadataSyncedAt: user.metadataSyncedAt }
+      : null;
   },
 });
 
@@ -151,7 +151,11 @@ export const getViewerState = query({
   returns: v.object({
     userId: v.optional(v.id("users")),
     isSignedIn: v.boolean(),
-    membership: v.union(v.literal("free"), v.literal("pro"), v.literal("guest")),
+    membership: v.union(
+      v.literal("free"),
+      v.literal("pro"),
+      v.literal("guest"),
+    ),
     analyticsDays: v.optional(v.number()),
     activeLinkLimit: v.optional(v.number()),
     canUsePaidOptions: v.boolean(),
@@ -183,33 +187,16 @@ export const getViewerState = query({
   },
 });
 
-// ============================================================================
-// EXISTING HELPER FUNCTIONS
-// ============================================================================
-
-/**
- * Queries a user by their token identifier.
- * @param {QueryCtx} ctx - The query context.
- * @param {string} clerkUserId - The user's token identifier.
- * @returns {Promise<Doc<"users"> | null>} The user document or null if not found.
- **/
 export async function userQuery(
   ctx: QueryCtx,
   clerkUserId: string,
 ): Promise<Doc<"users"> | null> {
-  const user = await ctx.db
+  return await ctx.db
     .query("users")
     .withIndex("by_token", (q) => q.eq("tokenIdentifier", clerkUserId))
     .unique();
-
-  return user;
 }
 
-/**
- * Retrieves the current authenticated user's details.
- * @param {QueryCtx} ctx - The query context.
- * @returns {Promise<Doc<"users"> | null>} The current user's document or null if not authenticated.
- */
 export async function getCurrentUser(
   ctx: QueryCtx,
 ): Promise<Doc<"users"> | null> {
@@ -236,7 +223,9 @@ async function claimGuestLinksForUser(
     return { claimedLinkCount: 0, guestSessionClaimed: false };
   }
 
-  const guestIds = Array.from(new Set(sessions.map((session) => session.guestId)));
+  const guestIds = Array.from(
+    new Set(sessions.map((session) => session.guestId)),
+  );
   const now = Date.now();
   const ownerKeys = guestIds.map((value) => makeGuestOwnerKey(value));
   let claimedLinkCount = 0;
@@ -267,7 +256,6 @@ async function claimGuestLinksForUser(
 
       const claimedUrl = await ctx.db.get(url._id);
       if (claimedUrl) await queueUrlSync(ctx, claimedUrl);
-
     }
   }
 
@@ -281,7 +269,11 @@ async function claimGuestLinksForUser(
   }
 
   if (ownerKeys.length > 0) {
-    for (const ownerKey of ownerKeys) await queueServiceSync(ctx, `owner:${user._id}:${ownerKey}`, { kind: "owner", userId: user._id, ownerKeys: [ownerKey] });
+    await queueServiceSync(ctx, `owner:${user._id}`, {
+      kind: "owner",
+      userId: user._id,
+      ownerKeys: [user._id, makeUserOwnerKey(user._id), ...ownerKeys],
+    });
   }
 
   return { claimedLinkCount, guestSessionClaimed: true };

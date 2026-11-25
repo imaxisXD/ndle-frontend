@@ -1,11 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getServerFileProxyOrigin } from "@/lib/config";
+import { getFaviconRateLimit } from "@/lib/rateLimit";
 
-const DEFAULT_FILE_PROXY_URL =
-  "https://proxy-file-worker-prod.sunny735084.workers.dev";
-
-function getFileProxyUrl() {
-  return process.env.NEXT_PUBLIC_FILE_PROXY_URL || DEFAULT_FILE_PROXY_URL;
-}
+const FAVICON_FETCH_TIMEOUT_MS = 8_000;
 
 function readUrlParam(request: NextRequest) {
   const urlParam = request.nextUrl.searchParams.get("url")?.trim();
@@ -27,34 +24,54 @@ function readUrlParam(request: NextRequest) {
 export async function handleFaviconApiRequest(request: NextRequest) {
   const result = readUrlParam(request);
   if ("error" in result) {
-    return NextResponse.json({ error: result.error }, { status: 400 });
+    return NextResponse.json(
+      { error: result.error },
+      { status: 400, headers: { "Cache-Control": "no-store" } },
+    );
   }
 
-  const proxyUrl = new URL("/favicon", getFileProxyUrl());
-  proxyUrl.searchParams.set("url", result.urlParam);
+  const clientIp =
+    request.headers.get("cf-connecting-ip") ||
+    request.headers.get("x-real-ip") ||
+    "anonymous";
+  const rate = await getFaviconRateLimit().limit(`favicon:${clientIp}`);
+  if (!rate.success) {
+    return NextResponse.json(
+      { error: "Too many favicon requests. Try again shortly." },
+      { status: 429, headers: { "Cache-Control": "no-store" } },
+    );
+  }
 
   try {
+    const proxyUrl = new URL("/favicon", getServerFileProxyOrigin());
+    proxyUrl.searchParams.set("url", result.urlParam);
+
     const response = await fetch(proxyUrl.toString(), {
       headers: {
         Accept: "application/json",
       },
       cache: "no-store",
+      signal: AbortSignal.timeout(FAVICON_FETCH_TIMEOUT_MS),
     });
     const body = await response.text();
-    const contentType = response.headers.get("content-type") || "application/json";
+    const contentType =
+      response.headers.get("content-type") || "application/json";
+    const cacheControl =
+      response.status >= 500
+        ? "no-store"
+        : response.headers.get("cache-control") || "public, max-age=86400";
 
     return new NextResponse(body, {
       status: response.status,
       headers: {
-        "Cache-Control":
-          response.headers.get("cache-control") || "public, max-age=86400",
+        "Cache-Control": cacheControl,
         "Content-Type": contentType,
       },
     });
   } catch {
     return NextResponse.json(
       { error: "Favicon service is unavailable" },
-      { status: 503 },
+      { status: 503, headers: { "Cache-Control": "no-store" } },
     );
   }
 }

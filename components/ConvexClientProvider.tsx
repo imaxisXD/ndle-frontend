@@ -7,8 +7,16 @@ import { ConvexProviderWithClerk } from "convex/react-clerk";
 import { useEffect, useState, type ReactNode } from "react";
 import { releaseDuckDB } from "@/hooks/use-duckdb";
 
-if (!process.env.NEXT_PUBLIC_CONVEX_URL) throw new Error("Missing NEXT_PUBLIC_CONVEX_URL in your .env file");
-const convex = new ConvexReactClient(process.env.NEXT_PUBLIC_CONVEX_URL);
+let convexClient: ConvexReactClient | null = null;
+function getConvexClient(): ConvexReactClient {
+  if (!convexClient) {
+    if (!process.env.NEXT_PUBLIC_CONVEX_URL) {
+      throw new Error("Missing NEXT_PUBLIC_CONVEX_URL in your .env file");
+    }
+    convexClient = new ConvexReactClient(process.env.NEXT_PUBLIC_CONVEX_URL);
+  }
+  return convexClient;
+}
 
 function AccountQueryCache({ children, account }: { children: ReactNode; account: string | null }) {
   const [queryClient] = useState(() => new QueryClient({ defaultOptions: { queries: {
@@ -39,8 +47,9 @@ function AccountBoundary({ children }: { children: ReactNode }) {
 }
 
 export default function ConvexClientProvider({ children }: { children: ReactNode }) {
+  const [client] = useState(getConvexClient);
   return (
-    <ConvexProviderWithClerk client={convex} useAuth={useAuth}>
+    <ConvexProviderWithClerk client={client} useAuth={useAuth}>
       <AccountBoundary>{children}</AccountBoundary>
     </ConvexProviderWithClerk>
   );

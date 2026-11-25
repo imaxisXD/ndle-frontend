@@ -1,24 +1,17 @@
-import type { Metadata } from "next";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
+import { buildPageMetadata } from "@/lib/seo";
 import { FOCUS } from "@/app/home-2/_components/kit";
 import { Tag } from "./_components/chrome";
-import { BLOG_URL, POSTS, formatDate, type Post } from "./posts";
+import { POSTS, formatDate, type Post } from "./posts";
 
 const DESCRIPTION = "Guides to short links, QR codes and keeping links working, from the maker of ndle.";
 
-export const metadata: Metadata = {
+export const metadata = buildPageMetadata({
   title: "Blog | ndle",
   description: DESCRIPTION,
-  alternates: { canonical: "/blog" },
-  openGraph: {
-    type: "website",
-    title: "Blog | ndle",
-    description: DESCRIPTION,
-    url: BLOG_URL,
-    siteName: "ndle",
-  },
-};
+  path: "/blog",
+});
 
 export default function BlogIndex() {
   return (

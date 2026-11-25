@@ -1,72 +1,40 @@
 import { useQuery, keepPreviousData } from "@tanstack/react-query";
-
-const CACHE_KEY = "NDLE_QUERY_CACHE";
-
-/**
- * Get favicon URL from localStorage cache synchronously
- * This provides instant data before React Query hydration
- */
-function getFaviconFromCache(hostname: string): string | undefined {
-  if (typeof window === "undefined") return undefined;
-
-  try {
-    const cached = localStorage.getItem(CACHE_KEY);
-    if (!cached) return undefined;
-
-    const parsed = JSON.parse(cached);
-    const queries = parsed?.clientState?.queries;
-    if (!queries) return undefined;
-
-    const query = queries.find(
-      (q: { queryKey: unknown[] }) =>
-        q.queryKey[0] === "favicon" && q.queryKey[1] === hostname,
-    );
-
-    return query?.state?.data as string | undefined;
-  } catch {
-    return undefined;
-  }
-}
+import { getFaviconEndpoint } from "@/lib/config";
 
 /**
- * Hook to fetch favicon URL for a given URL
- * Uses hostname as cache key since favicons are per-domain
- * Implements aggressive caching with localStorage fallback
- *
- * @param url - The full URL to get favicon for
- * @returns { faviconUrl, isLoading, error }
+ * Hook to fetch favicon URL for a given URL.
+ * Uses hostname as cache key since favicons are per-domain.
  */
 export function useFavicon(url: string | null) {
-  // Extract hostname for cache key - favicons are per-domain, not per-URL
-  const hostname = url
+  const parsed = url
     ? (() => {
         try {
-          return new URL(url).hostname;
+          const parsedUrl = new URL(url);
+          return {
+            hostname: parsedUrl.hostname,
+            origin: parsedUrl.origin,
+          };
         } catch {
           return null;
         }
       })()
     : null;
-
-  // Get cached data synchronously for instant display
-  const cachedData = hostname ? getFaviconFromCache(hostname) : undefined;
+  const hostname = parsed?.hostname ?? null;
+  const origin = parsed?.origin ?? null;
 
   const {
     data: faviconUrl,
     isLoading,
     error,
   } = useQuery({
-    queryKey: ["favicon", hostname],
+    queryKey: ["favicon", origin],
     queryFn: async () => {
-      if (!url) return null;
+      if (!origin) return null;
 
-      // Use Cloudflare Worker for edge caching, fallback to the local proxy route.
-      const baseUrl = process.env.NEXT_PUBLIC_FILE_PROXY_URL || "";
-      const apiPath = baseUrl ? `${baseUrl}/favicon` : "/api/favicon";
-      const response = await fetch(`${apiPath}?url=${encodeURIComponent(url)}`);
+      const apiPath = getFaviconEndpoint();
+      const response = await fetch(`${apiPath}?url=${encodeURIComponent(origin)}`);
 
       if (!response.ok) {
-        // Throw on error so TanStack Query knows it failed and can retry
         throw new Error(`Favicon fetch failed: ${response.status}`);
       }
 
@@ -79,25 +47,20 @@ export function useFavicon(url: string | null) {
       return data.faviconUrl as string;
     },
     enabled: !!hostname,
-    // Provide cached data immediately - prevents loading state flash
-    initialData: cachedData,
-    // Keep showing previous data while refetching (if ever needed)
     placeholderData: keepPreviousData,
-    // Cache for 24 hours - allows retry after some time if failed
-    staleTime: 1000 * 60 * 60 * 24, // 24 hours
-    gcTime: 1000 * 60 * 60 * 24 * 30, // 30 days - keep in cache
-    refetchOnMount: false, // Don't refetch on mount
-    refetchOnWindowFocus: false, // Don't refetch on focus
-    refetchOnReconnect: false, // Don't refetch on reconnect
-    // Disable structural sharing for simple string data - slight perf boost
+    staleTime: 1000 * 60 * 60 * 24,
+    gcTime: 1000 * 60 * 60 * 24 * 30,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
     structuralSharing: false,
-    retry: 2, // Retry twice on failure
-    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 5000), // Exponential backoff
+    retry: 2,
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 5000),
   });
 
   return {
     faviconUrl: faviconUrl ?? null,
-    isLoading: isLoading && !cachedData, // Don't show loading if we have cached data
+    isLoading,
     error,
     hostname,
   };

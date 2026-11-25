@@ -1,7 +1,7 @@
 "use client";
 
 import { Component, type ReactNode } from "react";
-
+import { Button } from "@/components/ui/button";
 import {
   EmptyStateImage,
   type EmptyStateImageName,
@@ -11,6 +11,7 @@ type RouteStateBoundaryProps = {
   children: ReactNode;
   description: string;
   imageName: EmptyStateImageName;
+  resetKey?: string;
   title: string;
 };
 
@@ -28,6 +29,12 @@ export class RouteStateBoundary extends Component<
 
   static getDerivedStateFromError(): RouteStateBoundaryState {
     return { didFail: true };
+  }
+
+  componentDidUpdate(prevProps: RouteStateBoundaryProps) {
+    if (this.state.didFail && prevProps.resetKey !== this.props.resetKey) {
+      this.setState({ didFail: false });
+    }
   }
 
   componentDidCatch(error: unknown) {
@@ -49,6 +56,14 @@ export class RouteStateBoundary extends Component<
           <p className="text-muted-foreground mt-2 max-w-md text-xs">
             {this.props.description}
           </p>
+          <Button
+            className="mt-4"
+            size="sm"
+            variant="outline"
+            onClick={() => this.setState({ didFail: false })}
+          >
+            Try again
+          </Button>
         </div>
       );
     }

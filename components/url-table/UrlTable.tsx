@@ -80,6 +80,8 @@ import {
   cn,
   getMonitoringStatus,
 } from "@/lib/utils";
+import { getStatusBadgeVariant } from "@/lib/status-badge";
+import { useMinuteNow } from "@/hooks/use-minute-now";
 import { EmptyStateImage } from "@/components/empty-state-image";
 import { AnimatedMetricNumber } from "@/components/animated-metric-number";
 import { makeShortLinkWithDomain } from "@/lib/config";
@@ -100,7 +102,6 @@ interface UrlTableProps {
   headerDescription?: string;
   footerContent?: string;
   searchPlaceholder?: string;
-  queryArgs?: Record<string, unknown>;
   collectionId?: Id<"collections">;
 }
 
@@ -218,12 +219,13 @@ function ActionsMenuCell({
         render={
           <button
             type="button"
+            aria-label={`Actions for ${shortUrl}`}
             className="text-muted-foreground hover:bg-surface-hover hover:text-foreground rounded-md p-2 transition-colors"
             onClick={(e) => {
               e.stopPropagation();
             }}
           >
-            <MoreVertCircle className="size-4.5" />
+            <MoreVertCircle className="size-4.5" aria-hidden="true" />
           </button>
         }
       />
@@ -901,20 +903,6 @@ function getDisplayStatus(doc: UserUrlsResponse[number], now: number) {
   );
 }
 
-function getStatusBadgeVariant(
-  status: string,
-): "green" | "yellow" | "red" | "default" {
-  if (status === "healthy" || status === "healed") {
-    return "green";
-  }
-
-  if (status === "error" || status === "disabled") {
-    return "red";
-  }
-
-  return status === "warning" ? "yellow" : "default";
-}
-
 export function UrlTable({
   showSearch = false,
   showFilters = false,
@@ -928,11 +916,7 @@ export function UrlTable({
   searchPlaceholder = "Search links…",
   collectionId,
 }: UrlTableProps) {
-  const [now, setNow] = useState(() => Date.now());
-  useEffect(() => {
-    const timer = setInterval(() => setNow(Date.now()), 60_000);
-    return () => clearInterval(timer);
-  }, []);
+  const now = useMinuteNow();
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string | "all">("all");
   const [collectionFilter, setCollectionFilter] = useState<string | "all">(
@@ -1024,7 +1008,7 @@ export function UrlTable({
   } = usePaginatedQuery(
     api.urlLists.getUserUrlsPage,
     selectedCollectionId ? { collectionId: selectedCollectionId } : {},
-    { initialNumItems: 25 },
+    { initialNumItems: showPagination ? 25 : defaultPageSize },
   );
   const collectionIsUpdating =
     !!selectedCollectionData && !selectedCollectionData.membersReady;
@@ -1170,121 +1154,54 @@ export function UrlTable({
     }
   }, [urlToDelete, deleteUrl, add]);
 
+  // Rows render directly through <UrlDataRow /> and sorting is manual, so only header definitions are needed here.
   const columns = useMemo<ColumnDef<DisplayUrl>[]>(
     () => [
       {
         accessorKey: "status",
         header: () => <span className="text-sm font-medium">Status</span>,
-        cell: ({ row }) => {
-          const status = row.original.status;
-          const variant = getStatusBadgeVariant(status);
-          return (
-            <div className="pl-2">
-              <Badge
-                variant={variant}
-                className={
-                  status === "healed"
-                    ? "inline-flex items-center gap-1.5"
-                    : undefined
-                }
-              >
-                {status === "healed" && (
-                  <span className="bg-success h-1.5 w-1.5 rounded-full" />
-                )}
-                {status}
-              </Badge>
-            </div>
-          );
-        },
         enableSorting: false,
       },
       {
         accessorKey: "shortUrl",
         header: () => <span className="text-sm font-medium">Short Link</span>,
-        cell: ({ row }) => {
-          const url = row.original;
-          return (
-            <ShortUrlCell
-              shortUrl={url.shortUrl}
-              originalUrl={url.originalUrl}
-              onCopy={handleCopy}
-            />
-          );
-        },
         enableSorting: false,
       },
       {
         accessorKey: "clicks",
-        header: ({ column }) => {
-          return (
-            <SortableHeader
-              column={column}
-              label="Clicks"
-              ascTooltip="Sorted by clicks: least → most"
-              descTooltip="Sorted by clicks: most → least"
-              defaultTooltip="Sort by clicks"
-            />
-          );
-        },
+        header: ({ column }) => (
+          <SortableHeader
+            column={column}
+            label="Clicks"
+            ascTooltip="Sorted by clicks: least → most"
+            descTooltip="Sorted by clicks: most → least"
+            defaultTooltip="Sort by clicks"
+          />
+        ),
         enableSorting: true,
         sortDescFirst: true,
-        sortingFn: (rowA, rowB) => rowA.original.clicks - rowB.original.clicks,
-        cell: ({ row }) => {
-          return (
-            <div className="flex flex-col items-start justify-center">
-              <p className="pl-5 text-sm font-medium tabular-nums">
-                <ClickCountNumber
-                  clickCountId={row.original.id}
-                  startingClicks={row.original.clicks}
-                />
-              </p>
-              <p className="text-muted-foreground text-xs">[clicks]</p>
-            </div>
-          );
-        },
       },
       {
         accessorKey: "createdAt",
-        header: ({ column }) => {
-          return (
-            <SortableHeader
-              column={column}
-              label="Created"
-              ascTooltip="Sorted by date: oldest first"
-              descTooltip="Sorted by date: newest first"
-              defaultTooltip="Sort by date"
-            />
-          );
-        },
+        header: ({ column }) => (
+          <SortableHeader
+            column={column}
+            label="Created"
+            ascTooltip="Sorted by date: oldest first"
+            descTooltip="Sorted by date: newest first"
+            defaultTooltip="Sort by date"
+          />
+        ),
         enableSorting: true,
         sortDescFirst: true,
-        sortingFn: (rowA, rowB) =>
-          rowA.original.createdAt - rowB.original.createdAt,
-        cell: ({ row }) => {
-          return (
-            <p className="text-muted-foreground text-xs">
-              {formatRelative(row.original.createdAt)}
-            </p>
-          );
-        },
       },
       {
         id: "actions",
         // Narrow tables hide this heading visually (app/globals.css).
         header: () => <span className="text-sm font-medium">Options</span>,
-        cell: ({ row }) => {
-          const url = row.original;
-          return (
-            <ActionsMenuCell
-              shortUrl={url.shortUrl}
-              onNavigateToAnalytics={handleNavigateToAnalytics}
-              onDeleteClick={handleDeleteClick}
-            />
-          );
-        },
       },
     ],
-    [handleCopy, handleNavigateToAnalytics, handleDeleteClick],
+    [],
   );
 
   const table = useReactTable({
@@ -1539,7 +1456,7 @@ export function UrlTable({
                     table.setPageIndex(Number(value) - 1)
                   }
                 >
-                  <SelectTrigger className="px-2">
+                  <SelectTrigger aria-label="Select page" className="px-2">
                     <SelectValue placeholder="Page" />
                   </SelectTrigger>
                   <SelectContent>

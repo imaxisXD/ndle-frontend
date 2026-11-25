@@ -9,5 +9,5 @@ export default {
     incrementalCache: staticAssetsIncrementalCache,
     enableCacheInterception: true,
   }),
-  buildCommand: "npm run build",
+  buildCommand: "pnpm run build",
 };

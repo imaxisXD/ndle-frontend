@@ -10,7 +10,7 @@ import {
   type QueryCtx,
 } from "./_generated/server";
 import schema from "./schema";
-import { queueServiceSync } from "./serviceSync";
+import { queueServiceSync } from "./syncQueue";
 
 type DomainTarget = {
   hostname: string;

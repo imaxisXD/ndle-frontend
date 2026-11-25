@@ -105,6 +105,7 @@ export function GlassFolder({
   lift = true,
   hovered,
   open = false,
+  staticPreview = false,
   className,
 }: {
   /** Full URLs whose favicons fill the sheets, newest first. Only three are shown. */
@@ -122,6 +123,8 @@ export function GlassFolder({
   /** Controlled hover state. When omitted the folder tracks its own pointer. */
   hovered?: boolean;
   open?: boolean;
+  /** Skip live /api/favicon fetches (for decorative marketing illustrations). */
+  staticPreview?: boolean;
   className?: string;
 }) {
   const [pointer, setPointer] = useState(false);
@@ -164,7 +167,7 @@ export function GlassFolder({
             animate={place[pose]}
             transition={{ ...SPRING, delay: pose === "open" ? i * 0.04 : 0 }}
           >
-            <Sheet url={url} />
+            <Sheet url={url} staticPreview={staticPreview} />
           </motion.span>
         ))}
       </span>
@@ -202,12 +205,49 @@ export function GlassFolder({
   );
 }
 
+const STATIC_BRAND_COLORS: Record<string, string> = {
+  "github.com": "#181717",
+  "vercel.com": "#000000",
+  "figma.com": "#a259ff",
+  "notion.so": "#191919",
+  "linear.app": "#5e6ad2",
+  "slack.com": "#4a154b",
+  "youtube.com": "#ff0000",
+  "spotify.com": "#1db954",
+  "soundcloud.com": "#ff5500",
+};
+
+function parseDisplayHost(rawUrl: string): string {
+  try {
+    return new URL(rawUrl).hostname.replace(/^www\./, "");
+  } catch {
+    return rawUrl;
+  }
+}
+
 /** A link preview sheet: favicon and host on top, a preview block under it. */
-function Sheet({ url }: { url: string | null }) {
+function Sheet({
+  url,
+  staticPreview,
+}: {
+  url: string | null;
+  staticPreview: boolean;
+}) {
   const [failed, setFailed] = useState(false);
-  const { faviconUrl, isLoading, hostname } = useFavicon(url);
+  const { faviconUrl, isLoading, hostname } = useFavicon(
+    staticPreview ? null : url,
+  );
+  const displayHost = url ? (hostname ?? parseDisplayHost(url)) : null;
+
   const icon =
-    isLoading || !faviconUrl || failed ? (
+    staticPreview && displayHost ? (
+      <span
+        className="flex size-full items-center justify-center rounded-[1.5cqw] font-mono text-[4cqw] font-bold text-white uppercase"
+        style={{ background: STATIC_BRAND_COLORS[displayHost] ?? "#52525b" }}
+      >
+        {displayHost[0]}
+      </span>
+    ) : isLoading || !faviconUrl || failed ? (
       <GlobeSimpleIcon weight="duotone" className="size-full text-zinc-400" />
     ) : (
       <Image
@@ -226,7 +266,9 @@ function Sheet({ url }: { url: string | null }) {
       {url ? (
         <span className="flex items-center gap-[2cqw]">
           <span className="size-[5.3cqw] shrink-0">{icon}</span>
-          <span className="truncate text-[3.5cqw] leading-none font-medium text-zinc-700">{hostname ?? url}</span>
+          <span className="truncate text-[3.5cqw] leading-none font-medium text-zinc-700">
+            {displayHost}
+          </span>
         </span>
       ) : (
         <span className="block h-[2cqw] w-[70%] rounded-full bg-zinc-200" />

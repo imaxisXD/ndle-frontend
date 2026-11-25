@@ -4,12 +4,12 @@ import { internal } from "./_generated/api";
 const crons = cronJobs();
 
 // Check pending custom domains every 2 minutes and update status
-// when SSL becomes active. This provides a delightful UX where users
-// see their domain go from "Pending" to "Active" automatically.
+// when SSL becomes active.
 crons.interval(
   "check-pending-custom-domains",
   { minutes: 2 },
-  internal.customDomains.checkAllPendingDomains,
+  internal.domainSync.queuePendingDomainPage,
+  { cursor: null },
 );
 
 // Unverified custom domains expire 7 days after they were added.
@@ -34,29 +34,9 @@ crons.interval(
 );
 
 crons.interval(
-  "backfill-architecture-records",
-  { minutes: 1 },
-  internal.architectureMigration.advance,
-);
-crons.interval(
   "trim-live-click-history",
-  { minutes: 1 },
+  { hours: 1 },
   internal.architectureMigration.trimLiveHistory,
-);
-
-crons.interval(
-  "backfill-collection-members",
-  { minutes: 1 },
-  internal.collectionMangament.migrateCollectionMembers,
-);
-
-// Copy the platform click total into the public stats row. Readers on the
-// landing page see at most one update per interval, however busy links get.
-crons.interval(
-  "refresh-public-stats",
-  { seconds: 30 },
-  internal.publicStats.refresh,
-  {},
 );
 
 export default crons;

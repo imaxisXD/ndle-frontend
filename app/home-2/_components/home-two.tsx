@@ -1,5 +1,6 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { useEffect, useState, type CSSProperties } from "react";
 import { useAuth, useClerk } from "@clerk/nextjs";
 import { makeShortLink } from "@/lib/config";
@@ -15,7 +16,11 @@ import type { Auth } from "./kit";
 import { SiteNav } from "./site-nav";
 import { Statement } from "./statement";
 import type { YourLink } from "./your-link-pages";
-import { YourLinkTakeover } from "./your-link-takeover";
+
+const YourLinkTakeover = dynamic(
+  () => import("./your-link-takeover").then((m) => m.YourLinkTakeover),
+  { ssr: false },
+);
 
 /* ─────────────────────────────────────────────────────────
  * HERO STORYBOARD   (CSS, runs before hydration)

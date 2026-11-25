@@ -7,7 +7,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { BklitVerticalBarChart } from "@/components/charts/bklit-chart-kit";
+import { BklitVerticalBarChart } from "@/components/charts/bklit-bar-charts";
 import { Clock } from "iconoir-react";
 
 export const description = "An area chart showing hourly click activity";

@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import {
   Card,
   CardContent,
@@ -8,19 +7,9 @@ import {
   CardTitle,
   CardToolbar,
 } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { formatRelative } from "@/lib/utils";
-import {
-  Link,
-  Clock,
-  AntennaSignal,
-  EditPencil,
-  Check,
-  Xmark,
-} from "iconoir-react";
+import { Link, Clock, AntennaSignal } from "iconoir-react";
 import { QrCodeIcon } from "@phosphor-icons/react/dist/ssr";
 
 interface LinkSettingsPanelProps {
@@ -34,8 +23,6 @@ interface LinkSettingsPanelProps {
     logoMode?: "brand" | "custom" | "none";
   };
   creationTime?: number;
-  onUpdateTracking?: (enabled: boolean) => void;
-  onUpdateDestination?: (url: string) => void;
 }
 
 export function LinkSettingsPanel({
@@ -45,24 +32,7 @@ export function LinkSettingsPanel({
   qrEnabled = false,
   qrStyle,
   creationTime,
-  onUpdateTracking,
-  onUpdateDestination,
 }: LinkSettingsPanelProps) {
-  const [isEditingUrl, setIsEditingUrl] = useState(false);
-  const [editedUrl, setEditedUrl] = useState(fullUrl);
-
-  const handleSaveUrl = () => {
-    if (onUpdateDestination) {
-      onUpdateDestination(editedUrl);
-    }
-    setIsEditingUrl(false);
-  };
-
-  const handleCancelEdit = () => {
-    setEditedUrl(fullUrl);
-    setIsEditingUrl(false);
-  };
-
   const isExpired = expiresAt ? expiresAt < Date.now() : false;
   const expirationText = expiresAt
     ? isExpired
@@ -76,58 +46,16 @@ export function LinkSettingsPanel({
       <Card>
         <CardHeader>
           <div className="flex items-center gap-2">
-            <Link className="text-muted-foreground size-4" />
+            <Link className="text-muted-foreground size-4" aria-hidden="true" />
             <CardTitle className="text-sm font-medium">
               Destination URL
             </CardTitle>
           </div>
-          <CardToolbar>
-            {!isEditingUrl ? (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setIsEditingUrl(true)}
-                disabled // Disabled for now - just UI
-                className="gap-1.5 text-xs"
-              >
-                <EditPencil className="size-3.5" />
-                Edit
-              </Button>
-            ) : (
-              <div className="flex gap-1">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleSaveUrl}
-                  className="gap-1 text-xs text-green-600 hover:text-green-700"
-                >
-                  <Check className="size-3.5" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleCancelEdit}
-                  className="gap-1 text-xs text-red-600 hover:text-red-700"
-                >
-                  <Xmark className="size-3.5" />
-                </Button>
-              </div>
-            )}
-          </CardToolbar>
         </CardHeader>
         <CardContent>
-          {isEditingUrl ? (
-            <Input
-              value={editedUrl}
-              onChange={(e) => setEditedUrl(e.target.value)}
-              placeholder="https://example.com"
-              className="text-sm"
-            />
-          ) : (
-            <p className="text-muted-foreground line-clamp-2 text-sm break-all">
-              {fullUrl || "No destination set"}
-            </p>
-          )}
+          <p className="text-muted-foreground line-clamp-2 text-sm break-all">
+            {fullUrl || "No destination set"}
+          </p>
         </CardContent>
       </Card>
 
@@ -135,7 +63,10 @@ export function LinkSettingsPanel({
       <Card>
         <CardHeader>
           <div className="flex items-center gap-2">
-            <AntennaSignal className="text-muted-foreground size-4" />
+            <AntennaSignal
+              className="text-muted-foreground size-4"
+              aria-hidden="true"
+            />
             <CardTitle className="text-sm font-medium">
               Analytics Tracking
             </CardTitle>
@@ -147,25 +78,11 @@ export function LinkSettingsPanel({
           </CardToolbar>
         </CardHeader>
         <CardContent>
-          <div className="flex items-center gap-3">
-            <Checkbox
-              id="tracking-toggle"
-              checked={trackingEnabled}
-              onCheckedChange={(checked) => {
-                if (onUpdateTracking) {
-                  onUpdateTracking(checked === true);
-                }
-              }}
-              disabled // Disabled for now - just UI
-              size="md"
-            />
-            <label
-              htmlFor="tracking-toggle"
-              className="text-muted-foreground cursor-pointer text-sm"
-            >
-              Track clicks, devices, and locations
-            </label>
-          </div>
+          <p className="text-muted-foreground text-sm">
+            {trackingEnabled
+              ? "Tracks clicks, devices, referrers, and locations."
+              : "Click analytics tracking is turned off for this link."}
+          </p>
         </CardContent>
       </Card>
 
@@ -173,7 +90,7 @@ export function LinkSettingsPanel({
       <Card>
         <CardHeader>
           <div className="flex items-center gap-2">
-            <Clock className="text-muted-foreground size-4" />
+            <Clock className="text-muted-foreground size-4" aria-hidden="true" />
             <CardTitle className="text-sm font-medium">Expiration</CardTitle>
           </div>
           <CardToolbar>
@@ -201,6 +118,7 @@ export function LinkSettingsPanel({
             <QrCodeIcon
               className="text-muted-foreground size-4"
               strokeWidth={1.4}
+              aria-hidden="true"
             />
             <CardTitle className="text-sm font-medium">QR Code</CardTitle>
           </div>

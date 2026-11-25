@@ -1,6 +1,13 @@
 "use client";
 
-import { useMemo, useState, useEffect, type ElementType } from "react";
+import {
+  lazy,
+  Suspense,
+  useMemo,
+  useState,
+  useEffect,
+  type ElementType,
+} from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { useAnalyticsV2 } from "@/hooks/useAnalyticsV2";
 import { getAnalyticsDateWindow } from "@/lib/analytics-date-window";
@@ -12,30 +19,23 @@ import NumberFlow from "@number-flow/react";
 import { useQuery } from "convex-helpers/react/cache/hooks";
 import { api } from "@/convex/_generated/api";
 import { TopLinksChart } from "@/components/charts/top-links-chart";
-import { FilterBar } from "@/components/filter-bar";
 import {
-  CursorClickIcon,
-  LinkIcon,
-} from "@phosphor-icons/react";
+  DEFAULT_ANALYTICS_FILTERS,
+  FilterBar,
+  FREE_TIME_RANGE_OPTIONS,
+  type AnalyticsFilterState,
+} from "@/components/filter-bar";
+import { CursorClickIcon, LinkIcon } from "@phosphor-icons/react";
 import { UTMAnalyticsPanel } from "@/components/UTMAnalyticsPanel";
 import type { UTMAnalyticsData } from "@/types/utm-analytics";
-import { AgenticChartChat } from "@/components/agentic-charts";
 import { EmptyStateImage } from "@/components/empty-state-image";
 import { getAnalyticsTopLinks } from "@/lib/analytics-top-links";
 
-const freeTimeRangeOptions = [
-  {
-    value: "24h",
-    label: "Today (UTC)",
-    displayValue: "Today (UTC)",
-  },
-  { value: "7d", label: "Last 7 days", displayValue: "Last 7 days" },
-  {
-    value: "30d",
-    label: "Last 30 days",
-    displayValue: "Last 30 days",
-  },
-] satisfies Array<{ value: string; label: string; displayValue: string }>;
+const AgenticChartChat = lazy(() =>
+  import("@/components/agentic-charts").then((m) => ({
+    default: m.AgenticChartChat,
+  })),
+);
 
 const defaultFilterOptions = {
   country: [{ value: "all", label: "All Countries" }],
@@ -43,11 +43,10 @@ const defaultFilterOptions = {
   browser: [{ value: "all", label: "All Browsers" }],
   os: [{ value: "all", label: "All OS" }],
   link: [{ value: "all", label: "All Links" }],
-} satisfies Record<string, Array<{ value: string; label: string }>>;
+};
 
 function TotalClicksCard() {
-  const totalClicksFromConvex = useQuery(api.urlAnalytics.getUsersTotalClicks);
-  const totalClicks = totalClicksFromConvex;
+  const totalClicks = useQuery(api.urlAnalytics.getUsersTotalClicks);
 
   return (
     <Card>
@@ -58,12 +57,19 @@ function TotalClicksCard() {
               Clicks on Active Links
             </p>
             <div className="mt-2 text-2xl font-medium">
-              {totalClicks == null ? <Skeleton className="h-8 w-16" /> : <NumberFlow value={totalClicks} />}
+              {totalClicks == null ? (
+                <Skeleton className="h-8 w-16" />
+              ) : (
+                <NumberFlow value={totalClicks} />
+              )}
             </div>
             <div className="text-muted-foreground mt-1 text-xs">Real-time</div>
           </div>
           <div className="bg-muted rounded-lg p-3">
-            <CursorClickIcon className="text-muted-foreground h-5 w-5" />
+            <CursorClickIcon
+              className="text-muted-foreground h-5 w-5"
+              aria-hidden="true"
+            />
           </div>
         </div>
       </CardContent>
@@ -100,7 +106,7 @@ function OverviewStatCard({
             <div className="text-muted-foreground mt-1 text-xs">{change}</div>
           </div>
           <div className="bg-muted rounded-lg p-3">
-            <Icon className="text-muted-foreground h-5 w-5" />
+            <Icon className="text-muted-foreground h-5 w-5" aria-hidden="true" />
           </div>
         </div>
       </CardContent>
@@ -116,8 +122,13 @@ function AnalyticsOverviewCards({
   const linkCount = useQuery(api.urlAnalytics.getUsersLinkCount);
   return (
     <div className="grid gap-4 md:grid-cols-2">
-      <OverviewStatCard label="Total Links" value={linkCount ?? 0} change="Active links in your account"
-        Icon={LinkIcon} showSkeleton={showSkeleton || linkCount == null} />
+      <OverviewStatCard
+        label="Total Links"
+        value={linkCount ?? 0}
+        change="Active links in your account"
+        Icon={LinkIcon}
+        showSkeleton={showSkeleton || linkCount == null}
+      />
       <TotalClicksCard />
     </div>
   );
@@ -128,18 +139,13 @@ export function Analytics() {
   const isPro = viewer?.membership === "pro";
   const isDevMode = process.env.NODE_ENV === "development";
   const canUseAiChartBuilder = isDevMode && isPro;
-  // Filter state
-  const [timeRange, setTimeRange] = useState("30d");
-  const [countryFilter, setCountryFilter] = useState("all");
-  const [deviceFilter, setDeviceFilter] = useState("all");
-  const [browserFilter, setBrowserFilter] = useState("all");
-  const [osFilter, setOSFilter] = useState("all");
-  const [linkFilter, setLinkFilter] = useState("all");
-  const [excludeBots, setExcludeBots] = useState(false);
 
-  const { start, end } = getAnalyticsDateWindow(timeRange);
+  const [filters, setFilters] = useState<AnalyticsFilterState>(
+    DEFAULT_ANALYTICS_FILTERS,
+  );
 
-  // Fetch V2 API data - pre-aggregated from server
+  const { start, end } = getAnalyticsDateWindow(filters.timeRange);
+
   const {
     data: serverData,
     isPending,
@@ -148,17 +154,33 @@ export function Analytics() {
   } = useAnalyticsV2({
     start,
     end,
-    filters: { country: countryFilter, device: deviceFilter, browser: browserFilter, os: osFilter, link: linkFilter, excludeBots },
+    filters: {
+      country: filters.country,
+      device: filters.device,
+      browser: filters.browser,
+      os: filters.os,
+      link: filters.link,
+      excludeBots: filters.excludeBots,
+    },
     pollingInterval: 10000,
   });
 
   const showSkeleton = isPending && !serverData;
   const analyticsData = serverData ?? null;
   const isLoading = showSkeleton;
-  const topSlugs = useMemo(() => getAnalyticsTopLinks(analyticsData?.linkCounts ?? {})
-    .map(link => link.url), [analyticsData?.linkCounts]);
-  const topLinkDetails = useQuery(api.urlMainFuction.getLinkDetailsBySlugs, { slugs: topSlugs });
-  const urlsLoading = showSkeleton || topLinkDetails === undefined;
+  const topSlugs = useMemo(
+    () =>
+      getAnalyticsTopLinks(analyticsData?.linkCounts ?? {}).map(
+        (link) => link.url,
+      ),
+    [analyticsData?.linkCounts],
+  );
+  const topLinkDetails = useQuery(
+    api.urlMainFuction.getLinkDetailsBySlugs,
+    topSlugs.length > 0 ? { slugs: topSlugs } : "skip",
+  );
+  const urlsLoading =
+    showSkeleton || (topSlugs.length > 0 && topLinkDetails === undefined);
 
   const utmData: UTMAnalyticsData | null = analyticsData
     ? {
@@ -197,92 +219,62 @@ export function Analytics() {
       }
     : null;
 
-  // Get filter options from data
   const filterOptions = analyticsData?.filterOptions ?? defaultFilterOptions;
-
-  const timeRangeOptions = isPro ? undefined : freeTimeRangeOptions;
+  const timeRangeOptions = isPro ? undefined : FREE_TIME_RANGE_OPTIONS;
 
   useEffect(() => {
-    if (isPro) {
-      return;
+    if (isPro) return;
+    if (!["24h", "7d", "30d"].includes(filters.timeRange)) {
+      setFilters((prev) => ({ ...prev, timeRange: "30d" }));
     }
+  }, [isPro, filters.timeRange]);
 
-    if (!["24h", "7d", "30d"].includes(timeRange)) {
-      setTimeRange("30d");
-    }
-  }, [isPro, timeRange]);
-
-  // Clicks by day of week for the chart
   const clicksData = useMemo(() => {
     const daysOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
     const grouped: Record<string, number> = {};
-
-    daysOfWeek.forEach((day) => {
-      grouped[day] = 0;
-    });
+    for (const day of daysOfWeek) grouped[day] = 0;
 
     if (analyticsData?.clicksByDay) {
-      Object.entries(analyticsData.clicksByDay || {}).forEach(
-        ([dayStr, count]) => {
-          const date = new Date(dayStr).toLocaleDateString("en-US", {
-            weekday: "short",
-            timeZone: "UTC",
-          });
-
-          if (grouped[date] !== undefined) {
-            grouped[date] = (grouped[date] || 0) + count;
-          }
-        },
-      );
+      for (const [dayStr, count] of Object.entries(analyticsData.clicksByDay)) {
+        const weekday = new Date(dayStr).toLocaleDateString("en-US", {
+          weekday: "short",
+          timeZone: "UTC",
+        });
+        if (grouped[weekday] !== undefined) {
+          grouped[weekday] += count;
+        }
+      }
     }
 
     return daysOfWeek.map((day) => ({ day, clicks: grouped[day] }));
   }, [analyticsData?.clicksByDay]);
 
-  // Top Countries
   const topCountries = useMemo(() => {
     if (!analyticsData?.countryCounts) return [];
-
-    const total = Object.values(analyticsData.countryCounts).reduce(
-      (sum, c) => sum + c,
-      0,
-    );
-
-    return Object.entries(analyticsData.countryCounts || {})
+    return Object.entries(analyticsData.countryCounts)
       .sort(([, a], [, b]) => b - a)
-      .map(([country, clicks]) => ({
-        country,
-        clicks,
-        percentage: total > 0 ? Math.round((clicks / total) * 100) : 0,
-      }));
+      .map(([country, clicks]) => ({ country, clicks }));
   }, [analyticsData?.countryCounts]);
 
-  const topLinks = useMemo(() => getAnalyticsTopLinks(
-    analyticsData?.linkCounts ?? {}, topLinkDetails ?? [],
-  ), [topLinkDetails, analyticsData?.linkCounts]);
+  const topReferrers = useMemo(() => {
+    if (!analyticsData?.refererCounts) return [];
+    return Object.entries(analyticsData.refererCounts)
+      .map(([domain, clicks]) => ({ domain, clicks: Number(clicks) }))
+      .sort((a, b) => b.clicks - a.clicks);
+  }, [analyticsData?.refererCounts]);
+
+  const topLinks = useMemo(
+    () =>
+      getAnalyticsTopLinks(analyticsData?.linkCounts ?? {}, topLinkDetails ?? []),
+    [topLinkDetails, analyticsData?.linkCounts],
+  );
 
   const filterBar = (
     <FilterBar
-      timeRange={timeRange}
-      onTimeRangeChange={setTimeRange}
+      filters={filters}
+      onFiltersChange={setFilters}
+      options={filterOptions}
       timeRangeOptions={timeRangeOptions}
-      linkFilter={linkFilter}
-      onLinkFilterChange={setLinkFilter}
-      linkOptions={filterOptions.link}
-      countryFilter={countryFilter}
-      onCountryFilterChange={setCountryFilter}
-      countryOptions={filterOptions.country}
-      deviceFilter={deviceFilter}
-      onDeviceFilterChange={setDeviceFilter}
-      deviceOptions={filterOptions.device}
-      browserFilter={browserFilter}
-      onBrowserFilterChange={setBrowserFilter}
-      browserOptions={filterOptions.browser}
-      osFilter={osFilter}
-      onOSFilterChange={setOSFilter}
-      osOptions={filterOptions.os}
-      excludeBots={excludeBots}
-      onExcludeBotsChange={setExcludeBots}
     />
   );
 
@@ -309,10 +301,6 @@ export function Analytics() {
     );
   }
 
-  const chartAiLockMessage = !isDevMode
-    ? "This works only in dev mode right now."
-    : "This is locked for free users. Use a Pro account in dev mode.";
-
   return (
     <div className="space-y-6">
       {filterBar}
@@ -324,19 +312,7 @@ export function Analytics() {
       <div className="grid gap-6 lg:grid-cols-2">
         <ClicksChart data={clicksData} isLoading={isLoading} />
         <CountryChart data={topCountries} isLoading={isLoading} />
-        <ReferrerChart
-          data={
-            analyticsData?.refererCounts
-              ? Object.entries(analyticsData.refererCounts)
-                  .map(([domain, clicks]) => ({
-                    domain,
-                    clicks: Number(clicks),
-                  }))
-                  .sort((a, b) => b.clicks - a.clicks)
-              : []
-          }
-          isLoading={isLoading}
-        />
+        <ReferrerChart data={topReferrers} isLoading={isLoading} />
       </div>
 
       {/* Top Performing Links */}
@@ -351,23 +327,35 @@ export function Analytics() {
         <UTMAnalyticsPanel data={utmData} isLoading={isLoading} />
       </div>
 
-      {/* AI Chart Generation Chat */}
-      <div className="mt-8">
-        {canUseAiChartBuilder ? (
-          <AgenticChartChat />
-        ) : (
+      {/* AI Chart Generation Chat — lazy-loaded in development only */}
+      {canUseAiChartBuilder ? (
+        <div className="mt-8">
+          <Suspense
+            fallback={
+              <Card>
+                <CardContent className="p-6">
+                  <Skeleton className="h-24 w-full" />
+                </CardContent>
+              </Card>
+            }
+          >
+            <AgenticChartChat />
+          </Suspense>
+        </div>
+      ) : isDevMode ? (
+        <div className="mt-8">
           <Card>
             <CardContent className="p-6">
               <div className="space-y-2">
                 <p className="text-base font-medium">Ask AI to Create Charts</p>
                 <p className="text-muted-foreground text-sm">
-                  {chartAiLockMessage}
+                  This is locked for free users. Use a Pro account in dev mode.
                 </p>
               </div>
             </CardContent>
           </Card>
-        )}
-      </div>
+        </div>
+      ) : null}
     </div>
   );
 }

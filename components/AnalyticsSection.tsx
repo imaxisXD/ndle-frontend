@@ -5,8 +5,6 @@ import { BrowserChart } from "@/components/charts/browser-chart";
 import { CountryChart } from "@/components/charts/country-chart";
 import { DeviceOSChart } from "@/components/charts/device-os-chart";
 import { BotTrafficChart } from "@/components/charts/bot-traffic-chart";
-
-import { HourlyActivityChart } from "@/components/charts/hourly-activity-chart";
 import {
   ReferrerChart,
   type ReferrerData,
@@ -28,7 +26,6 @@ export function AnalyticsSection({
   deviceData,
   osData,
   botHumanData,
-  hourlyActivityData,
   referrerData,
   variantData,
   variantMap,
@@ -43,7 +40,6 @@ export function AnalyticsSection({
   deviceData: Array<{ device: string; clicks: number }>;
   osData: Array<{ os: string; clicks: number }>;
   botHumanData: Array<{ name: string; value: number; color: string }> | null;
-  hourlyActivityData: Array<{ hour: string; clicks: number }> | null;
   referrerData: Array<ReferrerData>;
   variantData?: Array<{
     variant_id: string;
@@ -147,20 +143,6 @@ export function AnalyticsSection({
           </CardHeader>
           <CardContent className="text-muted-foreground text-sm">
             Human and bot counts are unavailable for this date range.
-          </CardContent>
-        </Card>
-      )}
-      {/* <LatencyChart data={latencyBuckets} isLoading={isLoading} /> */}
-      {hourlyActivityData ? (
-        <HourlyActivityChart data={hourlyActivityData} isLoading={isLoading} />
-      ) : (
-        <Card>
-          <CardHeader>
-            <CardTitle>Hourly Activity</CardTitle>
-          </CardHeader>
-          <CardContent className="text-muted-foreground text-sm">
-            Hourly activity is unavailable for this date range. Daily totals are
-            shown above.
           </CardContent>
         </Card>
       )}

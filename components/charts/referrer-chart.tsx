@@ -1,27 +1,7 @@
 "use client";
 
-import { useMemo } from "react";
-import {
-  Card,
-  CardContent,
-  CardTitle,
-  CardDescription,
-  CardHeader,
-  CardFooter,
-} from "@/components/ui/card";
-import { BklitHorizontalBarChart } from "@/components/charts/bklit-chart-kit";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-  DialogBody,
-} from "@/components/ui/base-dialog";
-import { Button } from "@/components/ui/button";
-import { Expand, Link } from "iconoir-react";
-
-import { cn } from "@/lib/utils";
+import { Link } from "iconoir-react";
+import { ExpandableBarChartCard } from "@/components/charts/expandable-bar-chart-card";
 
 function normalizeReferrerHost(domain: string): string {
   const trimmed = domain.trim().toLowerCase();
@@ -42,31 +22,43 @@ function matchesDomain(host: string, domain: string): boolean {
   return host === domain || host.endsWith(`.${domain}`);
 }
 
-/** Convert domain to friendly display name */
+const EXACT_REFERRERS: Record<string, string> = {
+  "t.co": "Twitter",
+  "x.com": "X",
+  "fb.com": "Facebook",
+  "youtu.be": "YouTube",
+  "t.me": "Telegram",
+  "wa.me": "WhatsApp",
+  direct: "Direct",
+  other: "Other",
+};
+
+const DOMAIN_REFERRERS: ReadonlyArray<[string, string]> = [
+  ["google.com", "Google"],
+  ["twitter.com", "Twitter"],
+  ["linkedin.com", "LinkedIn"],
+  ["facebook.com", "Facebook"],
+  ["instagram.com", "Instagram"],
+  ["youtube.com", "YouTube"],
+  ["reddit.com", "Reddit"],
+  ["github.com", "GitHub"],
+  ["tiktok.com", "TikTok"],
+  ["pinterest.com", "Pinterest"],
+  ["medium.com", "Medium"],
+  ["discord.com", "Discord"],
+  ["discord.gg", "Discord"],
+  ["telegram.org", "Telegram"],
+  ["whatsapp.com", "WhatsApp"],
+  ["slack.com", "Slack"],
+];
+
 function getFriendlyName(domain: string): string {
-  const d = normalizeReferrerHost(domain);
-
-  if (matchesDomain(d, "google.com")) return "Google";
-  if (matchesDomain(d, "twitter.com") || d === "t.co") return "Twitter";
-  if (d === "x.com") return "X";
-  if (matchesDomain(d, "linkedin.com")) return "LinkedIn";
-  if (matchesDomain(d, "facebook.com") || d === "fb.com") return "Facebook";
-  if (matchesDomain(d, "instagram.com")) return "Instagram";
-  if (matchesDomain(d, "youtube.com") || d === "youtu.be") return "YouTube";
-  if (matchesDomain(d, "reddit.com")) return "Reddit";
-  if (matchesDomain(d, "github.com")) return "GitHub";
-  if (matchesDomain(d, "tiktok.com")) return "TikTok";
-  if (matchesDomain(d, "pinterest.com")) return "Pinterest";
-  if (matchesDomain(d, "medium.com")) return "Medium";
-  if (matchesDomain(d, "discord.com") || matchesDomain(d, "discord.gg"))
-    return "Discord";
-  if (matchesDomain(d, "telegram.org") || d === "t.me") return "Telegram";
-  if (matchesDomain(d, "whatsapp.com") || d === "wa.me") return "WhatsApp";
-  if (matchesDomain(d, "slack.com")) return "Slack";
-  if (d === "direct") return "Direct";
-  if (d === "other") return "Other";
-
-  return d;
+  const host = normalizeReferrerHost(domain);
+  if (EXACT_REFERRERS[host]) return EXACT_REFERRERS[host];
+  for (const [candidate, label] of DOMAIN_REFERRERS) {
+    if (matchesDomain(host, candidate)) return label;
+  }
+  return host;
 }
 
 export interface ReferrerData {
@@ -85,101 +77,21 @@ export function ReferrerChart({
   limit?: number;
   className?: string;
 }) {
-  const sortedData = useMemo(() => {
-    if (!data || data.length === 0) return [];
-
-    const totalClicks = data.reduce((sum, item) => sum + item.clicks, 0);
-
-    return data
-      .slice()
-      .sort((a, b) => b.clicks - a.clicks)
-      .map((item) => ({
-        domain: item.domain,
-        clicks: item.clicks,
-        percentage:
-          totalClicks > 0 ? Math.round((item.clicks / totalClicks) * 100) : 0,
-      }));
-  }, [data]);
-
-  const chartData = useMemo(() => {
-    return sortedData.slice(0, limit);
-  }, [sortedData, limit]);
-
   return (
-    <Card className={cn("flex h-full flex-col", className)}>
-      <CardHeader>
-        <div className="flex w-full items-center justify-between gap-3">
-          <div className="flex min-w-0 flex-col gap-1">
-            <CardTitle className="flex items-center gap-2 font-medium">
-              <Link className="size-5" />
-              Traffic Sources
-            </CardTitle>
-            <CardDescription className="text-xs">
-              Where your clicks are coming from
-            </CardDescription>
-          </div>
-          {sortedData.length > limit && (
-            <Dialog>
-              <DialogTrigger
-                render={
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="hover:bg-surface-hover hover:text-foreground"
-                  >
-                    <Expand className="h-4 w-4" />
-                  </Button>
-                }
-              />
-              <DialogContent className="flex flex-col gap-5 sm:max-w-2xl">
-                <DialogHeader>
-                  <DialogTitle>All Traffic Sources</DialogTitle>
-                </DialogHeader>
-                <DialogBody className="p-2">
-                  <div className="max-h-[70vh] overflow-y-auto px-2 py-4">
-                    <BklitHorizontalBarChart
-                      barWidth={28}
-                      data={sortedData}
-                      heightClassName="h-auto"
-                      labelFormatter={(value) => getFriendlyName(String(value))}
-                      labelKey="domain"
-                      labelWidth={132}
-                      style={{
-                        height: `${Math.max(sortedData.length * 40, 200)}px`,
-                      }}
-                      valueKey="clicks"
-                    />
-                  </div>
-                </DialogBody>
-              </DialogContent>
-            </Dialog>
-          )}
-        </div>
-      </CardHeader>
-      <CardContent>
-        <BklitHorizontalBarChart
-          barWidth={28}
-          data={chartData}
-          emptyDescription="No referrer data available."
-          emptyTitle="No referrer data"
-          heightClassName="h-[280px]"
-          isLoading={isLoading}
-          labelFormatter={(value) => getFriendlyName(String(value))}
-          labelKey="domain"
-          labelWidth={132}
-          valueKey="clicks"
-        />
-      </CardContent>
-      {!isLoading && chartData.length > 0 && (
-        <CardFooter className="flex-col items-start gap-2 pt-4 text-sm">
-          <div className="text-muted-foreground flex w-full items-center justify-between text-xs">
-            <span>Total sources</span>
-            <span className="text-foreground font-medium">
-              [{sortedData.length}]
-            </span>
-          </div>
-        </CardFooter>
-      )}
-    </Card>
+    <ExpandableBarChartCard
+      title="Traffic Sources"
+      description="Where your clicks are coming from"
+      dialogTitle="All Traffic Sources"
+      expandLabel="View all traffic sources"
+      icon={<Link className="size-5" aria-hidden="true" />}
+      data={data}
+      labelKey="domain"
+      labelFormatter={(value) => getFriendlyName(String(value))}
+      emptyTitle="No referrer data"
+      emptyDescription="No traffic source data available."
+      isLoading={isLoading}
+      limit={limit}
+      className={className}
+    />
   );
 }

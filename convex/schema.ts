@@ -11,7 +11,9 @@ export default defineSchema({
     metadataSyncedAt: v.optional(v.number()),
     countersReady: v.optional(v.boolean()),
     externalSyncReady: v.optional(v.boolean()),
-  }).index("by_token", ["tokenIdentifier"]).index("by_externalSyncReady", ["externalSyncReady"]),
+  })
+    .index("by_token", ["tokenIdentifier"])
+    .index("by_externalSyncReady", ["externalSyncReady"]),
   guest_sessions: defineTable({
     guestId: v.string(),
     email: v.optional(v.string()),
@@ -22,8 +24,6 @@ export default defineSchema({
     ownerAliasSynced: v.optional(v.boolean()),
   })
     .index("by_guest_id", ["guestId"])
-    .index("by_email", ["email"])
-    .index("by_claimed_user", ["claimedUserId"])
     .index("by_ownerAliasSynced", ["ownerAliasSynced"]),
   urls: defineTable({
     fullurl: v.string(),
@@ -95,12 +95,12 @@ export default defineSchema({
     .index("by_slug", ["slugAssigned"])
     .index("by_user", ["userTableId"])
     .index("by_guest", ["guestId"])
-    .index("by_fullurl", ["fullurl"])
     .index("by_user_slug", ["userTableId", "slugAssigned"])
-    .index("by_guest_slug", ["guestId", "slugAssigned"])
-    .index("by_owner_key", ["analyticsOwnerKey"])
     .index("by_accountCountersIncluded", ["accountCountersIncluded"])
-    .index("by_user_and_accountCountersIncluded", ["userTableId", "accountCountersIncluded"])
+    .index("by_user_and_accountCountersIncluded", [
+      "userTableId",
+      "accountCountersIncluded",
+    ])
     // Both are read with a _creationTime range to count recent guest links.
     .index("by_guestNetworkKey", ["guestNetworkKey"])
     .index("by_ownershipState", ["ownershipState"]),
@@ -110,6 +110,7 @@ export default defineSchema({
     reason: v.string(),
     createdAt: v.number(),
   }).index("by_domain", ["domain"]),
+  // Kept for backwards compatibility with existing legacy documents; no longer written on new links.
   urlAnalytics: defineTable({
     urlId: v.id("urls"),
     urlStatusCode: v.optional(v.number()),
@@ -123,27 +124,36 @@ export default defineSchema({
     createdAt: v.number(),
   })
     .index("by_request_id", ["requestId"])
-    .index("by_url", ["urlId"])
     .index("by_createdAt", ["createdAt"]),
   serviceSyncJobs: defineTable({
     key: v.string(),
     target: serviceSyncTarget,
     version: v.number(),
-    status: v.union(v.literal("pending"), v.literal("running"), v.literal("complete")),
+    status: v.union(
+      v.literal("pending"),
+      v.literal("running"),
+      v.literal("complete"),
+    ),
     runningVersion: v.optional(v.number()),
     attempts: v.number(),
     nextAttemptAt: v.number(),
     updatedAt: v.number(),
     lastError: v.optional(v.string()),
-  }).index("by_key", ["key"]).index("by_status_and_nextAttemptAt", ["status", "nextAttemptAt"]),
+  })
+    .index("by_key", ["key"])
+    .index("by_status_and_nextAttemptAt", ["status", "nextAttemptAt"]),
   processedHealthChecks: defineTable({
     checkId: v.string(),
     urlId: v.id("urls"),
     checkedAt: v.number(),
     createdAt: v.number(),
-  }).index("by_checkId", ["checkId"]).index("by_createdAt", ["createdAt"]).index("by_urlId", ["urlId"]),
+  })
+    .index("by_checkId", ["checkId"])
+    .index("by_createdAt", ["createdAt"]),
   linkHealthChecks: defineTable({
-    lastKnownHealthStatus: v.optional(v.union(v.literal("up"), v.literal("down"), v.literal("degraded"))),
+    lastKnownHealthStatus: v.optional(
+      v.union(v.literal("up"), v.literal("down"), v.literal("degraded")),
+    ),
     urlId: v.id("urls"),
     userId: v.optional(v.id("users")),
     guestId: v.optional(v.string()),
@@ -163,11 +173,7 @@ export default defineSchema({
     monitoringVersion: v.optional(v.number()),
     errorMessage: v.optional(v.string()),
     checkedAt: v.number(),
-  })
-    .index("by_url_id", ["urlId"])
-    .index("by_user_id", ["userId"])
-    .index("by_guest_id", ["guestId"])
-    .index("by_url_and_time", ["urlId", "checkedAt"]),
+  }).index("by_url_id", ["urlId"]),
 
   // Daily rollups for uptime % calculation (1 row per URL per day)
   linkHealthDailySummary: defineTable({
@@ -181,11 +187,7 @@ export default defineSchema({
     unknownChecks: v.optional(v.number()),
     avgLatencyMs: v.number(),
     incidentCount: v.number(),
-  })
-    .index("by_url_and_date", ["urlId", "date"])
-    .index("by_user_and_date", ["userId", "date"])
-    .index("by_guest_and_date", ["guestId", "date"])
-    .index("by_url_id", ["urlId"]),
+  }).index("by_url_and_date", ["urlId", "date"]),
 
   // Individual incident events for "Recent Incidents" list
   linkIncidents: defineTable({
@@ -203,7 +205,6 @@ export default defineSchema({
     createdAt: v.number(),
   })
     .index("by_user_recent", ["userId", "createdAt"])
-    .index("by_guest_recent", ["guestId", "createdAt"])
     .index("by_url_id", ["urlId"]),
   collections: defineTable({
     name: v.string(),
@@ -221,7 +222,6 @@ export default defineSchema({
     memberMigrationOffset: v.optional(v.number()),
     linkCount: v.optional(v.number()),
   })
-    .index("by_urls", ["urls"])
     .index("by_user", ["userTableId"])
     .index("by_user_and_normalizedName", ["userTableId", "normalizedName"])
     .index("by_membersReady", ["membersReady"]),
@@ -231,7 +231,9 @@ export default defineSchema({
     userId: v.id("users"),
     clicksIncluded: v.optional(v.boolean()),
     countedClicks: v.optional(v.number()),
-  }).index("by_urlId", ["urlId"]).index("by_collectionId_and_urlId", ["collectionId", "urlId"]),
+  })
+    .index("by_urlId", ["urlId"])
+    .index("by_collectionId_and_urlId", ["collectionId", "urlId"]),
 
   custom_domains: defineTable({
     userId: v.id("users"),
@@ -256,32 +258,8 @@ export default defineSchema({
     ownershipVerifiedAt: v.optional(v.number()),
   })
     .index("by_user", ["userId"])
-    .index("by_domain", ["domain"])
     .index("by_status", ["status"])
     .index("by_domain_and_status", ["domain", "status"]),
-  // UTM Templates for reusable UTM configurations
-  utm_templates: defineTable({
-    userId: v.id("users"),
-    name: v.string(),
-    utmSource: v.optional(v.string()),
-    utmMedium: v.optional(v.string()),
-    utmCampaign: v.optional(v.string()),
-    utmTerm: v.optional(v.string()),
-    utmContent: v.optional(v.string()),
-    usageCount: v.number(),
-    createdAt: v.number(),
-  })
-    .index("by_user", ["userId"])
-    .index("by_user_and_name", ["userId", "name"]),
-
-  // Aggregates that are safe to show on public pages, one row per stat.
-  // A cron refreshes them, so public readers never touch the hot counters.
-  publicStats: defineTable({
-    name: v.string(),
-    total: v.number(),
-    updatedAt: v.number(),
-    seededAt: v.optional(v.number()),
-  }).index("by_name", ["name"]),
 
   // Click events for real-time activity tracking
   clickEvents: defineTable({
@@ -298,9 +276,6 @@ export default defineSchema({
     os: v.string(),
     referer: v.optional(v.string()),
   })
-    .index("by_link_slug", ["linkSlug", "occurredAt"])
-    .index("by_user", ["userId", "occurredAt"])
-    .index("by_guest", ["guestId", "occurredAt"])
     .index("by_url", ["urlId", "occurredAt"])
     .index("by_occurredAt", ["occurredAt"]),
 });

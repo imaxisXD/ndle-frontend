@@ -1,5 +1,5 @@
 import { PaperPlaneRightIcon, SparkleIcon, UserIcon } from "@phosphor-icons/react/dist/ssr";
-import { BklitVerticalBarChart } from "@/components/charts/bklit-chart-kit";
+import { BklitVerticalBarChart } from "@/components/charts/bklit-bar-charts";
 import { HourlyActivityChart } from "@/components/charts/hourly-activity-chart";
 import { cn } from "@/lib/utils";
 import { HOURLY_CLICKS } from "./sample-data";

@@ -9,12 +9,9 @@ import { expect, test } from "vitest";
 // shadow-raised / floating / modal elevations, and bg-surface-hover for hover
 // fills. This test keeps hand-picked grays and shadows from creeping back.
 
-const ROOTS = ["components", "routes", "app/static-app-shell"];
+const ROOTS = ["components", "routes", "app/_app-shell"];
 
-const EXCLUDED_FILES = new Set([
-  // Not rendered anywhere.
-  "components/GuestShortenerCard.tsx",
-]);
+const EXCLUDED_FILES = new Set<string>();
 
 const RULES = [
   {

@@ -7,7 +7,7 @@ import {
   GUEST_CREDENTIAL_COOKIE,
   verifyGuestSessionCredential,
   verifyGuestSessionToken,
-} from "@/convex/guestTokens";
+} from "@/lib/guest-token";
 
 const newSessionLimit = vi.hoisted(() => ({ keys: [] as string[], allow: true }));
 vi.mock("@/lib/rateLimit", () => ({

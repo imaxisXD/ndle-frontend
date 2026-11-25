@@ -14,7 +14,8 @@ import {
 } from "@/components/ui/card";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useToast } from "@/hooks/use-toast";
-import { useMutation, useQuery } from "convex/react";
+import { useMutation } from "convex/react";
+import { useQuery } from "convex-helpers/react/cache/hooks";
 import { api } from "@/convex/_generated/api";
 import { ConvexError } from "convex/values";
 import type { Id } from "@/convex/_generated/dataModel";
@@ -23,7 +24,7 @@ import { useForm, useWatch } from "react-hook-form";
 import type { FieldErrors } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import validator from "validator";
+import { isValidWebUrl } from "@/lib/url-safety";
 import {
   Form,
   FormControl,
@@ -60,11 +61,7 @@ const urlFormSchema = z
       .refine(
         (val) => {
           if (!val) return true;
-          return validator.isURL(val, {
-            protocols: ["http", "https"],
-            require_protocol: false,
-            require_valid_protocol: true,
-          });
+          return isValidWebUrl(val);
         },
         {
           message: "Please enter a valid link",
@@ -144,6 +141,37 @@ const urlFormSchema = z
 
 export type UrlFormValues = z.infer<typeof urlFormSchema>;
 
+const DEFAULT_URL_FORM_VALUES: UrlFormValues = {
+  url: "",
+  slugMode: "random",
+  expiresEnabled: false,
+  expiresAt: "",
+  expireMode: "none",
+  utmEnabled: false,
+  utmSource: "",
+  utmMedium: "",
+  utmCampaign: "",
+  utmTerm: "",
+  utmContent: "",
+  abEnabled: false,
+  abVariants: [{ url: "", weight: 50 }],
+  qrEnabled: false,
+  qrSize: 200,
+  qrMargin: 2,
+  qrFg: "#000000",
+  qrBg: "#ffffff",
+  qrTransparentBg: false,
+  qrIncludeMargin: true,
+  qrEcc: "H",
+  qrLogoMode: "brand",
+  qrLogoScale: 0.18,
+  qrCustomLogoUrl: "",
+  collectionId: "",
+  newCollectionName: "",
+  newCollectionColor: "",
+  trackingEnabled: true,
+};
+
 export function UrlShortener() {
   const [currentUrl, setCurrentUrl] = useState<string | null>(null);
   const [selectedDomain, setSelectedDomain] =
@@ -160,36 +188,7 @@ export function UrlShortener() {
     resolver: zodResolver(urlFormSchema),
     mode: "onSubmit",
     reValidateMode: "onChange",
-    defaultValues: {
-      url: "",
-      slugMode: "random",
-      expiresEnabled: false,
-      expiresAt: "",
-      expireMode: "none",
-      utmEnabled: false,
-      utmSource: "",
-      utmMedium: "",
-      utmCampaign: "",
-      utmTerm: "",
-      utmContent: "",
-      abEnabled: false,
-      abVariants: [{ url: "", weight: 50 }],
-      qrEnabled: false,
-      qrSize: 200,
-      qrMargin: 2,
-      qrFg: "#000000",
-      qrBg: "#ffffff",
-      qrTransparentBg: false,
-      qrIncludeMargin: true,
-      qrEcc: "H",
-      qrLogoMode: "brand",
-      qrLogoScale: 0.18,
-      qrCustomLogoUrl: "",
-      collectionId: "",
-      newCollectionName: "",
-      newCollectionColor: "",
-      trackingEnabled: true,
-    },
+    defaultValues: DEFAULT_URL_FORM_VALUES,
   });
 
   const { isSubmitting } = form.formState;
@@ -395,34 +394,7 @@ export function UrlShortener() {
 
       // Reset form to defaults, keeping only the generated short URL for optional previews
       form.reset({
-        url: "",
-        slugMode: "random",
-        expiresEnabled: false,
-        expiresAt: "",
-        expireMode: "none",
-        utmEnabled: false,
-        utmSource: "",
-        utmMedium: "",
-        utmCampaign: "",
-        utmTerm: "",
-        utmContent: "",
-        abEnabled: false,
-        abVariants: [{ url: "", weight: 50 }],
-        qrEnabled: false,
-        qrSize: 200,
-        qrMargin: 2,
-        qrFg: "#000000",
-        qrBg: "#ffffff",
-        qrTransparentBg: false,
-        qrIncludeMargin: true,
-        qrEcc: "H",
-        qrLogoMode: "brand",
-        qrLogoScale: 0.18,
-        qrCustomLogoUrl: "",
-        collectionId: "",
-        newCollectionName: "",
-        newCollectionColor: "",
-        trackingEnabled: true,
+        ...DEFAULT_URL_FORM_VALUES,
         shortUrl: finalShort,
       });
       setCurrentUrl(null);
@@ -434,8 +406,6 @@ export function UrlShortener() {
             ? error.data
             : (error.data as { message: string }).message
           : "An unexpected error occurred while creating the link";
-      console.log("error", error);
-      console.log("message", message);
       add({
         type: "error",
         title: "We couldn't shorten that",
@@ -682,7 +652,6 @@ export function UrlShortener() {
                 hotkey={isSubmitting ? "" : "meta + enter"}
                 type="submit"
                 loading={isSubmitting}
-                onClick={() => form.handleSubmit(onSubmit, onInvalid)()}
                 disabled={!mainUrl || isSubmitting || hasAbDuplicateError}
                 className="bg-accent hover:bg-accent/90 w-36 rounded-sm text-sm font-medium text-black drop-shadow-none transition-shadow duration-75 ease-out hover:drop-shadow-sm disabled:cursor-not-allowed disabled:opacity-60"
               >

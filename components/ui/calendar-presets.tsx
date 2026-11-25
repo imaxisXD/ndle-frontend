@@ -143,7 +143,6 @@ export function CalendarPreset({
                     )}
                     onClick={() => {
                       if (locked) {
-                        console.log("locked");
                         onUpgradeClick?.();
                         setOpen(false);
                         return;

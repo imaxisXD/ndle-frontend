@@ -6,7 +6,7 @@ import {
   deriveGuestNetworkKey,
   readGuestSessionToken,
   GUEST_CREDENTIAL_COOKIE,
-} from "@/convex/guestTokens";
+} from "@/lib/guest-token";
 
 export async function POST(request: NextRequest) {
   const origin = request.headers.get("origin");

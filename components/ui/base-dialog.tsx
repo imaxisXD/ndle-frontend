@@ -1,6 +1,6 @@
 import * as React from "react";
 import { cn } from "@/lib/utils";
-import { buttonVariants } from "@/components/ui/base-button";
+import { buttonVariants } from "@/components/ui/button";
 import { Dialog as DialogPrimitive } from "@base-ui/react/dialog";
 import { XmarkCircle } from "iconoir-react";
 
@@ -119,7 +119,7 @@ function DialogContent({
             // Fixed 36px target. It used to inherit the dialog's className,
             // so a dialog with `p-0` shrank the button to 20px wide.
             className={cn(
-              buttonVariants({ variant: "dim" }),
+              buttonVariants({ variant: "ghost" }),
               "group absolute end-2 top-2 size-9 p-0 hover:bg-red-200/10",
             )}
           >

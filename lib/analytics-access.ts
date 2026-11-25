@@ -30,15 +30,27 @@ export function getDateWindowAccessError(
   start: string,
   end: string,
   viewerPlan?: AnalyticsViewerPlan | null,
+  now = new Date(),
 ): string | null {
   const startTime = Date.parse(`${start}T00:00:00.000Z`);
   const endTime = Date.parse(`${end}T00:00:00.000Z`);
   if (!Number.isFinite(startTime) || !Number.isFinite(endTime)) {
     return "Invalid date range";
   }
+  if (viewerPlan === "pro") {
+    return null;
+  }
 
   const inclusiveDays = Math.floor((endTime - startTime) / DAY_MS) + 1;
-  return viewerPlan === "pro" || inclusiveDays <= 30
+  const todayUtcMs = Date.UTC(
+    now.getUTCFullYear(),
+    now.getUTCMonth(),
+    now.getUTCDate(),
+  );
+  // The 30d preset starts at todayUtc - 29d; allow 1 day of UTC rollover tolerance.
+  const oldestFreeStartMs = todayUtcMs - 30 * DAY_MS;
+
+  return inclusiveDays <= 30 && startTime >= oldestFreeStartMs
     ? null
     : "This analytics date range requires a Pro plan.";
 }

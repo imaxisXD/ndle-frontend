@@ -13,7 +13,6 @@
     "binding": "ASSETS",
   },
   "vars": {
-    "CONVEX_DEPLOYMENT": "prod:cheery-starling-175",
     "NEXT_PUBLIC_CONVEX_URL": "https://cheery-starling-175.convex.cloud",
     "NEXT_PUBLIC_SHORT_DOMAIN": "ndle.fyi",
     "NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY": "pk_live_Y2xlcmsubmRsZS5hcHAk",

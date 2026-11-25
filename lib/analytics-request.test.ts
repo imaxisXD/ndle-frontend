@@ -150,7 +150,6 @@ describe("link analytics section", () => {
         deviceData: [],
         osData: [],
         botHumanData: null,
-        hourlyActivityData: null,
         referrerData: [],
         isLoading: false,
         status,

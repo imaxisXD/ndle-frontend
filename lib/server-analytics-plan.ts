@@ -1,13 +1,15 @@
 import type { AnalyticsViewerPlan } from "@/lib/analytics-access";
 
-type GetClerkToken = (options: {
+export type GetClerkToken = (options: {
   template?: "convex";
   skipCache?: boolean;
 }) => Promise<string | null>;
+
 export type SignedInAnalyticsViewer = {
   userId: string;
   plan: AnalyticsViewerPlan;
 };
+
 export const ANALYTICS_READ_TIMEOUT_MS = 10_000;
 
 /** Ingest reads use their own scoped secret when configured. */
@@ -15,18 +17,21 @@ export function getAnalyticsReadSecret(): string | undefined {
   return process.env.ANALYTICS_READ_SECRET || process.env.API_SECRET;
 }
 
-/** Resolve the account from the authenticated identity, without waiting for Clerk metadata sync. */
-export async function getSignedInAnalyticsViewer(
+/** Run an authenticated Convex query using the caller's Clerk JWT. */
+export async function queryConvexAsUser<T>(
   getToken: GetClerkToken,
-): Promise<SignedInAnalyticsViewer | null> {
-  const convexUrl = process.env.NEXT_PUBLIC_CONVEX_URL;
+  path: string,
+  args: Record<string, unknown> = {},
+  timeoutMs = 5_000,
+): Promise<T | null> {
+  const convexUrl = process.env.CONVEX_URL || process.env.NEXT_PUBLIC_CONVEX_URL;
   if (!convexUrl) return null;
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), 5_000);
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
   const stopped = new Promise<never>((_, reject) => {
     controller.signal.addEventListener(
       "abort",
-      () => reject(new Error("Account lookup timed out")),
+      () => reject(new Error("Convex lookup timed out")),
       { once: true },
     );
   });
@@ -44,8 +49,8 @@ export async function getSignedInAnalyticsViewer(
         Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify({
-        path: "users:getViewerState",
-        args: {},
+        path,
+        args,
         format: "json",
       }),
       cache: "no-store",
@@ -54,24 +59,36 @@ export async function getSignedInAnalyticsViewer(
     if (!response.ok) return null;
     const result = (await response.json()) as {
       status?: unknown;
-      value?: { userId?: unknown; membership?: unknown };
+      value?: T;
     };
-    const userId = result.value?.userId;
-    const plan = result.value?.membership;
-    if (
-      result.status !== "success" ||
-      typeof userId !== "string" ||
-      !userId ||
-      userId.length > 256 ||
-      !["free", "pro", "guest"].includes(String(plan))
-    )
-      return null;
-    return { userId, plan: plan as AnalyticsViewerPlan };
+    if (result.status !== "success") return null;
+    return result.value ?? null;
   } catch {
     return null;
   } finally {
     clearTimeout(timer);
   }
+}
+
+/** Resolve the account from the authenticated identity, without waiting for Clerk metadata sync. */
+export async function getSignedInAnalyticsViewer(
+  getToken: GetClerkToken,
+): Promise<SignedInAnalyticsViewer | null> {
+  const value = await queryConvexAsUser<{
+    userId?: unknown;
+    membership?: unknown;
+  }>(getToken, "users:getViewerState");
+  const userId = value?.userId;
+  const plan = value?.membership;
+  if (
+    typeof userId !== "string" ||
+    !userId ||
+    userId.length > 256 ||
+    !["free", "pro", "guest"].includes(String(plan))
+  ) {
+    return null;
+  }
+  return { userId, plan: plan as AnalyticsViewerPlan };
 }
 
 /** Compatibility for callers that only need the current plan. */
